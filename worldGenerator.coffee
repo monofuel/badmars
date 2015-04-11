@@ -48,6 +48,7 @@ exports.generate = (name,iSize,seed) ->
   generatedWorld.water = 2
   generatedWorld.seed = seed
   generatedWorld.vertex_grid = []
+  generatedWorld.movement_grid = []
 
   for x in [0..chunk_size-1]
     generatedWorld.vertex_grid[x] = []

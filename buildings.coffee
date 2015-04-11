@@ -40,7 +40,7 @@ Buildings = [
   }
 ]
 
-
+#TODO: this might need to be re-done as a hashmap
 exports.get = (name) ->
   for item in Buildings
     if item.name == name

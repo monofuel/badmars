@@ -2,8 +2,14 @@ db = require('./db.js')
 WorldGenerator = require('./worldGenerator.js')
 Units = require('./units.js')
 Buildings = require('./buildings.js')
+Net = require('./net.js')
 readline = require('readline')
 rl = {}
+
+#------------------------------------------------------------
+# Settings
+
+port = 7005
 
 #------------------------------------------------------------
 # Commands
@@ -117,4 +123,7 @@ db.init()
 console.log('DB Loaded')
 #WorldGenerator.init()
 #console.log('World Generator Loaded')
+Net.init(port)
+console.log('Networking loaded')
+console.log('listening on port: ' + port)
 init() #init ourselves
