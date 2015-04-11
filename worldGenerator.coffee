@@ -6,12 +6,15 @@ simplex = {}
 exports.init = () ->
   simplex = new SimplexNoise(Math.random)
 
-exports.generate = (name) ->
-  iSize = 32 - 1                  #size of the total world
+exports.generate = (name,iSize) ->
+  #subtract 1 from isize so that the
+  #map properly loops
+  iSize = iSize - 1
+
   fRds = iSize                    # the radius of the planet
   fRdsSin = .5*iSize/(2*Math.PI)
   fNoiseScale = .3
-  chunk_size = 32                 #size of the chunk to generate
+  chunk_size = iSize + 1          # generate the entire world at once
 
   noise = (x,y) ->
     fNX = (x+.5)/iSize
