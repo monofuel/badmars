@@ -28,5 +28,4 @@ exports.addWorld = (world) ->
   worldDoc = new World(world)
   worldDoc.save(func = (err,badMars) ->
     console.error(err) if (err)
-    console.log(badMars)
   )
