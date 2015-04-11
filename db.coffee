@@ -11,7 +11,28 @@ worldSchema = mongoose.Schema({
   vertex_grid: Mixed
 })
 
+ResourceSchema = mongoose.Schema({
+  type: String
+  rate: Number
+  location: Array
+})
+
+BuildingSchema = mongoose.Schema({
+  type: String
+  rate: Number
+  location: Array
+})
+
+unitSchema = mongoose.Schema({
+  type: String
+  rate: Number
+  location: Array
+})
+
 World = mongoose.model('World',worldSchema)
+Resource = mongoose.model('World',resourceSchema)
+Building = mongoose.model('World',buildingSchema)
+Unit = mongoose.model('World',unitSchema)
 
 #------------------------------------------------------------
 
