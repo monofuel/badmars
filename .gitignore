@@ -2,6 +2,9 @@
 badMars.js
 worldGenerator.js
 db.js
+buildings.js
+units.js
+net.js
 
 
 #github git ignore for nodejs
