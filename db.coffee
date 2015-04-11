@@ -68,3 +68,6 @@ exports.addWorld = (world) ->
   worldDoc.save( (err,badMars) ->
     console.error(err) if (err)
   )
+
+#exports.getWorld = (name) ->
+#exports.listWorlds = () ->
