@@ -7,4 +7,7 @@ dependencies:
 features:
   generates worlds and stores them in a db
 
-also included is a viewing client thing in client/
+also included is a viewing client thing in ./client/
+
+TODO:
+  setup client to load map from server instead of generate one
