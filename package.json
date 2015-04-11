@@ -4,8 +4,9 @@
   "description": "random node.js project in coffeescript",
   "main": "badMars.js",
   "dependencies": {
+    "express": "^4.12.3",
     "mongoose": "^4.0.1",
-    "readline": "^0.0.7",
+    "readline": "0.0.7",
     "simplex-noise": "^2.1.1",
     "ws": "^0.7.1"
   },
