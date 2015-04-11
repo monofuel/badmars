@@ -15,20 +15,22 @@ worldSchema = mongoose.Schema({
 resourceSchema = mongoose.Schema({
   type: String
   rate: Number
-  location: Array
+  location: [Number]
 })
 
 buildingSchema = mongoose.Schema({
   type: String
   rate: Number
-  location: Array
+  location: [Number]
+  construct_queue: [String]
   Owner: Number
 })
 
 unitSchema = mongoose.Schema({
   type: String
   rate: Number
-  location: Array
+  constructing: String
+  location: [Number]
 })
 
 World = mongoose.model('World',worldSchema)
@@ -57,12 +59,12 @@ exports.init = () ->
   db = mongoose.connection
   db.on('error',console.error.bind(console,'mongo connection error: '))
 
-  db.once('open', func = (callback) ->
+  db.once('open', (callback) ->
     exports.Ready = true
   )
 
 exports.addWorld = (world) ->
   worldDoc = new World(world)
-  worldDoc.save(func = (err,badMars) ->
+  worldDoc.save( (err,badMars) ->
     console.error(err) if (err)
   )
