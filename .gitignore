@@ -1,3 +1,8 @@
+#ignore js files that should be generated from coffeescript
+badMars.js
+worldGenerator.js
+db.js
+
 
 #github git ignore for nodejs
 #https://github.com/github/gitignore/blob/master/Node.gitignore
