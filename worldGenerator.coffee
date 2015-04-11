@@ -3,10 +3,13 @@ simplex = {}
 
 #------------------------------------------------------------
 
-exports.init = () ->
-  simplex = new SimplexNoise(Math.random)
+#exports.init = () ->
 
-exports.generate = (name,iSize) ->
+exports.generate = (name,iSize,seed) ->
+  if (!seed)
+    seed = Math.random
+  simplex = new SimplexNoise(seed)
+
   #subtract 1 from isize so that the
   #map properly loops
   iSize = iSize - 1
@@ -43,6 +46,7 @@ exports.generate = (name,iSize) ->
 
   generatedWorld.name = name
   generatedWorld.water = 2
+  generatedWorld.seed = seed
   generatedWorld.vertex_grid = []
 
   for x in [0..chunk_size-1]

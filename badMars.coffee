@@ -78,6 +78,6 @@ init = () ->
 
 db.init()
 console.log('DB Loaded')
-WorldGenerator.init()
-console.log('World Generator Loaded')
+#WorldGenerator.init()
+#console.log('World Generator Loaded')
 init() #init ourselves
