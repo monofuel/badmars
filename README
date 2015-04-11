@@ -17,3 +17,4 @@ map.
 
 TODO:
   setup client to load map from server instead of generate one
+  perhaps some sort of world chunk streaming system?
