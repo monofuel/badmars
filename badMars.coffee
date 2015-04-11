@@ -12,7 +12,8 @@ waitForDB = () ->
 
 init = () ->
   if (waitForDB())
-    badMars = WorldGenerator.generate()
+    #TODO check if test 'badmars' exists, otherwise generate it
+    badMars = WorldGenerator.generate("badMars",256)
     db.addWorld(badMars)
     console.log('Server Ready')
     #setInterval(mainLoop,20)
