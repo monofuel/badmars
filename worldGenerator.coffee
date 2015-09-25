@@ -46,7 +46,6 @@ exports.generate = (name,iSize,seed) ->
 
   generatedWorld.name = name
   generatedWorld.water = 2
-  generatedWorld.seed = seed
   generatedWorld.vertex_grid = []
   generatedWorld.movement_grid = []
 

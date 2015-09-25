@@ -5,6 +5,8 @@ exports.init = (port) ->
   wss = new WebSocketServer({port: port})
   wss.on('connection',client)
 
+  app = require("./app.js")
+
 client = (ws) ->
   ws.on('message',(message) ->
     console.log('recieved: ' + message)

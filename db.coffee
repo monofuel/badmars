@@ -9,6 +9,7 @@ worldSchema = mongoose.Schema({
   name: String
   water: Number
   vertex_grid: Mixed
+  movement_grid: Mixed
   seed: Number
 })
 
@@ -63,11 +64,26 @@ exports.init = () ->
     exports.Ready = true
   )
 
-exports.addWorld = (world) ->
+exports.saveWorld = (world) ->
   worldDoc = new World(world)
   worldDoc.save( (err,badMars) ->
     console.error(err) if (err)
   )
 
-#exports.getWorld = (name) ->
-#exports.listWorlds = () ->
+exports.getWorld = (name) ->
+
+  World.find({ name: name},(err,world) ->
+    if (err)
+      return console.error(err)
+    console.log(world)
+  )
+
+exports.listWorlds = (listFunc) ->
+  worldNames = new Array()
+  World.find((err,worlds) ->
+    if (err)
+      return console.error(err)
+    for world in worlds
+      worldNames.push(world.name)
+    listFunc(worldNames)
+  )

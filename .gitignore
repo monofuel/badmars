@@ -6,6 +6,7 @@ buildings.js
 units.js
 net.js
 
+routes/worlds.js
 
 #github git ignore for nodejs
 #https://github.com/github/gitignore/blob/master/Node.gitignore
