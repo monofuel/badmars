@@ -1,7 +1,7 @@
 all: core_js routes_js
 
 start: all
-	node badMars.js
+	nodejs badMars.js
 
 core_js: ./*.coffee
 	coffee -cb ./*.coffee
