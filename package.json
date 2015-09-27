@@ -14,6 +14,7 @@
     "readline": "0.0.7",
     "serve-favicon": "^2.3.0",
     "simplex-noise": "^2.1.1",
+    "supervisor": "^0.9.1",
     "ws": "^0.7.1"
   },
   "devDependencies": {},

@@ -22,7 +22,6 @@ module.exports = (app) ->
       if (err)
         console.log(err)
         return next(err)
-      console.log("returning world " + req.query.name)
       res.json(world)
       return
       )
