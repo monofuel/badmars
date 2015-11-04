@@ -5,6 +5,7 @@ exports.init = (port) ->
   wss = new WebSocketServer({port: port})
   wss.on('connection',client)
 
+  #TODO should probably be moved somewhere else
   app = require("./app.js")
 
 client = (ws) ->

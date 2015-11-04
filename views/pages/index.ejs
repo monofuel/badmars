@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <% include ../partials/head %>
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <% include ../partials/header %>
+      </header>
+      <main>
+        <div class="container-fluid">
+          <ul>
+          <% worlds.forEach(function(world) { %>
+            <li><%= world %></li>
+          <% }); %>
+          <ul>
+        </div>
+      </main>
+    </div>
+    <footer class="footer">
+      <% include ../partials/footer %>
+    </footer>
+  </body>
+
+</html>

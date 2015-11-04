@@ -13,8 +13,7 @@ module.exports = (app) ->
         worldNames = new Array()
         for world in worlds
           worldNames.push(world.name)
-        console.log(worldNames)
-        res.json(worldNames)
+        res.json({worlds: worldNames})
         )
       return
 
