@@ -8,7 +8,9 @@ net.js
 
 routes/worlds.js
 routes/main.js
+client/js/viewer.js
 public/js/planet_viewer.js
+public/js/custom_planet_generator.js
 
 #github git ignore for nodejs
 #https://github.com/github/gitignore/blob/master/Node.gitignore
