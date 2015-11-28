@@ -35,10 +35,12 @@ window.onload = () ->
 
   requestAnimationFrame(logicLoop)
 
+  getWorldList()
+
   document.body.onkeydown = (key) ->
     if (keysDown.indexOf(key.keyCode) == -1 && key.keyCode != 18) #ignore alt, because alt-tab is buggy
       keysDown.push(key.keyCode)
-      #console.log('key pressed: ' + key.keyCode)
+      console.log('key pressed: ' + key.keyCode)
 
   document.body.onkeyup = (key) ->
     index = keysDown.indexOf(key.keyCode)
@@ -46,13 +48,52 @@ window.onload = () ->
       keysDown.splice(index,1)
       #console.log('key released: ' + key.keyCode)
 
+selectWorld = (world) ->
+  console.log('selecting world ' + world)
+
+  xhttp = new XMLHttpRequest()
+  xhttp.open("GET", "/worlds?name=" + world, true)
+
+  xhttp.onreadystatechange = () ->
+    if (xhttp.readyState == 4 && xhttp.status == 200)
+      console.log('recieved world: ' + world )
+      response = JSON.parse(xhttp.responseText)
+      settings = {
+        name: response.name
+        size: response.vertex_grid.length,
+        water: true,
+        waterHeight: response.water,
+      }
+      map.removeFromRender()
+      map = new Map(response.vertex_grid,settings)
+      map.addToRender()
+
+
+  xhttp.send()
+
+getWorldList = () ->
+  #https://japura.net/badmars/worlds
+  xhttp = new XMLHttpRequest()
+  xhttp.open("GET", "/worlds", true)
+
+  xhttp.onreadystatechange = () ->
+    if (xhttp.readyState == 4 && xhttp.status == 200)
+      response = JSON.parse(xhttp.responseText)
+      menu = document.getElementById("worldMenu")
+      menu.innerHTML = ""
+      for world in response.worlds
+        menu.innerHTML += '<li><a onclick="selectWorld(\'' + world + '\')" >' + world + '</a></li>'
+
+  xhttp.send()
+
+
 logicLoop = () ->
   requestAnimationFrame(logicLoop)
 
   delta = clock.getDelta()
   if (keysDown.length > 0)
     handleInput()
-  map.rotate(Math.PI * delta / 5)
+  #map.rotate(Math.PI * delta / 15)
 
   display.render()
 
@@ -60,17 +101,23 @@ handleInput = () ->
   for key in keysDown
     switch (key)
       when 87 #w
-        display.camera.position.z -= cameraSpeed * delta
+        display.camera.translateZ(Math.cos(display.camera.rotation.x + Math.PI) * cameraSpeed * delta)
+        display.camera.translateY(Math.sin(display.camera.rotation.x + Math.PI) * cameraSpeed * delta)
       when 65 #a
-        display.camera.position.x -= cameraSpeed * delta
+        display.camera.translateX(Math.cos(display.camera.rotation.x + Math.PI) * cameraSpeed * delta)
       when 83 #s
-        display.camera.position.z += cameraSpeed * delta
+        display.camera.translateZ(Math.cos(display.camera.rotation.x) * cameraSpeed * delta)
+        display.camera.translateY(Math.sin(display.camera.rotation.x) * cameraSpeed * delta)
       when 68 #d
-        display.camera.position.x += cameraSpeed * delta
+        display.camera.translateX(Math.cos(display.camera.rotation.x) * cameraSpeed * delta)
       when 82 #r
         display.camera.position.y += cameraSpeed * delta
       when 70 #f
         display.camera.position.y -= cameraSpeed * delta
+      when 81 #q
+        display.camera.rotation.y += cameraSpeed * delta / 10
+      when 69 #e
+        display.camera.rotation.y -= cameraSpeed * delta / 10
 
 #---------------------------------------------------------------------
 #datgui
@@ -106,6 +153,11 @@ class Datgui
       console.log('map resized to ' + map.settings.size)
       updateMap()
       )
+
+    @gui.add(map.settings, 'cliffDelta')
+    .min(0)
+    .max(5)
+    .onFinishChange(updateMap)
 
     @gui.add(map.settings, 'bigNoise')
     .min(0)
@@ -167,11 +219,19 @@ class Noise
 #Map
 
 class Map
-  constructor: (@grid) ->
+  constructor: (@grid,@settings) ->
+    #TODO should check for missing settings individually
+    if (!@settings)
+      @settings = @defaultSettings
     if (!@grid)
-      @generate()
+      @generateWorld()
+    @generateMesh()
 
   generate: () ->
+    @generateWorld()
+    @generateMesh()
+
+  generateWorld: () ->
     @bigNoiseGenerator = new Noise(@settings.size - 1,@settings.bigNoise)
     @medNoiseGenerator = new Noise(@settings.size - 1,@settings.medNoise)
     @smallNoiseGenerator = new Noise(@settings.size - 1,@settings.smallNoise)
@@ -188,11 +248,14 @@ class Map
 
     console.log("Generated World Heightmap")
 
+  generateMesh: () ->
+
     @gridGeom = new THREE.Geometry()
     @waterGeom = new THREE.Geometry()
 
-    @landMaterial = new THREE.MeshLambertMaterial( { wireframe: false, color: 0x00ff00})
-    @waterMaterial = new THREE.MeshLambertMaterial( { wireframe: false, color: 0x0000ff})
+    @landMaterial = new THREE.MeshLambertMaterial( { wireframe: false, color: 0x00FF00})
+    @cliffMaterial = new THREE.MeshLambertMaterial( { wireframe: false, color: 0xA52A2A})
+    @waterMaterial = new THREE.MeshLambertMaterial( { wireframe: false, color: 0x0000FF})
 
     for y in [0..@settings.size-1]
       for x in [0..@settings.size-1]
@@ -201,14 +264,25 @@ class Map
 
     for y in [0..@settings.size-2]
       for x in [0..@settings.size-2]
-        @gridGeom.faces.push(new THREE.Face3(
+        landFace1 = new THREE.Face3(
             y*@settings.size + x,
             y*@settings.size + x + 1,
-            (y+1)*@settings.size + x))
-        @gridGeom.faces.push(new THREE.Face3(
+            (y+1)*@settings.size + x)
+        landFace1.materialIndex = 0;
+        landFace2 = new THREE.Face3(
             y*@settings.size + x + 1,
             (y+1)*@settings.size + x + 1,
-            (y+1)*@settings.size + x))
+            (y+1)*@settings.size + x)
+
+        if (@isTilePassable(@grid[y][x],@grid[y+1][x],@grid[y][x+1],@grid[y+1][x+1]))
+          landFace1.materialIndex = 0;
+          landFace2.materialIndex = 0;
+        else
+          landFace1.materialIndex = 1;
+          landFace2.materialIndex = 1;
+
+        @gridGeom.faces.push(landFace1)
+        @gridGeom.faces.push(landFace2)
 
         @waterGeom.faces.push(new THREE.Face3(
             y*@settings.size + x,
@@ -225,7 +299,10 @@ class Map
     @waterGeom.computeBoundingSphere()
     @waterGeom.computeFaceNormals()
     @waterGeom.computeVertexNormals()
-    @gridMesh = new THREE.Mesh(@gridGeom,@landMaterial)
+
+    planetMaterials = new THREE.MeshFaceMaterial([@landMaterial,@cliffMaterial])
+
+    @gridMesh = new THREE.Mesh(@gridGeom,planetMaterials)
     @waterMesh = new THREE.Mesh(@waterGeom,@waterMaterial)
 
     @gridMesh.rotation.x = - Math.PI / 2
@@ -237,7 +314,7 @@ class Map
 
     console.log("Generated Geometry")
 
-  settings: {
+  defaultSettings: {
     size: 64,
     water: true,
     waterHeight: 3.3,
@@ -246,7 +323,8 @@ class Map
     smallNoise: .53,
     bigNoiseScale: 1.0,
     medNoiseScale: 0.25,
-    smallNoiseScale: 0.25
+    smallNoiseScale: 0.25,
+    cliffDelta: 0.3
   }
 
   #3D stuff
@@ -265,10 +343,25 @@ class Map
     display.addMesh(@gridMesh)
     if (@settings.water)
       display.addMesh(@waterMesh)
-    display.lookAt(@gridMesh)
+    #display.lookAt(@gridMesh)
     console.log('added map to scene')
 
+  isTilePassable: (corner1,corner2,corner3,corner4) ->
 
+    avg = (corner1 + corner2 + corner3 + corner4) / 4
+
+    #i'm sure this could be replaced by a much more clever one-liner
+    #but this is reasonably readable.
+    if (Math.abs(corner1 - avg) > @settings.cliffDelta)
+      return false;
+    if (Math.abs(corner2 - avg) > @settings.cliffDelta)
+      return false;
+    if (Math.abs(corner3 - avg) > @settings.cliffDelta)
+      return false;
+    if (Math.abs(corner4 - avg) > @settings.cliffDelta)
+      return false;
+
+    return true;
 
 
 #---------------------------------------------------------------------
@@ -277,9 +370,11 @@ class Display
   constructor: () ->
     @scene = new THREE.Scene()
     @camera = new THREE.PerspectiveCamera(75,window.innerWidth / window.innerHeight,0.1,1000)
-    @renderer = new THREE.WebGLRenderer({antialias: true})
+    #@camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, - 500, 1000 );
+    panel = document.getElementById('threePanel')
+    @renderer = new THREE.WebGLRenderer({antialias: true, canvas: panel})
     @renderer.setSize(window.innerWidth, window.innerHeight)
-    document.body.appendChild(@renderer.domElement)
+    #document.body.appendChild(@renderer.domElement)
 
     light = new THREE.AmbientLight(0x101010)
     @scene.add(light)
@@ -290,6 +385,8 @@ class Display
 
     @camera.position.set(0,20,30)
     @camera.up = new THREE.Vector3(0,0,1)
+    @camera.rotation.set(-0.6,0,0)
+    @camera.rotation.order = 'YXZ';
 
     @camera.updateProjectionMatrix()
     console.log('threejs ready')

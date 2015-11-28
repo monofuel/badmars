@@ -17,7 +17,7 @@ module.exports = (app) ->
         )
       return
 
-    World.find({name: req.query.name}, (err,world) ->
+    World.findOne({name: req.query.name}, (err,world) ->
       if (err)
         console.log(err)
         return next(err)

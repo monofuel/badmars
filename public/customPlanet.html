@@ -9,6 +9,12 @@
   <script src="js/dependencies/dat.gui.min.js"></script>
   <script src="js/dependencies/Simplex.js"></script>
   <script src="js/custom_planet_generator.js"></script>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
   <style>
     body {
       margin: 0;
@@ -23,6 +29,20 @@
 </head>
 
 <body>
+  <div class="dropdown" style="position: absolute; left: 10px; top: 10px; width: 100px">
+  <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">World List
+  <span class="caret"></span></button>
+  <ul class="dropdown-menu" id="worldMenu">
+    <li><a href="#">foo</a></li>
+    <li><a href="#">bar</a></li>
+    <li><a href="#">hands</a></li>
+  </ul>
+  </div>
+  <button type="button" class="btn btn-primary" style="position: absolute; left: 190px; top: 10px; width: 60px">Save</button>
+  <button type="button" class="btn btn-primary" style="position: absolute; left: 120px; top: 10px; width: 60px">New</button>
+  <input class="form-control" id="worldName" style="position: absolute; left: 260px; top: 10px; width: 180px;" placeholder="Enter Name">
+  <canvas id='threePanel'>
+  </canvas>
 </body>
 
 </html>
