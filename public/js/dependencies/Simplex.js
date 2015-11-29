@@ -5,7 +5,7 @@
 // octaves and falloff implementation (and passing jslint) by Ron Valstar
 // also implemented Karsten Schmidt's implementation
 if (!this.Simplex) {
-	var Simplex = function() {
+	var Simplex = function(oRng) {
 
 		var F2 = 0.5*(Math.sqrt(3)-1);
 		var G2 = (3-Math.sqrt(3))/6;
@@ -47,7 +47,7 @@ if (!this.Simplex) {
 		var t0, t1, t2, t3, t4;
 		//
 		//
-		var oRng = Math;
+		//var oRng = Math;
 		var iOctaves = 1;
 		var fPersistence = 0.5;
 		var fResult, fFreq, fPers;
@@ -434,5 +434,5 @@ if (!this.Simplex) {
 				return "[object Simplex "+iOctaves+" "+fPersistence+"]";
 			}
 		};
-	}();
+	};
 }

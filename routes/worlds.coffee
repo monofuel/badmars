@@ -25,3 +25,13 @@ module.exports = (app) ->
       return
       )
     )
+  .post((req,res,next) ->
+    newWorld = new World(req.body)
+
+    newWorld.save((err) ->
+      if (err)
+        console.log(err)
+        return next(err)
+    )
+
+  )

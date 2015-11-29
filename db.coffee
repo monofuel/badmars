@@ -10,6 +10,7 @@ worldSchema = mongoose.Schema({
   water: Number
   vertex_grid: Mixed
   movement_grid: Mixed
+  settings: Mixed
   seed: Number
 })
 
