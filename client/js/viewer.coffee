@@ -19,7 +19,7 @@ manualWorld = {
 }
 
 
-###########################
+#---------------------------------------------------------------------
 #spherical perlin noise from http://ronvalstar.nl/creating-tileable-noise-maps/
 iSize = 31
 fRds = iSize # the radius of a circle
@@ -42,7 +42,7 @@ noise = (x,y) ->
   )
   return v * 5
 #end perlin noise
-##########################
+#---------------------------------------------------------------------
 
 chunk_size = 32
 

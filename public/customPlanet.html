@@ -7,8 +7,13 @@
 
   <script src="js/dependencies/three.min.js"></script>
   <script src="js/dependencies/dat.gui.min.js"></script>
+  <script src="js/dependencies/stats.min.js"></script>
+
   <script src="js/dependencies/Simplex.js"></script>
-  <script src="js/custom_planet_generator.js"></script>
+
+  <script src="js/badmars/display.js"></script>
+  <script src="js/badmars/planet.js"></script>
+  <script src="js/badmars/planet_generator.js"></script>
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -33,14 +38,14 @@
   <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">World List
   <span class="caret"></span></button>
   <ul class="dropdown-menu" id="worldMenu">
-    <li><a href="#">foo</a></li>
-    <li><a href="#">bar</a></li>
-    <li><a href="#">hands</a></li>
   </ul>
   </div>
-  <button type="button" class="btn btn-primary" style="position: absolute; left: 190px; top: 10px; width: 60px">Save</button>
-  <button type="button" class="btn btn-primary" style="position: absolute; left: 120px; top: 10px; width: 60px">New</button>
+  <button type="button" class="btn btn-primary" onclick="saveWorld()" style="position: absolute; left: 190px; top: 10px; width: 60px">Save</button>
+  <button type="button" class="btn btn-primary" onclick="newWorld()" style="position: absolute; left: 120px; top: 10px; width: 60px">New</button>
   <input class="form-control" id="worldName" style="position: absolute; left: 260px; top: 10px; width: 180px;" placeholder="Enter Name">
+
+  <button id="storageButton" type="button" class="btn btn-primary" onclick="storageClick()" style="position: absolute; left: 10px; top: 200px; width: 80px">Storage</button>
+  <button id="tankButton" type="button" class="btn btn-primary" onclick="tankClick()" style="position: absolute; left: 10px; top: 240px; width: 80px">Tank</button>
   <canvas id='threePanel'>
   </canvas>
 </body>

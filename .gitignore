@@ -12,6 +12,13 @@ client/js/viewer.js
 public/js/planet_viewer.js
 public/js/custom_planet_generator.js
 
+public/js/badmars/display.js
+public/js/badmars/nav.js
+public/js/badmars/planet_generator.js
+public/js/badmars/planet.js
+
+doc/
+
 #github git ignore for nodejs
 #https://github.com/github/gitignore/blob/master/Node.gitignore
 # Logs
