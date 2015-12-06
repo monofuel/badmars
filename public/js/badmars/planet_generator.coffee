@@ -68,6 +68,27 @@ window.onload = () ->
     switch (buttonMode)
       when 0
         map.clearHilight()
+      when 1 #storage
+        tiles = []
+        for j in [0..2]
+          for k in [0..2]
+            vec = new THREE.Vector3()
+            vec.copy(pos)
+            vec.x += j - 1
+            vec.z += k - 1
+            tile = map.getTileAtLoc(vec)
+            tiles.push(tile)
+
+        valid = true
+        for tile in tiles
+          if (tile.type != 0)
+            valid = false
+        @tile = map.getTileAtLoc(pos)
+        if (valid)
+          map.hilight(0x7FFF00,@tile.loc[0],@tile.loc[1])
+        else
+          map.hilight(0xDC143C,@tile.loc[0],@tile.loc[1])
+
       when 2 #tank
         @tile = map.getTileAtLoc(pos)
         if (@tile.type == 0)
