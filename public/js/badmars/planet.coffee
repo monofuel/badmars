@@ -182,6 +182,7 @@ class Map
         vec.y = vec.y + 0.5
         return vec
     else
+      console.log('did not click on map')
       return new THREE.Vector3(0,0,0)
 
   rotate: (angle) ->
@@ -201,6 +202,60 @@ class Map
     #display.lookAt(@gridMesh)
     console.log('added map to scene')
 
+
+  #effects
+  hilight: (color,x,y) ->
+
+    newHilightLoc = [x,y]
+    if (newHilightLoc == @hilightLoc)
+      return
+
+    @hilightLoc = newHilightLoc
+
+    geometry = new THREE.Geometry()
+
+    corners = [
+      @grid[y][x],
+      @grid[y+1][x],
+      @grid[y][x+1],
+      @grid[y+1][x+1]
+    ]
+    avg = (corners[0] + corners[1] + corners[2] + corners[3]) / 4
+
+    geometry.vertices.push(new THREE.Vector3(0,0,corners[0]))
+    geometry.vertices.push(new THREE.Vector3(1,0,corners[2]))
+    geometry.vertices.push(new THREE.Vector3(0,1,corners[1]))
+    geometry.vertices.push(new THREE.Vector3(1,1,corners[3]))
+
+    geometry.faces.push(new THREE.Face3(0,1,2))
+    geometry.faces.push(new THREE.Face3(1,2,3))
+
+
+    geometry.computeBoundingSphere()
+    geometry.computeFaceNormals()
+    geometry.computeVertexNormals()
+
+    material = new THREE.MeshBasicMaterial( {color: color, side: THREE.DoubleSide} )
+    if (@hilightPlane)
+      display.removeMesh(@hilightPlane)
+    @hilightPlane = new THREE.Mesh(geometry,material)
+    @hilightPlane.position.x = -@settings.size/2 + x
+    @hilightPlane.position.z = @settings.size/2 - y
+    @hilightPlane.position.y = 0.2
+    @hilightPlane.rotation.x = - Math.PI / 2
+    display.addMesh(@hilightPlane)
+
+
+  clearHilight: () ->
+    if (@hilight)
+      display.removeMesh(@hilightPlane)
+      @hilightPlane = null
+
+  update: (delta) ->
+
+
+  #tile stuff
+
   getTileCoords: (vec) ->
     tile = [0,0]
     #Math.floor(x)
@@ -211,6 +266,32 @@ class Map
 
     return tile
 
+  getTileAtLoc: (vec) ->
+
+
+    x = Math.floor(vec.x + @settings.size/2)
+    #y is flip-flopped for some reason
+    y = Math.floor(@settings.size - (vec.z + @settings.size/2))
+
+    corners = [
+      @grid[y][x],
+      @grid[y+1][x],
+      @grid[y][x+1],
+      @grid[y+1][x+1]
+    ]
+    avg = (corners[0] + corners[1] + corners[2] + corners[3]) / 4
+    if (avg < @settings.waterHeight)
+      avg = @settings.waterHeight
+
+    code = @navGrid[x][y]
+    return {
+      loc: [x,y]
+      type: code
+      avg: avg
+    }
+
+  #TODO
+  #could probably be mixed together with getTileAtLoc
   getTileCode: (x,y) ->
     #0 is navigatable land
     #1 is cliff

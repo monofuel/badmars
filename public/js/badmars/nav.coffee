@@ -6,3 +6,5 @@
 
 class nav
   constructor: () ->
+
+  checkPlacement: (@location) ->

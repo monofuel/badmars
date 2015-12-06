@@ -60,42 +60,59 @@ window.onload = () ->
   document.body.oncontextmenu = () ->
     return false
 
+  document.body.onmousemove = (event) ->
+    mouse = new THREE.Vector2()
+    mouse.x = ( event.clientX / display.renderer.domElement.clientWidth ) * 2 - 1
+    mouse.y = - ( event.clientY / display.renderer.domElement.clientHeight ) * 2 + 1
+    pos = map.getRayPosition(mouse)
+    switch (buttonMode)
+      when 0
+        map.clearHilight()
+      when 2 #tank
+        @tile = map.getTileAtLoc(pos)
+        if (@tile.type == 0)
+          map.hilight(0x7FFF00,@tile.loc[0],@tile.loc[1])
+        else
+          map.hilight(0xDC143C,@tile.loc[0],@tile.loc[1])
+
   document.body.onmousedown = (event) ->
+    #TODO do something fancy to show placement
+
+  document.body.onmouseup = (event) ->
     event.preventDefault()
     mouse = new THREE.Vector2()
     mouse.x = ( event.clientX / display.renderer.domElement.clientWidth ) * 2 - 1
     mouse.y = - ( event.clientY / display.renderer.domElement.clientHeight ) * 2 + 1
     pos = map.getRayPosition(mouse)
-    console.log(JSON.stringify(pos))
 
     switch (event.button)
       when 0
         switch(buttonMode)
           when 0 #selection
             console.log('button selection')
+            unit = getSelectedUnit(mouse)
+            if (unit)
+              console.log(unit.type + " clicked")
           when 1
             console.log('storage placement')
             buttonMode = 0
             clearButtons()
-            geometry = new THREE.BoxGeometry( 3, 3, 3 )
-            material = new THREE.MeshLambertMaterial( { color: 0x808080 } )
-            cube = new THREE.Mesh( geometry, material )
-            cube.position.copy(pos)
-            display.addMesh(cube)
+            new storage(pos)
+            map.clearHilight()
+
 
           when 2
             console.log('tank placement')
             buttonMode = 0
             clearButtons()
-            geometry = new THREE.BoxGeometry( 1, 1, 1 )
-            material = new THREE.MeshLambertMaterial( { color: 0x006600 } )
-            cube = new THREE.Mesh( geometry, material )
-            cube.position.copy(pos)
-            display.addMesh(cube)
+            new tank(pos)
+            map.clearHilight()
       when 1
         console.log('middle click')
       when 2
         console.log('right click')
+        buttonMode = 0
+        clearButtons()
 
 storageClick = () ->
   buttonMode = 1
@@ -149,7 +166,7 @@ selectWorld = (world) ->
   console.log('selecting world ' + world)
 
   xhttp = new XMLHttpRequest()
-  xhttp.open("GET", "/worlds?name=" + world, true)
+  xhttp.open("GET", "worlds?name=" + world, true)
 
   xhttp.onreadystatechange = () ->
     if (xhttp.readyState == 4 && xhttp.status == 200)
@@ -172,7 +189,7 @@ selectWorld = (world) ->
 getWorldList = () ->
   #https://japura.net/badmars/worlds
   xhttp = new XMLHttpRequest()
-  xhttp.open("GET", "/worlds", true)
+  xhttp.open("GET", "worlds", true)
 
   xhttp.onreadystatechange = () ->
     if (xhttp.readyState == 4 && xhttp.status == 200)
@@ -192,8 +209,12 @@ logicLoop = () ->
 
   delta = clock.getDelta()
   if (keysDown.length > 0)
-    handleInput()
+    handleInput(delta)
   #map.rotate(Math.PI * delta / 15)
+
+  for unit in units
+    unit.update(delta)
+  map.update(delta)
 
   display.render()
   statsMonitor.end()
