@@ -250,6 +250,7 @@ class Map
     if (@hilight)
       display.removeMesh(@hilightPlane)
       @hilightPlane = null
+      @hilightLoc = null
 
   update: (delta) ->
 

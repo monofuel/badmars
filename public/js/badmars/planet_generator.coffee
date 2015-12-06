@@ -66,8 +66,6 @@ window.onload = () ->
     mouse.y = - ( event.clientY / display.renderer.domElement.clientHeight ) * 2 + 1
     pos = map.getRayPosition(mouse)
     switch (buttonMode)
-      when 0
-        map.clearHilight()
       when 1 #storage
         tiles = []
         for j in [0..2]
@@ -114,6 +112,12 @@ window.onload = () ->
             unit = getSelectedUnit(mouse)
             if (unit)
               console.log(unit.type + " clicked")
+              @tile = map.getTileAtLoc(pos)
+              map.hilight(0x00FFFF,@tile.loc[0],@tile.loc[1])
+              map.hilightPlane.scale.set(1.5,1.5,1)
+              map.hilightPlane.position.x -= 0.25
+              map.hilightPlane.position.z += 0.25
+              map.hilightPlane.position.y = 0.1
           when 1
             console.log('storage placement')
             buttonMode = 0
