@@ -77,8 +77,6 @@ class tank extends entity
     @mesh = cube
 
   move: (@destination) ->
-    console.log(@tile)
-    console.log(@destination)
 
     @nextMove = direction.C
 
@@ -111,7 +109,6 @@ class tank extends entity
       material = new THREE.MeshBasicMaterial( { color: 0x66FF00, wireframe: true } )
       @selectionCircle = new THREE.Mesh( geometry, material )
       @selectionCircle.rotation.x = - Math.PI / 2
-      console.log('selection Circle')
       display.addMesh(@selectionCircle)
 
     if (@selectionCircle && selectedUnit != this)
@@ -129,7 +126,6 @@ class tank extends entity
     @worldPos = map.getWorldPos(@location)
 
     if (@nextTile && @distanceMoved == 1)
-      console.log('calculating next move')
       @move(@destination)
       @distanceMoved = 0.0
 
