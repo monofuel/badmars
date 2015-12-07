@@ -125,10 +125,18 @@ window.onload = () ->
               buttonMode = bMode.move
 
           when bMode.move
-            buttonMode = bMode.selection
-            clearButtons()
-            selectedUnit = null
-            map.clearHilight()
+            unit = getSelectedUnit(mouse)
+
+            if (unit)
+              console.log(unit.type + " clicked")
+              @tile = map.getTileAtLoc(pos)
+              selectedUnit = unit
+              buttonMode = bMode.move
+            else
+              buttonMode = bMode.selection
+              clearButtons()
+              selectedUnit = null
+              map.clearHilight()
 
           when bMode.storage
             console.log('storage placement')
