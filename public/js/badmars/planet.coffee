@@ -40,6 +40,18 @@ class Noise
 #---------------------------------------------------------------------
 #Map
 
+#0 is navigatable land
+#1 is cliff
+#2 is water
+#3 is coastline
+
+tileType = {
+  land: 0
+  cliff: 1
+  water: 2
+  coast: 3
+}
+
 class Map
   #@param [2D Array] heightmap for the terrain (optional)
   #@param [jobject] object defining default settings (optional)
@@ -267,6 +279,13 @@ class Map
 
     return tile
 
+  getWorldPos: (vec) ->
+    x = vec.x + @settings.size/2
+    #y is flip-flopped for some reason
+    y = @settings.size - (vec.z + @settings.size/2)
+
+    return [x,y]
+
   getTileAtLoc: (vec) ->
 
 
@@ -294,10 +313,6 @@ class Map
   #TODO
   #could probably be mixed together with getTileAtLoc
   getTileCode: (x,y) ->
-    #0 is navigatable land
-    #1 is cliff
-    #2 is water
-    #3 is coastline
 
     corners = [
       @grid[y][x],
@@ -311,16 +326,16 @@ class Map
 
     for i in corners
       if (Math.abs(i - avg) > @settings.cliffDelta)
-        return 1
+        return tileType.cliff
       if (i < @settings.waterHeight)
         underwater++
 
     if (underwater == 4)
-      return 2
+      return tileType.water
     else if (underwater > 0)
-      return 3
+      return tileType.coast
     else
-      return 0
+      return tileType.land
 
 
   isTilePassable: (corner1,corner2,corner3,corner4) ->

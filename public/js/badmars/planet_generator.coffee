@@ -14,15 +14,22 @@
 
 #---------------------------------------------------------------------
 #globals
+bMode = {
+  selection: 0
+  move: 1
+  storage: 2
+  tank: 3
+}
+
 display = null
 map = null
 datgui = null
 delta = 0
 clock = null
 statsMonitor = null
-buttonMode = 0
-
+buttonMode = bMode.selection
 keysDown = []
+selectedUnit = null
 
 
 cameraSpeed = 10
@@ -66,7 +73,7 @@ window.onload = () ->
     mouse.y = - ( event.clientY / display.renderer.domElement.clientHeight ) * 2 + 1
     pos = map.getRayPosition(mouse)
     switch (buttonMode)
-      when 1 #storage
+      when bMode.storage #storage
         tiles = []
         for j in [0..2]
           for k in [0..2]
@@ -79,7 +86,7 @@ window.onload = () ->
 
         valid = true
         for tile in tiles
-          if (tile.type != 0)
+          if (tile.type != tileType.land)
             valid = false
         @tile = map.getTileAtLoc(pos)
         if (valid)
@@ -87,9 +94,9 @@ window.onload = () ->
         else
           map.hilight(0xDC143C,@tile.loc[0],@tile.loc[1])
 
-      when 2 #tank
+      when bMode.tank #tank
         @tile = map.getTileAtLoc(pos)
-        if (@tile.type == 0)
+        if (@tile.type == tileType.land)
           map.hilight(0x7FFF00,@tile.loc[0],@tile.loc[1])
         else
           map.hilight(0xDC143C,@tile.loc[0],@tile.loc[1])
@@ -107,46 +114,59 @@ window.onload = () ->
     switch (event.button)
       when 0
         switch(buttonMode)
-          when 0 #selection
+          when bMode.selection #selection
             console.log('button selection')
             unit = getSelectedUnit(mouse)
+
             if (unit)
               console.log(unit.type + " clicked")
               @tile = map.getTileAtLoc(pos)
-              map.hilight(0x00FFFF,@tile.loc[0],@tile.loc[1])
-              map.hilightPlane.scale.set(1.5,1.5,1)
-              map.hilightPlane.position.x -= 0.25
-              map.hilightPlane.position.z += 0.25
-              map.hilightPlane.position.y = 0.1
-          when 1
+              selectedUnit = unit
+              buttonMode = bMode.move
+
+          when bMode.move
+            buttonMode = bMode.selection
+            clearButtons()
+            selectedUnit = null
+            map.clearHilight()
+
+          when bMode.storage
             console.log('storage placement')
-            buttonMode = 0
+            buttonMode = bMode.selection
             clearButtons()
             new storage(pos)
             map.clearHilight()
 
 
-          when 2
+          when bMode.tank
             console.log('tank placement')
-            buttonMode = 0
+            buttonMode = bMode.selection
             clearButtons()
             new tank(pos)
             map.clearHilight()
       when 1
         console.log('middle click')
       when 2
-        console.log('right click')
-        buttonMode = 0
-        clearButtons()
+        switch(buttonMode)
+          when bMode.move
+            console.log('move ordered')
+            @tile = map.getTileAtLoc(pos)
+            selectedUnit.move(@tile)
+
+          else
+            buttonMode = bMode.selection
+            clearButtons()
+            selectedUnit = null
+            map.clearHilight()
 
 storageClick = () ->
-  buttonMode = 1
+  buttonMode = bMode.storage
   button = document.getElementById('storageButton')
   clearButtons()
   button.className = "btn btn-warning"
 
 tankClick = () ->
-  buttonMode = 2
+  buttonMode = bMode.tank
   button = document.getElementById('tankButton')
   clearButtons()
   button.className = "btn btn-warning"
@@ -245,6 +265,9 @@ logicLoop = () ->
   statsMonitor.end()
 
 handleInput = () ->
+  #TODO
+  #hilight tile should update when panning the camera
+  #this would require knowing the mouse position and updating hilight position
   for key in keysDown
     switch (key)
       when 87 #w

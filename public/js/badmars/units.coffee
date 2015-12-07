@@ -4,6 +4,13 @@
 #classes for entities dealing with location, models and other details
 
 units = []
+direction = {
+  N: 0 #negative Y direction
+  S: 1 #positive Y direction
+  E: 2 #negative X direction
+  W: 3 #positive X direction
+  C: 4 #don't move
+}
 
 getSelectedUnit = (mouse) ->
   raycaster = new THREE.Raycaster()
@@ -38,6 +45,11 @@ class entity
     units.push(this)
     @mesh.userData = this
 
+  updateLocation: (@location) ->
+    @tile = map.getTileAtLoc(@location)
+    @location.y = @tile.avg + 0.25
+    @mesh.position.copy(@location)
+
   validateTile: (loc) ->
 
   update: (delta) ->
@@ -48,8 +60,15 @@ class entity
 
 class tank extends entity
   type: 'tank'
+  nextMove: direction.C
+  nextTile: null
+  moving: false
+  speed: 1 #1 tile per second
+  distanceMoved: 0.0
+
   constructor: (@location) ->
-    if (!@validateTile(@location))
+    @tile = map.getTileAtLoc(@location)
+    if (!@validateTile())
       return
     geometry = new THREE.BoxGeometry( 1, 1, 1 )
     material = new THREE.MeshLambertMaterial( { color: 0x006600 } )
@@ -57,13 +76,105 @@ class tank extends entity
     super(@location,cube)
     @mesh = cube
 
+  move: (@destination) ->
+    console.log(@tile)
+    console.log(@destination)
+
+    @nextMove = direction.C
+
+    if (@tile.loc == @destination.loc)
+      @destination = null
+      @nextTile = null
+      return
+
+    if (@tile.loc[0] < @destination.loc[0])
+      @nextMove = direction.E
+      @nextTile = @tile.loc.slice(0)
+      @nextTile[0]++
+    else if (@tile.loc[0] > @destination.loc[0])
+      @nextMove = direction.W
+      @nextTile = @tile.loc.slice(0)
+      @nextTile[0]--
+    if (@tile.loc[1] < @destination.loc[1])
+      @nextMove = direction.N
+      @nextTile = @tile.loc.slice(0)
+      @nextTile[1]++
+    else if ((@tile.loc[1] > @destination.loc[1]))
+      @nextMove = direction.S
+      @nextTile = @tile.loc.slice(0)
+      @nextTile[1]--
+
   update: (delta) ->
+    #check if we are the selected unit
+    if (selectedUnit == this && !@selectionCircle)
+      geometry = new THREE.CircleGeometry( 1.1,12)
+      material = new THREE.MeshBasicMaterial( { color: 0x66FF00, wireframe: true } )
+      @selectionCircle = new THREE.Mesh( geometry, material )
+      @selectionCircle.rotation.x = - Math.PI / 2
+      console.log('selection Circle')
+      display.addMesh(@selectionCircle)
+
+    if (@selectionCircle && selectedUnit != this)
+      display.removeMesh(@selectionCircle)
+      @selectionCircle = null
+
+    if (@selectionCircle)
+      @selectionCircle.position.copy(@location)
+      @selectionCircle.y += 0.2
+
     #move if moving
+    #console.log(@location)
+    @tile = map.getTileAtLoc(@location)
+    #if (@nextTile != null && @tile.loc[0] == @nextTile[0] && @tile.loc[1] == @nextTile[1])
+    @worldPos = map.getWorldPos(@location)
+
+    if (@nextTile && @distanceMoved == 1)
+      console.log('calculating next move')
+      @move(@destination)
+      @distanceMoved = 0.0
+
+    deltaMove = @speed * delta
+    if (@nextMove != direction.C)
+      @distanceMoved += deltaMove
+      if (@distanceMoved > 1)
+        @distanceMoved = 1
+
+    switch (@nextMove)
+      when direction.N
+        #console.log('moving north ' + deltaMove)
+        @location.z -= deltaMove
+        if (@distanceMoved == 1)
+          @location.z = Math.round(@location.z*2) /2
+        @updateLocation(@location)
+        @moving = true
+      when direction.S
+        #console.log('moving south ' + deltaMove)
+        @location.z += deltaMove
+        if (@distanceMoved == 1)
+          @location.z = Math.round(@location.z*2) /2
+        @updateLocation(@location)
+        @moving = true
+      when direction.E
+        #console.log('moving east ' + deltaMove)
+        @location.x += deltaMove
+        if (@distanceMoved == 1)
+          @location.x = Math.round(@location.x *2) /2
+        @updateLocation(@location)
+        @moving = true
+      when direction.W
+        #console.log('moving west ' + deltaMove)
+        @location.x -= deltaMove
+        if (@distanceMoved == 1)
+          @location.x = Math.round(@location.x *2) /2
+        @updateLocation(@location)
+        @moving = true
+      when direction.C
+        @moving = false
+
     #check for enemies
 
-  validateTile: (loc) ->
-    @tile = map.getTileAtLoc(loc)
-    if (@tile.type == 0)
+  validateTile: () ->
+    if (@tile.type == tileType.land)
       return true
     else
       console.log('invalid tile')
@@ -97,7 +208,7 @@ class storage extends entity
         tiles.push(tile)
 
     for tile in tiles
-      if (tile.type != 0)
+      if (tile.type != tileType.land)
         console.log('invalid tile')
         return false
     return true
