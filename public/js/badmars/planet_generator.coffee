@@ -159,7 +159,7 @@ window.onload = () ->
           when bMode.move
             console.log('move ordered')
             @tile = map.getTileAtLoc(pos)
-            selectedUnit.move(@tile)
+            selectedUnit.simpleMove(@tile)
 
           else
             buttonMode = bMode.selection

@@ -12,6 +12,28 @@ direction = {
   C: 4 #don't move
 }
 
+#TODO
+#we should have a loading screen to halt input until after all meshes are loaded
+meshes = {}
+
+manager = new THREE.LoadingManager()
+manager.onProgress = ( item, loaded, total ) ->
+  console.log( item, loaded, total )
+
+loader = new THREE.OBJLoader( manager )
+console.log('loading tank')
+loader.load(
+  'models/tank_mockup.obj',
+  (object) ->
+
+    tank = object
+    meshes.tank = tank.children[0]
+    console.log(meshes.tank)
+    console.log('tank loaded')
+    #scene.add(helper)
+    #console.log(helper.box.min,helper.box.max)
+)
+
 getSelectedUnit = (mouse) ->
   raycaster = new THREE.Raycaster()
 
@@ -70,13 +92,17 @@ class tank extends entity
     @tile = map.getTileAtLoc(@location)
     if (!@validateTile())
       return
-    geometry = new THREE.BoxGeometry( 1, 1, 1 )
+    #geometry = new THREE.BoxGeometry( 1, 1, 1 )
     material = new THREE.MeshLambertMaterial( { color: 0x006600 } )
-    cube = new THREE.Mesh( geometry, material )
-    super(@location,cube)
-    @mesh = cube
+    #tankMesh = new THREE.Mesh( geometry, material )
+    console.log(meshes)
+    tankMesh = new THREE.Mesh(meshes.tank.geometry,material)
+    tankMesh.scale.set(0.3,0.3,0.3)
 
-  move: (@destination) ->
+    super(@location,tankMesh)
+    @mesh = tankMesh
+
+  simpleMove: (@destination) ->
 
     @nextMove = direction.C
 
@@ -86,21 +112,34 @@ class tank extends entity
       return
 
     if (@tile.loc[0] < @destination.loc[0])
-      @nextMove = direction.E
       @nextTile = @tile.loc.slice(0)
       @nextTile[0]++
+
+      code = map.getTileCode(@nextTile[0],@nextTile[1])
+      if (code == tileType.land)
+        @nextMove = direction.E
+
     else if (@tile.loc[0] > @destination.loc[0])
-      @nextMove = direction.W
       @nextTile = @tile.loc.slice(0)
       @nextTile[0]--
+
+      code = map.getTileCode(@nextTile[0],@nextTile[1])
+      if (code == tileType.land)
+        @nextMove = direction.W
+
     if (@tile.loc[1] < @destination.loc[1])
-      @nextMove = direction.N
       @nextTile = @tile.loc.slice(0)
       @nextTile[1]++
+      code = map.getTileCode(@nextTile[0],@nextTile[1])
+      if (code == tileType.land)
+        @nextMove = direction.N
+
     else if ((@tile.loc[1] > @destination.loc[1]))
-      @nextMove = direction.S
       @nextTile = @tile.loc.slice(0)
       @nextTile[1]--
+      code = map.getTileCode(@nextTile[0],@nextTile[1])
+      if (code == tileType.land)
+        @nextMove = direction.S
 
   update: (delta) ->
     #check if we are the selected unit
@@ -126,7 +165,7 @@ class tank extends entity
     @worldPos = map.getWorldPos(@location)
 
     if (@nextTile && @distanceMoved == 1)
-      @move(@destination)
+      @simpleMove(@destination)
       @distanceMoved = 0.0
 
     deltaMove = @speed * delta
