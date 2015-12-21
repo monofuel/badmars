@@ -5,6 +5,7 @@ db.js
 buildings.js
 units.js
 net.js
+app.js
 
 routes/worlds.js
 routes/main.js
