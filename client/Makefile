@@ -5,7 +5,7 @@ build:
 
 copy: build
 	cp -r dependencies/ ../public/js/badmars
-	cp -r models ../public/models
+	cp -r models/ ../public/models
 
 docs:
 	codo -o ../public/clientdocs badmars/*.coffee

@@ -16,9 +16,10 @@ features:
 	generates worlds and stores them in a db
 	provides a REST api for accessing worlds
 
-also included is a viewing client thing in ./client/
-does not actually talk to server yet, just builds it's own
-map.
+documentation:
+	the badmars planet viewer is being documented with codo, documentation
+	documentation is in public/js/badmars/docs
+	currently no serious linting is being done (maybe I should use typescript instead)
 
 another project is https://github.com/monofuel/badMars-Unreal
 will be a viewer done in the unreal engine
@@ -29,5 +30,4 @@ TODO:
 	console acts buggy with supervisor
 	web console would be cool
 	admin page would be cool
-	https and account authentication
-
+	https and account authentication like main japura website
