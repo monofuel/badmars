@@ -1,5 +1,6 @@
 #monofuel
 #11-2015
+'use strict'
 
 #Wrapper around Threejs for camera and lighting settings
 #uses canvas with id 'threePanel'

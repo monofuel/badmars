@@ -1,5 +1,6 @@
 #monofuel
 #12-2015
+'use strict'
 
 #classes for entities dealing with location, models and other details
 
@@ -70,8 +71,8 @@ getSelectedUnit = (mouse) ->
 class entity
   type: 'entity'
   constructor: (@location,@mesh) ->
-    @tile = map.getTileAtLoc(@location)
-    console.log(JSON.stringify(@tile))
+    @tile = map.getLoc(@location)
+    #console.log(JSON.stringify(@tile))
     #standardize the height based on location, not mouse click location
     @location.y = @tile.avg + 0.25
     @mesh.position.copy(@location)
@@ -80,7 +81,7 @@ class entity
     @mesh.userData = this
 
   updateLocation: (@location) ->
-    @tile = map.getTileAtLoc(@location)
+    @tile = map.getLoc(@location)
     @location.y = @tile.avg + 0.25
     @mesh.position.copy(@location)
 
@@ -101,7 +102,7 @@ class tank extends entity
   distanceMoved: 0.0
 
   constructor: (@location) ->
-    @tile = map.getTileAtLoc(@location)
+    @tile = map.getLoc(@location)
     if (!@validateTile())
       return
     #geometry = new THREE.BoxGeometry( 1, 1, 1 )
@@ -118,39 +119,33 @@ class tank extends entity
 
     @nextMove = direction.C
 
-    if (@tile.loc == @destination.loc)
+    if (@tile.equals(@destination))
       @destination = null
       @nextTile = null
       return
 
-    if (@tile.loc[0] < @destination.loc[0])
-      @nextTile = @tile.loc.slice(0)
-      @nextTile[0]++
+    if (@tile.x < @destination.x)
+      @nextTile = new PlanetLoc(@tile.planet,@tile.x+1,@tile.y)
 
-      code = map.getTileCode(@nextTile[0],@nextTile[1])
-      if (code == tileType.land)
+      if (@nextTile.type == tileType.land)
         @nextMove = direction.E
 
-    else if (@tile.loc[0] > @destination.loc[0])
-      @nextTile = @tile.loc.slice(0)
-      @nextTile[0]--
+    else if (@tile.x > @destination.x)
+      @nextTile = new PlanetLoc(@tile.planet,@tile.x-1,@tile.y)
 
-      code = map.getTileCode(@nextTile[0],@nextTile[1])
-      if (code == tileType.land)
+      if (@nextTile.type == tileType.land)
         @nextMove = direction.W
 
-    if (@tile.loc[1] < @destination.loc[1])
-      @nextTile = @tile.loc.slice(0)
-      @nextTile[1]++
-      code = map.getTileCode(@nextTile[0],@nextTile[1])
-      if (code == tileType.land)
+    if (@tile.y < @destination.y)
+      @nextTile = new PlanetLoc(@tile.planet,@tile.x,@tile.y+1)
+
+      if (@nextTile.type == tileType.land)
         @nextMove = direction.N
 
-    else if ((@tile.loc[1] > @destination.loc[1]))
-      @nextTile = @tile.loc.slice(0)
-      @nextTile[1]--
-      code = map.getTileCode(@nextTile[0],@nextTile[1])
-      if (code == tileType.land)
+    else if ((@tile.y > @destination.y))
+      @nextTile = new PlanetLoc(@tile.planet,@tile.x,@tile.y-1)
+
+      if (@nextTile.type == tileType.land)
         @nextMove = direction.S
 
   update: (delta) ->
@@ -172,9 +167,7 @@ class tank extends entity
 
     #move if moving
     #console.log(@location)
-    @tile = map.getTileAtLoc(@location)
-    #if (@nextTile != null && @tile.loc[0] == @nextTile[0] && @tile.loc[1] == @nextTile[1])
-    @worldPos = map.getWorldPos(@location)
+    @tile = map.getLoc(@location)
 
     if (@nextTile && @distanceMoved == 1)
       @simpleMove(@destination)
@@ -251,7 +244,7 @@ class storage extends entity
         vec.copy(loc)
         vec.x += j - 1
         vec.z += k - 1
-        tile = map.getTileAtLoc(vec)
+        tile = map.getLoc(vec)
         tiles.push(tile)
 
     for tile in tiles

@@ -1,5 +1,6 @@
 #monofuel
 #11-2015
+'use strict'
 
 #magic for planets.
 #random noise for generation
@@ -15,11 +16,59 @@ tileType = {
   cliff: 1
   water: 2
   coast: 3
-  occupied: 4
 }
+
+getTypeName = (type) ->
+  switch (tileType)
+    when tileType.land
+      return 'land'
+    when tileType.cliff
+      return 'cliff'
+    when tileType.water
+      return 'water'
+    when tileType.coast
+      return 'coast'
+    else
+      return 'unknown'
 
 #---------------------------------------------------------------------
 #Map
+
+class PlanetLoc
+
+  constructor: (@planet, @x, @y) ->
+    if ( !@planet || !@x || !@y || !@planet.grid ||
+         @x >= @planet.settings.size ||
+         @y >= @planet.settings.size )
+      console.log('invalid call to PlanetLoc')
+      console.log(new Error().stack)
+
+    corners = [
+      @planet.grid[@y][@x],
+      @planet.grid[@y+1][@x],
+      @planet.grid[@y][@x+1],
+      @planet.grid[@y+1][@x+1]
+    ]
+
+    @avg = (corners[0] + corners[1] + corners[2] + corners[3]) / 4
+    if (@avg < @planet.settings.waterHeight)
+      @avg = @planet.settings.waterHeight
+
+    @type = @planet.navGrid[@x][@y]
+
+  toString: () ->
+    return "x: " + @x +
+           ", y: " + @y +
+           ", planet: " + @planet.settings.name +
+           ", type: " + getTypeName(@type)
+
+  #Used to compare PlanetLoc by value
+  equals: (otherLoc) ->
+    return ( otherLoc.x == @x &&
+             otherLoc.y == @y &&
+             otherLoc.planet == @planet )
+
+
 
 #class for managing the game map
 class Map
@@ -27,11 +76,11 @@ class Map
   # @property [Array<Array<tileCode>>] navigational grid of tileCodes
   navGrid: null
 
-  # @property [Array<Object3D] list of hilighted tile objects
+  # @property [Array<Object3D>] list of hilighted tile objects
   hilightList: []
 
-  #@param [2D Array] heightmap for the terrain (optional)
-  #@param [JObject] object defining default settings (optional)
+  # @param [2D Array] heightmap for the terrain (optional)
+  # @param [JObject] object defining default settings (optional)
   constructor: (@grid,@settings) ->
 
     #TODO should check for missing settings individually
@@ -148,6 +197,7 @@ class Map
 
   # @property [JObject] default settings to use if none are specified
   defaultSettings: {
+    name: "unnamed",
     size: 64,
     water: true,
     waterHeight: 3.3,
@@ -267,60 +317,18 @@ class Map
   #---------------------------------------------------------------------
   #tile stuff
 
-  #TODO messy, should be cleaned up
-  # Function to get the tile at a location
-  # @param [Vec3] location relative to map
-  # @return [[x,y]] tile location
-  getTileCoords: (vec) ->
-    tile = [0,0]
-    #Math.floor(x)
-    #Math.floor(y)
-    mid = map.settings.size / 2
-    tile[0] = Math.floor(vec.x) + mid
-    tile[1] = Math.floor(vec.z) + mid
-
-    return tile
-
-  #TODO messy, should be cleaned up
-  # get the X and Y position relative to the Map
-  # 0 0 for the map is the upper left corner
+  #get PlanetLoc Location from vector3 in 3D space
   # @param [Vec3] location in 3D space
-  # @return [[x,y]] x and y relative to map
-  getWorldPos: (vec) ->
-    x = vec.x + @settings.size/2
-    #y is flip-flopped for some reason
-    y = @settings.size - (vec.z + @settings.size/2)
-
-    return [x,y]
-
-  # get the type of tile at a location
-  # @param [Vec3] location in 3D space
-  # @return [JObject] data on the tile at the location
-  getTileAtLoc: (vec) ->
+  # @return [PlanetLoc] info for tile
+  getLoc: (vec) ->
     x = Math.floor(vec.x + @settings.size/2)
     #y is flip-flopped for some reason
     y = Math.floor(@settings.size - (vec.z + @settings.size/2))
+    return new PlanetLoc(this,x,y)
 
-    corners = [
-      @grid[y][x],
-      @grid[y+1][x],
-      @grid[y][x+1],
-      @grid[y+1][x+1]
-    ]
-    avg = (corners[0] + corners[1] + corners[2] + corners[3]) / 4
-    if (avg < @settings.waterHeight)
-      avg = @settings.waterHeight
 
-    code = @navGrid[x][y]
-    return {
-      loc: [x,y]
-      type: code
-      avg: avg
-    }
-
-  #TODO
-  #could probably be mixed together with getTileAtLoc
   #get the tile code for a specific tiles
+  #used to generate the navGrid
   # @param [Number] x
   # @param [Number] y
   # @return [tileType]
@@ -348,29 +356,6 @@ class Map
       return tileType.coast
     else
       return tileType.land
-
-  #checks if the tile is not too steep
-  # @param [Integer] corner1
-  # @param [Integer] corner2
-  # @param [Integer] corner3
-  # @param [Integer] corner4
-  # @return [Boolean] if the land is flat enough to move
-  isTilePassable: (corner1,corner2,corner3,corner4) ->
-
-    avg = (corner1 + corner2 + corner3 + corner4) / 4
-
-    #i'm sure this could be replaced by a much more clever one-liner
-    #but this is reasonably readable.
-    if (Math.abs(corner1 - avg) > @settings.cliffDelta)
-      return false;
-    if (Math.abs(corner2 - avg) > @settings.cliffDelta)
-      return false;
-    if (Math.abs(corner3 - avg) > @settings.cliffDelta)
-      return false;
-    if (Math.abs(corner4 - avg) > @settings.cliffDelta)
-      return false;
-
-    return true;
 
 #---------------------------------------------------------------------
 #Noise

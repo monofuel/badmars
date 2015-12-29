@@ -1,5 +1,10 @@
 #monofuel
 #11-2015
+'use strict'
+
+#TODO: coding jam idea thing
+#separate pathfinding and world generation onto separate workers
+#get other people to do them
 
 #core javascript for the custom planet generator page.
 #html logic (window events and m/k input)
@@ -74,39 +79,49 @@ window.onload = () ->
   document.body.oncontextmenu = () ->
     return false
 
-  document.body.onmousemove = (event) ->
+    #method to get the 3D mouse position over the terrain
+    #TODO: should have a similar method to get the current tile
+    # @param [onmousemove event] event
+    # @returns [Vec3] position on map that is clicked
+  get3DMousePos = (mouseEvent) ->
     mouse = new THREE.Vector2()
-    mouse.x = ( event.clientX / display.renderer.domElement.clientWidth ) * 2 - 1
-    mouse.y = - ( event.clientY / display.renderer.domElement.clientHeight ) * 2 + 1
-    pos = map.getRayPosition(mouse)
+    mouse.x = ( mouseEvent.clientX / display.renderer.domElement.clientWidth ) * 2 - 1
+    mouse.y = - ( mouseEvent.clientY / display.renderer.domElement.clientHeight ) * 2 + 1
+    return map.getRayPosition(mouse)
+
+  document.body.onmousemove = (event) ->
+
     switch (buttonMode)
       when bMode.storage #storage
+        pos = get3DMousePos(event)
         tiles = []
         for j in [0..2]
           for k in [0..2]
+
             vec = new THREE.Vector3()
             vec.copy(pos)
             vec.x += j - 1
             vec.z += k - 1
-            tile = map.getTileAtLoc(vec)
+            tile = map.getLoc(vec)
             tiles.push(tile)
 
         valid = true
         for tile in tiles
           if (tile.type != tileType.land)
             valid = false
-        @tile = map.getTileAtLoc(pos)
+        @tile = map.getLoc(pos)
         if (valid)
-          map.hilight(0x7FFF00,@tile.loc[0],@tile.loc[1])
+          map.hilight(0x7FFF00,@tile.x,@tile.y)
         else
-          map.hilight(0xDC143C,@tile.loc[0],@tile.loc[1])
+          map.hilight(0xDC143C,@tile.x,@tile.y)
 
       when bMode.tank #tank
-        @tile = map.getTileAtLoc(pos)
+        pos = get3DMousePos(event)
+        @tile = map.getLoc(pos)
         if (@tile.type == tileType.land)
-          map.hilight(0x7FFF00,@tile.loc[0],@tile.loc[1])
+          map.hilight(0x7FFF00,@tile.x,@tile.y)
         else
-          map.hilight(0xDC143C,@tile.loc[0],@tile.loc[1])
+          map.hilight(0xDC143C,@tile.x,@tile.y)
 
   document.body.onmousedown = (event) ->
     #TODO do something fancy to show placement
@@ -127,7 +142,7 @@ window.onload = () ->
 
             if (unit)
               console.log(unit.type + " clicked")
-              @tile = map.getTileAtLoc(pos)
+              @tile = map.getLoc(pos)
               selectedUnit = unit
               buttonMode = bMode.move
 
@@ -136,7 +151,7 @@ window.onload = () ->
 
             if (unit)
               console.log(unit.type + " clicked")
-              @tile = map.getTileAtLoc(pos)
+              @tile = map.getLoc(pos)
               selectedUnit = unit
               buttonMode = bMode.move
             else
@@ -165,7 +180,7 @@ window.onload = () ->
         switch(buttonMode)
           when bMode.move
             console.log('move ordered')
-            @tile = map.getTileAtLoc(pos)
+            @tile = map.getLoc(pos)
             selectedUnit.simpleMove(@tile)
 
           else
