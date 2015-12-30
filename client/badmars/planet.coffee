@@ -40,6 +40,7 @@ class PlanetLoc
     if ( !@planet || !@x || !@y || !@planet.grid ||
          @x >= @planet.settings.size ||
          @y >= @planet.settings.size )
+      console.log(@toString())
       console.log('invalid call to PlanetLoc')
       console.log(new Error().stack)
 

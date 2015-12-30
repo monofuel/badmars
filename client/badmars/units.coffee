@@ -127,7 +127,7 @@ class tank extends entity
       return
 
     if (!@path || !@path.end.equals(@destination))
-      @path = new SimplePath(@tile,@destination)
+      @path = new AStarPath(@tile,@destination)
 
     @nextMove = @path.getNext(@tile)
 
