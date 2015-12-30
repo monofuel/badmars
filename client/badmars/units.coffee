@@ -82,7 +82,7 @@ class entity
 
   updateLocation: (@location) ->
     @tile = map.getLoc(@location)
-    @location.y = @tile.avg + 0.25
+    #@location.y = @tile.avg + 0.25
     @mesh.position.copy(@location)
 
   validateTile: (loc) ->
@@ -115,38 +115,34 @@ class tank extends entity
     super(@location,tankMesh)
     @mesh = tankMesh
 
-  simpleMove: (@destination) ->
+  updatePath: (@destination) ->
 
-    @nextMove = direction.C
+    #@nextMove = direction.C
 
     if (@tile.equals(@destination))
       @destination = null
+      @nextMove = direction.C
       @nextTile = null
+      @path = null
       return
 
-    if (@tile.x < @destination.x)
-      @nextTile = new PlanetLoc(@tile.planet,@tile.x+1,@tile.y)
+    if (!@path || !@path.end.equals(@destination))
+      @path = new SimplePath(@tile,@destination)
 
-      if (@nextTile.type == tileType.land)
-        @nextMove = direction.E
+    @nextMove = @path.getNext(@tile)
 
-    else if (@tile.x > @destination.x)
-      @nextTile = new PlanetLoc(@tile.planet,@tile.x-1,@tile.y)
+    switch(@nextMove)
+      when direction.N
+        @nextTile = new PlanetLoc(@tile.planet,@tile.x,@tile.y+1)
+      when direction.S
+        @nextTile = new PlanetLoc(@tile.planet,@tile.x,@tile.y-1)
+      when direction.E
+        @nextTile = new PlanetLoc(@tile.planet,@tile.x+1,@tile.y)
+      when direction.W
+        @nextTile = new PlanetLoc(@tile.planet,@tile.x-1,@tile.y)
+      else
+        @nextTile = @tile
 
-      if (@nextTile.type == tileType.land)
-        @nextMove = direction.W
-
-    if (@tile.y < @destination.y)
-      @nextTile = new PlanetLoc(@tile.planet,@tile.x,@tile.y+1)
-
-      if (@nextTile.type == tileType.land)
-        @nextMove = direction.N
-
-    else if ((@tile.y > @destination.y))
-      @nextTile = new PlanetLoc(@tile.planet,@tile.x,@tile.y-1)
-
-      if (@nextTile.type == tileType.land)
-        @nextMove = direction.S
 
   update: (delta) ->
     #check if we are the selected unit
@@ -169,11 +165,11 @@ class tank extends entity
     #console.log(@location)
     @tile = map.getLoc(@location)
 
-    if (@nextTile && @distanceMoved == 1)
-      @simpleMove(@destination)
-      @distanceMoved = 0.0
-
+    #maybe delta move should be a vector
     deltaMove = @speed * delta
+    if (@nextMove && @nextTile)
+      deltaHeight = @speed * delta * (@nextTile.avg - @tile.avg)
+
     if (@nextMove != direction.C)
       @distanceMoved += deltaMove
       if (@distanceMoved > 1)
@@ -182,34 +178,49 @@ class tank extends entity
     switch (@nextMove)
       when direction.N
         #console.log('moving north ' + deltaMove)
-        @location.z -= deltaMove
-        if (@distanceMoved == 1)
-          @location.z = Math.round(@location.z*2) /2
-        @updateLocation(@location)
-        @moving = true
+        if (@distanceMoved < 1)
+          @location.z -= deltaMove
+          #@location.y += deltaHeight
+
+          @updateLocation(@location)
+          @moving = true
       when direction.S
         #console.log('moving south ' + deltaMove)
-        @location.z += deltaMove
-        if (@distanceMoved == 1)
-          @location.z = Math.round(@location.z*2) /2
-        @updateLocation(@location)
-        @moving = true
+        if (@distanceMoved < 1)
+          @location.z += deltaMove
+          #@location.y += deltaHeight
+
+          @updateLocation(@location)
+          @moving = true
       when direction.E
         #console.log('moving east ' + deltaMove)
-        @location.x += deltaMove
-        if (@distanceMoved == 1)
-          @location.x = Math.round(@location.x *2) /2
-        @updateLocation(@location)
-        @moving = true
+        if (@distanceMoved < 1)
+          @location.x += deltaMove
+          #@location.y += deltaHeight
+
+          @updateLocation(@location)
+          @moving = true
       when direction.W
         #console.log('moving west ' + deltaMove)
-        @location.x -= deltaMove
-        if (@distanceMoved == 1)
-          @location.x = Math.round(@location.x *2) /2
-        @updateLocation(@location)
-        @moving = true
+        if (@distanceMoved < 1)
+          @location.x -= deltaMove
+          #@location.y += deltaHeight
+
+          @updateLocation(@location)
+          @moving = true
       when direction.C
         @moving = false
+
+    if (@distanceMoved == 1)
+      #snap to grid
+      @location.x = @nextTile.real_x + 0.5
+      @location.z = @nextTile.real_y - 0.5
+      @location.y = @nextTile.avg + 0.25
+      @updateLocation(@location)
+
+      #get next move for path
+      @updatePath(@destination)
+      @distanceMoved = 0.0
 
     #check for enemies
 

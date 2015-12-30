@@ -56,6 +56,9 @@ class PlanetLoc
 
     @type = @planet.navGrid[@x][@y]
 
+    @real_x = @x - (@planet.settings.size / 2)
+    @real_y = - (@y - (@planet.settings.size / 2))
+
   toString: () ->
     return "x: " + @x +
            ", y: " + @y +
