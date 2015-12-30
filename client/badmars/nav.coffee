@@ -91,8 +91,11 @@ class AStarPath
         console.log("path calculated: " + @path.length)
         return
 
-
+      #check if the tile is passable
       if (current.type != tileType.land)
+        continue
+      #check if there is already a unit on the tile
+      if (unitTileCheck(current))
         continue
 
       neighbors = []

@@ -44,6 +44,15 @@ loader.load(
     #console.log(helper.box.min,helper.box.max)
 )
 
+unitTileCheck = (tile) ->
+  for unit in units
+    if (unit.type == 'tank')
+      if tile.equals(unit.tile)
+        return true
+    #if (unit.type == 'storage')
+      #TODO
+  return false
+
 getSelectedUnit = (mouse) ->
   raycaster = new THREE.Raycaster()
 
@@ -86,6 +95,7 @@ class entity
     @mesh.position.copy(@location)
 
   validateTile: (loc) ->
+
 
   update: (delta) ->
 
@@ -225,6 +235,9 @@ class tank extends entity
     #check for enemies
 
   validateTile: () ->
+    if (unitTileCheck(@tile))
+      console.log('tile already occupied')
+      return false
     if (@tile.type == tileType.land)
       return true
     else
