@@ -98,16 +98,12 @@ class AStarPath
       if (unitTileCheck(current))
         continue
 
-      neighbors = []
-
-      if (current.x > 0)
-        neighbors.push(new PlanetLoc(@planet,current.x-1, current.y))
-      if (current.y > 0)
-        neighbors.push(new PlanetLoc(@planet,current.x, current.y-1))
-      if (current.x < @planet.settings.size - 1)
-        neighbors.push(new PlanetLoc(@planet,current.x+1, current.y))
-      if (current.y < @planet.settings.size - 1)
-        neighbors.push(new PlanetLoc(@planet,current.x, current.y+1))
+      neighbors = [
+        current.N()
+        current.S()
+        current.E()
+        current.W()
+      ]
 
       for tile in neighbors
         if (@contains(closed,tile))
@@ -140,13 +136,13 @@ class AStarPath
     if (nextTile == null)
       return direction.C
 
-    if (tile.x < nextTile.x)
+    if (tile.E().equals(nextTile))
       return direction.E
-    if (tile.x > nextTile.x)
+    if (tile.W().equals(nextTile))
       return direction.W
-    if (tile.y < nextTile.y)
+    if (tile.N().equals(nextTile))
       return direction.N
-    if (tile.y > nextTile.y)
+    if (tile.S().equals(nextTile))
       return direction.S
 
     #if all else fails

@@ -5,13 +5,19 @@
 #Wrapper around Threejs for camera and lighting settings
 #uses canvas with id 'threePanel'
 
+orthographic = false
+
 #---------------------------------------------------------------------
 #Display
 class Display
   constructor: () ->
     @scene = new THREE.Scene()
-    @camera = new THREE.PerspectiveCamera(75,window.innerWidth / window.innerHeight,0.1,1000)
-    #@camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, - 500, 1000 );
+    aspectRatio =   window.innerWidth / window.innerHeight
+    @d = 35
+    if (orthographic)
+      @camera = new THREE.OrthographicCamera( - @d * aspectRatio, @d * aspectRatio, @d, - @d, 1, 1000 );
+    else
+      @camera = new THREE.PerspectiveCamera(75,aspectRatio,0.1,1000)
     panel = document.getElementById('threePanel')
     @renderer = new THREE.WebGLRenderer({antialias: true, canvas: panel})
     @renderer.setSize(window.innerWidth, window.innerHeight)
@@ -50,11 +56,16 @@ class Display
     dirLight.shadowDarkness = 0.35;
 
 
-
-    @camera.position.set(0,20,30)
-    @camera.up = new THREE.Vector3(0,0,1)
-    @camera.rotation.set(-0.6,0,0)
-    @camera.rotation.order = 'YXZ';
+    if (orthographic)
+      @camera.position.set(70, 120, 70)
+      @camera.up = new THREE.Vector3(0,0,1)
+      @camera.rotation.set(-0.8,Math.PI/4,0)
+      @camera.rotation.order = 'YXZ';
+    else
+      @camera.position.set(0,20,30)
+      @camera.up = new THREE.Vector3(0,0,1)
+      @camera.rotation.set(-0.6,0,0)
+      @camera.rotation.order = 'YXZ';
 
     @camera.updateProjectionMatrix()
     console.log('threejs ready')
@@ -62,9 +73,33 @@ class Display
 
   resize: () ->
     #console.log('resizing to ' + window.innerWidth + ":" + window.innerHeight)
-    @camera.aspect = window.innerWidth / window.innerHeight
-    @camera.updateProjectionMatrix()
+    aspectRatio =   window.innerWidth / window.innerHeight
+    if (orthographic)
+      @camera.left = - @d * aspectRatio
+      @camera.right = @d * aspectRatio
+      @camera.top = @d
+      @camera.bottom = -@d
+      @camera.updateProjectionMatrix();
+
+    else
+      @camera.aspect = aspectRatio
+      @camera.updateProjectionMatrix()
+
     @renderer.setSize(window.innerWidth, window.innerHeight)
+
+  cameraUp: (delta) ->
+    if (orthographic)
+      @d *= 1 - (1 * delta)
+      @resize()
+    else
+      display.camera.position.y += cameraSpeed * delta
+
+  cameraDown: (delta) ->
+    if (orthographic)
+      @d *= 1 + (1 * delta)
+      @resize()
+    else
+      display.camera.position.y -= cameraSpeed * delta
 
   render: () ->
     @renderer.render(@scene,@camera)

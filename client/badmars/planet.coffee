@@ -37,11 +37,25 @@ getTypeName = (type) ->
 class PlanetLoc
 
   constructor: (@planet, @x, @y) ->
-    if ( !@planet || !@x || !@y || !@planet.grid ||
-         @x >= @planet.settings.size ||
-         @y >= @planet.settings.size )
+    if ( !@planet || !@planet.grid)
       console.log(@toString())
       console.log('invalid call to PlanetLoc')
+      console.log(new Error().stack)
+
+    if (@x < 0)
+      @x = (@planet.settings.size + @x - 1) % (@planet.settings.size - 1)
+    if (@x >= @planet.settings.size - 1)
+      @x = @x % (@planet.settings.size - 2)
+    if (@y < 0)
+      @y = (@planet.settings.size + @y - 1) % (@planet.settings.size - 1)
+    if (@y >= @planet.settings.size - 1)
+      @y = @y % (@planet.settings.size - 2)
+
+    if (@x >= @planet.grid[0].length - 1 || @x < 0)
+      console.log(@toString())
+      console.log(new Error().stack)
+    if (@y >= @planet.grid.length - 1 || @y < 0)
+      console.log(@toString())
       console.log(new Error().stack)
 
     corners = [
@@ -65,6 +79,17 @@ class PlanetLoc
            ", y: " + @y +
            ", planet: " + @planet.settings.name +
            ", type: " + getTypeName(@type)
+
+  W: () ->
+    return new PlanetLoc(@planet, @x - 1, @y)
+
+  E: () ->
+    return new PlanetLoc(@planet, @x + 1, @y)
+
+  S: () ->
+    return new PlanetLoc(@planet, @x, @y - 1)
+  N: () ->
+    return new PlanetLoc(@planet, @x, @y + 1)
 
   #Used to compare PlanetLoc by value
   equals: (otherLoc) ->
@@ -133,8 +158,10 @@ class Map
     #water geom should really be either a giant polygon or a few large polygons
     @waterGeom = new THREE.Geometry()
 
-    @landMaterial = new THREE.MeshLambertMaterial({color: 0x00FF00})
-    @cliffMaterial = new THREE.MeshLambertMaterial({color: 0xA52A2A})
+    #@landMaterial = new THREE.MeshLambertMaterial({color: 0x00FF00})
+    @landMaterial = new THREE.MeshLambertMaterial({color: 0xFAFAFA})
+    #@cliffMaterial = new THREE.MeshLambertMaterial({color: 0xA52A2A})
+    @cliffMaterial = new THREE.MeshLambertMaterial({color: 0x8C8C8C})
     @waterMaterial = new THREE.MeshLambertMaterial({color: 0x0000FF})
 
     #flat shading wasn't very pretty, but might be desired based on theme

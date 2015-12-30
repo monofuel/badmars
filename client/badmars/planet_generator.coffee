@@ -294,7 +294,7 @@ logicLoop = () ->
   display.render()
   statsMonitor.end()
 
-handleInput = () ->
+handleInput = (delta) ->
   #TODO
   #hilight tile should update when panning the camera
   #this would require knowing the mouse position and updating hilight position
@@ -311,9 +311,9 @@ handleInput = () ->
       when 68 #d
         display.camera.translateX(Math.cos(display.camera.rotation.x) * cameraSpeed * delta)
       when 82 #r
-        display.camera.position.y += cameraSpeed * delta
+        display.cameraUp(delta)
       when 70 #f
-        display.camera.position.y -= cameraSpeed * delta
+        display.cameraDown(delta)
       when 81 #q
         display.camera.rotation.y += cameraSpeed * delta / 10
       when 69 #e
