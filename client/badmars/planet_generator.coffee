@@ -43,7 +43,7 @@ selectedUnit = null
 #---------------------------------------------------------------------
 #tweakables
 
-cameraSpeed = 10
+cameraSpeed = 20
 
 #---------------------------------------------------------------------
 #html5
@@ -315,9 +315,9 @@ handleInput = (delta) ->
       when 70 #f
         display.cameraDown(delta)
       when 81 #q
-        display.camera.rotation.y += cameraSpeed * delta / 10
+        display.cameraRotateRight(delta)
       when 69 #e
-        display.camera.rotation.y -= cameraSpeed * delta / 10
+        display.cameraRotateLeft(delta)
 
 #---------------------------------------------------------------------
 #Stats

@@ -5,7 +5,7 @@
 #Wrapper around Threejs for camera and lighting settings
 #uses canvas with id 'threePanel'
 
-orthographic = false
+orthographic = true
 
 #---------------------------------------------------------------------
 #Display
@@ -57,14 +57,14 @@ class Display
 
 
     if (orthographic)
-      @camera.position.set(70, 120, 70)
+      @camera.position.set(8, 80, 20)
       @camera.up = new THREE.Vector3(0,0,1)
-      @camera.rotation.set(-0.8,Math.PI/4,0)
+      @camera.rotation.set(-0.8,-Math.PI/4,0)
       @camera.rotation.order = 'YXZ';
     else
-      @camera.position.set(0,20,30)
+      @camera.position.set(8,20,-8)
       @camera.up = new THREE.Vector3(0,0,1)
-      @camera.rotation.set(-0.6,0,0)
+      @camera.rotation.set(-0.6,-Math.PI/4,0)
       @camera.rotation.order = 'YXZ';
 
     @camera.updateProjectionMatrix()
@@ -100,6 +100,21 @@ class Display
       @resize()
     else
       display.camera.position.y -= cameraSpeed * delta
+
+  cameraRotateRight: (delta) ->
+    if (orthographic)
+      display.camera.rotation.y += cameraSpeed * delta / 20
+      display.camera.translateX(-Math.cos(display.camera.rotation.x + Math.PI) * cameraSpeed * delta * 5.2)
+    else
+      display.camera.rotation.y += cameraSpeed * delta / 10
+
+  cameraRotateLeft: (delta) ->
+    if (orthographic)
+      display.camera.rotation.y -= cameraSpeed * delta / 20
+      display.camera.translateX(Math.cos(display.camera.rotation.x + Math.PI) * cameraSpeed * delta * 5.2)
+
+    else
+      display.camera.rotation.y -= cameraSpeed * delta / 10
 
   render: () ->
     @renderer.render(@scene,@camera)

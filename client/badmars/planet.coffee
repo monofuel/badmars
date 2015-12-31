@@ -42,6 +42,10 @@ class PlanetLoc
       console.log('invalid call to PlanetLoc')
       console.log(new Error().stack)
 
+    @x = Math.round(@x)
+    @y = Math.round(@y)
+    #console.log("x: " + @x + ", y: " + @y)
+
     if (@x < 0)
       @x = (@planet.settings.size + @x - 1) % (@planet.settings.size - 1)
     if (@x >= @planet.settings.size - 1)
@@ -71,8 +75,8 @@ class PlanetLoc
 
     @type = @planet.navGrid[@x][@y]
 
-    @real_x = @x - (@planet.settings.size / 2)
-    @real_y = - (@y - (@planet.settings.size / 2))
+    @real_x = @x
+    @real_y = - @y
 
   toString: () ->
     return "x: " + @x +
@@ -104,6 +108,10 @@ class Map
 
   # @property [Array<Array<tileCode>>] navigational grid of tileCodes
   navGrid: null
+
+  # @property [Array<Object3D>] list of land meshes
+  landMeshes: []
+  waterMeshes: []
 
   # @property [Array<Object3D>] list of hilighted tile objects
   hilightList: []
@@ -152,11 +160,17 @@ class Map
 
   #generate a 3D mesh for ThreeJS based on the heightmap
   generateMesh: () ->
+    chunkCount = (@settings.size - 2) / @settings.chunkSize
+    console.log("chunks: " + chunkCount)
 
-    @gridGeom = new THREE.Geometry()
-    #TODO
-    #water geom should really be either a giant polygon or a few large polygons
-    @waterGeom = new THREE.Geometry()
+    for y in [0..chunkCount-1]
+      for x in [0..chunkCount-1]
+        @generateChunk(x,y)
+
+  generateChunk: (chunkX,chunkY) ->
+
+    gridGeom = new THREE.Geometry()
+    waterGeom = new THREE.PlaneBufferGeometry(@settings.chunkSize,@settings.chunkSize)
 
     #@landMaterial = new THREE.MeshLambertMaterial({color: 0x00FF00})
     @landMaterial = new THREE.MeshLambertMaterial({color: 0xFAFAFA})
@@ -169,67 +183,67 @@ class Map
     #@cliffMaterial.shading = THREE.FlatShading
     #@waterMaterial.shading = THREE.FlatShading
 
-    for y in [0..@settings.size-1]
-      for x in [0..@settings.size-1]
-        @gridGeom.vertices.push(new THREE.Vector3(x,y,@grid[y][x]))
-        @waterGeom.vertices.push(new THREE.Vector3(x,y,@settings.waterHeight))
 
-    for y in [0..@settings.size-2]
-      for x in [0..@settings.size-2]
+    for y in [0..@settings.chunkSize]
+      for x in [0..@settings.chunkSize]
+        gridGeom.vertices.push(new THREE.Vector3(x,y,@grid[(chunkY * @settings.chunkSize) + y][(chunkX * @settings.chunkSize) + x]))
+
+    for y in [0..@settings.chunkSize - 1]
+      for x in [0..@settings.chunkSize - 1]
         landFace1 = new THREE.Face3(
-            y*@settings.size + x,
-            y*@settings.size + x + 1,
-            (y+1)*@settings.size + x)
+            y*(@settings.chunkSize + 1) + x,
+            y*(@settings.chunkSize + 1) + 1 + x,
+            (y+1)*(@settings.chunkSize + 1) + x)
         landFace1.materialIndex = 0;
         landFace2 = new THREE.Face3(
-            y*@settings.size + x + 1,
-            (y+1)*@settings.size + x + 1,
-            (y+1)*@settings.size + x)
+            y*(@settings.chunkSize + 1) + x + 1,
+            (y+1)*(@settings.chunkSize + 1) + x + 1,
+            (y+1)*(@settings.chunkSize + 1) + x)
 
-        if (@navGrid[x][y] != 1)
+        if (@navGrid[(chunkX * @settings.chunkSize) + x][(chunkY * @settings.chunkSize) + y] != 1)
           landFace1.materialIndex = 0;
           landFace2.materialIndex = 0;
         else
           landFace1.materialIndex = 1;
           landFace2.materialIndex = 1;
 
-        @gridGeom.faces.push(landFace1)
-        @gridGeom.faces.push(landFace2)
+        gridGeom.faces.push(landFace1)
+        gridGeom.faces.push(landFace2)
 
-        @waterGeom.faces.push(new THREE.Face3(
-            y*@settings.size + x,
-            y*@settings.size + x + 1,
-            (y+1)*@settings.size + x))
-        @waterGeom.faces.push(new THREE.Face3(
-            y*@settings.size + x + 1,
-            (y+1)*@settings.size + x + 1,
-            (y+1)*@settings.size + x))
-
-    @gridGeom.computeBoundingSphere()
-    @gridGeom.computeFaceNormals()
-    @gridGeom.computeVertexNormals()
-    @waterGeom.computeBoundingSphere()
-    @waterGeom.computeFaceNormals()
-    @waterGeom.computeVertexNormals()
+    gridGeom.computeBoundingSphere()
+    gridGeom.computeFaceNormals()
+    gridGeom.computeVertexNormals()
+    waterGeom.computeBoundingSphere()
+    waterGeom.computeFaceNormals()
+    waterGeom.computeVertexNormals()
 
     planetMaterials = new THREE.MeshFaceMaterial([@landMaterial,@cliffMaterial])
 
-    @gridMesh = new THREE.Mesh(@gridGeom,planetMaterials)
-    @waterMesh = new THREE.Mesh(@waterGeom,@waterMaterial)
+    gridMesh = new THREE.Mesh(gridGeom,planetMaterials)
+    waterMesh = new THREE.Mesh(waterGeom,@waterMaterial)
 
-    @gridMesh.rotation.x = - Math.PI / 2
-    @waterMesh.rotation.x = - Math.PI / 2
+    gridMesh.rotation.x = - Math.PI / 2
+    waterMesh.rotation.x = - Math.PI / 2
 
-    centerMatrix =new THREE.Matrix4().makeTranslation( -@settings.size/2, -@settings.size/2, 0 )
-    @gridMesh.geometry.applyMatrix(centerMatrix)
-    @waterMesh.geometry.applyMatrix(centerMatrix)
+    centerMatrix =new THREE.Matrix4().makeTranslation( chunkX * @settings.chunkSize, chunkY * @settings.chunkSize, 0 )
+    gridMesh.geometry.applyMatrix(centerMatrix)
+    waterMesh.geometry.applyMatrix(centerMatrix)
+
+    waterMesh.position.x += @settings.chunkSize/2
+    waterMesh.position.y += @settings.waterHeight
+    waterMesh.position.z -= @settings.chunkSize/2
+
+    @landMeshes.push(gridMesh)
+    @waterMeshes.push(waterMesh)
 
     console.log("Generated Geometry")
 
   # @property [JObject] default settings to use if none are specified
+  #size should be a multiple of chunkSize + 2
   defaultSettings: {
     name: "unnamed",
-    size: 64,
+    size: 130,
+    chunkSize: 16,
     water: true,
     waterHeight: 3.3,
     bigNoise: .11,
@@ -249,7 +263,8 @@ class Map
 
     raycaster.setFromCamera( mouse, display.camera )
 
-    intersects = raycaster.intersectObjects( [map.gridMesh,map.waterMesh] )
+    AllPlanetMeshes = @landMeshes.concat(@waterMeshes)
+    intersects = raycaster.intersectObjects( AllPlanetMeshes )
     if ( intersects.length > 0 )
         #intersects[0].point
         #sphere = new THREE.SphereGeometry(0.25)
@@ -262,39 +277,37 @@ class Map
         vec.y = vec.y + 0.5
         return vec
     else
-      console.log('did not click on map')
+      #console.log('did not click on map')
       return new THREE.Vector3(0,0,0)
 
   #rotate the map in 3D space
   # @param [Number] angle to rotate to
   rotate: (angle) ->
     axis = new THREE.Vector3(0,0,1)
-    @gridMesh.rotateOnAxis(axis, angle)
-    @waterMesh.rotateOnAxis(axis, angle)
+    for mesh in @landMeshes.concat(@waterMeshes)
+      mesh.rotateOnAxis(axis, angle)
 
   #remove the map fron the 3D world
   removeFromRender: () ->
-    display.removeMesh(@gridMesh)
-    if (@waterMesh)
-      display.removeMesh(@waterMesh)
+    for mesh in @landMeshes.concat(@waterMeshes)
+      display.removeMesh(mesh)
     console.log('removed map from scene')
 
   #add the map fron the 3D world
   addToRender: () ->
-    display.addMesh(@gridMesh)
-    if (@settings.water)
-      display.addMesh(@waterMesh)
-    #display.lookAt(@gridMesh)
+    for mesh in @landMeshes.concat(@waterMeshes)
+      display.addMesh(mesh)
     console.log('added map to scene')
 
 
   #Hilights a tile on the map
   hilight: (color,x,y) ->
     #TODO should change order of arguments and make color optional with a default color
-
     newHilightLoc = [x,y]
     if (newHilightLoc == @hilightLoc)
       return
+
+    #console.log('x: ' + x + ", y: " + y)
 
     @hilightLoc = newHilightLoc
 
@@ -325,8 +338,8 @@ class Map
     if (@hilightPlane)
       display.removeMesh(@hilightPlane)
     @hilightPlane = new THREE.Mesh(geometry,material)
-    @hilightPlane.position.x = -@settings.size/2 + x
-    @hilightPlane.position.z = @settings.size/2 - y
+    @hilightPlane.position.x = x
+    @hilightPlane.position.z = - y
     @hilightPlane.position.y = 0.2
     @hilightPlane.rotation.x = - Math.PI / 2
     display.addMesh(@hilightPlane)
@@ -352,9 +365,10 @@ class Map
   # @param [Vec3] location in 3D space
   # @return [PlanetLoc] info for tile
   getLoc: (vec) ->
-    x = Math.floor(vec.x + @settings.size/2)
-    #y is flip-flopped for some reason
-    y = Math.floor(@settings.size - (vec.z + @settings.size/2))
+    x = Math.floor(vec.x)
+    #y is flip-flopped
+    #number of tiles is size - 2
+    y = - Math.ceil(vec.z)
     return new PlanetLoc(this,x,y)
 
 
