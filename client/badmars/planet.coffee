@@ -160,6 +160,10 @@ class Map
 
   #generate a 3D mesh for ThreeJS based on the heightmap
   generateMesh: () ->
+
+    @landMeshes = []
+    @waterMeshes = []
+
     chunkCount = (@settings.size - 2) / @settings.chunkSize
     console.log("chunks: " + chunkCount)
 

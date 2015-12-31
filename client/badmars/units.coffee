@@ -101,7 +101,7 @@ class entity
 
   destroy: () ->
     display.removeMesh(@mesh)
-    units.remove(this)
+    units = units.splice(units.indexOf(this),1)
 
 class tank extends entity
   type: 'tank'

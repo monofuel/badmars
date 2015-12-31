@@ -233,9 +233,7 @@ saveWorld = () ->
     alert('failed to save world')
 
 newWorld = () ->
-  map.removeFromRender()
-  map = new Map()
-  map.addToRender()
+  updateMap()
 
 selectWorld = (world) ->
   console.log('selecting world ' + world)
@@ -255,6 +253,8 @@ selectWorld = (world) ->
       }
       document.getElementById('worldName').innerHTML = settings.name
       map.removeFromRender()
+      for unit in units
+        unit.destroy()
       map = new Map(response.vertex_grid,settings)
       map.addToRender()
 
@@ -427,5 +427,7 @@ class Datgui
 
 updateMap = () ->
   map.removeFromRender()
+  for unit in units
+    unit.destroy()
   map.generate()
   map.addToRender()
