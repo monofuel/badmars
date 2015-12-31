@@ -43,7 +43,7 @@ selectedUnit = null
 #---------------------------------------------------------------------
 #tweakables
 
-cameraSpeed = 20
+cameraSpeed = 30
 
 #---------------------------------------------------------------------
 #html5
@@ -370,11 +370,12 @@ class Datgui
 
     @gui.add(map.settings, 'waterHeight')
     .min(0)
-    .max(10)
+    .max(20)
     .onFinishChange( () ->
       console.log('water is now at ' + map.settings.waterHeight)
       updateMap()
       )
+
 
     @gui.add(map.settings, 'water')
     .onFinishChange( () ->
@@ -387,8 +388,8 @@ class Datgui
 
 
     @gui.add(map.settings, 'size')
-    .min(32)
-    .max(1024)
+    .min(34)
+    .max(1026)
     .step(16)
     .onFinishChange( () ->
       console.log('map resized to ' + map.settings.size)
@@ -406,7 +407,7 @@ class Datgui
     .onFinishChange(updateMap)
     @gui.add(map.settings, 'bigNoiseScale')
     .min(0)
-    .max(2)
+    .max(5)
     .onFinishChange(updateMap)
     @gui.add(map.settings, 'medNoise')
     .min(0)
@@ -414,7 +415,7 @@ class Datgui
     .onFinishChange(updateMap)
     @gui.add(map.settings, 'medNoiseScale')
     .min(0)
-    .max(.75)
+    .max(1)
     .onFinishChange(updateMap)
     @gui.add(map.settings, 'smallNoise')
     .min(0)
@@ -422,7 +423,7 @@ class Datgui
     .onFinishChange(updateMap)
     @gui.add(map.settings, 'smallNoiseScale')
     .min(0)
-    .max(.5)
+    .max(.75)
     .onFinishChange(updateMap)
 
 updateMap = () ->

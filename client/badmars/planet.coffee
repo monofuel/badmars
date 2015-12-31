@@ -246,14 +246,14 @@ class Map
   #size should be a multiple of chunkSize + 2
   defaultSettings: {
     name: "unnamed",
-    size: 130,
+    size: 450,
     chunkSize: 16,
     water: true,
-    waterHeight: 3.3,
-    bigNoise: .11,
+    waterHeight: 6.4,
+    bigNoise: .07,
     medNoise: .24,
     smallNoise: .53,
-    bigNoiseScale: 1.0,
+    bigNoiseScale: 1.8,
     medNoiseScale: 0.25,
     smallNoiseScale: 0.25,
     cliffDelta: 0.3

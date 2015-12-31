@@ -13,7 +13,7 @@ class Display
   constructor: () ->
     @scene = new THREE.Scene()
     aspectRatio =   window.innerWidth / window.innerHeight
-    @d = 35
+    @d = 66
     if (orthographic)
       @camera = new THREE.OrthographicCamera( - @d * aspectRatio, @d * aspectRatio, @d, - @d, 1, 1000 );
     else
@@ -37,7 +37,7 @@ class Display
     dirLight.position.set( -1, 0.75, 1 );
     dirLight.position.multiplyScalar( 50);
     dirLight.name = "dirlight";
-    #dirLight.shadowCameraVisible = true;
+    dirLight.shadowCameraVisible = true;
     @light = dirLight
     @scene.add( dirLight );
 
@@ -57,7 +57,7 @@ class Display
 
 
     if (orthographic)
-      @camera.position.set(8, 80, 20)
+      @camera.position.set(120, 80, -132)
       @camera.up = new THREE.Vector3(0,0,1)
       @camera.rotation.set(-0.8,-Math.PI/4,0)
       @camera.rotation.order = 'YXZ';
@@ -90,6 +90,8 @@ class Display
   cameraUp: (delta) ->
     if (orthographic)
       @d *= 1 - (1 * delta)
+      #if (@d < 10)
+        #@d = 10
       @resize()
     else
       display.camera.position.y += cameraSpeed * delta
@@ -97,6 +99,8 @@ class Display
   cameraDown: (delta) ->
     if (orthographic)
       @d *= 1 + (1 * delta)
+      #if (@d > 30)
+        #@d = 30
       @resize()
     else
       display.camera.position.y -= cameraSpeed * delta
