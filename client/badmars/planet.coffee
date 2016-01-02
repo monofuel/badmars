@@ -75,8 +75,11 @@ class PlanetLoc
 
     @type = @planet.navGrid[@x][@y]
 
-    @real_x = @x
-    @real_y = - @y
+    @real_x = @x + 0.5
+    @real_y = - (@y + 0.5)
+
+  getLoc: () ->
+    return new THREE.Vector3(@real_x,@avg,@real_y)
 
   toString: () ->
     return "x: " + @x +
@@ -132,6 +135,7 @@ class Map
   generate: () ->
     @generateWorld()
     @generateMesh()
+    @populateResources()
 
   #generate only the heightmap for the world
   generateWorld: () ->
@@ -158,6 +162,23 @@ class Map
       for y in [0..@settings.size-2]
         @navGrid[x][y] = @getTileCode(x,y)
 
+  populateResources: () ->
+    console.log('popultating resources')
+
+    for x in [0..@settings.size - 2]
+      for y in [0..@settings.size - 2]
+        if (Math.random() < @settings.ironChance)
+          tile = new PlanetLoc(this,x,y)
+          new iron(tile)
+
+
+
+    for x in [0..@settings.size - 2]
+      for y in [0..@settings.size - 2]
+        if (Math.random() < @settings.oilChance)
+          tile = new PlanetLoc(this,x,y)
+          new oil(tile)
+
   #generate a 3D mesh for ThreeJS based on the heightmap
   generateMesh: () ->
 
@@ -176,10 +197,10 @@ class Map
     gridGeom = new THREE.Geometry()
     waterGeom = new THREE.PlaneBufferGeometry(@settings.chunkSize,@settings.chunkSize)
 
-    #@landMaterial = new THREE.MeshLambertMaterial({color: 0x00FF00})
-    @landMaterial = new THREE.MeshLambertMaterial({color: 0xFAFAFA})
-    #@cliffMaterial = new THREE.MeshLambertMaterial({color: 0xA52A2A})
-    @cliffMaterial = new THREE.MeshLambertMaterial({color: 0x8C8C8C})
+    @landMaterial = new THREE.MeshLambertMaterial({color: 0x00FF00})
+    #@landMaterial = new THREE.MeshLambertMaterial({color: 0xFAFAFA})
+    @cliffMaterial = new THREE.MeshLambertMaterial({color: 0x993300})
+    #@cliffMaterial = new THREE.MeshLambertMaterial({color: 0x8C8C8C})
     @waterMaterial = new THREE.MeshLambertMaterial({color: 0x0000FF})
 
     #flat shading wasn't very pretty, but might be desired based on theme
@@ -246,7 +267,7 @@ class Map
   #size should be a multiple of chunkSize + 2
   defaultSettings: {
     name: "unnamed",
-    size: 450,
+    size: 130,
     chunkSize: 16,
     water: true,
     waterHeight: 6.4,
@@ -256,7 +277,9 @@ class Map
     bigNoiseScale: 1.8,
     medNoiseScale: 0.25,
     smallNoiseScale: 0.25,
-    cliffDelta: 0.3
+    cliffDelta: 0.3,
+    ironChance: 0.003,
+    oilChance: 0.002
   }
 
   #3D stuff

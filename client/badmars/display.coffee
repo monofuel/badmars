@@ -13,13 +13,13 @@ class Display
   constructor: () ->
     @scene = new THREE.Scene()
     aspectRatio =   window.innerWidth / window.innerHeight
-    @d = 66
+    @d = 15
     if (orthographic)
       @camera = new THREE.OrthographicCamera( - @d * aspectRatio, @d * aspectRatio, @d, - @d, 1, 1000 );
     else
       @camera = new THREE.PerspectiveCamera(75,aspectRatio,0.1,1000)
     panel = document.getElementById('threePanel')
-    @renderer = new THREE.WebGLRenderer({antialias: true, canvas: panel})
+    @renderer = new THREE.WebGLRenderer({antialias: false, canvas: panel})
     @renderer.setSize(window.innerWidth, window.innerHeight)
     #document.body.appendChild(@renderer.domElement)
 
@@ -30,34 +30,23 @@ class Display
     #directionalLight.position.set(0,15,0)
     #@scene.add(directionalLight)
 
-    hemLight = new THREE.HemisphereLight(0xffe5bb, 0xFFBF00, .1);
+    #hemLight = new THREE.HemisphereLight(0xffe5bb, 0xFFBF00, .1);
+    hemLight = new THREE.HemisphereLight(0xffffff, 0xFFBF00, .4);
     @scene.add(hemLight);
 
-    dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
+    dirLight = new THREE.DirectionalLight( 0xffffff, .3 );
     dirLight.position.set( -1, 0.75, 1 );
     dirLight.position.multiplyScalar( 50);
     dirLight.name = "dirlight";
-    dirLight.shadowCameraVisible = true;
     @light = dirLight
     @scene.add( dirLight );
 
-    dirLight.castShadow = true;
-    dirLight.shadowMapWidth = dirLight.shadowMapHeight = 1024*2;
 
-    d = 300;
-
-    dirLight.shadowCameraLeft = -d;
-    dirLight.shadowCameraRight = d;
-    dirLight.shadowCameraTop = d;
-    dirLight.shadowCameraBottom = -d;
-
-    dirLight.shadowCameraFar = 3500;
-    dirLight.shadowBias = -0.0001;
-    dirLight.shadowDarkness = 0.35;
 
 
     if (orthographic)
-      @camera.position.set(120, 80, -132)
+      #@camera.position.set(120, 80, -132)
+      @camera.position.set(25, 80, -15)
       @camera.up = new THREE.Vector3(0,0,1)
       @camera.rotation.set(-0.8,-Math.PI/4,0)
       @camera.rotation.order = 'YXZ';

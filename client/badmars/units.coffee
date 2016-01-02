@@ -50,7 +50,7 @@ unitTileCheck = (tile) ->
       if tile.equals(unit.tile)
         return true
     #if (unit.type == 'storage')
-      #TODO
+      #TODO fancy thing for multi tile units
   return false
 
 getSelectedUnit = (mouse) ->
@@ -79,51 +79,49 @@ getSelectedUnit = (mouse) ->
 
 class entity
   type: 'entity'
-  constructor: (@location,@mesh) ->
-    @tile = map.getLoc(@location)
+  constructor: (@tile,@mesh) ->
     #console.log(JSON.stringify(@tile))
     #standardize the height based on location, not mouse click location
-    @location.y = @tile.avg + 0.25
+    @location = @tile.getLoc()
     @mesh.position.copy(@location)
     display.addMesh(@mesh)
     units.push(this)
     @mesh.userData = this
 
-  updateLocation: (@location) ->
-    @tile = map.getLoc(@location)
-    #@location.y = @tile.avg + 0.25
-    @mesh.position.copy(@location)
 
   validateTile: (loc) ->
 
 
   update: (delta) ->
 
+  showSelection: () ->
+    #check if we are the selected unit
+    if (selectedUnit == this && !@selectionCircle)
+      geometry = new THREE.CircleGeometry( 1.1,12)
+      material = new THREE.MeshBasicMaterial( { color: 0x66FF00, wireframe: true } )
+      @selectionCircle = new THREE.Mesh( geometry, material )
+      @selectionCircle.rotation.x = - Math.PI / 2
+      display.addMesh(@selectionCircle)
+
+    if (@selectionCircle && selectedUnit != this)
+      display.removeMesh(@selectionCircle)
+      @selectionCircle = null
+
+    if (@selectionCircle)
+      @selectionCircle.position.copy(@location)
+      @selectionCircle.y += 0.2
+
+
   destroy: () ->
     display.removeMesh(@mesh)
     units = units.splice(units.indexOf(this),1)
 
-class tank extends entity
-  type: 'tank'
+class groundUnit extends entity
   nextMove: direction.C
   nextTile: null
   moving: false
-  speed: 1 #1 tile per second
+  speed: 1
   distanceMoved: 0.0
-
-  constructor: (@location) ->
-    @tile = map.getLoc(@location)
-    if (!@validateTile())
-      return
-    #geometry = new THREE.BoxGeometry( 1, 1, 1 )
-    material = new THREE.MeshLambertMaterial( { color: 0x006600 } )
-    #tankMesh = new THREE.Mesh( geometry, material )
-    console.log(meshes)
-    tankMesh = new THREE.Mesh(meshes.tank.geometry,material)
-    tankMesh.scale.set(0.3,0.3,0.3)
-
-    super(@location,tankMesh)
-    @mesh = tankMesh
 
   updatePath: (@destination) ->
 
@@ -153,27 +151,11 @@ class tank extends entity
       else
         @nextTile = @tile
 
-
   update: (delta) ->
-    #check if we are the selected unit
-    if (selectedUnit == this && !@selectionCircle)
-      geometry = new THREE.CircleGeometry( 1.1,12)
-      material = new THREE.MeshBasicMaterial( { color: 0x66FF00, wireframe: true } )
-      @selectionCircle = new THREE.Mesh( geometry, material )
-      @selectionCircle.rotation.x = - Math.PI / 2
-      display.addMesh(@selectionCircle)
 
-    if (@selectionCircle && selectedUnit != this)
-      display.removeMesh(@selectionCircle)
-      @selectionCircle = null
-
-    if (@selectionCircle)
-      @selectionCircle.position.copy(@location)
-      @selectionCircle.y += 0.2
-
+    @showSelection()
     #move if moving
     #console.log(@location)
-    @tile = map.getLoc(@location)
 
     #maybe delta move should be a vector
     deltaMove = @speed * delta
@@ -192,7 +174,7 @@ class tank extends entity
           @location.z -= deltaMove
           #@location.y += deltaHeight
 
-          @updateLocation(@location)
+          @mesh.position.copy(@location)
           @moving = true
       when direction.S
         #console.log('moving south ' + deltaMove)
@@ -200,7 +182,7 @@ class tank extends entity
           @location.z += deltaMove
           #@location.y += deltaHeight
 
-          @updateLocation(@location)
+          @mesh.position.copy(@location)
           @moving = true
       when direction.E
         #console.log('moving east ' + deltaMove)
@@ -208,7 +190,7 @@ class tank extends entity
           @location.x += deltaMove
           #@location.y += deltaHeight
 
-          @updateLocation(@location)
+          @mesh.position.copy(@location)
           @moving = true
       when direction.W
         #console.log('moving west ' + deltaMove)
@@ -216,23 +198,21 @@ class tank extends entity
           @location.x -= deltaMove
           #@location.y += deltaHeight
 
-          @updateLocation(@location)
+          @mesh.position.copy(@location)
           @moving = true
       when direction.C
         @moving = false
 
     if (@distanceMoved == 1)
       #snap to grid
-      @location.x = @nextTile.real_x + 0.5
-      @location.z = @nextTile.real_y - 0.5
-      @location.y = @nextTile.avg + 0.25
-      @updateLocation(@location)
+      @location = @nextTile.getLoc()
+      @location.y += 0.25
+      @mesh.position.copy(@location)
+      @tile = @nextTile
 
       #get next move for path
       @updatePath(@destination)
       @distanceMoved = 0.0
-
-    #check for enemies
 
   validateTile: () ->
     if (unitTileCheck(@tile))
@@ -245,22 +225,94 @@ class tank extends entity
       return false
 
 
+class tank extends groundUnit
+  type: 'tank'
+  speed: 1 #1 tile per second
+
+  constructor: (@tile) ->
+    if (!@validateTile())
+      return
+    #geometry = new THREE.BoxGeometry( 1, 1, 1 )
+    material = new THREE.MeshLambertMaterial( { color: 0x006600 } )
+    #tankMesh = new THREE.Mesh( geometry, material )
+    console.log(meshes)
+    tankMesh = new THREE.Mesh(meshes.tank.geometry,material)
+    tankMesh.scale.set(0.3,0.3,0.3)
+
+    super(@tile,tankMesh)
+    @mesh = tankMesh
+
+
+  update: (delta) ->
+
+    super(delta)
+
+
+    #TODO
+    #check for enemies
+    #shoot at them
+    #SHOOT THEM
+
+class builder extends groundUnit
+  type: 'builder'
+  speed: 1 #1 tile per second
+
+  constructor: (@tile) ->
+    if (!@validateTile())
+      return
+    geometry = new THREE.BoxGeometry( 1, 1, 1 )
+    material = new THREE.MeshLambertMaterial( { color: 0xCC0000 } )
+    @mesh = new THREE.Mesh( geometry, material )
+
+    super(@tile,@mesh)
+
+
+  update: (delta) ->
+
+    super(delta)
+
+    #TODO
+    #build things
+
+class transport extends groundUnit
+  type: 'transport'
+  speed: 1 #1 tile per second
+
+  constructor: (@tile) ->
+    if (!@validateTile())
+      return
+
+    geometry = new THREE.BoxGeometry( 1, 1, 1 )
+    material = new THREE.MeshLambertMaterial( { color: 0xFF6600 } )
+    @mesh = new THREE.Mesh( geometry, material )
+
+    super(@tile,@mesh)
+
+
+  update: (delta) ->
+
+    super(delta)
+
+
+    #TODO
+    #carry cargo
 
 class storage extends entity
   type: 'storage'
-  constructor: (@location) ->
-    if (!@validateTile(@location))
+  constructor: (@tile) ->
+    if (!@validateTile())
       return
     geometry = new THREE.BoxGeometry( 3, 3, 3 )
     material = new THREE.MeshLambertMaterial( { color: 0x808080 } )
     cube = new THREE.Mesh( geometry, material )
-    super(@location,cube)
+    super(@tile,cube)
     @mesh = cube
 
   update: (delta) ->
     #move resources between nearby units
 
-  validateTile: (loc) ->
+  validateTile: () ->
+    loc = @tile.getLoc()
     tiles = []
     for j in [0..2]
       for k in [0..2]
@@ -276,3 +328,61 @@ class storage extends entity
         console.log('invalid tile')
         return false
     return true
+
+class iron extends entity
+  type: 'iron'
+  rate: 0
+
+  constructor: (@tile) ->
+    if (!@validateTile())
+      return
+    geometry = new THREE.BoxGeometry( 0.75, 0.75, 0.75 )
+    material = new THREE.MeshLambertMaterial( { color: 0xF8F8F8 } )
+    cube = new THREE.Mesh( geometry, material )
+    super(@tile,cube)
+    @mesh = cube
+
+    rate = 0.5 + (Math.random() * 2)
+
+  update: (delta) ->
+    @showSelection()
+    #iron pull tick
+
+  validateTile: () ->
+    if (unitTileCheck(@tile))
+      console.log('tile already occupied')
+      return false
+    if (@tile.type == tileType.land)
+      return true
+    else
+      console.log('invalid tile')
+      return false
+
+class oil extends entity
+  type: 'oil'
+  rate: 0
+
+  constructor: (@tile) ->
+    if (!@validateTile())
+      return
+    geometry = new THREE.BoxGeometry( 0.75, 0.75, 0.75 )
+    material = new THREE.MeshLambertMaterial( { color: 0x181818  } )
+    cube = new THREE.Mesh( geometry, material )
+    super(@tile,cube)
+    @mesh = cube
+
+    rate = 1000 + (Math.random() * 200)
+
+  update: (delta) ->
+    @showSelection()
+    #oil draw tick
+
+  validateTile: () ->
+    if (unitTileCheck(@tile))
+      console.log('tile already occupied')
+      return false
+    if (@tile.type == tileType.land)
+      return true
+    else
+      console.log('invalid tile')
+      return false

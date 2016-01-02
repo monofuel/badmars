@@ -25,6 +25,7 @@ bMode = {
   move: 1
   storage: 2
   tank: 3
+  builder: 4
 }
 
 #---------------------------------------------------------------------
@@ -54,6 +55,7 @@ window.onresize = () ->
 window.onload = () ->
   display = new Display()
   map = new Map()
+  map.populateResources()
   map.addToRender()
   datgui = new Datgui()
   statsMonitor = new StatMonitor()
@@ -115,7 +117,15 @@ window.onload = () ->
         else
           map.hilight(0xDC143C,@tile.x,@tile.y)
 
-      when bMode.tank #tank
+      when bMode.builder
+        pos = get3DMousePos(event)
+        @tile = map.getLoc(pos)
+        if (@tile.type == tileType.land)
+          map.hilight(0x7FFF00,@tile.x,@tile.y)
+        else
+          map.hilight(0xDC143C,@tile.x,@tile.y)
+
+      when bMode.tank
         pos = get3DMousePos(event)
         @tile = map.getLoc(pos)
         if (@tile.type == tileType.land)
@@ -132,6 +142,7 @@ window.onload = () ->
     mouse.x = ( event.clientX / display.renderer.domElement.clientWidth ) * 2 - 1
     mouse.y = - ( event.clientY / display.renderer.domElement.clientHeight ) * 2 + 1
     pos = map.getRayPosition(mouse)
+    @tile = map.getLoc(pos)
 
     switch (event.button)
       when 0
@@ -164,15 +175,21 @@ window.onload = () ->
             console.log('storage placement')
             buttonMode = bMode.selection
             clearButtons()
-            new storage(pos)
+            new storage(@tile)
             map.clearHilight()
 
+          when bMode.builder
+            console.log('builder placement')
+            buttonMode = bMode.selection
+            clearButtons()
+            new builder(@tile)
+            map.clearHilight()
 
           when bMode.tank
             console.log('tank placement')
             buttonMode = bMode.selection
             clearButtons()
-            new tank(pos)
+            new tank(@tile)
             map.clearHilight()
       when 1
         console.log('middle click')
@@ -180,7 +197,6 @@ window.onload = () ->
         switch(buttonMode)
           when bMode.move
             console.log('move ordered')
-            @tile = map.getLoc(pos)
             selectedUnit.updatePath(@tile)
 
           else
@@ -198,6 +214,12 @@ storageClick = () ->
 tankClick = () ->
   buttonMode = bMode.tank
   button = document.getElementById('tankButton')
+  clearButtons()
+  button.className = "btn btn-warning"
+
+builderClick = () ->
+  buttonMode = bMode.builder
+  button = document.getElementById('builderButton')
   clearButtons()
   button.className = "btn btn-warning"
 
@@ -293,6 +315,7 @@ logicLoop = () ->
 
   display.render()
   statsMonitor.end()
+
 
 handleInput = (delta) ->
   #TODO
