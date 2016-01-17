@@ -8,7 +8,7 @@
 orthographic = true
 
 lightAngle = 0
-SUN_SPEED = 0.1
+SUN_SPEED = 0.025
 
 SUN_COLOR = 0xDD9A70
 MOON_COLOR = 0x9AA09A

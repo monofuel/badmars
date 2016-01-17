@@ -6,6 +6,7 @@ worldSchema = mongoose.Schema({
     seed: Number,
     water: Boolean,
     waterHeight: Number,
-    cliffDelta: Number
+    cliffDelta: Number,
+    chunkSize: Number
   }
 })

@@ -57,6 +57,7 @@ Faction = mongoose.model('Faction',factionSchema)
 #------------------------------------------------------------
 
 exports.init = () ->
+  #TODO should retry if connection is lost or fails to connect
   mongoose.connect('mongodb://localhost/badMars')
   db = mongoose.connection
   db.on('error',console.error.bind(console,'mongo connection error: '))
@@ -69,6 +70,14 @@ exports.saveWorld = (world) ->
   worldDoc = new World(world)
   worldDoc.save( (err,badMars) ->
     console.error(err) if (err)
+  )
+
+exports.removeWorld = (name) ->
+
+  World.remove({ name: name},(err,world) ->
+    if (err)
+      return console.error(err)
+    console.log(name, " deleted")
   )
 
 exports.getWorld = (name) ->

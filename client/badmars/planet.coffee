@@ -121,7 +121,7 @@ class Map
 
   # @param [2D Array] heightmap for the terrain (optional)
   # @param [JObject] object defining default settings (optional)
-  constructor: (@grid,@settings) ->
+  constructor: (@settings,@grid,@navGrid) ->
 
     #TODO should check for missing settings individually
     #rather than all or nothing
@@ -129,11 +129,14 @@ class Map
       @settings = @defaultSettings
     if (!@grid)
       @generateWorld()
+    if (!@navGrid)
+      @generateNav()
     @generateMesh()
 
   #generate both the world and the mesh to display
   generate: () ->
     @generateWorld()
+    @generateNav()
     @generateMesh()
     @populateResources()
 
@@ -160,6 +163,7 @@ class Map
 
     console.log("Generated World Heightmap")
 
+  generateNav: () -> 
     #instantiate the navigational Map
     @navGrid = []
     for x in [0..@settings.size-2]

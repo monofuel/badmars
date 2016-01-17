@@ -1,6 +1,8 @@
 mongoose = require('mongoose')
 World = mongoose.model('World')
+
 module.exports = (app) ->
+
   app.route('/worlds')
   .get((req,res,next) ->
     console.log(req.query)
@@ -32,6 +34,19 @@ module.exports = (app) ->
       if (err)
         console.log(err)
         return next(err)
+      else
+        console.log('saved world: ',newWorld.name);
+        res.send(200);
     )
+  )
+  .delete((req,res,next) ->
 
+    World.remove({name: req.query.name}, (err,world) ->
+      if (err)
+        console.log(err)
+        return next(err)
+      else
+        res.send(200)
+        return
+    )
   )

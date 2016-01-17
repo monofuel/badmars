@@ -79,6 +79,8 @@ getSelectedUnit = (mouse) ->
 
 class entity
   type: 'entity'
+  owner: 'admin'
+  unitHeight: 0.25
   constructor: (@tile,@mesh) ->
     #console.log(JSON.stringify(@tile))
     #standardize the height based on location, not mouse click location
@@ -123,6 +125,7 @@ class groundUnit extends entity
   moving: false
   speed: 1
   distanceMoved: 0.0
+  unitHeight: 0.25
 
   updatePath: (@destination) ->
 
@@ -135,8 +138,17 @@ class groundUnit extends entity
       @path = null
       return
 
+
+    #if we have no destination, set it
+    #or update it if we have a new destination
     if (!@path || !@path.end.equals(@destination))
       @path = new AStarPath(@tile,@destination)
+
+    #dont' mess with things if we are stil moving
+    if (@moving)
+      return
+
+    #calculate the next movement tile and direction
 
     @nextMove = @path.getNext(@tile)
 
@@ -152,6 +164,7 @@ class groundUnit extends entity
       else
         @nextTile = @tile
 
+
   update: (delta) ->
 
     @showSelection()
@@ -160,8 +173,11 @@ class groundUnit extends entity
 
     #maybe delta move should be a vector
     deltaMove = @speed * delta
-    if (@nextMove && @nextTile)
+    if (@nextTile)
       deltaHeight = @speed * delta * (@nextTile.avg - @tile.avg)
+    else
+      deltaHeight = 0
+
 
     if (@nextMove != direction.C)
       @distanceMoved += deltaMove
@@ -173,7 +189,7 @@ class groundUnit extends entity
         #console.log('moving north ' + deltaMove)
         if (@distanceMoved < 1)
           @location.z -= deltaMove
-          #@location.y += deltaHeight
+          @location.y += deltaHeight
 
           @mesh.position.copy(@location)
           @moving = true
@@ -181,7 +197,7 @@ class groundUnit extends entity
         #console.log('moving south ' + deltaMove)
         if (@distanceMoved < 1)
           @location.z += deltaMove
-          #@location.y += deltaHeight
+          @location.y += deltaHeight
 
           @mesh.position.copy(@location)
           @moving = true
@@ -189,7 +205,7 @@ class groundUnit extends entity
         #console.log('moving east ' + deltaMove)
         if (@distanceMoved < 1)
           @location.x += deltaMove
-          #@location.y += deltaHeight
+          @location.y += deltaHeight
 
           @mesh.position.copy(@location)
           @moving = true
@@ -197,7 +213,7 @@ class groundUnit extends entity
         #console.log('moving west ' + deltaMove)
         if (@distanceMoved < 1)
           @location.x -= deltaMove
-          #@location.y += deltaHeight
+          @location.y += deltaHeight
 
           @mesh.position.copy(@location)
           @moving = true
@@ -205,9 +221,10 @@ class groundUnit extends entity
         @moving = false
 
     if (@distanceMoved == 1)
+      @moving = false
       #snap to grid
       @location = @nextTile.getLoc()
-      @location.y += 0.25
+      @location.y += @unitHeight
       @mesh.position.copy(@location)
       @tile = @nextTile
 
@@ -229,6 +246,7 @@ class groundUnit extends entity
 class tank extends groundUnit
   type: 'tank'
   speed: 1 #1 tile per second
+  unitHeight: 0.25
 
   constructor: (@tile) ->
     if (!@validateTile())

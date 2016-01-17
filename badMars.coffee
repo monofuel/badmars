@@ -18,6 +18,7 @@ displayHelp = () ->
   console.log('Possible commands:')
   console.log('genWorld [name] [size] \tcreate a new world with name')
   console.log('listWorlds \tlist all created worlds')
+  console.log('removeWorld \tremove a specific world')
   console.log('listBuildings \tlist all available buildings')
   console.log('listUnits \tlist all available units')
   console.log('showWorld \tshow all data for a world')
@@ -40,6 +41,9 @@ listBuildings = () ->
 
 listWorlds = () ->
   db.listWorlds(console.log)
+
+removeWorld = (name) ->
+  db.removeWorld(name)
 
 showWorld = (name) ->
   console.log(db.getWorld(name))
@@ -87,6 +91,7 @@ handleCommand = (line) ->
     when 'help' then displayHelp()
     when 'genWorld' then generateWorld(lineList[1],lineList[2])
     when 'listWorlds' then listWorlds()
+    when 'removeWorld' then removeWorld(lineList[1]);
     when 'showWorld' then showWorld(lineList[1])
     when 'listBuildings' then listBuildings()
     when 'showBuilding' then showBuilding(lineList[1])

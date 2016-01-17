@@ -269,27 +269,50 @@ clearButtons = () ->
 saveWorld = () ->
   #worldSchema = mongoose.Schema({
   #  name: String
-  #  water: Number
   #  vertex_grid: Mixed
   #  movement_grid: Mixed
   #  settings: Mixed
-  #  seed: Number
   #})
 
   newWorld = {
-    name: document.getElementById('worldName')
+    name: document.getElementById('worldName').value
+    vertex_grid: map.grid
+    movement_grid: map.navGrid
+    settings: map.settings
   }
+  console.log('saving world: ', newWorld.name);
 
   xhttp = new XMLHttpRequest();
 
-  xhttp.open('POST','worlds',false);
+  xhttp.open('POST','worlds',true);
   xhttp.setRequestHeader('Content-Type','application/json')
+
+  xhttp.onreadystatechange = () ->
+    if (xhttp.readyState == 4)
+      if (xhttp.status == 200)
+        alert('world saved!')
+        getWorldList()
+      else
+        alert('failed to save world')
+
   xhttp.send(JSON.stringify(newWorld));
-  if (xhttp.status == 200)
-    alert('world saved!')
-    getWorldList()
-  else
-    alert('failed to save world')
+
+deleteWorld = () ->
+
+  xhttp = new XMLHttpRequest();
+  name = document.getElementById('worldName').value
+
+  xhttp.open('DELETE','worlds?name='+ name ,true);
+
+  xhttp.onreadystatechange = () ->
+    if (xhttp.readyState == 4)
+      if (xhttp.status == 200)
+        alert('world deleted!')
+        getWorldList()
+      else
+        alert('failed to delete world')
+
+  xhttp.send();
 
 newWorld = () ->
   updateMap()
@@ -306,15 +329,23 @@ selectWorld = (world) ->
       response = JSON.parse(xhttp.responseText)
       settings = {
         name: response.name
-        size: response.vertex_grid.length,
-        water: true,
-        waterHeight: response.water
+        size: response.vertex_grid.length - 1
+        water: response.settings.water
+        waterHeight: response.settings.waterHeight
+        chunkSize: response.settings.chunkSize
+        cliffDelta: response.settings.cliffDelta
       }
-      document.getElementById('worldName').innerHTML = settings.name
+      document.getElementById('worldName').value = settings.name
       map.removeFromRender()
-      for unit in units
-        unit.destroy()
-      map = new Map(response.vertex_grid,settings)
+      while (units.length > 0)
+        unit = units[0]
+        if (unit && unit.destroy)
+          unit.destroy()
+        else
+          console.log('invalid unit in units list')
+          console.log(unit)
+          break
+      map = new Map(settings,response.vertex_grid,response.movement_grid)
       map.addToRender()
 
 
