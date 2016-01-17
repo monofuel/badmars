@@ -26,6 +26,7 @@ bMode = {
   storage: 2
   tank: 3
   builder: 4
+  transport: 5
 }
 
 #---------------------------------------------------------------------
@@ -66,11 +67,19 @@ window.onload = () ->
   getWorldList()
 
   document.body.onkeydown = (key) ->
+    inputBox = document.getElementById('worldName')
+    if (document.activeElement == inputBox)
+      return;
+
     if (keysDown.indexOf(key.keyCode) == -1 && key.keyCode != 18) #ignore alt, because alt-tab is buggy
       keysDown.push(key.keyCode)
       #console.log('key pressed: ' + key.keyCode)
 
   document.body.onkeyup = (key) ->
+    inputBox = document.getElementById('worldName')
+    if (document.activeElement == inputBox)
+      return;
+
     index = keysDown.indexOf(key.keyCode)
     if (index != -1)
       keysDown.splice(index,1)
@@ -124,6 +133,15 @@ window.onload = () ->
           map.hilight(0x7FFF00,@tile.x,@tile.y)
         else
           map.hilight(0xDC143C,@tile.x,@tile.y)
+
+      when bMode.transport
+        pos = get3DMousePos(event)
+        @tile = map.getLoc(pos)
+        if (@tile.type == tileType.land)
+          map.hilight(0x7FFF00,@tile.x,@tile.y)
+        else
+          map.hilight(0xDC143C,@tile.x,@tile.y)
+
 
       when bMode.tank
         pos = get3DMousePos(event)
@@ -185,6 +203,14 @@ window.onload = () ->
             new builder(@tile)
             map.clearHilight()
 
+          when bMode.transport
+            console.log('transport placement')
+            buttonMode = bMode.selection
+            clearButtons()
+            new transport(@tile)
+            map.clearHilight()
+
+
           when bMode.tank
             console.log('tank placement')
             buttonMode = bMode.selection
@@ -217,6 +243,12 @@ tankClick = () ->
   clearButtons()
   button.className = "btn btn-warning"
 
+transportClick = () ->
+  buttonMode = bMode.transport
+  button = document.getElementById('transportButton')
+  clearButtons()
+  button.className = "btn btn-warning"
+
 builderClick = () ->
   buttonMode = bMode.builder
   button = document.getElementById('builderButton')
@@ -228,6 +260,11 @@ clearButtons = () ->
   button.className = "btn btn-primary"
   button = document.getElementById('tankButton')
   button.className = "btn btn-primary"
+  button = document.getElementById('builderButton')
+  button.className = "btn btn-primary"
+  button = document.getElementById('transportButton')
+  button.className = "btn btn-primary"
+
 
 saveWorld = () ->
   #worldSchema = mongoose.Schema({
@@ -451,8 +488,13 @@ class Datgui
 
 updateMap = () ->
   map.removeFromRender()
-  for unit in units
-    if (unit)
+  while (units.length > 0)
+    unit = units[0]
+    if (unit && unit.destroy)
       unit.destroy()
+    else
+      console.log('invalid unit in units list')
+      console.log(unit)
+      break
   map.generate()
   map.addToRender()

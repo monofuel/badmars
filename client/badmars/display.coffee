@@ -36,14 +36,14 @@ class Display
     #directionalLight.position.set(0,15,0)
     #@scene.add(directionalLight)
 
-    #hemLight = new THREE.HemisphereLight(0xffe5bb, 0xFFBF00, .1);
-    hemLight = new THREE.HemisphereLight(0xffffff, 0xFFBF00, .3);
-    @scene.add(hemLight);
+    #@hemLight = new THREE.HemisphereLight(0xffe5bb, 0xFFBF00, .1);
+    @hemLight = new THREE.HemisphereLight(0xffffff, 0xFFBF00, .3);
+    @scene.add(@hemLight);
 
     @moonLight = new THREE.DirectionalLight( MOON_COLOR, .2 );
     @scene.add( @moonLight );
 
-    @light = new THREE.DirectionalLight( SUN_COLOR, .5   );
+    @light = new THREE.DirectionalLight( SUN_COLOR, 1  );
     @updateSunPosition(0);
     @scene.add( @light );
 

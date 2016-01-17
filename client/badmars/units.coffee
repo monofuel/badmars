@@ -113,8 +113,9 @@ class entity
 
 
   destroy: () ->
+    console.log('removing ', @type)
     display.removeMesh(@mesh)
-    units = units.splice(units.indexOf(this),1)
+    units.splice(units.indexOf(this),1)
 
 class groundUnit extends entity
   nextMove: direction.C
@@ -235,12 +236,10 @@ class tank extends groundUnit
     #geometry = new THREE.BoxGeometry( 1, 1, 1 )
     material = new THREE.MeshLambertMaterial( { color: 0x006600 } )
     #tankMesh = new THREE.Mesh( geometry, material )
-    console.log(meshes)
     tankMesh = new THREE.Mesh(meshes.tank.geometry,material)
     tankMesh.scale.set(0.3,0.3,0.3)
 
     super(@tile,tankMesh)
-    @mesh = tankMesh
 
 
   update: (delta) ->
@@ -262,9 +261,9 @@ class builder extends groundUnit
       return
     geometry = new THREE.BoxGeometry( 1, 1, 1 )
     material = new THREE.MeshLambertMaterial( { color: 0xCC0000 } )
-    @mesh = new THREE.Mesh( geometry, material )
+    builderMesh = new THREE.Mesh( geometry, material )
 
-    super(@tile,@mesh)
+    super(@tile,builderMesh)
 
 
   update: (delta) ->
@@ -283,10 +282,10 @@ class transport extends groundUnit
       return
 
     geometry = new THREE.BoxGeometry( 1, 1, 1 )
-    material = new THREE.MeshLambertMaterial( { color: 0xFF6600 } )
-    @mesh = new THREE.Mesh( geometry, material )
+    material = new THREE.MeshLambertMaterial( { color: 0xD1A185 } )
+    transportMesh = new THREE.Mesh( geometry, material )
 
-    super(@tile,@mesh)
+    super(@tile,transportMesh)
 
 
   update: (delta) ->
@@ -306,7 +305,6 @@ class storage extends entity
     material = new THREE.MeshLambertMaterial( { color: 0x808080 } )
     cube = new THREE.Mesh( geometry, material )
     super(@tile,cube)
-    @mesh = cube
 
   update: (delta) ->
     #move resources between nearby units
@@ -340,7 +338,6 @@ class iron extends entity
     material = new THREE.MeshLambertMaterial( { color: 0xF8F8F8 } )
     cube = new THREE.Mesh( geometry, material )
     super(@tile,cube)
-    @mesh = cube
 
     rate = 0.5 + (Math.random() * 2)
 
@@ -369,7 +366,6 @@ class oil extends entity
     material = new THREE.MeshLambertMaterial( { color: 0x181818  } )
     cube = new THREE.Mesh( geometry, material )
     super(@tile,cube)
-    @mesh = cube
 
     rate = 1000 + (Math.random() * 200)
 

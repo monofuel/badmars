@@ -139,6 +139,9 @@ class Map
 
   #generate only the heightmap for the world
   generateWorld: () ->
+
+    waterFudge = 0.1
+
     @bigNoiseGenerator = new Noise(@settings.size - 1,@settings.bigNoise)
     @medNoiseGenerator = new Noise(@settings.size - 1,@settings.medNoise)
     @smallNoiseGenerator = new Noise(@settings.size - 1,@settings.smallNoise)
@@ -151,6 +154,8 @@ class Map
         point = @bigNoiseGenerator.get(x,y) * @settings.bigNoiseScale
         point += @medNoiseGenerator.get(x,y) * @settings.medNoiseScale
         point += @smallNoiseGenerator.get(x,y) * @settings.smallNoiseScale
+        if (point - @settings.waterHeight > - waterFudge && point - @settings.waterHeight < waterFudge)
+          point = @settings.waterHeight + waterFudge
         @grid[x][y] = point
 
     console.log("Generated World Heightmap")
