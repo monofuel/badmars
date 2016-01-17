@@ -313,7 +313,7 @@ logicLoop = () ->
     unit.update(delta)
   map.update(delta)
 
-  display.render()
+  display.render(delta)
   statsMonitor.end()
 
 
@@ -452,6 +452,7 @@ class Datgui
 updateMap = () ->
   map.removeFromRender()
   for unit in units
-    unit.destroy()
+    if (unit)
+      unit.destroy()
   map.generate()
   map.addToRender()

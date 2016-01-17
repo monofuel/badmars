@@ -7,6 +7,12 @@
 
 orthographic = true
 
+lightAngle = 0
+SUN_SPEED = 0.1
+
+SUN_COLOR = 0xDD9A70
+MOON_COLOR = 0x9AA09A
+
 #---------------------------------------------------------------------
 #Display
 class Display
@@ -31,15 +37,23 @@ class Display
     #@scene.add(directionalLight)
 
     #hemLight = new THREE.HemisphereLight(0xffe5bb, 0xFFBF00, .1);
-    hemLight = new THREE.HemisphereLight(0xffffff, 0xFFBF00, .4);
+    hemLight = new THREE.HemisphereLight(0xffffff, 0xFFBF00, .3);
     @scene.add(hemLight);
 
-    dirLight = new THREE.DirectionalLight( 0xffffff, .3 );
-    dirLight.position.set( -1, 0.75, 1 );
-    dirLight.position.multiplyScalar( 50);
-    dirLight.name = "dirlight";
-    @light = dirLight
-    @scene.add( dirLight );
+    @moonLight = new THREE.DirectionalLight( MOON_COLOR, .2 );
+    @scene.add( @moonLight );
+
+    @light = new THREE.DirectionalLight( SUN_COLOR, .5   );
+    @updateSunPosition(0);
+    @scene.add( @light );
+
+
+
+
+    #lightHelper = new THREE.DirectionalLightHelper(@light,5);
+    #@scene.add(lightHelper)
+    #moonHelper = new THREE.DirectionalLightHelper(@moonLight,5);
+    #@scene.add(moonHelper)
 
 
 
@@ -76,6 +90,17 @@ class Display
 
     @renderer.setSize(window.innerWidth, window.innerHeight)
 
+  updateSunPosition: (delta) ->
+    lightAngle += Math.PI * delta * SUN_SPEED
+    if (lightAngle > 2 * Math.PI)
+      lightAngle -= 2* Math.PI
+
+    @light.position.y = Math.cos(lightAngle) * 50
+    @light.position.z = Math.sin(lightAngle) * 50
+
+    @moonLight.position.y = -(Math.cos(lightAngle) * 50)
+    @moonLight.position.z = -(Math.sin(lightAngle) * 50)
+
   cameraUp: (delta) ->
     if (orthographic)
       @d *= 1 - (1 * delta)
@@ -109,7 +134,8 @@ class Display
     else
       display.camera.rotation.y -= cameraSpeed * delta / 10
 
-  render: () ->
+  render: (delta) ->
+    @updateSunPosition(delta);
     @renderer.render(@scene,@camera)
 
   lookAt: (mesh) ->

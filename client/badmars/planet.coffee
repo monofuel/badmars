@@ -197,15 +197,15 @@ class Map
     gridGeom = new THREE.Geometry()
     waterGeom = new THREE.PlaneBufferGeometry(@settings.chunkSize,@settings.chunkSize)
 
-    @landMaterial = new THREE.MeshLambertMaterial({color: 0x00FF00})
+    landMaterial = new THREE.MeshPhongMaterial({color: 0x37DB67})
     #@landMaterial = new THREE.MeshLambertMaterial({color: 0xFAFAFA})
-    @cliffMaterial = new THREE.MeshLambertMaterial({color: 0x993300})
+    cliffMaterial = new THREE.MeshPhongMaterial({color: 0x2C3A4E})
     #@cliffMaterial = new THREE.MeshLambertMaterial({color: 0x8C8C8C})
-    @waterMaterial = new THREE.MeshLambertMaterial({color: 0x0000FF})
+    waterMaterial = new THREE.MeshLambertMaterial({color: 0x54958A})
 
     #flat shading wasn't very pretty, but might be desired based on theme
-    #@landMaterial.shading = THREE.FlatShading
-    #@cliffMaterial.shading = THREE.FlatShading
+    #landMaterial.shading = THREE.FlatShading
+    #cliffMaterial.shading = THREE.FlatShading
     #@waterMaterial.shading = THREE.FlatShading
 
 
@@ -238,14 +238,41 @@ class Map
     gridGeom.computeBoundingSphere()
     gridGeom.computeFaceNormals()
     gridGeom.computeVertexNormals()
+
     waterGeom.computeBoundingSphere()
     waterGeom.computeFaceNormals()
     waterGeom.computeVertexNormals()
 
-    planetMaterials = new THREE.MeshFaceMaterial([@landMaterial,@cliffMaterial])
+    #fiddle with the normals
+    for index in [0..gridGeom.faces.length - 1] by 2
+        landVector1 = gridGeom.faces[index].normal
+        landVector2 = gridGeom.faces[index + 1].normal
+        newVec = landVector1.clone();
+        newVec.add(landVector2);
+        newVec = newVec.divideScalar(2);
+
+        #these 2 lines don't really change the visuals
+        #but let's keep them anyway
+        gridGeom.faces[index].normal.copy(newVec)
+        gridGeom.faces[index + 1].normal.copy(newVec)
+
+        #this gives the cool square effect and make
+        #shading look good between tiles
+        for i in [0..2]
+          gridGeom.faces[index].vertexNormals[i].copy(newVec)
+          gridGeom.faces[index + 1].vertexNormals[i].copy(newVec)
+
+
+
+    gridGeom.normalsNeedUpdate = true;
+
+
+
+
+    planetMaterials = new THREE.MeshFaceMaterial([landMaterial,cliffMaterial])
 
     gridMesh = new THREE.Mesh(gridGeom,planetMaterials)
-    waterMesh = new THREE.Mesh(waterGeom,@waterMaterial)
+    waterMesh = new THREE.Mesh(waterGeom,waterMaterial)
 
     gridMesh.rotation.x = - Math.PI / 2
     waterMesh.rotation.x = - Math.PI / 2
@@ -257,6 +284,11 @@ class Map
     waterMesh.position.x += @settings.chunkSize/2
     waterMesh.position.y += @settings.waterHeight
     waterMesh.position.z -= @settings.chunkSize/2
+
+    #vedges = new THREE.VertexNormalsHelper( gridMesh, 2, 0x00ffff, 1 );
+    #display.addMesh(vedges);
+    #fedges = new THREE.FaceNormalsHelper( gridMesh, 2, 0x00ff00, 1 );
+    #display.addMesh(fedges);
 
     @landMeshes.push(gridMesh)
     @waterMeshes.push(waterMesh)
