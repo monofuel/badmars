@@ -29,6 +29,9 @@ module.exports = (app) ->
       )
     )
   .post(users.isLoggedIn, (req,res,next) ->
+    if (!req.user.admin)
+      res.send(403)
+      return
     newWorld = new World(req.body)
 
     newWorld.save((err) ->
@@ -41,6 +44,9 @@ module.exports = (app) ->
     )
   )
   .delete(users.isLoggedIn, (req,res,next) ->
+    if (!req.user.admin)
+      res.send(403)
+      return
 
     World.remove({name: req.query.name}, (err,world) ->
       if (err)
