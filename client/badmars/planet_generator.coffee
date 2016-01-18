@@ -329,13 +329,16 @@ selectWorld = (world) ->
       response = JSON.parse(xhttp.responseText)
       settings = {
         name: response.name
-        size: response.vertex_grid.length - 1
+        size: response.vertex_grid.length
         water: response.settings.water
         waterHeight: response.settings.waterHeight
         chunkSize: response.settings.chunkSize
         cliffDelta: response.settings.cliffDelta
       }
-      document.getElementById('worldName').value = settings.name
+
+      worldNameBox = document.getElementById('worldName')
+      if (worldNameBox)
+        worldNameBox.value = settings.name
       map.removeFromRender()
       while (units.length > 0)
         unit = units[0]

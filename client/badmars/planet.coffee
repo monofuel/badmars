@@ -127,6 +127,11 @@ class Map
     #rather than all or nothing
     if (!@settings)
       @settings = @defaultSettings
+    else
+      for key in Object.keys(@defaultSettings)
+        if (!@settings[key])
+          console.log('missing key ' + key)
+          @settings[key] = @defaultSettings[key]
     if (!@grid)
       @generateWorld()
     if (!@navGrid)
