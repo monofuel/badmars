@@ -60,10 +60,12 @@
     <ul class="dropdown-menu" id="worldMenu">
     </ul>
     </div>
+    <% if (user && user.admin) { %>
     <button type="button" class="btn btn-primary" onclick="saveWorld()" style="position: absolute; left: 190px; top: 10px; width: 60px">Save</button>
     <button type="button" class="btn btn-primary" onclick="newWorld()" style="position: absolute; left: 120px; top: 10px; width: 60px">New</button>
     <button type="button" class="btn btn-primary" onclick="deleteWorld()" style="position: absolute; left: 10px; top: 50px; width: 60px">Delete</button>
     <input class="form-control" id="worldName" style="position: absolute; left: 260px; top: 10px; width: 180px;" placeholder="Enter Name">
+    <% } %>
     <div id="buttons" class="well">
       <button id="storageButton" type="button" class="btn btn-primary" onclick="storageClick()">Storage</button>
       <button id="tankButton" type="button" class="btn btn-primary" onclick="tankClick()">Tank</button>

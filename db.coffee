@@ -40,17 +40,11 @@ Resource = mongoose.model('Resource',resourceSchema)
 Building = mongoose.model('Building',buildingSchema)
 Unit = mongoose.model('Unit',unitSchema)
 
-userSchema = mongoose.Schema({
-  name: String
-  password: String
-  userID: Number
-})
 factionSchema = mongoose.Schema({
   name: String
   users: Array
 })
 
-User = mongoose.model('User',userSchema)
 Faction = mongoose.model('Faction',factionSchema)
 
 

@@ -1,5 +1,6 @@
 mongoose = require('mongoose')
 World = mongoose.model('World')
+users = require('../util/users')
 
 module.exports = (app) ->
 
@@ -27,7 +28,7 @@ module.exports = (app) ->
       return
       )
     )
-  .post((req,res,next) ->
+  .post(users.isLoggedIn, (req,res,next) ->
     newWorld = new World(req.body)
 
     newWorld.save((err) ->
@@ -39,7 +40,7 @@ module.exports = (app) ->
         res.send(200);
     )
   )
-  .delete((req,res,next) ->
+  .delete(users.isLoggedIn, (req,res,next) ->
 
     World.remove({name: req.query.name}, (err,world) ->
       if (err)

@@ -14,7 +14,17 @@
         <li> <a href="/badmars/clientdocs/index.html">Client Documentation</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="/auth/google"><span class="glyphicon glyphicon-log-in"></span> Google Login</a></li>
+        <% if (user) { %>
+          <li class="dropdown">
+            <a class="dropdown-toggle active" data-toggle="dropdown" href="#"><%= user.username %><span class="caret"></span></a>
+            <ul class="dropdown-menu">
+                <li><a href="/profile">Profile</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+          </li>
+        <% } else { %>
+            <li><a href="/auth/google"><span class="glyphicon glyphicon-log-in"></span> Google Login</a></li>
+        <% } %>
       </ul>
     </div>
   </div>

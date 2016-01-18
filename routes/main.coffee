@@ -10,11 +10,16 @@ module.exports = (app) ->
       worldNames = new Array()
       for world in worlds
         worldNames.push(world.name)
-      res.render('pages/index', {worlds: worldNames})
+      res.render('pages/index', {
+          worlds: worldNames,
+          user: req.user
+        })
     )
   )
 
   app.get('/planet_viewer', (req,res) ->
-    res.render('pages/planet_viewer')
+    res.render('pages/planet_viewer', {
+      user: req.user
+      })
 
   )

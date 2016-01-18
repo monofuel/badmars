@@ -144,6 +144,7 @@ class Map
   generateWorld: () ->
 
     waterFudge = 0.1
+    smoothness = 4.5
 
     @bigNoiseGenerator = new Noise(@settings.size - 1,@settings.bigNoise)
     @medNoiseGenerator = new Noise(@settings.size - 1,@settings.medNoise)
@@ -157,13 +158,14 @@ class Map
         point = @bigNoiseGenerator.get(x,y) * @settings.bigNoiseScale
         point += @medNoiseGenerator.get(x,y) * @settings.medNoiseScale
         point += @smallNoiseGenerator.get(x,y) * @settings.smallNoiseScale
+
         if (point - @settings.waterHeight > - waterFudge && point - @settings.waterHeight < waterFudge)
           point = @settings.waterHeight + waterFudge
-        @grid[x][y] = point
+        @grid[x][y] = Math.round(point * smoothness) / smoothness
 
     console.log("Generated World Heightmap")
 
-  generateNav: () -> 
+  generateNav: () ->
     #instantiate the navigational Map
     @navGrid = []
     for x in [0..@settings.size-2]
