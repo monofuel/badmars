@@ -1,4 +1,8 @@
 var logger = require('./logger');
+var Users = null;
+module.exports = function (authConn) {
+  Users = authConn.model('User');
+}
 
 //route
 module.exports.isLoggedIn = function (req, res, next) {
@@ -12,4 +16,10 @@ module.exports.isLoggedIn = function (req, res, next) {
   // if they aren't redirect them to the home page
   logger.info('rejecting access to ' + req.url, req);
   res.redirect(403,'/');
+}
+
+
+module.exports.getUserDoc = function(id) {
+  return Users.findById(id);
+
 }

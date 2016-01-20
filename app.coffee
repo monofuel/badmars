@@ -38,6 +38,7 @@ authConn = mongoose.createConnection(serverAddress);
 console.log('connected to auth DB at %s',serverAddress);
 
 require('./models/User')(authConn);
+require('./util/users')(authConn);
 
 #TODO db location should be saved in separate config
 store = new mongoDBStore(
@@ -76,6 +77,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 require('./routes/main')(app);
 app.use('/users', users);
 require('./routes/worlds')(app);
+require('./routes/planets')(app);
 
 server = app.listen(3002,  () ->
   host = server.address().address;

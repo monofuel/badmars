@@ -17,10 +17,10 @@ module.exports = function(passport,authConn) {
   });
 
   passport.deserializeUser(function(id,done) {
-    console.log('deserializing user: ' + id)
+    //console.log('deserializing user: ' + id)
     User.findById(id ,function(err,user) {
-      console.log('deserialized')
-      console.log(user)
+      //console.log('deserialized')
+      //console.log(user)
       done(err,user);
     });
   });

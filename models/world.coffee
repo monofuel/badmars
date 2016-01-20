@@ -1,3 +1,8 @@
+#1/19/2015
+#all other schemas are defined in /db.coffee
+#not sure what i was thinking to have this one duplicated here, or where it was used
+#TODO move other models into this folder
+
 worldSchema = mongoose.Schema({
   name: String
   vertex_grid: Mixed

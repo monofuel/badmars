@@ -1,22 +1,19 @@
-//expects an error Object
-module.exports.error = function reportError(err) {
-  var timestamp = new Date();
-  console.log(timestamp.toTimeString() + " : " + err.stack);
-  //TODO do more stuff like log it to a database and fancy stuff
-}
+module.exports.error = function(err) {
+  var timestamp;
+  timestamp = new Date();
+  return console.log(timestamp.toTimeString() + " : " + err.stack);
+};
 
-//expects a single line of text
-module.exports.info = function reportInfo(info, req) {
-  var timestamp = new Date();
-
+module.exports.info = function(info, req) {
+  var timestamp;
+  timestamp = new Date();
   if (req) {
-    if (req.isAuthenticated())
-      console.log("INFO: " + timestamp.toTimeString() + " : " + info + " FROM: " + req.ip + " USER: " + req.user.username);
-    else {
-      console.log("INFO: " + timestamp.toTimeString() + " : " + info + " FROM: " + req.ip);
+    if (req.isAuthenticated()) {
+      return console.log("INFO: " + timestamp.toTimeString() + " : " + info + " FROM: " + req.ip + " USER: " + req.user.username);
+    } else {
+      return console.log("INFO: " + timestamp.toTimeString() + " : " + info + " FROM: " + req.ip);
     }
   } else {
-    console.log("INFO: " + timestamp.toTimeString() + " : " + info);
+    return console.log("INFO: " + timestamp.toTimeString() + " : " + info);
   }
-  //TODO do more stuff like log it to a database and fancy stuff
-}
+};
