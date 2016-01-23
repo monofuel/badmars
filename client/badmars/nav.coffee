@@ -6,8 +6,22 @@
 #code that interfaces with the map for pathfinding and detecting
 #valid placements and movement.
 
+#---------------------------------------------------------------------
+#common functions for pathfinding
+
+#estimate the direct distance between two tiles by air
+# @param [PlanetLoc] tile first tile
+# @param [PlanetLoc] tile second tile
+# @return [Number] distance distance between tiles
+distance: (tile1,tile2) ->
+  return Math.sqrt(Math.pow(tile2.x - tile1.x,2) + Math.pow(tile2.y - tile1.y,2))
+
+#---------------------------------------------------------------------
+#code for very simple direct pathfinding
 class SimplePath
 
+  # @param [PlanetLoc] tile location to start
+  # @param [PlanetLoc] tile location to end
   constructor: (@start,@end) ->
     if (!@start || !@end || @start.planet != @end.planet)
       console.log('invalid start and end points')
@@ -17,6 +31,9 @@ class SimplePath
 
     @planet = @start.planet
 
+  #fetch the next tile to visit after a given tile
+  # @param [PlanetLoc] tile the current tile
+  # @return [PlanetLoc] the next tile in the list
   getNext: (tile) ->
 
     if (tile.x < @end.x)
@@ -46,10 +63,12 @@ class SimplePath
     #if all else fails
     return direction.C
 
-
-
+#---------------------------------------------------------------------
+#better pathfinding algorithm using A*
 class AStarPath
 
+  # @property [PlanetLoc] location to start
+  # @property [PlanetLoc] location to end
   constructor: (@start,@end) ->
     if (!@start || !@end || @start.planet != @end.planet)
       console.log('invalid start and end points')
@@ -124,9 +143,9 @@ class AStarPath
         return true
     return false
 
-  distance: (tile1,tile2) ->
-    return Math.sqrt(Math.pow(tile2.x - tile1.x,2) + Math.pow(tile2.y - tile1.y,2))
-
+  #fetch the next tile to visit after a given tile
+  # @param [PlanetLoc] tile the current tile
+  # @return [PlanetLoc] the next tile in the list
   getNext: (tile) ->
     nextTile = null
     for i in [@path.length-1..1]

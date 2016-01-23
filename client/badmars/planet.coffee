@@ -19,6 +19,9 @@ tileType = {
   coast: 3
 }
 
+#convert tileType enum to a readable string
+# @param [tileType] type the tileType enum to convert to String
+# @return [String] name the name of the tileType
 getTypeName = (type) ->
   switch (tileType)
     when tileType.land
@@ -35,8 +38,12 @@ getTypeName = (type) ->
 #---------------------------------------------------------------------
 #Map
 
+#Representation of a point on a planet
 class PlanetLoc
 
+  # @param [Map] planet the planet for this location
+  # @param [Number] x the x coordinate
+  # @param [Number] y the y coordinate
   constructor: (@planet, @x, @y) ->
     if ( !@planet || !@planet.grid)
       console.log(@toString())
@@ -79,9 +86,12 @@ class PlanetLoc
     @real_x = @x + 0.5
     @real_y = - (@y + 0.5)
 
+  #function to get the location in 3D space for this tile
   getLoc: () ->
     return new THREE.Vector3(@real_x,@avg,@real_y)
 
+  #get a readable string for this tile
+  # @return
   toString: () ->
     return "x: " + @x +
            ", y: " + @y +

@@ -1,5 +1,5 @@
 db = require('./db.js')
-WorldGenerator = require('./worldGenerator.js')
+#WorldGenerator = require('./worldGenerator.js')
 Units = require('./units.js')
 Buildings = require('./buildings.js')
 Net = require('./net.js')
@@ -16,7 +16,7 @@ port = 7005
 
 displayHelp = () ->
   console.log('Possible commands:')
-  console.log('genWorld [name] [size] \tcreate a new world with name')
+  #console.log('genWorld [name] [size] \tcreate a new world with name')
   console.log('listWorlds \tlist all created worlds')
   console.log('removeWorld [name]\tremove a specific world')
   console.log('createPlanet [name] [world]\tcreate a new instance of a world')
@@ -30,7 +30,10 @@ displayHelp = () ->
   console.log('showBuilding \tshow stats for a building')
   console.log('quit \tshut down the server')
 
-generateWorld = (name,size) ->
+#TODO world generator on server is disabled
+#current best world generator is in planet viewer
+#should maybe re-integrate into server sometime
+###generateWorld = (name,size) ->
   if (!name)
     console.log('Please give a name')
     return
@@ -39,6 +42,7 @@ generateWorld = (name,size) ->
   console.log('generating ' + name + ' with size ' + size)
   world = WorldGenerator.generate(name,size)
   db.saveWorld(world)
+###
 
 createPlanet = (planetName,worldName) ->
   if (!planetName)
@@ -118,7 +122,7 @@ handleCommand = (line) ->
 
   switch lineList[0]
     when 'help' then displayHelp()
-    when 'genWorld' then generateWorld(lineList[1],lineList[2])
+    #when 'genWorld' then generateWorld(lineList[1],lineList[2])
     when 'listWorlds' then listWorlds()
     when 'removeWorld' then removeWorld(lineList[1]);
     when 'showWorld' then showWorld(lineList[1])

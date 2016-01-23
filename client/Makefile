@@ -8,7 +8,7 @@ copy: build
 	cp -r models/ ../public
 
 docs:
-	codo -v -o ../public/clientdocs badmars/*.coffee
+	codo -vu -o ../public/clientdocs badmars/*.coffee
 
 clean:
 	rm -r ../public/js/badmars 2> /dev/null || true
