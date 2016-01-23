@@ -13,6 +13,7 @@ models/user.js
 routes/worlds.js
 routes/planets.js
 routes/main.js
+routes/users.js
 client/js/viewer.js
 
 public/clientdocs/
