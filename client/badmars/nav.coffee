@@ -1,6 +1,7 @@
 #monofuel
-#11-2015
-'use strict'
+#1-2016
+'use strict';
+### @flow weak ###
 
 #code that interfaces with the map for pathfinding and detecting
 #valid placements and movement.

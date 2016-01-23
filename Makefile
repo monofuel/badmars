@@ -17,9 +17,9 @@ docs:
 	codo -o public/docs *.coffee routes/*.coffee models/*.coffee
 
 clean:
-	rm badMars.js buildings.js db.js net.js units.js worldGenerator.js 2> /dev/null || true
+	rm badMars.js buildings.js db.js net.js units.js worldGenerator.js app.js 2> /dev/null || true
 	rm -r ./public/docs || true
-	rm routes/main.js 2> /dev/null || true
-	rm routes/worlds.js 2> /dev/null || true
+	rm -r client/badmars/*.js 2> /dev/null || true
+	rm routes/*.js 2> /dev/null || true
 	rm models/world.js 2> /dev/null || true
 	cd client && $(MAKE) clean

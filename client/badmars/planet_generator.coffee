@@ -1,6 +1,7 @@
 #monofuel
-#11-2015
-'use strict'
+#1-2016
+'use strict';
+### @flow weak ###
 
 #TODO: coding jam idea thing
 #separate pathfinding and world generation onto separate workers
@@ -41,11 +42,6 @@ statsMonitor = null
 buttonMode = bMode.selection
 keysDown = []
 selectedUnit = null
-
-#---------------------------------------------------------------------
-#tweakables
-
-cameraSpeed = 30
 
 #---------------------------------------------------------------------
 #html5
@@ -395,15 +391,15 @@ handleInput = (delta) ->
   for key in keysDown
     switch (key)
       when 87 #w
-        display.camera.translateZ(Math.cos(display.camera.rotation.x + Math.PI) * cameraSpeed * delta)
-        display.camera.translateY(Math.sin(display.camera.rotation.x + Math.PI) * cameraSpeed * delta)
+        display.camera.translateZ(Math.cos(display.camera.rotation.x + Math.PI) * display.cameraSpeed * delta)
+        display.camera.translateY(Math.sin(display.camera.rotation.x + Math.PI) * display.cameraSpeed * delta)
       when 65 #a
-        display.camera.translateX(Math.cos(display.camera.rotation.x + Math.PI) * cameraSpeed * delta)
+        display.camera.translateX(Math.cos(display.camera.rotation.x + Math.PI) * display.cameraSpeed * delta)
       when 83 #s
-        display.camera.translateZ(Math.cos(display.camera.rotation.x) * cameraSpeed * delta)
-        display.camera.translateY(Math.sin(display.camera.rotation.x) * cameraSpeed * delta)
+        display.camera.translateZ(Math.cos(display.camera.rotation.x) * display.cameraSpeed * delta)
+        display.camera.translateY(Math.sin(display.camera.rotation.x) * display.cameraSpeed * delta)
       when 68 #d
-        display.camera.translateX(Math.cos(display.camera.rotation.x) * cameraSpeed * delta)
+        display.camera.translateX(Math.cos(display.camera.rotation.x) * display.cameraSpeed * delta)
       when 82 #r
         display.cameraUp(delta)
       when 70 #f

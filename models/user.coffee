@@ -1,8 +1,8 @@
-var mongoose = require('mongoose')
+mongoose = require('mongoose')
 
-module.exports = function (authConn) {
+module.exports = (authConn) ->
   UserSchema = new mongoose.Schema({
-    username: String, //display name
+    username: String, #display name
     admin: { type: Boolean, default: false},
     facebook: {
         id: String,
@@ -19,4 +19,3 @@ module.exports = function (authConn) {
   });
 
   authConn.model('User',UserSchema);
-}

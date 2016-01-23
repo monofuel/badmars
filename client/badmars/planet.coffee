@@ -1,6 +1,7 @@
 #monofuel
-#11-2015
-'use strict'
+#1-2016
+'use strict';
+### @flow weak ###
 
 #magic for planets.
 #random noise for generation

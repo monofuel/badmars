@@ -1,26 +1,32 @@
 #monofuel
-#11-2015
-'use strict'
+#1-2016
+'use strict';
+### @flow weak ###
 
 #Wrapper around Threejs for camera and lighting settings
 #uses canvas with id 'threePanel'
 
-orthographic = true
-
-lightAngle = 0
-SUN_SPEED = 0.025
-
-SUN_COLOR = 0xDD9A70
-MOON_COLOR = 0x9AA09A
-
 #---------------------------------------------------------------------
 #Display
 class Display
+
   constructor: () ->
+    #---------------------------------------------------------------------
+    #tweakables
+
+    @cameraSpeed = 30
+    @orthographic = true
+
+    @lightAngle = 0.0
+    @sunSpeed = 0.025
+
+    @sunColor = 0xDD9A70
+    @moonColor = 0x9AA09A
+
     @scene = new THREE.Scene()
     aspectRatio =   window.innerWidth / window.innerHeight
     @d = 15
-    if (orthographic)
+    if (@orthographic)
       @camera = new THREE.OrthographicCamera( - @d * aspectRatio, @d * aspectRatio, @d, - @d, 1, 1000 );
     else
       @camera = new THREE.PerspectiveCamera(75,aspectRatio,0.1,1000)
@@ -40,10 +46,10 @@ class Display
     @hemLight = new THREE.HemisphereLight(0xffffff, 0xFFBF00, .3);
     @scene.add(@hemLight);
 
-    @moonLight = new THREE.DirectionalLight( MOON_COLOR, .2 );
+    @moonLight = new THREE.DirectionalLight( @moonColor, .2 );
     @scene.add( @moonLight );
 
-    @light = new THREE.DirectionalLight( SUN_COLOR, 1  );
+    @light = new THREE.DirectionalLight( @sunColor, 1  );
     @updateSunPosition(0);
     @scene.add( @light );
 
@@ -58,7 +64,7 @@ class Display
 
 
 
-    if (orthographic)
+    if (@orthographic)
       #@camera.position.set(120, 80, -132)
       @camera.position.set(25, 80, -15)
       @camera.up = new THREE.Vector3(0,0,1)
@@ -77,7 +83,7 @@ class Display
   resize: () ->
     #console.log('resizing to ' + window.innerWidth + ":" + window.innerHeight)
     aspectRatio =   window.innerWidth / window.innerHeight
-    if (orthographic)
+    if (@orthographic)
       @camera.left = - @d * aspectRatio
       @camera.right = @d * aspectRatio
       @camera.top = @d
@@ -91,48 +97,48 @@ class Display
     @renderer.setSize(window.innerWidth, window.innerHeight)
 
   updateSunPosition: (delta) ->
-    lightAngle += Math.PI * delta * SUN_SPEED
-    if (lightAngle > 2 * Math.PI)
-      lightAngle -= 2* Math.PI
+    @lightAngle += Math.PI * delta * @sunSpeed
+    if (@lightAngle > 2 * Math.PI)
+      @lightAngle -= 2* Math.PI
 
-    @light.position.y = Math.cos(lightAngle) * 50
-    @light.position.z = Math.sin(lightAngle) * 50
+    @light.position.y = Math.cos(@lightAngle) * 50
+    @light.position.z = Math.sin(@lightAngle) * 50
 
-    @moonLight.position.y = -(Math.cos(lightAngle) * 50)
-    @moonLight.position.z = -(Math.sin(lightAngle) * 50)
+    @moonLight.position.y = -(Math.cos(@lightAngle) * 50)
+    @moonLight.position.z = -(Math.sin(@lightAngle) * 50)
 
   cameraUp: (delta) ->
-    if (orthographic)
+    if (@orthographic)
       @d *= 1 - (1 * delta)
       #if (@d < 10)
         #@d = 10
       @resize()
     else
-      display.camera.position.y += cameraSpeed * delta
+      @camera.position.y += @cameraSpeed * delta
 
   cameraDown: (delta) ->
-    if (orthographic)
+    if (@orthographic)
       @d *= 1 + (1 * delta)
       #if (@d > 30)
         #@d = 30
       @resize()
     else
-      display.camera.position.y -= cameraSpeed * delta
+      @camera.position.y -= @cameraSpeed * delta
 
   cameraRotateRight: (delta) ->
-    if (orthographic)
-      display.camera.rotation.y += cameraSpeed * delta / 20
-      display.camera.translateX(-Math.cos(display.camera.rotation.x + Math.PI) * cameraSpeed * delta * 5.2)
+    if (@orthographic)
+      @camera.rotation.y += @cameraSpeed * delta / 20
+      @camera.translateX(-Math.cos(@camera.rotation.x + Math.PI) * @cameraSpeed * delta * 5.2)
     else
-      display.camera.rotation.y += cameraSpeed * delta / 10
+      @camera.rotation.y += @cameraSpeed * delta / 10
 
   cameraRotateLeft: (delta) ->
-    if (orthographic)
-      display.camera.rotation.y -= cameraSpeed * delta / 20
-      display.camera.translateX(Math.cos(display.camera.rotation.x + Math.PI) * cameraSpeed * delta * 5.2)
+    if (@orthographic)
+      @camera.rotation.y -= @cameraSpeed * delta / 20
+      @camera.translateX(Math.cos(@camera.rotation.x + Math.PI) * @cameraSpeed * delta * 5.2)
 
     else
-      display.camera.rotation.y -= cameraSpeed * delta / 10
+      @camera.rotation.y -= @cameraSpeed * delta / 10
 
   render: (delta) ->
     @updateSunPosition(delta);

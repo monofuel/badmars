@@ -7,17 +7,27 @@ units.js
 net.js
 app.js
 
+models/world.js
+models/user.js
+
 routes/worlds.js
+routes/planets.js
 routes/main.js
 client/js/viewer.js
-public/js/planet_viewer.js
-public/js/custom_planet_generator.js
 
-public/js/badmars/display.js
-public/js/badmars/nav.js
-public/js/badmars/planet_generator.js
-public/js/badmars/planet.js
+public/clientdocs/
+public/docs/
+public/js/badmars/
 
+client/badmars/display.js
+client/badmars/nav.js
+client/badmars/planet_generator.js
+client/badmars/planet.js
+
+#ignore authorization file
+config/auth.js
+
+#ignore documentation
 doc/
 
 #github git ignore for nodejs
