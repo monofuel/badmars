@@ -1,5 +1,4 @@
-random node.js project in coffeescript
-
+webGL multiplayer rts game in development
 
 dependencies:
 	run 'npm install'
@@ -7,10 +6,7 @@ dependencies:
 
 how to run:
 	make will compile everything
-	make watch will spawn coffee watching processes to automatically build
 	make start will start badmars via supervisor
-	running make watch and then make start will automatically restart everything on file updates
-	don't lose track of your coffeescript watch processes!
 
 features:
 	generates worlds and stores them in a db
@@ -19,15 +15,16 @@ features:
 documentation:
 	the badmars planet viewer is being documented with codo, documentation
 	documentation is in public/js/badmars/docs
-	currently no serious linting is being done (maybe I should use typescript instead)
+	currently no serious linting is being done (maybe I should use typescript instead, or facebook flow)
 
-another project is https://github.com/monofuel/badMars-Unreal
-will be a viewer done in the unreal engine
+another potential project is https://github.com/monofuel/badMars-Unreal
+will be a viewer done in the unreal engine. currently just experimenting with REST calls from unreal.
 
 TODO:
-	setup javascript client to load map from server instead of generate one
-	perhaps some sort of world chunk streaming system?
+	perhaps some sort of world chunk streaming system? maybe with generation too.
 	console acts buggy with supervisor
 	web console would be cool
 	admin page would be cool
-	https and account authentication like main japura website
+	planet instances
+	spawn players on planets
+	simulate planets on server over time
