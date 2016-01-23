@@ -3,6 +3,32 @@ mongoose = require('mongoose')
 users = require('./util/users')
 Planet = mongoose.model('Planet')
 
+#---------------------------------------------------------------------
+#Enumerators
+
+#enum for all the different types of tiles
+tileType = {
+  land: 0
+  cliff: 1
+  water: 2
+  coast: 3
+}
+
+getTypeName = (type) ->
+  switch (tileType)
+    when tileType.land
+      return 'land'
+    when tileType.cliff
+      return 'cliff'
+    when tileType.water
+      return 'water'
+    when tileType.coast
+      return 'coast'
+    else
+      return 'unknown'
+
+#---------------------------------------------------------------------
+
 #list of units
 #
 #name of unit
@@ -12,6 +38,8 @@ Planet = mongoose.model('Planet')
 #attack power of unit
 #cost of the unit
 #
+
+
 
 Units = [
   {
@@ -73,10 +101,18 @@ exports.spawnPlayer = (userId,planetName) ->
       err = new Error('no such user found');
       logger.error(err);
       throw err;
+
+    #TODO: this function checks Planet and gets a planet. it gets the WHOLE planet.
+    #this could probably be done better.
     return Planet.findOne({name: planetName})
   ).then((planet) ->
     planetDoc = planet;
     if (!planetDoc)
       throw err('invalid planet specified');
     console.log('requested spawn for ',userDoc.username,'and planet',planetDoc.name);
+
+
+
+
+
   )
