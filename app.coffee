@@ -37,7 +37,7 @@ serverAddress = 'mongodb://localhost/japura';
 authConn = mongoose.createConnection(serverAddress);
 console.log('connected to auth DB at %s',serverAddress);
 
-require('./models/User')(authConn);
+require('./models/user')(authConn);
 require('./util/users')(authConn);
 
 #TODO db location should be saved in separate config
