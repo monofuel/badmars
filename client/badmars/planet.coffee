@@ -90,26 +90,29 @@ class PlanetLoc
   getLoc: () ->
     return new THREE.Vector3(@real_x,@avg,@real_y)
 
-  #get a readable string for this tile
-  # @return
+  #@return [String] readable string for this tile
   toString: () ->
     return "x: " + @x +
            ", y: " + @y +
            ", planet: " + @planet.settings.name +
            ", type: " + getTypeName(@type)
 
+  #@return [PlanetLoc] tile to the west
   W: () ->
     return new PlanetLoc(@planet, @x - 1, @y)
-
+  #@return [PlanetLoc] tile to the east
   E: () ->
     return new PlanetLoc(@planet, @x + 1, @y)
-
+  #@return [PlanetLoc] tile to the south
   S: () ->
     return new PlanetLoc(@planet, @x, @y - 1)
+  #@return [PlanetLoc] tile to the north
   N: () ->
     return new PlanetLoc(@planet, @x, @y + 1)
 
   #Used to compare PlanetLoc by value
+  #@param [PlanetLoc] tile to compare to
+  #@return [Boolean] equality
   equals: (otherLoc) ->
     return ( otherLoc.x == @x &&
              otherLoc.y == @y &&
@@ -181,14 +184,15 @@ class Map
 
     console.log("Generated World Heightmap")
 
+  #generate the navigational Map
   generateNav: () ->
-    #instantiate the navigational Map
     @navGrid = []
     for x in [0..@settings.size-2]
       @navGrid[x] = []
       for y in [0..@settings.size-2]
         @navGrid[x][y] = @getTileCode(x,y)
 
+  #spawn resources on the map randomly
   populateResources: () ->
     console.log('popultating resources')
 
@@ -219,6 +223,9 @@ class Map
       for x in [0..chunkCount-1]
         @generateChunk(x,y)
 
+  #generate graphical chunk at location
+  #@param [Number] X coordinate for chunk
+  #@param [Number] Y coordinate for chunk
   generateChunk: (chunkX,chunkY) ->
 
     gridGeom = new THREE.Geometry()
