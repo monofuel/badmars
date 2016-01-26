@@ -8,7 +8,6 @@ logger = require('morgan');
 passport = require('passport');
 cookieParser = require('cookie-parser');
 bodyParser = require('body-parser');
-users = require('./routes/users');
 session = require('express-session');
 flash = require('connect-flash');
 mongoDBStore = require('connect-mongodb-session')(session);
@@ -38,7 +37,6 @@ authConn = mongoose.createConnection(serverAddress);
 console.log('connected to auth DB at %s',serverAddress);
 
 require('./models/user')(authConn);
-require('./util/users')(authConn);
 
 #TODO db location should be saved in separate config
 store = new mongoDBStore(
@@ -75,7 +73,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 require('./routes/main')(app);
-app.use('/users', users);
 require('./routes/worlds')(app);
 require('./routes/planets')(app);
 
