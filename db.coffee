@@ -34,9 +34,10 @@ buildingSchema = mongoose.Schema({
 
 unitSchema = mongoose.Schema({
   type: String
+  health: { type: Number, default: 100}
   constructing: Number
   location: [Number]
-  planet: String
+  planet: {type: String, index: true}
 })
 
 World = mongoose.model('World',worldSchema)
@@ -157,15 +158,15 @@ exports.listPlanets = (listFunc) ->
 #------------------------------------------------------------
 #Unit stuff
 
-# @param [PlanetLoc] planetLoc
+# @param [PlanetLoc] tile
 # @param [String] unitType the type of unit to create
 # @return [Promise]
-exports.createUnit = (planetLoc,unitType,unfinished) ->
+exports.createUnit = (tile,unitType,unfinished) ->
 
   unitData = {
     type: unitType
-    location: [PlanetLoc.x,PlanetLoc.y]
-    planet: planet.planetName
+    location: [tile.x,tile.y]
+    planet: tile.planet.name
   }
   if (unfinished)
     unitData.constructing = 0;
@@ -201,4 +202,4 @@ exports.getUnit = (unitId) ->
 # @param [String] planetName name of the planet to get units for
 # @return [Promise]
 exports.listUnits = (planetName) ->
-  return Planet.find({planet: planetName})
+  return Unit.find({planet: planetName})

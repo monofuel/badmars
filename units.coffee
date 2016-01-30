@@ -67,6 +67,8 @@ exports.list = () ->
 # @return [Promise]
 exports.updateUnit = (unit,delta) ->
 
+  update = true
+
   #@todo
   #update info on the unit
   #unitSchema =
@@ -75,7 +77,10 @@ exports.updateUnit = (unit,delta) ->
   #  location: [Number]
   #  planet: String
 
-  return unit.save()
+  if (update)
+    return unit.save()
+  else
+    return null
 
 #TODO: should probably standardise on using id's instead of names for everything
 # @param [String] player id of the player to spawn

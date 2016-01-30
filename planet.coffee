@@ -5,39 +5,73 @@ Units = require('./units.js')
 PlanetLoc = require('./PlanetLoc.js')
 
 class Planet
-  constructor: (@planetName) ->
-    if (!@planetName)
+  constructor: (@name) ->
+    if (!@name)
       console.log('planet must be constructed with a name')
       return
 
   init: () ->
 
-    thisPlanet = this
+    thisPlanet = this #to avoid issues with promise callbacks
 
-    return db.getPlanet(@planetName)
+    return db.getPlanet(@name)
     .then((planetData) ->
+
       thisPlanet.planetData = planetData
+      thisPlanet.id = planetData.id
+      thisPlanet.users = planetData.users
+      thisPlanet.settings = planetData.settings
+      if (!thisPlanet.settings)
+        thisPlanet.settings = {}
+
       return db.getWorld(planetData.world)
     ).then((worldData) ->
+
+      #pick and choose what info we want
       thisPlanet.worldName = worldData.name
       thisPlanet.water = worldData.water
       thisPlanet.grid = worldData.vertex_grid
       thisPlanet.navGrid = worldData.movement_grid
-      thisPlanet.settings = worldData.settings
-      #TODO load units
-      return db.listUnits(thisPlanet.planetName)
+      thisPlanet.worldSettings = worldData.settings
+      if (!thisPlanet.worldSettings)
+        thisPlanet.worldSettings = {}
+
+      return db.listUnits(thisPlanet.name)
     ).then((unitList) ->
       thisPlanet.units = unitList
+      console.log('unit count: ',unitList.length)
+      if (unitList.length == 0)
+        thisPlanet.spawnResources()
     ).catch((err) ->
       console.log('failed to load planet')
       console.log(err)
     )
-  spawnResources: () ->
 
+  spawnResources: () ->
+    thisPlanet = this #to avoid issues with promise callbacks
+    console.log('spawning resources for ',@name)
+
+    for x in [0..@worldSettings.size - 2]
+      for y in [0..@worldSettings.size - 2]
+        if (Math.random() < @worldSettings.ironChance)
+          tile = new PlanetLoc(this,x,y)
+          db.createUnit(tile,"iron")
+          .then((iron) ->
+            thisPlanet.units.push(iron)
+          )
+
+    for x in [0..@worldSettings.size - 2]
+      for y in [0..@worldSettings.size - 2]
+        if (Math.random() < @worldSettings.oilChance)
+          tile = new PlanetLoc(this,x,y)
+          db.createUnit(tile,"oil")
+          .then((oil) ->
+            thisPlanet.units.push(oil)
+          )
 
   update: (delta) ->
     for unit in @units
       Units.updateUnit(unit,delta)
-    #console.log(@planetName,", delta:",delta)
+    #console.log(@name,", delta:",delta)
 
 module.exports = Planet

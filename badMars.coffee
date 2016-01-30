@@ -173,7 +173,7 @@ init = () ->
 
     planet.init()
     .then(() ->
-      console.log(planet.planetName," loaded")
+      console.log(planet.name," loaded")
       planetList.push(planet)
       #@todo planet load happens after we say 'server ready', should be before
 

@@ -6,6 +6,10 @@ buildings.js
 units.js
 net.js
 app.js
+PlanetLoc.js
+direction.js
+planet.js
+tileType.js
 
 models/world.js
 models/user.js
