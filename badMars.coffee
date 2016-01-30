@@ -2,6 +2,7 @@ db = require('./db.js')
 #WorldGenerator = require('./worldGenerator.js')
 Units = require('./units.js')
 Buildings = require('./buildings.js')
+Planet = require('./planet.js')
 Net = require('./net.js')
 readline = require('readline')
 rl = {}
@@ -13,6 +14,8 @@ port = 7005
 
 #------------------------------------------------------------
 # Commands
+
+#@TODO commands should probably be restructured to be more scalable and easy to work on
 
 displayHelp = () ->
   console.log('Possible commands:')
@@ -110,6 +113,8 @@ shutdown = () ->
 
 #------------------------------------------------------------
 # Functions
+#@todo start process should be refactored into a list of promises
+#sorry, it was written before i knew promises were a thing
 waitForDB = () ->
   if (!db.Ready)
     setTimeout(init,1)
@@ -155,7 +160,7 @@ initIO = () ->
 
 init = () ->
   if (waitForDB())
-    #TODO check if test 'badmars' exists, otherwise generate it
+    #@TODO check if test 'badmars' exists, otherwise generate it
     #badMars = WorldGenerator.generate("badMars",256)
     #db.addWorld(badMars)
     console.log('Server Ready')
@@ -163,10 +168,32 @@ init = () ->
     initIO() #start IO once everything else is up
     #input prompt will be shown
 
-    #run the main loop 20 times a second
-    #setInterval(mainLoop,1000/20)
+    #@TODO load all planets
+    planet = new Planet("testPlanet")
 
-#mainLoop = () ->
+    planet.init()
+    .then(() ->
+      console.log(planet.planetName," loaded")
+      planetList.push(planet)
+      #@todo planet load happens after we say 'server ready', should be before
+
+
+    )
+
+    #run the main loop 20 times a second
+    setInterval(mainLoop,1000/20)
+
+#@todo variables are getting messy here
+planetList = []
+lastTick = (new Date).getTime()
+
+mainLoop = () ->
+  curTick = (new Date).getTime()
+  delta = curTick - lastTick
+  lastTick = curTick
+
+  for planet in planetList
+    planet.update(delta);
 
 #------------------------------------------------------------
 # init other modules

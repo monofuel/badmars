@@ -34,9 +34,9 @@ buildingSchema = mongoose.Schema({
 
 unitSchema = mongoose.Schema({
   type: String
-  rate: Number
-  constructing: String
+  constructing: Number
   location: [Number]
+  planet: String
 })
 
 World = mongoose.model('World',worldSchema)
@@ -152,3 +152,53 @@ exports.listPlanets = (listFunc) ->
       planetNames.push(planet.name)
     listFunc(planetNames)
   )
+
+
+#------------------------------------------------------------
+#Unit stuff
+
+# @param [PlanetLoc] planetLoc
+# @param [String] unitType the type of unit to create
+# @return [Promise]
+exports.createUnit = (planetLoc,unitType,unfinished) ->
+
+  unitData = {
+    type: unitType
+    location: [PlanetLoc.x,PlanetLoc.y]
+    planet: planet.planetName
+  }
+  if (unfinished)
+    unitData.constructing = 0;
+  #@todo error check unit type
+
+  unitDoc = new Unit(unitData)
+  return unitDoc.save()
+  .catch((err) ->
+    console.log(err)
+  )
+
+# @param [Unit] unit the unit to save
+# @return [Promise]
+exports.updateUnit = (unit) ->
+  return unit.save()
+
+# @param [String] id unique unit id
+# @return [Promise]
+exports.removeUnit = (unitId) ->
+  return Unit.removeById(unitId)
+  .then(() ->
+    console.log('unit deleted')
+  ).catch((err) ->
+    console.log(err)
+  )
+
+
+# @param [String] id unique unit id
+# @return [Promise]
+exports.getUnit = (unitId) ->
+  return Unit.findById(unitId);
+
+# @param [String] planetName name of the planet to get units for
+# @return [Promise]
+exports.listUnits = (planetName) ->
+  return Planet.find({planet: planetName})

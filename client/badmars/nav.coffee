@@ -13,7 +13,7 @@
 # @param [PlanetLoc] tile first tile
 # @param [PlanetLoc] tile second tile
 # @return [Number] distance distance between tiles
-distance: (tile1,tile2) ->
+distance = (tile1,tile2) ->
   return Math.sqrt(Math.pow(tile2.x - tile1.x,2) + Math.pow(tile2.y - tile1.y,2))
 
 #---------------------------------------------------------------------
@@ -90,7 +90,7 @@ class AStarPath
     ]
     closed = [@start]
     for tile in open
-      tile.cost = 1 + @distance(tile,@end)
+      tile.cost = 1 + distance(tile,@end)
       tile.realCost = 1
       tile.prev = @start
 
@@ -128,7 +128,7 @@ class AStarPath
       for tile in neighbors
         if (@contains(closed,tile))
           continue
-        tile.cost = current.realCost + @distance(tile,@end)
+        tile.cost = current.realCost + distance(tile,@end)
         tile.realCost = current.realCost + 1
         tile.prev = current
         if (!@contains(open,tile))

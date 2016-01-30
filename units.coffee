@@ -2,30 +2,7 @@
 mongoose = require('mongoose')
 users = require('./util/users')
 Planet = mongoose.model('Planet')
-
-#---------------------------------------------------------------------
-#Enumerators
-
-#enum for all the different types of tiles
-tileType = {
-  land: 0
-  cliff: 1
-  water: 2
-  coast: 3
-}
-
-getTypeName = (type) ->
-  switch (tileType)
-    when tileType.land
-      return 'land'
-    when tileType.cliff
-      return 'cliff'
-    when tileType.water
-      return 'water'
-    when tileType.coast
-      return 'coast'
-    else
-      return 'unknown'
+TileType = require('./tileType')
 
 #---------------------------------------------------------------------
 
@@ -84,6 +61,21 @@ exports.list = () ->
   for item in Units
     list.push(item.name)
   return list
+
+# @param [Unit] unit the unit to update
+# @param [Number] delta time since last update
+# @return [Promise]
+exports.updateUnit = (unit,delta) ->
+
+  #@todo
+  #update info on the unit
+  #unitSchema =
+  #  type: String
+  #  constructing: Number
+  #  location: [Number]
+  #  planet: String
+
+  return unit.save()
 
 #TODO: should probably standardise on using id's instead of names for everything
 # @param [String] player id of the player to spawn
