@@ -23,7 +23,10 @@
     "supervisor": "^0.9.1",
     "ws": "^0.7.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "babel-cli": "^6.4.5",
+    "babelify": "^7.2.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

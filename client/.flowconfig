@@ -3,6 +3,6 @@
 [include]
 
 [libs]
-./libs/*
+./libs/
 
 [options]
