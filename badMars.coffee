@@ -185,13 +185,13 @@ init = () ->
 
 #@todo variables are getting messy here
 planetList = []
+exports.planetList = planetList
 lastTick = (new Date).getTime()
 
 mainLoop = () ->
   curTick = (new Date).getTime()
   delta = curTick - lastTick
   lastTick = curTick
-
   for planet in planetList
     planet.update(delta);
 

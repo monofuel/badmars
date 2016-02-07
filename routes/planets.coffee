@@ -30,29 +30,3 @@ module.exports = (app) ->
       return
       )
     )
-
-
-  app.route('/spawn')
-  .get((req,res,next) ->
-    if (!req.isAuthenticated())
-      logger.info('recieved /spawn without authentication',req);
-      return res.json({error: 'please authenticate first (API keys aren\'t implimented yet)'});
-
-    if (req.query.name == undefined)
-      logger.info('recieved /spawn without world',req);
-      return res.json({error: 'please specify a world. /spawn?name=world'});
-
-    #if we got here, that means they have specified a planet name and are an authenticated user
-    units.spawnPlayer(req.user._id,req.query.name)
-    .then(() ->
-      #TODO should send more useful information like a list of units that are being spawned and the area
-      res.send({success: 'spawned successfully'});
-    )
-    .catch((err) ->
-      logger.error(err);
-      if (err.message == 'invalid planet specified')
-        res.send({error: 'please specify a valid planet GET /planets for a list'});
-      else
-        res.send({error: 'spawning failed for unknown reason, contact admin'});
-    )
-  )

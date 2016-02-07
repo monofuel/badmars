@@ -3,6 +3,7 @@ mongoose = require('mongoose')
 users = require('./util/users')
 Planet = mongoose.model('Planet')
 TileType = require('./tileType')
+nav = require('./nav')
 
 #---------------------------------------------------------------------
 
@@ -22,31 +23,35 @@ Units = [
   {
     name: 'tank',
     range: 5.0,
-    speed: 2.0,
+    speed: 1.0,
     hp: 50,
     attack: 10,
-    cost: 500
+    cost: 500,
+    type: 'ground'
   },{
     name: 'scout',
     range: 5.0,
     speed: 4.0,
     hp: 20,
     attack: 2,
-    cost: 100
+    cost: 100,
+    type: 'ground'
   },{
     name: 'builder',
     range: 1.0,
     speed: 1.2,
     hp: 100,
     attack: 0,
-    cost: 300
+    cost: 300,
+    type: 'ground'
   },{
     name: 'transport',
     range: 1.0,
     speed: 1.0,
     hp: 300,
     attack: 0,
-    cost: 200
+    cost: 200,
+    type: 'ground'
   }
 ]
 
@@ -67,7 +72,12 @@ exports.list = () ->
 # @return [Promise]
 exports.updateUnit = (unit,delta) ->
 
+  #bool for if we want to save updates back to DB
   update = true
+
+  #if (unit.destination)
+
+
 
   #@todo
   #update info on the unit
@@ -82,13 +92,31 @@ exports.updateUnit = (unit,delta) ->
   else
     return null
 
-#TODO: should probably standardise on using id's instead of names for everything
-# @param [String] player id of the player to spawn
-# @param [String] planet name of the planet to spawn the player on
-# @return [Promise]
-exports.spawnPlayer = (userId,planetName) ->
+#check if a unit is blocking the tile
+#@param [PlanetLoc] tile tile on the map to check for unit
+#@return [Boolean] if the tile is blocked
+unitTileCheck = (tile) ->
+  for unit in tile.planet.units
+    if (unit.type == 'tank')
+      if tile.equals(unit.tile)
+        return true
+    #if (unit.type == 'storage')
+      #TODO fancy thing for multi tile units
+  return false
+
+#superclass for all units in the game world with a location and a mesh
+class entity
+  #@property [String] type the type of unit
+  type: 'entity'
+  #@property [String] owner the owner of the unit
+  owner: 'admin'
+
+  constructor: (@data, planet) ->
+
+
+
+exports.spawnPlayer = (userId, planet) ->
   userDoc = null;
-  planetDoc = null;
 
   return users.getUserDoc(userId)
   .then((doc) ->
@@ -99,17 +127,6 @@ exports.spawnPlayer = (userId,planetName) ->
       logger.error(err);
       throw err;
 
-    #TODO: this function checks Planet and gets a planet. it gets the WHOLE planet.
-    #this could probably be done better.
-    return Planet.findOne({name: planetName})
-  ).then((planet) ->
-    planetDoc = planet;
-    if (!planetDoc)
-      throw err('invalid planet specified');
     console.log('requested spawn for ',userDoc.username,'and planet',planetDoc.name);
-
-
-
-
-
+    #TODO actually spawn the user in
   )

@@ -5,6 +5,7 @@ db.js
 buildings.js
 units.js
 net.js
+nav.js
 app.js
 PlanetLoc.js
 direction.js
@@ -24,10 +25,7 @@ public/clientdocs/
 public/docs/
 public/js/badmars/
 
-client/badmars/display.js
-client/badmars/nav.js
-client/badmars/planet_generator.js
-client/badmars/planet.js
+client/planet_viewer/*
 
 #ignore authorization file
 config/auth.js

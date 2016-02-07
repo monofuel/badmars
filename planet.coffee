@@ -3,8 +3,8 @@
 db = require("./db.js");
 Units = require('./units.js')
 PlanetLoc = require('./PlanetLoc.js')
-
 class Planet
+
   constructor: (@name) ->
     if (!@name)
       console.log('planet must be constructed with a name')
@@ -16,7 +16,6 @@ class Planet
 
     return db.getPlanet(@name)
     .then((planetData) ->
-
       thisPlanet.planetData = planetData
       thisPlanet.id = planetData.id
       thisPlanet.users = planetData.users
@@ -38,10 +37,15 @@ class Planet
 
       return db.listUnits(thisPlanet.name)
     ).then((unitList) ->
+      for unit in unitList
+        unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
+
       thisPlanet.units = unitList
       console.log('unit count: ',unitList.length)
       if (unitList.length == 0)
         thisPlanet.spawnResources()
+        console.log('unit count: ',unitList.length)
+
     ).catch((err) ->
       console.log('failed to load planet')
       console.log(err)
@@ -70,8 +74,9 @@ class Planet
           )
 
   update: (delta) ->
-    for unit in @units
-      Units.updateUnit(unit,delta)
+    if (@units)
+      for unit in @units
+        Units.updateUnit(unit,delta)
     #console.log(@name,", delta:",delta)
 
 module.exports = Planet
