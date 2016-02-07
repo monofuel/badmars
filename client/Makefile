@@ -1,7 +1,9 @@
 all: copy docs
 
-build:
-	coffee -o ../public/js/planet_viewer/ -cb badmars/*.coffee
+build: planet_viewer
+
+planet_viewer:
+	coffee -o ../public/js/badmars/ -cb planet_viewer/*.coffee
 
 copy: build
 	cp -r dependencies/ ../public/js/badmars

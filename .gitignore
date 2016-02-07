@@ -25,7 +25,7 @@ public/clientdocs/
 public/docs/
 public/js/badmars/
 
-client/planet_viewer/*
+client/planet_viewer/*.js
 
 #ignore authorization file
 config/auth.js
