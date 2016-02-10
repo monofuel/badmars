@@ -5,6 +5,7 @@
 // 2-7-2016
 
 import {Display} from "./display.js";
+import {PlanetLoc} from "./map/planetLoc.js";
 
 // ---------------------------------------------------------------------
 // enumerators
@@ -37,3 +38,8 @@ window.onload = function () {
     display.resize();
   };
 };
+
+
+function updateMap() {
+
+}
