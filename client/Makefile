@@ -14,7 +14,10 @@ copy: build
 	cp -r models/ ../public
 
 docs:
-	codo -vu -o ../public/clientdocs planet_viewer/*.coffee
+	#codo -vu -o ../public/clientdocs planet_viewer/*.coffee
+	#doxx does not work with ../
+	doxx -s badmars-v1/ -T ./clientdocs
+	cp -r ./clientdocs ../public
 
 clean:
 	rm -r ../public/js/planet_viewer 2> /dev/null || true
