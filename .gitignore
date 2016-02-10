@@ -1,16 +1,16 @@
 #ignore js files that should be generated from coffeescript
-badMars.js
-worldGenerator.js
-db.js
-buildings.js
-units.js
-net.js
-nav.js
-app.js
-PlanetLoc.js
-direction.js
-planet.js
-tileType.js
+/badMars.js
+/worldGenerator.js
+/db.js
+/buildings.js
+/units.js
+/net.js
+/nav.js
+/app.js
+/PlanetLoc.js
+/direction.js
+/planet.js
+/tileType.js
 
 models/world.js
 models/user.js
@@ -19,11 +19,14 @@ routes/worlds.js
 routes/planets.js
 routes/main.js
 routes/users.js
+routes/units.js
 client/js/viewer.js
 
 public/clientdocs/
 public/docs/
 public/js/badmars/
+public/js/badmars-v1.js
+
 
 client/planet_viewer/*.js
 

@@ -16,6 +16,7 @@ copy: build
 docs:
 	#codo -vu -o ../public/clientdocs planet_viewer/*.coffee
 	#doxx does not work with ../
+	flow check badmars-v1/
 	doxx -s badmars-v1/ -T ./clientdocs
 	cp -r ./clientdocs ../public
 
