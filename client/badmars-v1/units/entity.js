@@ -17,11 +17,20 @@ import {
 
 export class Entity {
 
-	/**
-	 * This method should be overrided by other classes.
-	 * @param	{PlanetLoc}	location to check if this unit blocks it
-	 * @return	{boolean> do we block it
-	 */
+	type: 'entity';
+
+	constructor() {
+
+	}
+
+	update(delta: Number) {
+
+		}
+		/**
+		 * This method should be overrided by other classes.
+		 * @param	{PlanetLoc}	location to check if this unit blocks it
+		 * @return	{boolean> do we block it
+		 */
 	checkGroundTile(tile: PlanetLoc): boolean {
 		return false;
 	}

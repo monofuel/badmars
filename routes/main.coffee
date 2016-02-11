@@ -23,3 +23,10 @@ module.exports = (app) ->
       })
 
   )
+
+  app.get('/badMars_v1', (req,res) ->
+    res.render('pages/badmars_v1', {
+      user: req.user
+      })
+
+  )
