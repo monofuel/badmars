@@ -6,8 +6,7 @@ planet_viewer:
 	coffee -o ../public/js/badmars/ -cb planet_viewer/*.coffee
 
 badmars_v1:
-	flow check badmars-v1/
-	browserify badmars-v1/*.js dependencies/three.min.js dependencies/stats.min.js -t babelify --outfile ../public/js/badmars/badmars-v1.js
+	browserify badmars-v1/client.js --fast -t babelify --outfile ../public/js/badmars/badmars-v1.js
 
 copy: build
 	cp -r dependencies/ ../public/js/badmars

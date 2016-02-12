@@ -21,7 +21,6 @@ import {
 	StatsMonitor
 } from "./statsMonitor.js";
 
-
 // ---------------------------------------------------------------------
 // enumerators
 
@@ -50,6 +49,7 @@ var keysDown = [];
 var selectedUnit: ? Entity;
 var selectedTile: ? PlanetLoc;
 var statsMonitor: StatsMonitor;
+var username;
 
 // ---------------------------------------------------------------------
 // html5
@@ -62,6 +62,7 @@ window.onload = function () {
 
 	window.requestAnimationFrame(logicLoop);
 
+	promptLogin();
 
 	window.onresize = () => {
 		display.resize();
@@ -76,7 +77,7 @@ window.onload = function () {
 		//check if it is a new keypress, but ignore presses for alt (buggy with alt tab)
 		if (keysDown.indexOf(key.keyCode) == -1 && key.keyCode != 18) {
 			keysDown.push(key.keyCode);
-			console.log('key pressed: ' + key.keyCode);
+			//console.log('key pressed: ' + key.keyCode);
 		}
 	});
 
@@ -184,6 +185,44 @@ function handleInput() {
 				break;
 		}
 	}
+}
+
+
+function promptLogin() {
+	console.log('prompting for login');
+	document.body.innerHTML +=
+		'<div id="loginModal" class="modal fade" data-keyboard="false" data-backdrop="static" role="dialog">\
+			<div class="modal-dialog">\
+				<div class="modal-content">\
+					<div class="modal-header">\
+						<h4 class="modal-title"> BadMars v1 alpha</h4>\
+					</div>\
+					<div class="modal-body">\
+						<label for="usernameField">Username:</label>\
+						<input type="text" id="usernameField">\
+					</div>\
+					<div class="modal-footer">\
+						<button onclick="window.login()" type="button" class="btn btn-default">Login</button>\
+					</div>\
+				</div>\
+			</div>\
+		</div>\
+	';
+	//TODO get a list of planets to select from
+
+	//login window takes focus from the game
+	buttonMode = MODE_FOCUS;
+	$("#loginModal")
+		.modal();
+}
+
+window.login = function () {
+	username = $("#usernameField");
+	console.log("username: ", username);
+	//when successful
+	$("#loginModal")
+		.modal("hide");
+	buttonMode = MODE_SELECT;
 }
 
 /**

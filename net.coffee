@@ -53,17 +53,17 @@ class client
     message = JSON.parse(message);
     if (message.login)
       if (!message.login.planet)
-        @ws.send(JSON.stringify({ error: 'specify a planet'}))
+        @ws.send(JSON.stringify({ login: 'error: specify a planet'}))
         return
       if (!message.login.username)
-        @ws.send(JSON.stringify({ error: 'invalid username'}))
+        @ws.send(JSON.stringify({ login: 'error: invalid username'}))
         return
 
       @user = message.login.username
       for planet in BadMars.planetList
         if planet.name == message.login.planet
           @planet = planet
-      @ws.send(JSON.stringify({ success: 'logged in'}))
+      @ws.send(JSON.stringify({ login: 'success'}))
       return
 
     if (@user && message.type)
@@ -71,14 +71,14 @@ class client
         when "getMap"
           @ws.send(
             JSON.stringify(
-              {
-                grid: @planet.grid,
-                navGrid: @planet.navGrid,
-                water: @planet.water,
-                settings: @planet.settings,
-                worldSettings: @planet.worldSettings,
-                users: @planet.users
-
+              { planet: {
+                  grid: @planet.grid,
+                  navGrid: @planet.navGrid,
+                  water: @planet.water,
+                  settings: @planet.settings,
+                  worldSettings: @planet.worldSettings,
+                  users: @planet.users
+                }
               }
             )
           )
