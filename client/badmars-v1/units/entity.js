@@ -18,6 +18,7 @@ import {
 export class Entity {
 
 	type: 'entity';
+	mesh: THREE.Object3D;
 
 	constructor() {
 

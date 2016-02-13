@@ -197,6 +197,25 @@ export class Map {
 		return null;
 	}
 
+	getSelectedUnit(mouse: Object): ? Entity {
+		if (!display) {
+			return null;
+		}
+		var raycaster = new THREE.Raycaster();
+
+		raycaster.setFromCamera(mouse, display.camera);
+		var meshList = [];
+		for (var unit of this.units) {
+			meshList.push(unit.mesh);
+		}
+		var intersects = raycaster.intersectObject(meshList);
+		if (intersects.length > 0) {
+			return intersects[0].object.userData;
+		}
+		console.log("no unit selected");
+		return null;
+	}
+
 	update(delta: Number) {
 		for (var unit of this.units) {
 			unit.update(delta);

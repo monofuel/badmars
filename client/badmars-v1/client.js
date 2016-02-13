@@ -23,6 +23,9 @@ import {
 import {
 	Net
 } from "./net.js";
+import {
+	loadAllModelsAsync
+} from "./units/unitModels.js";
 
 // ---------------------------------------------------------------------
 // enumerators
@@ -69,6 +72,11 @@ window.onload = function () {
 	clock = new THREE.Clock();
 	statsMonitor = new StatsMonitor();
 	net = new Net();
+	loadAllModelsAsync()
+		.then(() => {
+			console.log('models loaded');
+		})
+
 
 	window.requestAnimationFrame(logicLoop);
 	net.connect()
