@@ -4,8 +4,15 @@
 // monofuel
 // 2-7-2016
 
-var SERVER_URL = "http://dev.japura.net"
-var SERVER_PORT = 7002
+import {
+	map
+} from "./client.js";
+import {
+	Map
+} from "./map/map.js";
+
+var SERVER_URL = "ws://dev.japura.net"
+var SERVER_PORT = 7005
 
 export class Net {
 	s: WebSocket;
@@ -13,28 +20,42 @@ export class Net {
 	listeners: Object;
 
 	constructor() {
-		console.log("connecting..");
-		this.s = new WebSocket(SERVER_URL + ":" + SERVER_PORT);
-
 		this.self = this;
 		this.listeners = {};
 
-		this.s.onopen = () => {
-
-		}
-
-		this.s.onmessage = (event) => {
-			var data = event.data;
-			console.log(data);
-		}
 	}
 
-	send(data: string) {
-		this.s.send(data);
+	connect(): Promise {
+		return new Promise((resolve, reject) => {
+			console.log("connecting..");
+			self.s = new WebSocket(SERVER_URL + ":" + SERVER_PORT);
+
+			self.s.onopen = () => {
+				console.log("connected!");
+				resolve();
+			}
+
+			self.s.onmessage = (event) => {
+				var data = JSON.parse(event.data);
+				console.log(data);
+				if (data.login) {
+					console.log(data.login);
+					self.s.send(JSON.stringify({
+						type: "getMap"
+					}));
+				} else if (data.planet) {
+					window.loadPlanet(data.planet);
+				}
+			}
+		});
+	}
+
+	send(data: Object) {
+		self.s.send(JSON.stringify(data));
 	}
 
 	close() {
-		this.s.close();
+		self.s.close();
 	}
 
 	/*
@@ -44,7 +65,7 @@ export class Net {
 	 * 3 is closed
 	 */
 	getState(): number {
-		return this.s.readyState;
+		return self.s.readyState;
 	}
 
 }

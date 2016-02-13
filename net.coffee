@@ -63,7 +63,10 @@ class client
       for planet in BadMars.planetList
         if planet.name == message.login.planet
           @planet = planet
-      @ws.send(JSON.stringify({ login: 'success'}))
+      if (@planet)
+        @ws.send(JSON.stringify({ login: 'success'}))
+      else
+        @ws.send(JSON.stringify({ login: 'error: invalid planet'}))
       return
 
     if (@user && message.type)

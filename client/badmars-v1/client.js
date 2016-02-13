@@ -20,6 +20,9 @@ import {
 import {
 	StatsMonitor
 } from "./statsMonitor.js";
+import {
+	Net
+} from "./net.js";
 
 // ---------------------------------------------------------------------
 // enumerators
@@ -39,7 +42,8 @@ const MIDDLE_MOUSE = 1;
 // globals
 
 export var display: Display;
-var map: Map;
+export var map: Map;
+var net: Net;
 var delta = 0;
 var clock: THREE.Clock;
 var buttonMode: Symbol = MODE_SELECT;
@@ -54,15 +58,34 @@ var username;
 // ---------------------------------------------------------------------
 // html5
 
+window.loadPlanet = function (planet: ? Object) {
+	map = new Map(planet);
+	map.addToRender();
+}
+
 window.onload = function () {
 	display = new Display();
 	map = new Map();
 	clock = new THREE.Clock();
 	statsMonitor = new StatsMonitor();
+	net = new Net();
 
 	window.requestAnimationFrame(logicLoop);
+	net.connect()
+		.then(() => {
+			net.send({
+				login: {
+					username: "testUser",
+					planet: "testPlanet"
+				}
+			});
+		});
 
-	promptLogin();
+
+
+	//promptLogin();
+
+
 
 	window.onresize = () => {
 		display.resize();
@@ -87,7 +110,7 @@ window.onload = function () {
 		}
 
 		var index = keysDown.indexOf(key.keyCode);
-		if (index) {
+		if (index != -1) {
 			keysDown.splice(index, 1);
 		}
 	});

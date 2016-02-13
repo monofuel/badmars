@@ -104,11 +104,11 @@ export class Display {
 		this.camera.translateZ(Math.cos(this.camera.rotation.x) * CAMERA_SPEED * delta)
 		this.camera.translateY(Math.sin(this.camera.rotation.x) * CAMERA_SPEED * delta)
 	}
-	cameraRight(delta: number) {
+	cameraLeft(delta: number) {
 		this.camera.translateX(Math.cos(this.camera.rotation.x + Math.PI) * CAMERA_SPEED * delta);
 	}
 
-	cameraLeft(delta: number) {
+	cameraRight(delta: number) {
 		this.camera.translateX(Math.cos(this.camera.rotation.x) * CAMERA_SPEED * delta);
 	}
 
