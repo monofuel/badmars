@@ -55,8 +55,15 @@ createPlanet = (planetName,worldName) ->
     console.log('Please give a name for the world map to use')
     return
   console.log('creating new planet:',planetName,'with map',worldName);
-  db.createPlanet(planetName,worldName);
-
+  db.createPlanet(planetName,worldName).then(() ->
+    planet = new Planet(planetName)
+    planet.init()
+    .then(() ->
+      console.log(planet.name," loaded")
+      planetList.push(planet)
+    )
+  )
+  
 listBuildings = () ->
   console.log(Buildings.list())
 
@@ -169,16 +176,19 @@ init = () ->
     #input prompt will be shown
 
     #@TODO load all planets
-    planet = new Planet("testPlanet")
+    db.listPlanets((list) ->
+      for name in list
+        planet = new Planet(name)
+        planet.init()
+        .then(() ->
+          console.log(planet.name," loaded")
+          planetList.push(planet)
+          #@todo planet load happens after we say 'server ready', should be before
 
-    planet.init()
-    .then(() ->
-      console.log(planet.name," loaded")
-      planetList.push(planet)
-      #@todo planet load happens after we say 'server ready', should be before
 
+        )
+      )
 
-    )
 
     #run the main loop 20 times a second
     setInterval(mainLoop,1000/20)

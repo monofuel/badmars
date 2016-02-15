@@ -77,19 +77,24 @@ export class PlanetLoc {
 			}
 
 			var corners = [
-				this.planet.grid[this.x][this.y],
-				this.planet.grid[this.x + 1][this.y],
-				this.planet.grid[this.x][this.y + 1],
-				this.planet.grid[this.x + 1][this.y + 1]
+				this.planet.grid[this.y][this.x],
+				this.planet.grid[this.y + 1][this.x],
+				this.planet.grid[this.y][this.x + 1],
+				this.planet.grid[this.y + 1][this.x + 1]
 			];
 
-			this.real_z = (corners[0] +
+			var avg = (corners[0] +
 				corners[1] +
 				corners[2] +
 				corners[3]) / 4;
+			if (avg < this.planet.worldSettings.waterHeight) {
+				this.real_z = this.planet.worldSettings.waterHeight;
+			} else {
+				this.real_z = avg;
+			}
 			this.tileType = this.planet.navGrid[this.x][this.y];
 			this.real_x = this.x + 0.5;
-			this.real_y = this.y + 0.5;
+			this.real_y = -(this.y + 0.5);
 
 		}
 		/**

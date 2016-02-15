@@ -11,20 +11,30 @@ export class ModelInfo {
 	constructor(name: string, fileName: string) {
 		this.name = name;
 		this.fileName = fileName;
+		this.model = THREE.geometry;
 	}
 }
 
-export var modelMap: Array < ModelInfo > = [
+var modelMap: Array < ModelInfo > = [
 	(new ModelInfo('tank', 'tank_mockup.obj'))
 ];
 
 export var loaded: number;
 export var total: number;
 
+export function getMesh(name: string): ? ModelInfo {
+	for (var model of modelMap) {
+		if (model.name == name) {
+			return model.model;
+		}
+	}
+	return null;
+}
+
 /**
  * kick off tasks to load all the models and returns a promise
  */
-export function loadAllModelsAsync(): Promise {
+export function loadAllModelsAsync() : Promise {
 	loaded = 0;
 	total = modelMap.length;
 

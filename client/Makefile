@@ -1,4 +1,4 @@
-all: copy docs
+all: badmars_v1 copy docs
 
 build: planet_viewer
 

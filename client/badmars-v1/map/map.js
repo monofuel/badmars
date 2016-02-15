@@ -23,6 +23,16 @@ import {
 	Display
 } from '../display.js';
 
+import {
+	Iron
+} from '../units/iron.js';
+import {
+	Oil
+} from '../units/oil.js';
+import {
+	Tank
+} from '../units/tank.js';
+
 export class Map {
 	settings: Settings;
 	grid: Array < Array < number >> ;
@@ -39,6 +49,7 @@ export class Map {
 		this.landMeshes = [];
 		this.waterMeshes = [];
 		this.planetData = {};
+		var self = this;
 
 		if (planet) {
 			this.planetData = planet;
@@ -49,6 +60,28 @@ export class Map {
 		} else {
 			console.log("error: invalid planet.");
 		}
+
+
+		window.addUnit = (unit: Object) => {
+			switch (unit.type) {
+				case 'iron':
+					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
+
+					self.units.push(new Iron(loc, unit.rate));
+					break;
+				case 'oil':
+					var loc = new PlanetLoc(this, unit.location[0], unit.location[1]);
+
+					self.units.push(new Oil(loc, unit.rate));
+					break;
+				case 'tank':
+					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
+
+					self.units.push(new Tank(loc));
+					break;
+			}
+		}
+
 
 	}
 
@@ -197,7 +230,10 @@ export class Map {
 		return null;
 	}
 
-	getSelectedUnit(mouse: Object): ? Entity {
+	removeUnit(unit: Entity) {
+		this.units.splice(this.units.indexOf(unit), 1);
+	}
+	getSelectedUnit(mouse: THREE.Vector2): ? Entity {
 		if (!display) {
 			return null;
 		}
@@ -208,7 +244,7 @@ export class Map {
 		for (var unit of this.units) {
 			meshList.push(unit.mesh);
 		}
-		var intersects = raycaster.intersectObject(meshList);
+		var intersects = raycaster.intersectObjects(meshList);
 		if (intersects.length > 0) {
 			return intersects[0].object.userData;
 		}
@@ -216,7 +252,7 @@ export class Map {
 		return null;
 	}
 
-	update(delta: Number) {
+	update(delta: number) {
 		for (var unit of this.units) {
 			unit.update(delta);
 		}

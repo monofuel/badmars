@@ -45,6 +45,17 @@ export class Net {
 					}));
 				} else if (data.planet) {
 					window.loadPlanet(data.planet);
+					self.s.send(JSON.stringify({
+						type: "getUnits"
+					}));
+				} else if (data.units) {
+					if (window.addUnit) {
+						for (var unit of data.units) {
+							window.addUnit(unit);
+						}
+					} else {
+						console.log('error: got units before planet loaded!');
+					}
 				}
 			}
 		});

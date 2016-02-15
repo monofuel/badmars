@@ -53,7 +53,7 @@ var buttonMode: Symbol = MODE_SELECT;
 var mouseClick: ? Function;
 var mouseMove: ? Function;
 var keysDown = [];
-var selectedUnit: ? Entity;
+export var selectedUnit: ? Entity;
 var selectedTile: ? PlanetLoc;
 var statsMonitor: StatsMonitor;
 var username;
@@ -84,7 +84,7 @@ window.onload = function () {
 			net.send({
 				login: {
 					username: "testUser",
-					planet: "testPlanet"
+					planet: "testPlanet3"
 				}
 			});
 		});
@@ -143,17 +143,14 @@ window.onload = function () {
 
 	document.body.addEventListener('mouseup', (event: any) => {
 		event.preventDefault();
+
 		var mouse = new THREE.Vector2();
 		mouse.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1
 		mouse.y = -(event.clientY / display.renderer.domElement.clientHeight) * 2 + 1
-		selectedTile = map.getTileAtRay(mouse);
-		if (!selectedTile)
-			return;
 
 		switch (event.button) {
 			case LEFT_MOUSE:
-				console.log('button selection');
-				var unit = map.unitTileCheck(selectedTile);
+				var unit = map.getSelectedUnit(mouse);
 				if (unit) {
 					console.log(unit.type + " clicked");
 					selectedUnit = unit;
@@ -166,8 +163,13 @@ window.onload = function () {
 				}
 				break;
 			case RIGHT_MOUSE:
-				if (mouseClick)
-					mouseClick(selectedTile);
+				if (buttonMode = MODE_MOVE) {
+					selectedTile = map.getTileAtRay(mouse);
+					if (!selectedTile)
+						return;
+					if (mouseClick)
+						mouseClick(selectedTile);
+				}
 				break;
 		}
 	});

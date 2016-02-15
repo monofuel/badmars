@@ -89,7 +89,7 @@ class client
         when "spawn"
           @ws.send(JSON.stringify({ error: 'not implimented'}))
         when "getUnits"
-          @ws.send(JSON.stringify({ error: 'not implimented'}))
+          @ws.send(JSON.stringify({ units: @planet.units}))
         when "setDestination"
           @ws.send(JSON.stringify({ error: 'not implimented'}))
         when "attack"

@@ -3,6 +3,7 @@
 db = require("./db.js");
 Units = require('./units.js')
 PlanetLoc = require('./PlanetLoc.js')
+TileType = require('./tileType')
 class Planet
 
   constructor: (@name) ->
@@ -22,7 +23,7 @@ class Planet
       thisPlanet.settings = planetData.settings
       if (!thisPlanet.settings)
         thisPlanet.settings = {}
-
+      console.log('loading planet: ',thisPlanet.name,' world: ',planetData.world);
       return db.getWorld(planetData.world)
     ).then((worldData) ->
 
@@ -59,19 +60,21 @@ class Planet
       for y in [0..@worldSettings.size - 2]
         if (Math.random() < @worldSettings.ironChance)
           tile = new PlanetLoc(this,x,y)
-          db.createUnit(tile,"iron")
-          .then((iron) ->
-            thisPlanet.units.push(iron)
-          )
+          if (tile.type == TileType.land)
+            db.createUnit(tile,"iron")
+            .then((iron) ->
+              thisPlanet.units.push(iron)
+            )
 
     for x in [0..@worldSettings.size - 2]
       for y in [0..@worldSettings.size - 2]
         if (Math.random() < @worldSettings.oilChance)
           tile = new PlanetLoc(this,x,y)
-          db.createUnit(tile,"oil")
-          .then((oil) ->
-            thisPlanet.units.push(oil)
-          )
+          if (tile.type == TileType.land)
+            db.createUnit(tile,"oil")
+            .then((oil) ->
+              thisPlanet.units.push(oil)
+            )
 
   update: (delta) ->
     if (@units)
