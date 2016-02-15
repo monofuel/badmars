@@ -76,26 +76,8 @@ window.onload = function () {
 		.then(() => {
 			console.log('models loaded');
 
-			var userColor = new THREE.Color();
-			//i could have sworn three.color was random, but it wasn't when i was testing it
-			userColor.setHex(Math.random() * 0xffffff);
-
-
-			console.log('random color: ', userColor.getHexString());
+			promptLogin();
 			window.requestAnimationFrame(logicLoop);
-			net.connect()
-				.then(() => {
-					net.send({
-						login: {
-							username: "testUser2",
-							planet: "testPlanet3",
-							color: userColor.getHexString()
-						}
-					});
-				});
-
-
-			//promptLogin();
 
 
 		})
@@ -243,39 +225,45 @@ function handleInput() {
 
 function promptLogin() {
 	console.log('prompting for login');
-	document.body.innerHTML +=
-		'<div id="loginModal" class="modal fade" data-keyboard="false" data-backdrop="static" role="dialog">\
-			<div class="modal-dialog">\
-				<div class="modal-content">\
-					<div class="modal-header">\
-						<h4 class="modal-title"> BadMars v1 alpha</h4>\
-					</div>\
-					<div class="modal-body">\
-						<label for="usernameField">Username:</label>\
-						<input type="text" id="usernameField">\
-					</div>\
-					<div class="modal-footer">\
-						<button onclick="window.login()" type="button" class="btn btn-default">Login</button>\
-					</div>\
-				</div>\
-			</div>\
-		</div>\
-	';
 	//TODO get a list of planets to select from
-
+	$('#colorField')
+		.val((Math.round(Math.random() * 0xffffff))
+			.toString(16));
 	//login window takes focus from the game
 	buttonMode = MODE_FOCUS;
 	$("#loginModal")
 		.modal();
 }
 
+
 window.login = function () {
-	username = $("#usernameField");
+	username = $("#usernameField")
+		.val();
 	console.log("username: ", username);
+	var color = $("#colorField")
+		.val();
+	console.log("color: ", color);
 	//when successful
+	$(".modal-backdrop")
+		.remove();
 	$("#loginModal")
-		.modal("hide");
+		.remove();
 	buttonMode = MODE_SELECT;
+
+	var userColor = new THREE.Color(parseInt(color, 16));
+
+	if (username && color) {
+		net.connect()
+			.then(() => {
+				net.send({
+					login: {
+						username: username,
+						planet: "testPlanet3",
+						color: userColor.getHexString()
+					}
+				});
+			});
+	}
 }
 
 /**

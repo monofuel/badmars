@@ -98,15 +98,7 @@ exports.updateUnit = (unit,delta) ->
 
       #dont' mess with things if we are stil moving
       if (!unit.moving)
-        console.log('moving to next tile')
         unit.nextMove = unit.path.getNext(unit.tile)
-        #TODO: this should really send the client the next tile to go to, not direction
-        #in case if it misses a step
-        unit.tile.planet.broadcastUpdate({
-          type: "moving",
-          unitId: unit.id,
-          direction: direction.parse(unit.nextMove)
-          });
         switch(unit.nextMove)
           #TODO should check if another unit is here
           when direction.N
@@ -120,16 +112,21 @@ exports.updateUnit = (unit,delta) ->
           else
             unit.nextTile = unit.tile
 
+        unit.tile.planet.broadcastUpdate({
+          type: "moving"
+          unitId: unit.id
+          newLocation: [unit.nextTile.x,unit.nextTile.y]
+          time: 1 / unitInfo.speed
+          });
+
       deltaMove = unitInfo.speed * delta
       if (unit.nextMove != direction.C)
         unit.moving = true
-        console.log('unit moving: ', deltaMove)
         unit.distanceMoved += deltaMove
         if (unit.distanceMoved > 1)
           unit.distanceMoved = 1
 
       if (unit.distanceMoved == 1)
-        console.log('unit moved one tile')
         unit.moving = false
         unit.tile = unit.nextTile
         unit.distanceMoved = 0

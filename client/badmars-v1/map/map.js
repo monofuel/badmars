@@ -236,22 +236,11 @@ export class Map {
 		return null;
 	}
 
-	updateUnitDestination(unitId: string, direction: string) {
+	updateUnitDestination(unitId: string, newLocation: Array < number > , time: number) {
 		var unit = this.getUnitById(unitId);
 		if (unit && unit.updateNextMove) {
-			switch (direction) {
-				case 'N':
-					return unit.updateNextMove(N);
-				case 'S':
-					return unit.updateNextMove(S);
-				case 'E':
-					return unit.updateNextMove(E);
-				case 'W':
-					return unit.updateNextMove(W);
-				case 'C':
-					return unit.updateNextMove(C);
-			}
-
+			var tile = new PlanetLoc(unit.location.planet, newLocation[0], newLocation[1]);
+			return unit.updateNextMove(tile, time);
 		}
 		return;
 	}

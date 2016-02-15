@@ -35,6 +35,7 @@ export class Display {
 		}
 
 		var panel = document.getElementById('threePanel');
+		console.log('threePanel is ', panel.offsetWidth, panel.offsetHeight);
 
 		this.renderer = new THREE.WebGLRenderer({
 			antialias: false,
@@ -42,9 +43,9 @@ export class Display {
 		});
 
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
-		this.hemLight = new THREE.HemisphereLight(0xffffff, 0xFFBF00, .3);
+		this.hemLight = new THREE.HemisphereLight(0xffffff, 0xFFBF00, 0.3);
 		this.scene.add(this.hemLight);
-		this.moonLight = new THREE.DirectionalLight(MOON_COLOR, .2);
+		this.moonLight = new THREE.DirectionalLight(MOON_COLOR, 0.2);
 		this.scene.add(this.moonLight);
 		this.light = new THREE.DirectionalLight(SUN_COLOR, 1);
 		this.updateSunPosition(0);

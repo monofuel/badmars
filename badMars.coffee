@@ -76,7 +76,7 @@ listPlanets = () ->
 removeWorld = (name) ->
   db.removeWorld(name)
 
-removeWorld = (name) ->
+removePlanet = (name) ->
   db.removePlanet(name)
 
 showWorld = (name) ->
@@ -175,14 +175,14 @@ init = () ->
     initIO() #start IO once everything else is up
     #input prompt will be shown
 
-    #@TODO load all planets
     db.listPlanets((list) ->
       for name in list
         planet = new Planet(name)
         planet.init()
-        .then(() ->
-          console.log(planet.name," loaded")
-          planetList.push(planet)
+        .then((loadedPlanet) ->
+          console.log(loadedPlanet.name," loaded")
+          planetList.push(loadedPlanet)
+
           #@todo planet load happens after we say 'server ready', should be before
 
 
@@ -190,8 +190,7 @@ init = () ->
       )
 
 
-    #run the main loop 20 times a second
-    setInterval(mainLoop,1000/20)
+    setInterval(mainLoop,1000/20);
 
 #@todo variables are getting messy here
 planetList = []
@@ -200,10 +199,19 @@ lastTick = (new Date).getTime()
 
 mainLoop = () ->
   curTick = (new Date).getTime()
-  delta = curTick - lastTick
+  delta = (curTick - lastTick) / 1000
   lastTick = curTick
   for planet in planetList
-    planet.update(delta/1000);
+    planet.update(delta);
+  updateEndTime = (new Date).getTime()
+
+  ###had issues with setInterval being delayed
+  nextRun = (1000/20) - (updateEndTime - curTick)
+  if (nextRun < 0)
+    nextRun = 0;
+  console.log('scheduling next run: ',nextRun)
+  #run the main loop 20 times a second
+  setTimeout(mainLoop,nextRun)###
 
 #------------------------------------------------------------
 # init other modules

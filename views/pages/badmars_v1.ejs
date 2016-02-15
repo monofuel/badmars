@@ -49,6 +49,25 @@
   <body>
     <canvas id='threePanel'>
     </canvas>
+
+    <div id="loginModal" class="modal fade" data-keyboard="false" data-backdrop="static" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title"> BadMars v1 alpha</h4>
+					</div>
+					<div class="modal-body">
+						<label for="usernameField">Username:</label>
+						<input type="text" id="usernameField">
+						<label for="usernameField">html color:</label>
+						<input type="text" id="colorField">
+					</div>
+					<div class="modal-footer">
+						<button onclick="window.login()" type="button" class="btn btn-default" data-dismiss="modal">Login</button>
+					</div>
+				</div>
+			</div>
+		</div>
   </body>
 
 </html>

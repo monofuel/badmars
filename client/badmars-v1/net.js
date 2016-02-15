@@ -108,7 +108,7 @@ export class Net {
 					}
 				} else if (data.type) {
 					if (data.type == "moving" && map) {
-						map.updateUnitDestination(data.unitId, data.direction);
+						map.updateUnitDestination(data.unitId, data.newLocation, data.time);
 					}
 				}
 			}

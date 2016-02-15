@@ -63,7 +63,7 @@ class Planet
       if (unitList.length == 0)
         thisPlanet.spawnResources()
         console.log('unit count: ',unitList.length)
-
+      return thisPlanet;
     ).catch((err) ->
       console.log('failed to load planet')
       console.log(err)
@@ -81,6 +81,7 @@ class Planet
             db.createUnit(tile,"iron")
             .then((iron) ->
               thisPlanet.units.push(iron)
+              unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
             )
 
     for x in [0..@worldSettings.size - 2]
@@ -91,6 +92,7 @@ class Planet
             db.createUnit(tile,"oil")
             .then((oil) ->
               thisPlanet.units.push(oil)
+              unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
             )
 
   getPlayersUnits: (userId) ->
@@ -137,6 +139,7 @@ class Planet
             continue
           tanksToSpawn--;
           db.createUnit(tile,'tank',userId,false).then((unit) ->
+            unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
             console.log('spawned tank for player: ', userId)
             thisPlanet.units.push(unit)
           )
@@ -167,6 +170,7 @@ class Planet
     return true
 
   update: (delta) ->
+
     if (@units)
       for unit in @units
         Units.updateUnit(unit,delta)

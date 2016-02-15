@@ -20,15 +20,14 @@ class PlanetLoc
     #console.log("x: " + @x + ", y: " + @y)
 
     if (@x < 0)
-      @x = (@planet.settings.size + @x - 1) % (@planet.settings.size - 1)
+      @x = (@planet.worldSettings.size + @x - 1) % (@planet.worldSettings.size - 1)
     #@TODO something is funny with the size thing unlike on the planet viewer, should investigate
-    if (@x > @planet.settings.size - 4)
-      @x = @x % (@planet.settings.size - 4)
+    if (@x >= @planet.worldSettings.size - 1)
+      @x = @x % (@planet.worldSettings.size - 2)
     if (@y < 0)
-      @y = (@planet.settings.size + @y - 1) % (@planet.settings.size - 1)
-    if (@y > @planet.settings.size - 4)
-      @y = @y % (@planet.settings.size - 4)
-
+      @y = (@planet.worldSettings.size + @y - 1) % (@planet.worldSettings.size - 1)
+    if (@y >= @planet.worldSettings.size - 1)
+      @y = @y % (@planet.worldSettings.size - 2)
     if (@x >= @planet.grid[0].length - 1 || @x < 0)
       console.log("invalid tile: ", @x, @y)
       console.log(new Error().stack)
@@ -44,8 +43,8 @@ class PlanetLoc
     ]
 
     @avg = (corners[0] + corners[1] + corners[2] + corners[3]) / 4
-    if (@avg < @planet.settings.waterHeight)
-      @avg = @planet.settings.waterHeight
+    if (@avg < @planet.worldSettings.waterHeight)
+      @avg = @planet.worldSettings.waterHeight
 
     @type = @planet.navGrid[@x][@y]
 

@@ -141,6 +141,10 @@ export class PlanetLoc {
 		return new PlanetLoc(this.planet, this.x, this.y + 1);
 	}
 
+	getVec(): THREE.vector3 {
+		return new THREE.Vector3(this.real_x, this.real_z, this.real_y);
+	}
+
 	/**
 	 * Compare with another PlanetLoc for equality by value
 	 * @param  {PlanetLoc} Location to compare to
