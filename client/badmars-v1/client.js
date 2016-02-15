@@ -56,8 +56,21 @@ var keysDown = [];
 export var selectedUnit: ? Entity;
 var selectedTile: ? PlanetLoc;
 var statsMonitor: StatsMonitor;
-var username;
+export var username;
+export var playerInfo: ? Object;
+var firstLoad = true;
 
+export function setPlayerInfo(info: Object) {
+	playerInfo = info;
+}
+
+export function onFirstLoad(): boolean {
+	if (firstLoad) {
+		firstLoad = false;
+		return true;
+	}
+	return false;
+}
 // ---------------------------------------------------------------------
 // html5
 
@@ -181,13 +194,16 @@ function logicLoop() {
 	window.requestAnimationFrame(logicLoop);
 
 	statsMonitor.begin();
-
-	delta = clock.getDelta();
-	if (keysDown.length > 0) {
-		handleInput(delta);
+	try {
+		delta = clock.getDelta();
+		if (keysDown.length > 0) {
+			handleInput(delta);
+		}
+		map.update(delta);
+		display.render(delta);
+	} catch (error) {
+		console.log(error);
 	}
-	map.update(delta);
-	display.render(delta);
 	statsMonitor.end();
 }
 

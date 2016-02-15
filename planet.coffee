@@ -108,44 +108,60 @@ class Planet
     thisPlanet = this;
     return new Promise((resolve,reject) ->
       tanksToSpawn = 5;
-      while (tanksToSpawn > 0)
-        x = Math.random() * thisPlanet.worldSettings.size;
-        y = Math.random() * thisPlanet.worldSettings.size;
 
-        console.log('scanning for potential spawn')
-        goodArea = true
-        for x2 in [0..10]
-          for y2 in [0..10]
-            tile = new PlanetLoc(thisPlanet,x + x2, y + y2)
-            if (tile.type != TileType.land)
-              goodArea = false
-              break
-            if (Units.unitTileCheck(tile))
-              goodArea = false
+      db.getUserById(userId).then((playerInfo) ->
+        thisPlanet.players.push(playerInfo)
+        for player in thisPlanet.players
+          Net.sendMessage(player,{ players: thisPlanet.players});
+
+      ).then(() ->
+
+        while (tanksToSpawn > 0)
+          x = Math.random() * thisPlanet.worldSettings.size;
+          y = Math.random() * thisPlanet.worldSettings.size;
+
+          console.log('scanning for potential spawn')
+          goodArea = true
+          for x2 in [0..10]
+            for y2 in [0..10]
+              tile = new PlanetLoc(thisPlanet,x + x2, y + y2)
+              if (tile.type != TileType.land)
+                goodArea = false
+                break
+              if (Units.unitTileCheck(tile))
+                goodArea = false
+                break
+            if (!goodArea)
               break
           if (!goodArea)
-            break
-        if (!goodArea)
-          continue
-
-        console.log('found a good area to spawn!')
-        while (tanksToSpawn > 0)
-          x2 = Math.random() * 10
-          y2 = Math.random() * 10
-          tile = new PlanetLoc(thisPlanet,x + x2, y + y2)
-          if (tile.type != TileType.land)
             continue
-          if (Units.unitTileCheck(tile))
-            continue
-          tanksToSpawn--;
-          db.createUnit(tile,'tank',userId,false).then((unit) ->
-            unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
-            console.log('spawned tank for player: ', userId)
-            thisPlanet.units.push(unit)
-          )
+
+          console.log('found a good area to spawn!')
+          while (tanksToSpawn > 0)
+            x2 = Math.random() * 10
+            y2 = Math.random() * 10
+            tile = new PlanetLoc(thisPlanet,x + x2, y + y2)
+            if (tile.type != TileType.land)
+              continue
+            if (Units.unitTileCheck(tile))
+              continue
+            tanksToSpawn--;
+            db.createUnit(tile,'tank',userId,false).then((unit) ->
+              unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
+              console.log('spawned tank for player: ', userId)
+              thisPlanet.units.push(unit)
+              db.getUserById(userId).then((playerInfo) ->
+                thisPlanet.broadcastUpdate({
+                  type: "newUnit"
+                  unit: unit
+                  player: playerInfo
+                  });
+                )
+            )
 
 
-      resolve();
+        resolve();
+      )
       )
 
   unitTileCheck: (tile) ->

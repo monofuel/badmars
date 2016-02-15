@@ -4,6 +4,10 @@
 // monofuel
 // 2-7-2016
 
+import {
+	PlanetLoc
+} from './map/planetLoc.js';
+
 const CAMERA_SPEED = 30;
 const ORTHOGRAPHIC = true;
 const SUN_SPEED = 0.025;
@@ -19,10 +23,11 @@ export class Display {
 	hemLight: THREE.HemisphereLight;
 	scene: THREE.Scene;
 	renderer: THREE.WebGLRenderer;
-
+	self: Display;
 
 	constructor() {
 		this.scene = new THREE.Scene();
+		self = this;
 
 		var aspectRatio = window.innerWidth / window.innerHeight;
 		this.lightAngle = 0.0;
@@ -65,6 +70,11 @@ export class Display {
 
 		this.camera.updateProjectionMatrix();
 		console.log('threejs ready');
+	}
+
+	viewTile(tile: PlanetLoc) {
+		self.camera.position.x = tile.real_x + 57
+		self.camera.position.z = tile.real_y - +124
 	}
 
 	updateSunPosition(delta: number) {
@@ -110,6 +120,7 @@ export class Display {
 	}
 
 	cameraRight(delta: number) {
+		console.log(this.camera.position);
 		this.camera.translateX(Math.cos(this.camera.rotation.x) * CAMERA_SPEED * delta);
 	}
 
@@ -144,6 +155,7 @@ export class Display {
 		}
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 	}
+
 
 	addMesh(mesh: THREE.Object3D) {
 		this.scene.add(mesh);

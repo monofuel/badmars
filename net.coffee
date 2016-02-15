@@ -12,7 +12,11 @@ exports.clientList = clientList
 exports.sendMessage = (player, data) ->
   for client in clientList
     if (client.userInfo.id == player.id)
-      client.send(data)
+      try
+        client.send(data)
+      catch error
+        console.log('error sending: ',error)
+
 
 
 
@@ -31,7 +35,7 @@ class client
 
     ws.on('close', () ->
       console.log("client closed connection")
-      clientList.splice(clientList.indexOf(this),1)
+      clientList.splice(clientList.indexOf(thisClient),1)
       )
     ws.send(JSON.stringify({status: "connected"}))
 

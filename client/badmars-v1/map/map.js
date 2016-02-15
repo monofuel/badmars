@@ -69,6 +69,13 @@ export class Map {
 
 
 		window.addUnit = (unit: Object) => {
+			for (var oldUnit of self.units) {
+				if (oldUnit.uid == unit._id) {
+					console.log('duplicate unit');
+					return;
+				}
+			}
+
 			switch (unit.type) {
 				case 'iron':
 					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
@@ -241,6 +248,15 @@ export class Map {
 		if (unit && unit.updateNextMove) {
 			var tile = new PlanetLoc(unit.location.planet, newLocation[0], newLocation[1]);
 			return unit.updateNextMove(tile, time);
+		}
+		if (!unit) {
+			console.log('unknown unit moving. re-requesting unit list');
+			if (window.sendMessage) {
+				window.sendMessage({
+					type: 'getUnits'
+				})
+			}
+
 		}
 		return;
 	}

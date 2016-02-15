@@ -5,7 +5,12 @@
 // 2-7-2016
 
 import {
-	map
+	map,
+	username,
+	playerInfo,
+	setPlayerInfo,
+	onFirstLoad,
+	display
 } from "./client.js";
 import {
 	Map
@@ -66,6 +71,10 @@ export class Net {
 				resolve();
 			}
 
+			window.sendMessage = (data) => {
+				self.s.send(JSON.stringify(data));
+			};
+
 			self.s.onmessage = (event) => {
 				var data = JSON.parse(event.data);
 				console.log(data);
@@ -82,6 +91,9 @@ export class Net {
 				} else if (data.players) {
 					for (var player of data.players) {
 						playerList.push(new Player(player._id, player.username, player.color));
+						if (player.username == username) {
+							setPlayerInfo(player);
+						}
 					}
 					self.s.send(JSON.stringify({
 						type: "getUnits"
@@ -91,6 +103,15 @@ export class Net {
 						for (var unit of data.units) {
 							window.addUnit(unit);
 						}
+						if (map && map.units && onFirstLoad()) {
+							for (var unit of map.units) {
+								if (unit && display && playerInfo && unit.owner == playerInfo.id) {
+									console.log('zooming in on unit: ', unit);
+									display.viewTile(unit.tile);
+								}
+							}
+						}
+
 					} else {
 						console.log('error: got units before planet loaded!');
 					}
@@ -103,12 +124,17 @@ export class Net {
 					if (data.spawn.indexOf('success') != -1) {
 						console.log('player spawned');
 						self.s.send(JSON.stringify({
-							type: "getUnits"
+							type: "getPlayers"
 						}));
 					}
 				} else if (data.type) {
 					if (data.type == "moving" && map) {
 						map.updateUnitDestination(data.unitId, data.newLocation, data.time);
+					} else if (data.type == 'newUnit') {
+						if (data.player) {
+							playerList.push(new Player(data.player._id, data.player.username, data.player.color));
+						}
+						window.addUnit(data.unit);
 					}
 				}
 			}
