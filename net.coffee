@@ -1,6 +1,10 @@
+#Monofuel
+'use strict';
+
 WebSocketServer = require('ws').Server
 BadMars = require('./badMars.js')
 Units = require('./units.js')
+db = require('./db.js')
 
 clientList = []
 exports.clientList = clientList
@@ -49,6 +53,7 @@ class client
   ###
 
   handleFromClient: (message) ->
+    thisClient = this
     console.log('recieved: ' + message)
     message = JSON.parse(message);
     if (message.login)
@@ -58,13 +63,38 @@ class client
       if (!message.login.username)
         @ws.send(JSON.stringify({ login: 'error: invalid username'}))
         return
+      if (!message.login.color)
+        @ws.send(JSON.stringify({ login: 'error: please specify a color'}))
+        return
 
       @user = message.login.username
       for planet in BadMars.planetList
         if planet.name == message.login.planet
           @planet = planet
       if (@planet)
-        @ws.send(JSON.stringify({ login: 'success'}))
+        console.log('looking up user: ' + message.login.username);
+
+        db.getUserByName(message.login.username)
+        .then( (userInfo) ->
+          thisClient.userInfo = userInfo;
+          console.log('logging in user: ' + userInfo.username);
+          thisClient.ws.send(JSON.stringify({ login: 'success'}))
+          return;
+        ).catch( (err) ->
+          console.log(err)
+          console.log('creating new user');
+          db.createUser(message.login.username, message.login.color)
+          .then( (userInfo) ->
+            thisClient.userInfo = userInfo;
+            console.log('account created for user: ' + userInfo.username);
+            thisClient.ws.send(JSON.stringify({ login: 'account created'}))
+          ).catch( () ->
+            @thisClient.ws.send(JSON.stringify({ login: 'error: server error 126'}))
+          )
+          return;
+        )
+
+        return;
       else
         @ws.send(JSON.stringify({ login: 'error: invalid planet'}))
       return
@@ -87,11 +117,33 @@ class client
           )
 
         when "spawn"
-          @ws.send(JSON.stringify({ error: 'not implimented'}))
+          @planet.getPlayersUnits(@userInfo.id).then((unitList) ->
+            console.log('spawning player ' + thisClient.userInfo.username)
+            if (unitList.length > 0)
+              thisClient.ws.send(JSON.stringify({ error: 'already have units!'}))
+              return;
+
+            thisClient.planet.spawnPlayer(thisClient.userInfo.id).then(() ->
+              console.log('spawned player ' + thisClient.userInfo.username)
+              thisClient.ws.send(JSON.stringify({ spawn: 'success!'}))
+              )
+
+          ).catch((err) ->
+            console.log(err)
+            thisClient.ws.send(JSON.stringify({ error: 'failed to spawn units'}))
+          )
         when "getUnits"
           @ws.send(JSON.stringify({ units: @planet.units}))
+        when "getPlayers"
+          @ws.send(JSON.stringify({ players: @planet.players}))
         when "setDestination"
-          @ws.send(JSON.stringify({ error: 'not implimented'}))
+          if (!message.unit)
+            return @ws.send(JSON.stringify({ setDestination: 'error: no unit specified'}))
+          if (!message.location)
+            return @ws.send(JSON.stringify({ setDestination: 'error: no location set'}))
+          @planet.updateUnitDestination(@userInfo.id,)
+
+          @ws.send(JSON.stringify({ setDestination: 'success'}))
         when "attack"
           @ws.send(JSON.stringify({ error: 'not implimented'}))
         else

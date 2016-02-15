@@ -95,11 +95,11 @@ exports.updateUnit = (unit,delta) ->
 #check if a unit is blocking the tile
 #@param [PlanetLoc] tile tile on the map to check for unit
 #@return [Boolean] if the tile is blocked
-unitTileCheck = (tile) ->
+exports.unitTileCheck = (tile) ->
   for unit in tile.planet.units
-    if (unit.type == 'tank')
-      if tile.equals(unit.tile)
-        return true
+    #if single tile unit:
+    if tile.equals(unit.tile)
+      return true
     #if (unit.type == 'storage')
       #TODO fancy thing for multi tile units
   return false
@@ -112,21 +112,3 @@ class entity
   owner: 'admin'
 
   constructor: (@data, planet) ->
-
-
-
-exports.spawnPlayer = (userId, planet) ->
-  userDoc = null;
-
-  return users.getUserDoc(userId)
-  .then((doc) ->
-    userDoc = doc;
-    if (!userDoc)
-      #very bad error, possibly hints at an issue with authentication
-      err = new Error('no such user found');
-      logger.error(err);
-      throw err;
-
-    console.log('requested spawn for ',userDoc.username,'and planet',planetDoc.name);
-    #TODO actually spawn the user in
-  )

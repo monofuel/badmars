@@ -13,13 +13,26 @@ import {
 import {
 	getMesh
 } from './unitModels.js';
+import {
+	getPlayerById
+} from '../net.js';
+
 
 export class Tank extends GroundUnit {
-	constructor(location: PlanetLoc) {
+	constructor(location: PlanetLoc, playerId: string) {
+		var player = getPlayerById(playerId);
+		var color;
+		if (!player || !player.color) {
+			console.log('unknown player color');
+			color = new THREE.Color();
+		} else {
+			color = player.color;
+		}
 
 		var material = new THREE.MeshLambertMaterial({
-			color: 0x006600
+			color: color
 		});
+
 		var geometry = getMesh('tank');
 		if (geometry) {
 			var tankMesh = new THREE.Mesh(geometry, material);

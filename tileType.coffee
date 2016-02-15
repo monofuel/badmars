@@ -8,7 +8,7 @@ module.exports = {
   coast: 3
 
   getTypeName: (type) ->
-    switch (tileType)
+    switch (type)
       when @land
         return 'land'
       when @cliff

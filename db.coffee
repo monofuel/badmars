@@ -38,12 +38,21 @@ unitSchema = mongoose.Schema({
   constructing: Number
   location: [Number]
   planet: {type: String, index: true}
+  owner: String
 })
 
 World = mongoose.model('World',worldSchema)
 Resource = mongoose.model('Resource',resourceSchema)
 Building = mongoose.model('Building',buildingSchema)
 Unit = mongoose.model('Unit',unitSchema)
+
+userSchema = mongoose.Schema( {
+  username: String
+  user_id: String #user ID in japura user database
+  color: String #hex color string
+  })
+
+User = mongoose.model('User',userSchema)
 
 factionSchema = mongoose.Schema({
   name: String
@@ -56,7 +65,7 @@ Faction = mongoose.model('Faction',factionSchema)
 planetSchema = mongoose.Schema({
   name: String
   world: String
-  users: [String] #array of _id's for users in the japura/users table
+  users: [String] #array of _id's for users
   settings: Mixed
 })
 
@@ -154,6 +163,19 @@ exports.listPlanets = (listFunc) ->
     listFunc(planetNames)
   )
 
+#------------------------------------------------------------
+#user stuff
+exports.createUser = (username, userColor) ->
+  user = new User();
+  user.username = username;
+  user.color = userColor;
+  return user.save()
+
+exports.getUserByName = (username) ->
+  return User.findOne({username: username});
+
+exports.getUserById = (userId) ->
+  return User.findById(userId);
 
 #------------------------------------------------------------
 #Unit stuff
@@ -161,12 +183,13 @@ exports.listPlanets = (listFunc) ->
 # @param [PlanetLoc] tile
 # @param [String] unitType the type of unit to create
 # @return [Promise]
-exports.createUnit = (tile,unitType,unfinished) ->
+exports.createUnit = (tile,unitType,owner,unfinished) ->
 
   unitData = {
     type: unitType
     location: [tile.x,tile.y]
     planet: tile.planet.name
+    owner: owner
   }
   if (unfinished)
     unitData.constructing = 0;
@@ -203,3 +226,6 @@ exports.getUnit = (unitId) ->
 # @return [Promise]
 exports.listUnits = (planetName) ->
   return Unit.find({planet: planetName})
+
+exports.listUnitsByUserId = (userId) ->
+  return Unit.find({owner: userId});

@@ -1,5 +1,6 @@
 #monofuel
 'use strict';
+TileType = require('./tileType.js')
 
 #---------------------------------------------------------------------
 #Representation of a point on a planet
@@ -20,12 +21,13 @@ class PlanetLoc
 
     if (@x < 0)
       @x = (@planet.settings.size + @x - 1) % (@planet.settings.size - 1)
-    if (@x >= @planet.settings.size - 1)
-      @x = @x % (@planet.settings.size - 2)
+    #@TODO something is funny with the size thing unlike on the planet viewer, should investigate
+    if (@x > @planet.settings.size - 4)
+      @x = @x % (@planet.settings.size - 4)
     if (@y < 0)
       @y = (@planet.settings.size + @y - 1) % (@planet.settings.size - 1)
-    if (@y >= @planet.settings.size - 1)
-      @y = @y % (@planet.settings.size - 2)
+    if (@y > @planet.settings.size - 4)
+      @y = @y % (@planet.settings.size - 4)
 
     if (@x >= @planet.grid[0].length - 1 || @x < 0)
       console.log(@toString())
@@ -58,8 +60,8 @@ class PlanetLoc
   toString: () ->
     return "x: " + @x +
            ", y: " + @y +
-           ", planet: " + @planet.settings.name +
-           ", type: " + getTypeName(@type)
+           ", planet: " + @planet.name +
+           ", type: " + TileType.getTypeName(@type)
 
   #@return [PlanetLoc] tile to the west
   W: () ->

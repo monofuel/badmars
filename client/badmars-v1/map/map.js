@@ -50,7 +50,6 @@ export class Map {
 		this.waterMeshes = [];
 		this.planetData = {};
 		var self = this;
-
 		if (planet) {
 			this.planetData = planet;
 			this.worldSettings = planet.worldSettings;
@@ -77,7 +76,7 @@ export class Map {
 				case 'tank':
 					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
 
-					self.units.push(new Tank(loc));
+					self.units.push(new Tank(loc, unit.owner));
 					break;
 			}
 		}

@@ -38,8 +38,22 @@ class Planet
 
       return db.listUnits(thisPlanet.name)
     ).then((unitList) ->
+      thisPlanet.players = []
       for unit in unitList
         unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
+        if (!unit.owner)
+          continue
+
+        db.getUserById(unit.owner).then((playerInfo) ->
+          ownerInList = false
+          for player in thisPlanet.players
+            if (player.id == unit.owner)
+              ownerInList = true
+          if (!ownerInList)
+            thisPlanet.players.push(playerInfo)
+          ).catch((err) ->
+            console.log(err)
+          )
 
       thisPlanet.units = unitList
       console.log('unit count: ',unitList.length)
@@ -75,6 +89,52 @@ class Planet
             .then((oil) ->
               thisPlanet.units.push(oil)
             )
+
+  getPlayersUnits: (userId) ->
+    return db.listUnitsByUserId(userId)
+
+  spawnPlayer: (userId) ->
+    thisPlanet = this;
+    return new Promise((resolve,reject) ->
+      tanksToSpawn = 5;
+      while (tanksToSpawn > 0)
+        x = Math.random() * thisPlanet.worldSettings.size;
+        y = Math.random() * thisPlanet.worldSettings.size;
+
+        console.log('scanning for potential spawn')
+        goodArea = true
+        for x2 in [0..10]
+          for y2 in [0..10]
+            tile = new PlanetLoc(thisPlanet,x + x2, y + y2)
+            if (tile.type != TileType.land)
+              goodArea = false
+              break
+            if (Units.unitTileCheck(tile))
+              goodArea = false
+              break
+          if (!goodArea)
+            break
+        if (!goodArea)
+          continue
+
+        console.log('found a good area to spawn!')
+        while (tanksToSpawn > 0)
+          x2 = Math.random() * 10
+          y2 = Math.random() * 10
+          tile = new PlanetLoc(thisPlanet,x + x2, y + y2)
+          if (tile.type != TileType.land)
+            continue
+          if (Units.unitTileCheck(tile))
+            continue
+          tanksToSpawn--;
+          db.createUnit(tile,'tank',userId,false).then((unit) ->
+            console.log('spawned tank for player: ', userId)
+            thisPlanet.units.push(unit)
+          )
+
+
+      resolve();
+      )
 
   update: (delta) ->
     if (@units)

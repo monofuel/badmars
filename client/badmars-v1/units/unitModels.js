@@ -25,9 +25,10 @@ export var total: number;
 export function getMesh(name: string): ? ModelInfo {
 	for (var model of modelMap) {
 		if (model.name == name) {
-			return model.model;
+			return model.model.children[0].geometry;
 		}
 	}
+	console.log('failed to find model for ', name);
 	return null;
 }
 
@@ -48,6 +49,7 @@ export function loadAllModelsAsync() : Promise {
 		allPromises.push(new Promise(function (resolve, reject) {
 			loader.load('models/' + unitInfo.fileName,
 				function (model: THREE.Mesh3D) {
+					console.log('loaded model for ', unitInfo.name);
 					loaded++;
 					unitInfo.model = model;
 

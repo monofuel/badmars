@@ -40,6 +40,14 @@ export class Entity {
 		this.mesh.userData = this;
 		this.unitHeight = 0.25;
 
+		if (!mesh) {
+			console.log('invalid mesh for unit');
+		}
+
+		if (!location) {
+			console.log('invalid location for unit');
+		}
+
 		if (display) {
 			display.addMesh(this.mesh);
 		}

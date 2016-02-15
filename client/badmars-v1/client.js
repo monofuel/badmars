@@ -75,23 +75,31 @@ window.onload = function () {
 	loadAllModelsAsync()
 		.then(() => {
 			console.log('models loaded');
+
+			var userColor = new THREE.Color();
+			//i could have sworn three.color was random, but it wasn't when i was testing it
+			userColor.setHex(Math.random() * 0xffffff);
+
+
+			console.log('random color: ', userColor.getHexString());
+			window.requestAnimationFrame(logicLoop);
+			net.connect()
+				.then(() => {
+					net.send({
+						login: {
+							username: "testUser2",
+							planet: "testPlanet3",
+							color: userColor.getHexString()
+						}
+					});
+				});
+
+
+			//promptLogin();
+
+
 		})
 
-
-	window.requestAnimationFrame(logicLoop);
-	net.connect()
-		.then(() => {
-			net.send({
-				login: {
-					username: "testUser",
-					planet: "testPlanet3"
-				}
-			});
-		});
-
-
-
-	//promptLogin();
 
 
 
