@@ -35,6 +35,7 @@ export class Entity {
 
 	constructor(location: PlanetLoc, mesh: THREE.Object3D) {
 		this.type = 'entity';
+		this.uid = "";
 		this.location = location;
 		this.mesh = mesh;
 		this.mesh.userData = this;

@@ -3,8 +3,9 @@ mongoose = require('mongoose')
 users = require('./util/users')
 Planet = mongoose.model('Planet')
 TileType = require('./tileType')
-nav = require('./nav')
-
+Nav = require('./nav')
+direction = require('./direction')
+PlanetLoc = require('./PlanetLoc')
 #---------------------------------------------------------------------
 
 #list of units
@@ -74,10 +75,65 @@ exports.updateUnit = (unit,delta) ->
 
   #bool for if we want to save updates back to DB
   update = true
+  unitInfo = exports.get(unit.type)
 
-  #if (unit.destination)
+  if (unitInfo && unit.destination && unit.destination.length == 2)
+    dest = new PlanetLoc(unit.tile.planet, unit.destination[0], unit.destination[1])
 
+    #clear properties if our tile is the destination
+    if (unit.tile.equals(dest))
+      unit.destination = []
+      unit.nextMove = direction.c
+      unit.nextTile = null
+      unit.path = null
+      unit.moving = false
+    else
+      #if we have no destination, set it
+      #or update it if we have a new destination
+      if (!unit.path || !unit.path.end.equals(dest))
+        unit.path = new Nav.AStarPath(unit.tile,dest)
+        unit.distanceMoved = 0
+        console.log('updating path')
+        update = true
 
+      #dont' mess with things if we are stil moving
+      if (!unit.moving)
+        console.log('moving to next tile')
+        unit.nextMove = unit.path.getNext(unit.tile)
+        #TODO: this should really send the client the next tile to go to, not direction
+        #in case if it misses a step
+        unit.tile.planet.broadcastUpdate({
+          type: "moving",
+          unitId: unit.id,
+          direction: direction.parse(unit.nextMove)
+          });
+        switch(unit.nextMove)
+          #TODO should check if another unit is here
+          when direction.N
+            unit.nextTile = unit.tile.N();
+          when direction.S
+            unit.nextTile = unit.tile.S();
+          when direction.E
+            unit.nextTile = unit.tile.E();
+          when direction.W
+            unit.nextTile = unit.tile.W();
+          else
+            unit.nextTile = unit.tile
+
+      deltaMove = unitInfo.speed * delta
+      if (unit.nextMove != direction.C)
+        unit.moving = true
+        console.log('unit moving: ', deltaMove)
+        unit.distanceMoved += deltaMove
+        if (unit.distanceMoved > 1)
+          unit.distanceMoved = 1
+
+      if (unit.distanceMoved == 1)
+        console.log('unit moved one tile')
+        unit.moving = false
+        unit.tile = unit.nextTile
+        unit.distanceMoved = 0
+        update = true
 
   #@todo
   #update info on the unit
@@ -86,9 +142,14 @@ exports.updateUnit = (unit,delta) ->
   #  constructing: Number
   #  location: [Number]
   #  planet: String
+  unit.location[0] = unit.tile.x
+  unit.location[1] = unit.tile.y
 
   if (update)
     return unit.save()
+    .catch((err) ->
+      console.log(err)
+      )
   else
     return null
 

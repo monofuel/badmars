@@ -63,7 +63,7 @@ createPlanet = (planetName,worldName) ->
       planetList.push(planet)
     )
   )
-  
+
 listBuildings = () ->
   console.log(Buildings.list())
 
@@ -203,7 +203,7 @@ mainLoop = () ->
   delta = curTick - lastTick
   lastTick = curTick
   for planet in planetList
-    planet.update(delta);
+    planet.update(delta/1000);
 
 #------------------------------------------------------------
 # init other modules

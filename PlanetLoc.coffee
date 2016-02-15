@@ -30,10 +30,10 @@ class PlanetLoc
       @y = @y % (@planet.settings.size - 4)
 
     if (@x >= @planet.grid[0].length - 1 || @x < 0)
-      console.log(@toString())
+      console.log("invalid tile: ", @x, @y)
       console.log(new Error().stack)
     if (@y >= @planet.grid.length - 1 || @y < 0)
-      console.log(@toString())
+      console.log("invalid tile: ", @x, @y)
       console.log(new Error().stack)
 
     corners = [

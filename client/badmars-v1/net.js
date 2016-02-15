@@ -23,7 +23,6 @@ export class Player {
 		this.username = username;
 		this.color = new THREE.Color();
 		this.color.setHex("0x" + color);
-		console.log(this.color, " ", color);
 	}
 }
 var playerList: Array < Player > = [];
@@ -106,6 +105,10 @@ export class Net {
 						self.s.send(JSON.stringify({
 							type: "getUnits"
 						}));
+					}
+				} else if (data.type) {
+					if (data.type == "moving" && map) {
+						map.updateUnitDestination(data.unitId, data.direction);
 					}
 				}
 			}

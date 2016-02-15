@@ -32,6 +32,13 @@ import {
 import {
 	Tank
 } from '../units/tank.js';
+import {
+	N,
+	S,
+	E,
+	W,
+	C
+} from '../units/directions.js';
 
 export class Map {
 	settings: Settings;
@@ -66,17 +73,17 @@ export class Map {
 				case 'iron':
 					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
 
-					self.units.push(new Iron(loc, unit.rate));
+					self.units.push(new Iron(loc, unit.rate, unit._id));
 					break;
 				case 'oil':
 					var loc = new PlanetLoc(this, unit.location[0], unit.location[1]);
 
-					self.units.push(new Oil(loc, unit.rate));
+					self.units.push(new Oil(loc, unit.rate, unit._id));
 					break;
 				case 'tank':
 					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
 
-					self.units.push(new Tank(loc, unit.owner));
+					self.units.push(new Tank(loc, unit.owner, unit._id));
 					break;
 			}
 		}
@@ -225,6 +232,34 @@ export class Map {
 			if (unit.checkGroundTile(tile)) {
 				return unit;
 			}
+		}
+		return null;
+	}
+
+	updateUnitDestination(unitId: string, direction: string) {
+		var unit = this.getUnitById(unitId);
+		if (unit && unit.updateNextMove) {
+			switch (direction) {
+				case 'N':
+					return unit.updateNextMove(N);
+				case 'S':
+					return unit.updateNextMove(S);
+				case 'E':
+					return unit.updateNextMove(E);
+				case 'W':
+					return unit.updateNextMove(W);
+				case 'C':
+					return unit.updateNextMove(C);
+			}
+
+		}
+		return;
+	}
+
+	getUnitById(unitId: string): ? Entity {
+		for (var unit of this.units) {
+			if (unit.uid == unitId)
+				return unit;
 		}
 		return null;
 	}

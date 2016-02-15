@@ -2,6 +2,10 @@
 #1-2016
 'use strict';
 
+PlanetLoc = require('./PlanetLoc')
+tileType = require('./tileType')
+direction = require('./direction')
+
 #code that interfaces with the map for pathfinding and detecting
 #valid placements and movement.
 
@@ -25,8 +29,8 @@ class SimplePath
     if (!@start || !@end || @start.planet != @end.planet)
       console.log('invalid start and end points')
       console.log(new Error().stack)
-      console.log(@start)
-      console.log(@end)
+      console.log(@start.toString())
+      console.log(@end.toString())
 
     @planet = @start.planet
 
@@ -72,8 +76,8 @@ class AStarPath
     if (!@start || !@end || @start.planet != @end.planet)
       console.log('invalid start and end points')
       console.log(new Error().stack)
-      console.log(@start)
-      console.log(@end)
+      console.log(@start.toString())
+      console.log(@end.toString())
 
     @planet = @start.planet
 
@@ -114,7 +118,7 @@ class AStarPath
       if (current.type != tileType.land)
         continue
       #check if there is already a unit on the tile
-      if (unitTileCheck(current))
+      if (@planet.unitTileCheck(current))
         continue
 
       neighbors = [

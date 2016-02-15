@@ -39,6 +39,7 @@ unitSchema = mongoose.Schema({
   location: [Number]
   planet: {type: String, index: true}
   owner: String
+  destination: [Number]
 })
 
 World = mongoose.model('World',worldSchema)

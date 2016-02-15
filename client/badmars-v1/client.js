@@ -149,6 +149,10 @@ window.onload = function () {
 
 	});
 
+	document.body.addEventListener('contextmenu', (event: any) => {
+		event.preventDefault();
+	});
+
 	document.body.addEventListener('mouseup', (event: any) => {
 		event.preventDefault();
 
@@ -163,9 +167,19 @@ window.onload = function () {
 					console.log(unit.type + " clicked");
 					selectedUnit = unit;
 					buttonMode = MODE_MOVE;
+					mouseClick = function (tile) {
+						if (selectedUnit) {
+							net.send({
+								type: "setDestination",
+								unitId: selectedUnit.uid,
+								location: [tile.x, tile.y]
+							});
+						}
+					}
 				} else {
 					selectedUnit = null;
 					buttonMode = MODE_SELECT;
+					mouseClick = null;
 					//TODO clear buttons highlighted
 					//TODO clear hilight on map
 				}
@@ -173,9 +187,7 @@ window.onload = function () {
 			case RIGHT_MOUSE:
 				if (buttonMode = MODE_MOVE) {
 					selectedTile = map.getTileAtRay(mouse);
-					if (!selectedTile)
-						return;
-					if (mouseClick)
+					if (selectedTile && mouseClick)
 						mouseClick(selectedTile);
 				}
 				break;

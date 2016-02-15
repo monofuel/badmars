@@ -20,6 +20,7 @@ import {
 
 export class GroundUnit extends Entity {
 	nextMove: Symbol;
+	nextNextMove: Symbol;
 	nextTile: PlanetLoc | null;
 	moving: boolean;
 	speed: number;
@@ -28,6 +29,7 @@ export class GroundUnit extends Entity {
 	constructor(location: PlanetLoc, mesh: THREE.Object3D) {
 		super(location, mesh);
 		this.nextMove = C;
+		this.nextNextMove = C;
 		this.nextTile = null;
 		this.moving = false;
 		this.speed = 1;
@@ -36,7 +38,8 @@ export class GroundUnit extends Entity {
 	}
 
 	updateNextMove(dir: Symbol) {
-		this.nextMove = dir;
+		this.nextNextMove = dir;
+
 	}
 
 	selection() {
@@ -59,6 +62,25 @@ export class GroundUnit extends Entity {
 			if (this.distanceMoved > 1) {
 				this.distanceMoved = 1;
 			}
+		} else {
+			this.nextMove = this.nextNextMove
+			this.nextNextMove = C;
+		}
+		switch (this.nextMove) {
+			case N:
+				this.nextTile = this.location.N();
+				break;
+			case S:
+				this.nextTile = this.location.S();
+				break;
+			case W:
+				this.nextTile = this.location.W();
+				break;
+			case E:
+				this.nextTile = this.location.E();
+				break;
+			case C:
+				this.nextTile = this.location;
 		}
 
 		switch (this.nextMove) {
@@ -97,14 +119,12 @@ export class GroundUnit extends Entity {
 				this.moving = false;
 				break;
 		}
-
 		if (this.distanceMoved == 1 && this.nextTile) {
 			this.location = this.nextTile;
 			this.moving = false;
 			this.mesh.position.x = this.location.real_x;
-			this.mesh.position.y = this.location.real_y + this.unitHeight;
-			this.mesh.position.z = this.location.real_z;
-
+			this.mesh.position.y = this.location.real_z + this.unitHeight;
+			this.mesh.position.z = this.location.real_y;
 			this.distanceMoved = 0;
 		}
 	}

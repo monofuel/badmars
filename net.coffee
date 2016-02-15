@@ -9,6 +9,13 @@ db = require('./db.js')
 clientList = []
 exports.clientList = clientList
 
+exports.sendMessage = (player, data) ->
+  for client in clientList
+    if (client.userInfo.id == player.id)
+      client.send(data)
+
+
+
 class client
   constructor: (@ws) ->
 
@@ -28,6 +35,10 @@ class client
       )
     ws.send(JSON.stringify({status: "connected"}))
 
+
+
+  send: (data) ->
+    @ws.send(JSON.stringify(data))
   ###
   requests that clients can do:
 
@@ -137,13 +148,14 @@ class client
         when "getPlayers"
           @ws.send(JSON.stringify({ players: @planet.players}))
         when "setDestination"
-          if (!message.unit)
+          if (!message.unitId)
             return @ws.send(JSON.stringify({ setDestination: 'error: no unit specified'}))
           if (!message.location)
             return @ws.send(JSON.stringify({ setDestination: 'error: no location set'}))
-          @planet.updateUnitDestination(@userInfo.id,)
-
-          @ws.send(JSON.stringify({ setDestination: 'success'}))
+          if (@planet.updateUnitDestination(@userInfo.id,message.unitId,message.location))
+            @ws.send(JSON.stringify({ setDestination: 'success'}))
+          else
+            @ws.send(JSON.stringify({ setDestination: 'error: invalid'}))
         when "attack"
           @ws.send(JSON.stringify({ error: 'not implimented'}))
         else

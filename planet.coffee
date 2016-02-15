@@ -4,6 +4,9 @@ db = require("./db.js");
 Units = require('./units.js')
 PlanetLoc = require('./PlanetLoc.js')
 TileType = require('./tileType')
+Net = require('./net')
+
+
 class Planet
 
   constructor: (@name) ->
@@ -93,6 +96,12 @@ class Planet
   getPlayersUnits: (userId) ->
     return db.listUnitsByUserId(userId)
 
+  getUnitById: (unitId) ->
+    for unit in @units
+      if (unit.id == unitId)
+        return unit
+    return null;
+
   spawnPlayer: (userId) ->
     thisPlanet = this;
     return new Promise((resolve,reject) ->
@@ -136,10 +145,30 @@ class Planet
       resolve();
       )
 
+  unitTileCheck: (tile) ->
+    console.log('unit tile check stub')
+
+  broadcastUpdate: (data) ->
+    for player in @players
+      Net.sendMessage(player,data);
+
+
+  updateUnitDestination: (userId,unitId,destination) ->
+    unit = @getUnitById(unitId);
+    if (!unit)
+      console.log('invalid unit in move request')
+      return false
+    if (unit.owner != userId)
+      console.log('player ordered other players unit to move')
+      return false
+
+    unit.destination = destination
+    console.log('set unit destination')
+    return true
+
   update: (delta) ->
     if (@units)
       for unit in @units
         Units.updateUnit(unit,delta)
-    #console.log(@name,", delta:",delta)
 
 module.exports = Planet

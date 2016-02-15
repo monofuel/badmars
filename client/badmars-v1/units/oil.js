@@ -20,7 +20,7 @@ import {
 
 export class Oil extends Entity {
 	rate: number;
-	constructor(location: PlanetLoc, rate: number) {
+	constructor(location: PlanetLoc, rate: number, uid: string) {
 		var geometry = new THREE.BoxGeometry(0.75, 0.75, 0.75);
 		var material = new THREE.MeshLambertMaterial({
 			color: 0x181818
@@ -30,5 +30,6 @@ export class Oil extends Entity {
 		super(location, cube);
 		this.rate = rate;
 		this.type = 'oil';
+		this.uid = uid;
 	}
 }

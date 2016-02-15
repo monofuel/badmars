@@ -19,7 +19,7 @@ import {
 
 
 export class Tank extends GroundUnit {
-	constructor(location: PlanetLoc, playerId: string) {
+	constructor(location: PlanetLoc, playerId: string, uid: string) {
 		var player = getPlayerById(playerId);
 		var color;
 		if (!player || !player.color) {
@@ -44,6 +44,7 @@ export class Tank extends GroundUnit {
 			super(location, null);
 		}
 		this.type = 'tank';
+		this.uid = uid;
 		this.speed = 1;
 	}
 }
