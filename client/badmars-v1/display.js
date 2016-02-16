@@ -23,11 +23,9 @@ export class Display {
 	hemLight: THREE.HemisphereLight;
 	scene: THREE.Scene;
 	renderer: THREE.WebGLRenderer;
-	self: Display;
 
 	constructor() {
 		this.scene = new THREE.Scene();
-		self = this;
 
 		var aspectRatio = window.innerWidth / window.innerHeight;
 		this.lightAngle = 0.0;
@@ -73,8 +71,10 @@ export class Display {
 	}
 
 	viewTile(tile: PlanetLoc) {
-		self.camera.position.x = tile.real_x + 57
-		self.camera.position.z = tile.real_y - +124
+		console.log(tile);
+		this.camera.position.x = tile.real_x - 60;
+		this.camera.position.z = tile.real_y - 30;
+		console.log(this.camera.position);
 	}
 
 	updateSunPosition(delta: number) {

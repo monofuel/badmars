@@ -58,7 +58,7 @@ var selectedTile: ? PlanetLoc;
 var statsMonitor: StatsMonitor;
 export var username;
 export var playerInfo: ? Object;
-var firstLoad = true;
+export var firstLoad = true;
 
 export function setPlayerInfo(info: Object) {
 	playerInfo = info;
@@ -66,6 +66,7 @@ export function setPlayerInfo(info: Object) {
 
 export function onFirstLoad(): boolean {
 	if (firstLoad) {
+		console.log('FIRSTLOAD');
 		firstLoad = false;
 		return true;
 	}

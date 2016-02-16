@@ -9,6 +9,7 @@ import {
 	username,
 	playerInfo,
 	setPlayerInfo,
+	firstLoad,
 	onFirstLoad,
 	display
 } from "./client.js";
@@ -103,11 +104,11 @@ export class Net {
 						for (var unit of data.units) {
 							window.addUnit(unit);
 						}
-						if (map && map.units && onFirstLoad()) {
+						if (map && map.units && firstLoad) {
 							for (var unit of map.units) {
-								if (unit && display && playerInfo && unit.owner == playerInfo.id) {
+								if (unit && display && playerInfo && unit.owner == playerInfo.id && onFirstLoad()) {
 									console.log('zooming in on unit: ', unit);
-									display.viewTile(unit.tile);
+									display.viewTile(unit.location);
 								}
 							}
 						}
@@ -135,6 +136,12 @@ export class Net {
 							playerList.push(new Player(data.player._id, data.player.username, data.player.color));
 						}
 						window.addUnit(data.unit);
+						if (map && map.units && firstLoad) {
+							if (unit && display && playerInfo && unit.owner == playerInfo.id && onFirstLoad()) {
+								console.log('zooming in on unit: ', unit);
+								display.viewTile(unit.location);
+							}
+						}
 					}
 				}
 			}
