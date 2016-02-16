@@ -200,6 +200,8 @@ lastTick = (new Date).getTime()
 mainLoop = () ->
   curTick = (new Date).getTime()
   delta = (curTick - lastTick) / 1000
+  if (delta > (200 / 1000))
+    delta = 200 / 1000 #maximum dleta size
   lastTick = curTick
   for planet in planetList
     planet.update(delta);

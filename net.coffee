@@ -26,18 +26,18 @@ class client
     thisClient = this;
     clientList.push(this)
 
-    ws.on('message',(msg) ->
+    @ws.on('message',(msg) ->
       thisClient.handleFromClient(msg)
       )
-    ws.on('error',(message) ->
+    @ws.on('error',(message) ->
       console.log('ws error: ' + message)
       )
 
-    ws.on('close', () ->
+    @ws.on('close', () ->
       console.log("client closed connection")
       clientList.splice(clientList.indexOf(thisClient),1)
       )
-    ws.send(JSON.stringify({status: "connected"}))
+    @ws.send(JSON.stringify({status: "connected"}))
 
 
 

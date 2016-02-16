@@ -74,7 +74,7 @@ exports.list = () ->
 exports.updateUnit = (unit,delta) ->
 
   #bool for if we want to save updates back to DB
-  update = true
+  update = false
   unitInfo = exports.get(unit.type)
 
   if (unitInfo && unit.destination && unit.destination.length == 2)
@@ -139,8 +139,7 @@ exports.updateUnit = (unit,delta) ->
   #  constructing: Number
   #  location: [Number]
   #  planet: String
-  unit.location[0] = unit.tile.x
-  unit.location[1] = unit.tile.y
+  unit.location = [unit.tile.x, unit.tile.y]
 
   if (update)
     return unit.save()
