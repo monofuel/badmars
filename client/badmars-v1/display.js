@@ -71,10 +71,8 @@ export class Display {
 	}
 
 	viewTile(tile: PlanetLoc) {
-		console.log(tile);
 		this.camera.position.x = tile.real_x - 60;
 		this.camera.position.z = tile.real_y - 30;
-		console.log(this.camera.position);
 	}
 
 	updateSunPosition(delta: number) {
@@ -120,7 +118,6 @@ export class Display {
 	}
 
 	cameraRight(delta: number) {
-		console.log(this.camera.position);
 		this.camera.translateX(Math.cos(this.camera.rotation.x) * CAMERA_SPEED * delta);
 	}
 

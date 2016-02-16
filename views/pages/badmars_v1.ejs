@@ -57,10 +57,23 @@
 						<h4 class="modal-title"> BadMars v1 alpha</h4>
 					</div>
 					<div class="modal-body">
-						<label for="usernameField">Username:</label>
-						<input type="text" id="usernameField">
-						<label for="usernameField">html color:</label>
-						<input type="text" id="colorField">
+            <ul>
+						<li>
+              <label for="usernameField">Username:</label>
+						  <input type="text" id="usernameField">
+            </li>
+            <li>
+						  <label for="usernameField">html color:</label>
+						  <input type="text" id="colorField">
+            </li>
+            <li>
+              <p>Controls: WASD to move, Q and E rotate, R and F zoom in and out</p>
+              <p>You can click units to select them, and right click them to move around. You can only move your own units</p>
+              <p>Your color is determined only the first time you log in, and will stay the same every time you reload.</p>
+              <p>Expect things to be buggy. If everything freezes, reload the page.</p>
+              <p>Accounts are not secure (yet) all you can do is move tanks around based on your username.</p>
+            </li>
+          </ul>
 					</div>
 					<div class="modal-footer">
 						<button onclick="window.login()" type="button" class="btn btn-default" data-dismiss="modal">Login</button>
