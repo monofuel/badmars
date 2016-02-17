@@ -37,6 +37,7 @@ export class GroundUnit extends Entity {
 	updateNextMove(tile: PlanetLoc, time: number) {
 		this.nextTile = tile;
 		this.timeToMove = time;
+		this.mesh.lookAt(tile.getVec());
 	}
 
 	selection() {
@@ -58,6 +59,7 @@ export class GroundUnit extends Entity {
 				this.distanceMoved = 1;
 			}
 
+
 			var deltaVec = this.nextTile.getVec()
 				.clone();
 			deltaVec.y += this.unitHeight;
@@ -65,6 +67,8 @@ export class GroundUnit extends Entity {
 				.normalize()
 				.multiplyScalar(deltaMove);
 			this.mesh.position.add(deltaVec);
+
+
 
 			if (this.distanceMoved == 1 && this.nextTile) {
 				this.location = this.nextTile;
