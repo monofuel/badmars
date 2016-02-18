@@ -90,11 +90,13 @@ exports.updateUnit = (unit,delta) ->
     else
       #if we have no destination, set it
       #or update it if we have a new destination
-      if (!unit.path || !unit.path.end.equals(dest))
+      #or re-path if we have waited to move for too long
+      if (!unit.path || !unit.path.end.equals(dest) || unit.moveAttempts > 8)
         unit.path = new Nav.AStarPath(unit.tile,dest)
         unit.distanceMoved = 0
         console.log('updating path')
         update = true
+        unit.moveAttempts = 0
 
       #dont' mess with things if we are stil moving
       if (!unit.moving)
@@ -112,15 +114,20 @@ exports.updateUnit = (unit,delta) ->
           else
             unit.nextTile = unit.tile
 
-        unit.tile.planet.broadcastUpdate({
-          type: "moving"
-          unitId: unit.id
-          newLocation: [unit.nextTile.x,unit.nextTile.y]
-          time: 1 / unitInfo.speed
-          });
+        #check if a unit is blocking the next tile
+        if (unit.tile.planet.unitTileCheck(unit.nextTile) == null)
+          unit.moving = true;
+          unit.tile.planet.broadcastUpdate({
+            type: "moving"
+            unitId: unit.id
+            newLocation: [unit.nextTile.x,unit.nextTile.y]
+            time: 1 / unitInfo.speed
+            });
+        else
+          unit.moveAttempts++
 
       deltaMove = unitInfo.speed * delta
-      if (unit.nextMove != direction.C)
+      if (unit.nextMove != direction.C && unit.moving)
         unit.moving = true
         unit.distanceMoved += deltaMove
         if (unit.distanceMoved > 1)
@@ -131,6 +138,7 @@ exports.updateUnit = (unit,delta) ->
         unit.tile = unit.nextTile
         unit.distanceMoved = 0
         update = true
+        unit.moveAttempts = 0
 
   #@todo
   #update info on the unit

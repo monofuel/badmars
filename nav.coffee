@@ -117,6 +117,7 @@ class AStarPath
       #check if the tile is passable
       if (current.type != tileType.land)
         continue
+
       #check if there is already a unit on the tile
       if (@planet.unitTileCheck(current))
         continue

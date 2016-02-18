@@ -79,6 +79,8 @@ class PlanetLoc
   #@param [PlanetLoc] tile to compare to
   #@return [Boolean] equality
   equals: (otherLoc) ->
+    if (!otherLoc)
+      return false;
     return ( otherLoc.x == @x &&
              otherLoc.y == @y &&
              otherLoc.planet == @planet )

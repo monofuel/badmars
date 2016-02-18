@@ -165,7 +165,11 @@ class Planet
       )
 
   unitTileCheck: (tile) ->
-    console.log('unit tile check stub')
+    for unit in @units
+      if (tile.equals(unit.tile) || (tile.equals(unit.nextTile) && unit.moving))
+        return unit
+
+    return null
 
   broadcastUpdate: (data) ->
     for player in @players
