@@ -87,16 +87,29 @@ exports.updateUnit = (unit,delta) ->
       unit.nextTile = null
       unit.path = null
       unit.moving = false
+      unit.totalAttempts = 0
+
     else
+      if (unit.path && !unit.path.end.equals(dest))
+        console.log('pathing for new destination')
+        unit.totalAttempts = 0
+
       #if we have no destination, set it
       #or update it if we have a new destination
       #or re-path if we have waited to move for too long
       if (!unit.path || !unit.path.end.equals(dest) || unit.moveAttempts > 8)
+
         unit.path = new Nav.AStarPath(unit.tile,dest)
         unit.distanceMoved = 0
         console.log('updating path')
         update = true
         unit.moveAttempts = 0
+
+        #can't find a way after re-pathfing 5 times, give up.
+        if (unit.totalAttempts++ > 5)
+          console.log('giving up on pathing')
+          unit.destination = unit.location
+
 
       #dont' mess with things if we are stil moving
       if (!unit.moving)
