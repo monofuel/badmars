@@ -1,6 +1,5 @@
 var gulp = require('gulp');
 var browserify = require('browserify');
-var flow = require('gulp-flowtype');
 var fs = require("fs");
 
 gulp.task('default', function () {
