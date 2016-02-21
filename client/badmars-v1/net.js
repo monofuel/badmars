@@ -17,8 +17,9 @@ import {
 	Map
 } from "./map/map.js";
 
-const SERVER_URL = "ws://dev.japura.net"
-const SERVER_PORT = 7005
+//const SERVER_URL = "ws://dev.japura.net";
+const SERVER_URL = "ws://localhost";
+const SERVER_PORT = 7005;
 
 export class Player {
 	id: string;
@@ -78,58 +79,64 @@ export class Net {
 
 			self.s.onmessage = (event) => {
 				var data = JSON.parse(event.data);
+				if (data.type) {
+					console.log('received message type: ', data.type);
+				}
 				console.log(data);
-				if (data.login) {
-					console.log('response: ', data.login);
-					self.s.send(JSON.stringify({
-						type: "getMap"
-					}));
-				} else if (data.planet) {
-					window.loadPlanet(data.planet);
-					self.s.send(JSON.stringify({
-						type: "getPlayers"
-					}));
-				} else if (data.players) {
-					for (var player of data.players) {
-						playerList.push(new Player(player._id, player.username, player.color));
-						if (player.username == username) {
-							setPlayerInfo(player);
-						}
-					}
-					self.s.send(JSON.stringify({
-						type: "getUnits"
-					}));
-				} else if (data.units) {
-					if (window.addUnit) {
-						for (var unit of data.units) {
-							window.addUnit(unit);
-						}
-						if (map && map.units && firstLoad) {
-							for (var unit of map.units) {
-								if (unit && display && playerInfo && unit.owner == playerInfo.id && onFirstLoad()) {
-									console.log('zooming in on unit: ', unit);
-									display.viewTile(unit.location);
-								}
-							}
-						}
-
-					} else {
-						console.log('error: got units before planet loaded!');
-					}
-					//TODO check if we have any units. if not, request spawn
-					self.s.send(JSON.stringify({
-						type: "spawn"
-					}));
-				} else
-				if (data.spawn) {
-					if (data.spawn.indexOf('success') != -1) {
-						console.log('player spawned');
+				if (data.type) {
+					if (data.type == 'login') {
+						self.s.send(JSON.stringify({
+							type: "getMap"
+						}));
+					} else if (data.type == 'planet') {
+						window.loadPlanet(data.planet);
 						self.s.send(JSON.stringify({
 							type: "getPlayers"
 						}));
-					}
-				} else if (data.type) {
-					if (data.type == "moving" && map) {
+					} else if (data.type = 'players') {
+						if (!data.players) {
+							console.log('missing players in data');
+							console.log(data);
+							return;
+						}
+						for (var player of data.players) {
+							playerList.push(new Player(player._id, player.username, player.color));
+							if (player.username == username) {
+								setPlayerInfo(player);
+							}
+						}
+						self.s.send(JSON.stringify({
+							type: "getUnits"
+						}));
+					} else if (data.type = 'units') {
+						if (window.addUnit) {
+							for (var unit of data.units) {
+								window.addUnit(unit);
+							}
+							if (map && map.units && firstLoad) {
+								for (var unit of map.units) {
+									if (unit && display && playerInfo && unit.owner == playerInfo.id && onFirstLoad()) {
+										console.log('zooming in on unit: ', unit);
+										display.viewTile(unit.location);
+									}
+								}
+							}
+
+						} else {
+							console.log('error: got units before planet loaded!');
+						}
+						//TODO check if we have any units. if not, request spawn
+						self.s.send(JSON.stringify({
+							type: "spawn"
+						}));
+					} else if (data.type == 'spawn') {
+						if (data.spawn.indexOf('success') != -1) {
+							console.log('player spawned');
+							self.s.send(JSON.stringify({
+								type: "getPlayers"
+							}));
+						}
+					} else if (data.type == "moving" && map) {
 						map.updateUnitDestination(data.unitId, data.newLocation, data.time);
 					} else if (data.type == 'newUnit') {
 						if (data.player) {

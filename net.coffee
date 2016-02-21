@@ -8,8 +8,12 @@ db = require('./db.js')
 
 clientList = []
 exports.clientList = clientList
+KEEP_ALIVE = 5000;
 
 exports.sendMessage = (player, data) ->
+  if (!data || !data.type)
+    console.log('invalid message sent without data.type')
+    console.log(new Error().stack)
   for client in clientList
     if (client.userInfo.id == player.id)
       try
@@ -22,6 +26,7 @@ exports.sendMessage = (player, data) ->
 
 class client
   constructor: (@ws) ->
+    ws = @ws;
 
     thisClient = this;
     clientList.push(this)
@@ -37,9 +42,14 @@ class client
       console.log("client closed connection")
       clientList.splice(clientList.indexOf(thisClient),1)
       )
-    @ws.send(JSON.stringify({status: "connected"}))
+    @ws.send(success('connected'))
 
-
+    keepAlive = setInterval(() ->
+      try
+        ws.ping()
+      catch err
+        clearInterval(keepAlive)
+    ,KEEP_ALIVE)
 
   send: (data) ->
     @ws.send(JSON.stringify(data))
@@ -71,103 +81,120 @@ class client
     thisClient = this
     console.log('recieved: ' + message)
     message = JSON.parse(message);
-    if (message.login)
-      if (!message.login.planet)
-        @ws.send(JSON.stringify({ login: 'error: specify a planet'}))
-        return
-      if (!message.login.username)
-        @ws.send(JSON.stringify({ login: 'error: invalid username'}))
-        return
-      if (!message.login.color)
-        @ws.send(JSON.stringify({ login: 'error: please specify a color'}))
-        return
+    if (!@user && message.type)
+      if (message.type == 'login')
+        if (!message.planet)
+          @ws.send(errMsg('login', 'specify a planet'))
+          return
+        if (!message.username)
+          @ws.send(errMsg('login', 'invalid username'))
+          return
+        if (!message.color)
+          @ws.send(errMsg('login', 'please specify a color'))
+          return
 
-      @user = message.login.username
-      for planet in BadMars.planetList
-        if planet.name == message.login.planet
-          @planet = planet
-      if (@planet)
-        console.log('looking up user: ' + message.login.username);
+        @user = message.username
+        for planet in BadMars.planetList
+          if planet.name == message.planet
+            @planet = planet
+        if (@planet)
+          console.log('looking up user: ' + message.username);
 
-        db.getUserByName(message.login.username)
-        .then( (userInfo) ->
-          thisClient.userInfo = userInfo;
-          console.log('logging in user: ' + userInfo.username);
-          thisClient.ws.send(JSON.stringify({ login: 'success'}))
-          return;
-        ).catch( (err) ->
-          console.log(err)
-          console.log('creating new user');
-          db.createUser(message.login.username, message.login.color)
+          db.getUserByName(message.username)
           .then( (userInfo) ->
             thisClient.userInfo = userInfo;
-            console.log('account created for user: ' + userInfo.username);
-            thisClient.ws.send(JSON.stringify({ login: 'account created'}))
-          ).catch( () ->
-            @thisClient.ws.send(JSON.stringify({ login: 'error: server error 126'}))
+            console.log('logging in user: ' + userInfo.username);
+            thisClient.ws.send(success('login'))
+            return;
+          ).catch( (err) ->
+            console.log(err)
+            console.log('creating new user');
+            db.createUser(message.username, message.color)
+            .then( (userInfo) ->
+              thisClient.userInfo = userInfo;
+              console.log('account created for user: ' + userInfo.username);
+              thisClient.ws.send(success('login'))
+            ).catch( () ->
+              @thisClient.ws.send(errMsg('login' ,'126'))
+            )
+            return;
           )
-          return;
-        )
 
-        return;
-      else
-        @ws.send(JSON.stringify({ login: 'error: invalid planet'}))
-      return
+          return;
+        else
+          @ws.send(errMsg('login', 'invalid planet'))
+        return
 
     if (@user && message.type)
       switch(message.type)
         when "getMap"
           @ws.send(
-            JSON.stringify(
-              { planet: {
+            JSON.stringify({
+              type: 'planet',
+              planet: {
                   grid: @planet.grid,
                   navGrid: @planet.navGrid,
                   water: @planet.water,
                   settings: @planet.settings,
                   worldSettings: @planet.worldSettings,
                   users: @planet.users
-                }
               }
-            )
+            })
           )
 
         when "spawn"
           @planet.getPlayersUnits(@userInfo.id).then((unitList) ->
             console.log('spawning player ' + thisClient.userInfo.username)
             if (unitList.length > 0)
-              thisClient.ws.send(JSON.stringify({ error: 'already have units!'}))
+              thisClient.ws.send(errMesg('spawn', 'already have units!'))
               return;
 
             thisClient.planet.spawnPlayer(thisClient.userInfo.id).then(() ->
               console.log('spawned player ' + thisClient.userInfo.username)
-              thisClient.ws.send(JSON.stringify({ spawn: 'success!'}))
+              thisClient.ws.send(success('spawn'))
               )
 
           ).catch((err) ->
             console.log(err)
-            thisClient.ws.send(JSON.stringify({ error: 'failed to spawn units'}))
+            thisClient.ws.send(errMsg('spawn', 'failed to spawn units'))
           )
         when "getUnits"
-          @ws.send(JSON.stringify({ units: @planet.units}))
+          @ws.send(success('getUnits', {units: @planet.units}))
         when "getPlayers"
-          @ws.send(JSON.stringify({ players: @planet.players}))
+          @ws.send(success('getPlayers', {players: @planet.players}))
         when "setDestination"
           if (!message.unitId)
-            return @ws.send(JSON.stringify({ setDestination: 'error: no unit specified'}))
+            return @ws.send(errMsg('setDestination', 'no unit specified'))
           if (!message.location)
-            return @ws.send(JSON.stringify({ setDestination: 'error: no location set'}))
+            return @ws.send(errMsg('setDestination', 'no location set'))
           if (@planet.updateUnitDestination(@userInfo.id,message.unitId,message.location))
-            @ws.send(JSON.stringify({ setDestination: 'success'}))
+            @ws.send(success('setDestination'))
           else
-            @ws.send(JSON.stringify({ setDestination: 'error: invalid'}))
+            @ws.send(errMsg('setDestination', 'invalid'))
         when "attack"
-          @ws.send(JSON.stringify({ error: 'not implimented'}))
+          @ws.send(errMsg('attack', 'not implimented'))
         else
-          @ws.send(JSON.stringify({ error: 'invalid request type'}))
+          @ws.send(errMsg('invalid', 'invalid type for request'))
 
       return
 
-    @ws.send(JSON.stringify({ error: "command not found"}))
+    @ws.send(errMsg('invalid', 'invalid request'))
+
+success = (type,data) ->
+  if (data)
+    data.type = type;
+    data.success = true;
+    return JSON.stringify(data)
+  else
+    return JSON.stringify({ type: type, success: true})
+
+errMsg = (type,errMsg) ->
+    return JSON.stringify({ type: type, success: false, reason: errMsg})
+
+
+
+exports.success = success
+exports.errMsg = errMsg
 
 #TODO setup everything for ssl
 exports.init = (port) ->

@@ -112,7 +112,7 @@ class Planet
       db.getUserById(userId).then((playerInfo) ->
         thisPlanet.players.push(playerInfo)
         for player in thisPlanet.players
-          Net.sendMessage(player,{ players: thisPlanet.players});
+          Net.sendMessage(player,{ type: 'players', players: thisPlanet.players});
 
       ).then(() ->
 

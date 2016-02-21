@@ -128,7 +128,8 @@ window.onload = function () {
 	});
 
 	//block right click menu
-	document.body.addEventListener('contextmenu', () => {
+	document.body.addEventListener('contextmenu', (event: any) => {
+		event.preventDefault();
 		return false;
 	});
 
@@ -143,10 +144,6 @@ window.onload = function () {
 
 	document.body.addEventListener('mousedown', (event: any) => {
 
-	});
-
-	document.body.addEventListener('contextmenu', (event: any) => {
-		event.preventDefault();
 	});
 
 	document.body.addEventListener('mouseup', (event: any) => {
@@ -273,11 +270,10 @@ window.login = function () {
 		net.connect()
 			.then(() => {
 				net.send({
-					login: {
-						username: username,
-						planet: "testPlanet3",
-						color: userColor.getHexString()
-					}
+					type: 'login',
+					username: username,
+					planet: "testPlanet",
+					color: userColor.getHexString()
 				});
 			});
 	}

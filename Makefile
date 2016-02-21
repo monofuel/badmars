@@ -1,5 +1,5 @@
 all: core_js routes_js models_js docs
-	cd client && $(MAKE) all
+	cd client && gulp transpile
 
 start: all
 	supervisor badMars.js
