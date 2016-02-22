@@ -19,6 +19,7 @@
     "express": "^4.12.3",
     "express-session": "^1.13.0",
     "gulp-flowtype": "^0.4.9",
+    "hat": "0.0.3",
     "mongoose": "^4.0.1",
     "morgan": "^1.6.1",
     "passport": "^0.3.2",

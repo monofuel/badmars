@@ -59,6 +59,11 @@ var statsMonitor: StatsMonitor;
 export var username;
 export var playerInfo: ? Object;
 export var firstLoad = true;
+export var apiKey: String;
+
+export function setApiKey(key: String) {
+	apiKey = key;
+}
 
 export function setPlayerInfo(info: Object) {
 	playerInfo = info;
@@ -96,6 +101,21 @@ window.onload = function () {
 
 		})
 
+	username = $.cookie("username");
+	apiKey = $.cookie("apiKey");
+
+	//check for cookies
+	if (username && apiKey) {
+		net.connect()
+			.then(() => {
+				net.send({
+					type: 'login',
+					username: username,
+					apiKey: apiKey,
+					planet: "testPlanet3"
+				});
+			});
+	}
 
 
 
@@ -258,11 +278,6 @@ window.login = function () {
 		.val();
 	console.log("color: ", color);
 	//when successful
-	$(".modal-backdrop")
-		.remove();
-	$("#loginModal")
-		.remove();
-	buttonMode = MODE_SELECT;
 
 	var userColor = new THREE.Color(parseInt(color, 16));
 
@@ -272,11 +287,19 @@ window.login = function () {
 				net.send({
 					type: 'login',
 					username: username,
-					planet: "testPlanet",
+					planet: "testPlanet3",
 					color: userColor.getHexString()
 				});
 			});
 	}
+}
+
+export function loginSuccess() {
+	$(".modal-backdrop")
+		.remove();
+	$("#loginModal")
+		.remove();
+	buttonMode = MODE_SELECT;
 }
 
 /**

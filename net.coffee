@@ -5,6 +5,7 @@ WebSocketServer = require('ws').Server
 BadMars = require('./badMars.js')
 Units = require('./units.js')
 db = require('./db.js')
+hat = require('hat')
 
 clientList = []
 exports.clientList = clientList
@@ -89,11 +90,7 @@ class client
         if (!message.username)
           @ws.send(errMsg('login', 'invalid username'))
           return
-        if (!message.color)
-          @ws.send(errMsg('login', 'please specify a color'))
-          return
 
-        @user = message.username
         for planet in BadMars.planetList
           if planet.name == message.planet
             @planet = planet
@@ -102,20 +99,33 @@ class client
 
           db.getUserByName(message.username)
           .then( (userInfo) ->
+            if (!userInfo)
+              throw new Error('Nonexistant User')
+            if (message.apiKey != userInfo.apiKey)
+              console.log('failed apikey check')
+              thisClient.ws.send(errMsg('login' ,'failed authentication'))
+              return
+            thisClient.user = userInfo.username;
             thisClient.userInfo = userInfo;
             console.log('logging in user: ' + userInfo.username);
             thisClient.ws.send(success('login'))
             return;
           ).catch( (err) ->
-            console.log(err)
+            if (err.message != 'Nonexistant User')
+              throw new Error('failed user lookup')
+            if (!message.color)
+              thisclient.ws.send(errMsg('login', 'please specify a color'))
+              return
             console.log('creating new user');
-            db.createUser(message.username, message.color)
+            return db.createUser(message.username, message.color)
             .then( (userInfo) ->
               thisClient.userInfo = userInfo;
               console.log('account created for user: ' + userInfo.username);
-              thisClient.ws.send(success('login'))
-            ).catch( () ->
-              @thisClient.ws.send(errMsg('login' ,'126'))
+              thisClient.ws.send(success('login',{apiKey: userInfo.apiKey}))
+            ).catch( (err) ->
+              #serious error
+              console.log(err)
+              thisClient.ws.send(errMsg('login' ,'126'))
             )
             return;
           )
@@ -161,7 +171,7 @@ class client
         when "getUnits"
           @ws.send(success('getUnits', {units: @planet.units}))
         when "getPlayers"
-          @ws.send(success('getPlayers', {players: @planet.players}))
+          @ws.send(success('getPlayers', {players: sanitizePlayerList(@planet.players)}))
         when "setDestination"
           if (!message.unitId)
             return @ws.send(errMsg('setDestination', 'no unit specified'))
@@ -191,6 +201,16 @@ success = (type,data) ->
 errMsg = (type,errMsg) ->
     return JSON.stringify({ type: type, success: false, reason: errMsg})
 
+sanitizePlayerList = (playerList) ->
+  newList = []
+  for user in playerList
+    newList.push( {
+      _id: user._id
+      username: user.username
+      color: user.color
+    })
+
+  return newList
 
 
 exports.success = success

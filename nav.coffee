@@ -5,7 +5,6 @@
 PlanetLoc = require('./PlanetLoc')
 tileType = require('./tileType')
 direction = require('./direction')
-
 #code that interfaces with the map for pathfinding and detecting
 #valid placements and movement.
 

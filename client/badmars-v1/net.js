@@ -11,14 +11,16 @@ import {
 	setPlayerInfo,
 	firstLoad,
 	onFirstLoad,
-	display
+	display,
+	loginSuccess,
+	setApiKey
 } from "./client.js";
 import {
 	Map
 } from "./map/map.js";
 
-//const SERVER_URL = "ws://dev.japura.net";
-const SERVER_URL = "ws://localhost";
+const SERVER_URL = "ws://dev.japura.net";
+//const SERVER_URL = "ws://localhost";
 const SERVER_PORT = 7005;
 
 export class Player {
@@ -85,9 +87,19 @@ export class Net {
 				console.log(data);
 				if (data.type) {
 					if (data.type == 'login') {
-						self.s.send(JSON.stringify({
-							type: "getMap"
-						}));
+						if (data.success) {
+							if (data.apiKey) {
+								document.cookie = 'username=' + username + '; max-age=' + (60 * 60 * 24 * 300) + '; ';
+								document.cookie = 'apiKey=' + data.apiKey + '; max-age=' + (60 * 60 * 24 * 300) + '; ';
+								setApiKey(data.apiKey);
+							}
+							self.s.send(JSON.stringify({
+								type: "getMap"
+							}));
+							loginSuccess();
+						} else {
+							console.log('failed login');
+						}
 					} else if (data.type == 'planet') {
 						window.loadPlanet(data.planet);
 						self.s.send(JSON.stringify({

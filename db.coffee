@@ -2,6 +2,7 @@
 'use strict';
 
 mongoose = require('mongoose')
+hat = require('hat')
 Mixed = mongoose.Schema.Types.Mixed
 mongoose.Promise = global.Promise;
 exports.Ready = false
@@ -50,6 +51,7 @@ Unit = mongoose.model('Unit',unitSchema)
 userSchema = mongoose.Schema( {
   username: String
   user_id: String #user ID in japura user database
+  apiKey: String
   color: String #hex color string
   })
 
@@ -170,6 +172,7 @@ exports.createUser = (username, userColor) ->
   user = new User();
   user.username = username;
   user.color = userColor;
+  user.apiKey = hat()
   return user.save()
 
 exports.getUserByName = (username) ->
