@@ -6,7 +6,6 @@ echo "module.exports = {
 {{CONTENTS OF AUTH.JS}}
 }" >> ~badmars/badMars-JS/config/auth.js
 
-
 chown badmars ~badmars/auth.js
 
 curl https://raw.githubusercontent.com/monofuel/badMars-JS/master/prod-setup.sh | sh
