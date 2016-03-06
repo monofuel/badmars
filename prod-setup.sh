@@ -7,7 +7,7 @@
 #setup a production environment and start the game server
 
 #install tools
-apt-get --assume-yes  install make vim git nodejs npm tmux
+apt-get --assume-yes  install make vim git nodejs npm tmux coffeescript
 
 #debian crap
 ln -s /usr/bin/nodejs /usr/bin/node
