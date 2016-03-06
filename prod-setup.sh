@@ -8,7 +8,8 @@
 
 #install tools
 apt-get --assume-yes  install make vim git nodejs npm tmux
-npm install -g gulp codo nodemon
 
 #debian crap
 ln -s /usr/bin/nodejs /usr/bin/node
+
+npm install -g gulp codo nodemon
