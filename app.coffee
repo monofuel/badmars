@@ -10,6 +10,7 @@ cookieParser = require('cookie-parser');
 bodyParser = require('body-parser');
 session = require('express-session');
 flash = require('connect-flash');
+dbConfig = require('./config/db');
 mongoDBStore = require('connect-mongodb-session')(session);
 
 app = express();
@@ -32,7 +33,7 @@ app.use(bodyParser.urlencoded({
 }));
 
 #db connection for passport auth
-serverAddress = 'mongodb://localhost/japura';
+serverAddress = 'mongodb://' + dbConfig.server + '/japura';
 authConn = mongoose.createConnection(serverAddress);
 console.log('connected to auth DB at %s',serverAddress);
 

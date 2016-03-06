@@ -89,8 +89,12 @@ export class Net {
 					if (data.type == 'login') {
 						if (data.success) {
 							if (data.apiKey) {
-								document.cookie = 'username=' + username + '; max-age=' + (60 * 60 * 24 * 300) + '; ';
-								document.cookie = 'apiKey=' + data.apiKey + '; max-age=' + (60 * 60 * 24 * 300) + '; ';
+								$.cookie("username", username, {
+									expires: 360
+								});
+								$.cookie("apiKey", data.apiKey, {
+									expires: 360
+								});
 								setApiKey(data.apiKey);
 							}
 							self.s.send(JSON.stringify({

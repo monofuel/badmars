@@ -7,6 +7,12 @@ Net = require('./net.js')
 readline = require('readline')
 rl = {}
 
+env = process.env.NODE_ENV || 'dev';
+if (env == 'production')
+  console.log('running in production')
+else
+  console.log('running in development')
+
 #------------------------------------------------------------
 # Settings
 

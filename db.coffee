@@ -3,6 +3,7 @@
 
 mongoose = require('mongoose')
 hat = require('hat')
+dbConfig = require('config/db')
 Mixed = mongoose.Schema.Types.Mixed
 mongoose.Promise = global.Promise;
 exports.Ready = false
@@ -78,7 +79,7 @@ Planet = mongoose.model('Planet',planetSchema);
 
 exports.init = () ->
   #TODO should retry if connection is lost or fails to connect
-  mongoose.connect('mongodb://localhost/badMars')
+  mongoose.connect('mongodb://' + dbConfig.server + '/badMars')
   db = mongoose.connection
   db.on('error',console.error.bind(console,'mongo connection error: '))
 
