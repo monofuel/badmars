@@ -8,4 +8,9 @@ echo "running update"
 git pull origin master
 
 #rebuild things
+npm install
 make
+
+cd ./client
+npm install
+make copy

@@ -22,7 +22,9 @@ git clean -f -d
 npm install
 sudo npm install -g gulp codo nodemon
 
-cd ./client && npm install
+cd ./client
+npm install
+make copy
 
 cd ~/badMars-JS
 make

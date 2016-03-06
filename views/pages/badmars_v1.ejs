@@ -9,6 +9,10 @@
     <script src="js/badmars/dependencies/OBJLoader.js"></script>
 
     <script src="js/badmars/badmars-v1.js"></script>
+	<script>
+	const SERVER_URL = '<%= server %>';
+	const SERVER_PORT = <%= port %>;
+	</script>
     <style>
       body {
         margin: 0;
@@ -71,6 +75,7 @@
               <p>Controls: WASD to move, Q and E rotate, R and F zoom in and out</p>
               <p>You can click units to select them, and right click them to move around. You can only move your own units</p>
               <p>Your color is determined only the first time you log in, and will stay the same every time you reload.</p>
+			  <p>The game might put your view at the opposite side of the map from your units. this is a bug relating to how the map loops around</p>
               <p>Expect things to be buggy. If everything freezes, reload the page.</p>
               <p>Accounts are not secure (yet) all you can do is move tanks around based on your username.</p>
             </li>

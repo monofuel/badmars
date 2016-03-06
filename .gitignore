@@ -26,6 +26,7 @@ client/js/viewer.js
 public/clientdocs/
 public/docs/
 public/js/badmars/*.js
+public.js/badmars/dependencies/*.js
 
 
 client/planet_viewer/*.js

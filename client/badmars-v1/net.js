@@ -19,9 +19,10 @@ import {
 	Map
 } from "./map/map.js";
 
-const SERVER_URL = "ws://dev.japura.net";
+//now set by server as global values
+//const SERVER_URL = "ws://dev.japura.net";
 //const SERVER_URL = "ws://localhost";
-const SERVER_PORT = 7005;
+//const SERVER_PORT = 7005;
 
 export class Player {
 	id: string;
