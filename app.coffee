@@ -76,6 +76,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 require('./routes/main')(app);
 require('./routes/worlds')(app);
 require('./routes/planets')(app);
+require('./routes/management')(app);
 
 server = app.listen(3002,  () ->
   host = server.address().address;

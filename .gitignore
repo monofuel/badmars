@@ -20,12 +20,12 @@ routes/planets.js
 routes/main.js
 routes/users.js
 routes/units.js
+routes/management.js
 client/js/viewer.js
 
 public/clientdocs/
 public/docs/
-public/js/badmars/
-public/js/badmars-v1.js
+public/js/badmars/*.js
 
 
 client/planet_viewer/*.js

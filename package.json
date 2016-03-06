@@ -1,19 +1,11 @@
 {
   "name": "badMars",
   "version": "0.0.1",
-  "description": "random node.js project in coffeescript",
+  "description": "multiplayer html5 RTS",
   "main": "badMars.js",
-  "engines": {
-    "node": "~4.2"
-  },
   "dependencies": {
-    "babel-plugin-transform-flow-strip-types": "^6.5.0",
-    "babel-preset-es2015": "^6.5.0",
-    "babel-preset-stage-0": "^6.5.0",
-    "babelify": "^7.2.0",
     "bluebird": "^3.3.3",
     "body-parser": "^1.14.0",
-    "browserify": "^13.0.0",
     "connect-flash": "^0.1.1",
     "connect-mongodb-session": "^1.1.0",
     "cookie-parser": "^1.4.0",
@@ -22,7 +14,7 @@
     "express": "^4.12.3",
     "express-session": "^1.13.0",
     "gcloud": "^0.28.0",
-    "gulp-flowtype": "^0.4.9",
+    "gulp": "^3.9.1",
     "hat": "0.0.3",
     "mongoose": "^4.0.1",
     "morgan": "^1.6.1",
@@ -36,14 +28,18 @@
   },
   "devDependencies": {
     "babel-cli": "^6.4.5",
-    "babelify": "^7.2.0"
+    "babelify": "^7.2.0",
+    "gulp-flowtype": "^0.4.9",
+    "babel-plugin-transform-flow-strip-types": "^6.5.0",
+    "babel-preset-es2015": "^6.5.0",
+    "babel-preset-stage-0": "^6.5.0",
+    "browserify": "^13.0.0"
   },
   "scripts": {
-   "start": "node badmars.js",
-   "monitor": "nodemon badmars.js",
-   "deploy": "gcloud preview app deploy",
-   "test": "node test.js"
- },
+    "start": "node badmars.js",
+    "monitor": "nodemon badmars.js",
+    "test": "node test.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/monofuel/badMars.git"
