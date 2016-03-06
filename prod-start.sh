@@ -16,7 +16,6 @@ git reset --hard origin/master
 git clean -f -d
 
 npm install
-sudo npm install -g gulp codo nodemon
 
 cd ./client
 npm install
