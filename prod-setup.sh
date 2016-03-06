@@ -2,6 +2,8 @@
 #monofuel
 #3-2016
 
+#setup a production environment and start the game server
+
 #install tools
 sudo apt-get install make vim git nodejs npm tmux
 
@@ -18,7 +20,7 @@ git reset --hard origin/master
 git clean -f -d
 
 npm install
-sudo npm install -g gulp codo supervisor
+sudo npm install -g gulp codo nodemon
 
 cd ./client && npm install
 
@@ -27,4 +29,4 @@ make
 
 export NODE_ENV="production"
 
-tmux new-session -d -s japura -c ~/badMars-JS supervisor node badMars.js &&
+tmux new-session -d -s japura -c ~/badMars-JS nodemon badMars.js &&

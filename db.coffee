@@ -5,7 +5,6 @@ mongoose = require('mongoose')
 hat = require('hat')
 dbConfig = require('./config/db')
 Mixed = mongoose.Schema.Types.Mixed
-mongoose.Promise = global.Promise;
 exports.Ready = false
 
 #------------------------------------------------------------

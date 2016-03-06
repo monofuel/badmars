@@ -2,6 +2,8 @@
 #monofuel
 #3-2016
 
+#setup the development environment
+
 #install tools
 sudo apt-get --assume-yes install make vim git coffeescript npm nodejs tmux
 
@@ -9,6 +11,6 @@ sudo apt-get --assume-yes install make vim git coffeescript npm nodejs tmux
 sudo ln -s /usr/bin/nodejs /usr/bin/node
 
 npm install
-sudo npm install -g gulp codo supervisor
+sudo npm install -g gulp codo nodemon
 
 cd ./client && npm install
