@@ -1,7 +1,7 @@
 #!/bin/bash
 #example script to use in the automation field
 
-useradd -m badmars
+useradd -m badmars -s /bin/bash
 echo "module.exports = {
 {{CONTENTS OF AUTH.JS}}
 }" >> ~badmars/badMars-JS/config/auth.js
