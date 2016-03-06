@@ -29,7 +29,7 @@ module.exports = (app) ->
 		port = '7005';
 		env = process.env.NODE_ENV || 'dev';
 		if (env == 'production')
-			serverAddress = 'ws://104.197.60.81/'
+			serverAddress = 'ws://104.197.60.81'
 			port = '7005'
 
 		res.render('pages/badmars_v1', {
