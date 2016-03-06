@@ -30,7 +30,7 @@ module.exports = (app) ->
 		env = process.env.NODE_ENV || 'dev';
 		if (env == 'production')
 			serverAddress = 'wss://japura.net'
-			port = '7006'
+			port = '7005'
 
 		res.render('pages/badmars_v1', {
 			user: req.user,
