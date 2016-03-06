@@ -9,6 +9,7 @@ if [ ! -d "~/badMars-JS" ]; then
 fi
 
 cd ~/badMars-JS
+cp ~/auth.js config/
 
 git fetch --all
 git reset --hard origin/master
