@@ -20,7 +20,7 @@ npm install
 cd ./client
 npm install
 make copy
-make planet_viewer
+make planet_viewer_build
 
 cd ~/badMars-JS
 make

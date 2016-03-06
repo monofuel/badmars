@@ -1,8 +1,8 @@
 all: badmars_v1 copy docs
 
-build: planet_viewer
+build: planet_viewer_build
 
-planet_viewer:
+planet_viewer_build:
 	coffee -o ../public/js/badmars/ -cb planet_viewer/*.coffee
 
 badmars_v1:
