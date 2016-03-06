@@ -68,7 +68,7 @@ export class Net {
 
 	connect(): Promise {
 		return new Promise((resolve, reject) => {
-			console.log("connecting..");
+			console.log("connecting to: " + SERVER_URL + ":" + SERVER_PORT);
 			self.s = new WebSocket(SERVER_URL + ":" + SERVER_PORT);
 
 			self.s.onopen = () => {
