@@ -7,7 +7,7 @@
 #setup a production environment and start the game server
 
 #install tools
-apt-get install make vim git nodejs npm tmux
+apt-get --assume-yes  install make vim git nodejs npm tmux
 npm install -g gulp codo nodemon
 
 #debian crap
