@@ -3,7 +3,7 @@
 #3-2016
 
 #install tools
-sudo apt-get install make vim git nodejs npm
+sudo apt-get install make vim git nodejs npm tmux
 
 #debian crap
 sudo ln -s /usr/bin/nodejs /usr/bin/node
@@ -25,4 +25,6 @@ cd ./client && npm install
 cd ~/badMars-JS
 make
 
-supervisor node badMars.js
+export NODE_ENV="production"
+
+tmux new-session -d -s japura -c ~/badMars-JS supervisor node badMars.js &&

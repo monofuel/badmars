@@ -3,7 +3,7 @@
 
 mongoose = require('mongoose')
 hat = require('hat')
-dbConfig = require('config/db')
+dbConfig = require('./config/db')
 Mixed = mongoose.Schema.Types.Mixed
 mongoose.Promise = global.Promise;
 exports.Ready = false
@@ -79,7 +79,10 @@ Planet = mongoose.model('Planet',planetSchema);
 
 exports.init = () ->
   #TODO should retry if connection is lost or fails to connect
+  serverAddress = 'mongodb://' + dbConfig.server + '/badMars'
+  console.log('connecting to badmars db server: ' + serverAddress)
   mongoose.connect('mongodb://' + dbConfig.server + '/badMars')
+
   db = mongoose.connection
   db.on('error',console.error.bind(console,'mongo connection error: '))
 

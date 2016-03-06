@@ -34,15 +34,16 @@ app.use(bodyParser.urlencoded({
 
 #db connection for passport auth
 serverAddress = 'mongodb://' + dbConfig.server + '/japura';
+console.log('connecting to auth DB server: ' + serverAddress)
 authConn = mongoose.createConnection(serverAddress);
-console.log('connected to auth DB at %s',serverAddress);
+console.log('connected to auth DB');
 
 require('./models/user')(authConn);
 
 #TODO db location should be saved in separate config
 store = new mongoDBStore(
       {
-        uri: 'mongodb://localhost/japura',
+        uri: serverAddress,
         collection: 'sessions'
       });
 
