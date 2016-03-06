@@ -7,10 +7,11 @@ echo "running update"
 #pull latest changes
 git pull origin master
 
-#rebuild things
-npm install
-make
-
 cd ./client
 npm install
 make copy
+make planet_viewer
+
+cd ~/badMars-JS
+npm install
+make
