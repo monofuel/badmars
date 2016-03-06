@@ -4,7 +4,7 @@
 useradd -m badmars -s /bin/bash
 echo "module.exports = {
 {{CONTENTS OF AUTH.JS}}
-}" >> ~badmars/badMars-JS/config/auth.js
+}" > ~badmars/badMars-JS/config/auth.js
 
 chown badmars ~badmars/auth.js
 
