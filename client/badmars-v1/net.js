@@ -110,7 +110,7 @@ export class Net {
 						self.s.send(JSON.stringify({
 							type: "getPlayers"
 						}));
-					} else if (data.type = 'players') {
+					} else if (data.type == 'players') {
 						if (!data.players) {
 							console.log('missing players in data');
 							console.log(data);
@@ -125,7 +125,7 @@ export class Net {
 						self.s.send(JSON.stringify({
 							type: "getUnits"
 						}));
-					} else if (data.type = 'units') {
+					} else if (data.type == 'units') {
 						if (window.addUnit) {
 							for (var unit of data.units) {
 								window.addUnit(unit);

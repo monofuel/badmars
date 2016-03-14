@@ -3,6 +3,7 @@ router = express.Router()
 
 mongoose = require('mongoose')
 World = mongoose.model('World')
+env = process.env.NODE_ENV || 'dev';
 
 module.exports = (app) ->
 	app.get('/', (req, res) ->
@@ -18,6 +19,13 @@ module.exports = (app) ->
 	)
 
 	app.get('/planet_viewer', (req,res) ->
+		if (env == 'dev')
+			console.log('dev login')
+			req.user = {
+				username: "monofuel",
+				admin: true
+			}
+
 		res.render('pages/planet_viewer', {
 			user: req.user
 			})

@@ -1,0 +1,20 @@
+List of errors that came up that should be looked into:
+
+>createPlanet testPlanet3 world1
+creating new planet: testPlanet3 with map world1
+planet created successfully
+loading planet:  testPlanet3  world:  world1
+unit count:  0
+spawning resources for  testPlanet3
+unit count:  0
+testPlanet3  loaded
+
+/home/monofuel/src/badMars-JS/units.js:152
+  unit.location = [unit.tile.x, unit.tile.y];
+                            ^
+TypeError: Cannot read property 'x' of undefined
+    at Object.exports.updateUnit (/home/monofuel/src/badMars-JS/units.js:152:29)
+    at Planet.update (/home/monofuel/src/badMars-JS/planet.js:269:29)
+    at mainLoop (/home/monofuel/src/badMars-JS/badMars.js:257:12)
+    at wrapper [as _onTimeout] (timers.js:258:14)
+    at Timer.listOnTimeout [as ontimeout] (timers.js:110:15)
