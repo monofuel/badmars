@@ -184,11 +184,8 @@ class client
 				when "attack"
 					@ws.send(errMsg('attack', 'not implimented'))
 				else
+					console.log('unknown type recieved: ' + message.type)
 					@ws.send(errMsg('invalid', 'invalid type for request'))
-				case "ping"
-					
-				default:
-					console.log('unknown type recieved: ' + message.type);
 
 			return
 
