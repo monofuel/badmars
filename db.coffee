@@ -6,6 +6,7 @@ hat = require('hat')
 dbConfig = require('./config/db')
 Mixed = mongoose.Schema.Types.Mixed
 exports.Ready = false
+mongoose.Promise = global.Promise
 
 #------------------------------------------------------------
 #TODO: all schemas should be moved to models/ for organizing
