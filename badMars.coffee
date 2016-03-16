@@ -9,7 +9,7 @@ rl = {}
 
 env = process.env.NODE_ENV || 'dev';
 if (env == 'production')
-  console.log('running in production')
+  console.log('running in production!')
 else
   console.log('running in development')
 
