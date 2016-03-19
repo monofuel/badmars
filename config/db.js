@@ -5,6 +5,7 @@ if (env === 'production') {
 	}
 } else {
 	module.exports = {
-		server: 'localhost'
+		//server: 'localhost'
+		server: '10.128.0.2'
 	}
 }
