@@ -21,6 +21,7 @@
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
     "readline": "1.3.0",
+    "request": "^2.69.0",
     "serve-favicon": "^2.3.0",
     "simplex-noise": "^2.1.1",
     "supervisor": "^0.9.1",
