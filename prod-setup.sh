@@ -17,4 +17,4 @@ apt-get install -y nodejs
 #debian crap
 ln -s /usr/bin/nodejs /usr/bin/node
 
-npm install -g gulp codo nodemon
+npm install -g gulp codo nodemon forever

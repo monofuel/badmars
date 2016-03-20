@@ -15,6 +15,6 @@ sudo apt-get install -y nodejs
 sudo ln -s /usr/bin/nodejs /usr/bin/node
 
 npm install
-sudo npm install -g gulp codo nodemon
+sudo npm install -g gulp codo nodemon forever
 
 cd ./client && npm install

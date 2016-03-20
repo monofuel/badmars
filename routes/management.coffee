@@ -14,4 +14,5 @@ module.exports = (app) ->
 
 		)
 		res.json(JSON.stringify({success: true}))
+		process.exit();
 	)

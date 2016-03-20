@@ -27,4 +27,4 @@ make
 
 export NODE_ENV="production"
 
-tmux new-session -d -s badmars -c ~/badMars-JS 'nodemon badMars.js'
+tmux new-session -d -s badmars -c ~/badMars-JS 'forever nodemon badMars.js'
