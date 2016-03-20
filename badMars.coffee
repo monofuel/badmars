@@ -238,7 +238,7 @@ mainLoop = () ->
     if (curTick - lastLog >= 60 * 1000)
       Logger.serverInfo("TPS",{
         ticks: Math.round(avgTPS),
-        avgTicks: avgTPS
+        avgTicks: Math.round(avgTPS)
         });
       lastLog = curTick;
 
