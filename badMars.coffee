@@ -7,7 +7,11 @@ Net = require('./net.js')
 readline = require('readline')
 Logger = require('./util/logger')
 figlet = require('figlet')
-rl = {}
+sleep = require('sleep')
+
+env = process.env.NODE_ENV || 'dev';
+if (env == 'production')
+  sleep(10) #to prevent multiple restarts when webhook is triggered
 
 fonts = figlet.fontsSync();
 font = fonts[Math.floor(Math.random()*fonts.length)];
@@ -15,13 +19,12 @@ console.log("-------------------------------------------------------------------
 console.log(figlet.textSync("BadMars", {font: font}))
 console.log("----------------------------------------------------------------------------")
 
-env = process.env.NODE_ENV || 'dev';
 if (env == 'production')
   console.log('running in production!')
 else
   console.log('running in development')
 
-
+rl = {}
 #------------------------------------------------------------
 # Settings
 port = 7005
