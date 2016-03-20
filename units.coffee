@@ -12,7 +12,7 @@ PlanetLoc = require('./PlanetLoc')
 #
 #name of unit
 #range of attack in tiles
-#speed of unit in tiles per second
+#speed of unit in ticks per second (tick rate is 20/s)
 #total hp of unit
 #attack power of unit
 #cost of the unit
@@ -24,23 +24,27 @@ Units = [
   {
     name: 'tank',
     range: 5.0,
-    speed: 1.0,
+    speed: 10,
     hp: 50,
     attack: 10,
     cost: 500,
+    fireRate: 20
+    firePower: 15
     type: 'ground'
   },{
     name: 'scout',
     range: 5.0,
-    speed: 4.0,
+    speed: 3,
     hp: 20,
     attack: 2,
+    fireRate: 10
+    firePower: 2
     cost: 100,
     type: 'ground'
   },{
     name: 'builder',
     range: 1.0,
-    speed: 1.2,
+    speed: 15,
     hp: 100,
     attack: 0,
     cost: 300,
@@ -48,7 +52,7 @@ Units = [
   },{
     name: 'transport',
     range: 1.0,
-    speed: 1.0,
+    speed: 18,
     hp: 300,
     attack: 0,
     cost: 200,
@@ -71,7 +75,7 @@ exports.list = () ->
 # @param [Unit] unit the unit to update
 # @param [Number] delta time since last update
 # @return [Promise]
-exports.updateUnit = (unit,delta) ->
+exports.updateUnit = (unit) ->
 
   #bool for if we want to save updates back to DB
   update = false
@@ -139,7 +143,7 @@ exports.updateUnit = (unit,delta) ->
         else
           unit.moveAttempts++
 
-      deltaMove = unitInfo.speed * delta
+      deltaMove = 1 / unitInfo.speed
       if (unit.nextMove != direction.C && unit.moving)
         unit.moving = true
         unit.distanceMoved += deltaMove

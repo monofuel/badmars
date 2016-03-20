@@ -5,6 +5,7 @@ Buildings = require('./buildings.js')
 Planet = require('./planet.js')
 Net = require('./net.js')
 readline = require('readline')
+Logger = require('./util/logger')
 rl = {}
 
 env = process.env.NODE_ENV || 'dev';
@@ -16,6 +17,7 @@ else
 #------------------------------------------------------------
 # Settings
 port = 7005
+ticksPerSec = 10
 
 #------------------------------------------------------------
 # Commands
@@ -186,6 +188,7 @@ init = () ->
         planet.init()
         .then((loadedPlanet) ->
           console.log(loadedPlanet.name," loaded")
+          Logger.serverInfo("loaded_planet", {name: loadedPlanet.name})
           planetList.push(loadedPlanet)
 
           #@todo planet load happens after we say 'server ready', should be before
@@ -194,8 +197,8 @@ init = () ->
         )
       )
 
-
-    setInterval(mainLoop,1000/20);
+    Logger.serverInfo("started")
+    setInterval(mainLoop,1000/ticksPerSec);
 
 #@todo variables are getting messy here
 planetList = []
@@ -203,14 +206,9 @@ exports.planetList = planetList
 lastTick = (new Date).getTime()
 
 mainLoop = () ->
-  curTick = (new Date).getTime()
-  delta = (curTick - lastTick) / 1000
-  if (delta > (200 / 1000))
-    delta = 200 / 1000 #maximum dleta size
-  lastTick = curTick
+  # each iteration of the loop is 1 tick
   for planet in planetList
-    planet.update(delta);
-  updateEndTime = (new Date).getTime()
+    planet.update();
 
   ###had issues with setInterval being delayed
   nextRun = (1000/20) - (updateEndTime - curTick)
@@ -224,8 +222,8 @@ mainLoop = () ->
 # init other modules
 
 db.init()
-console.log('DB Loaded')
+Logger.serverInfo('DB_Loaded')
 Net.init(port)
-console.log('Networking loaded')
-console.log('listening on port: ' + port)
+Logger.serverInfo('Networking_loaded')
+Logger.serverInfo('port',{port: port})
 init() #init ourselves

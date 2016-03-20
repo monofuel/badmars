@@ -108,6 +108,11 @@ window.onload = function () {
 	if (username && apiKey) {
 		net.connect()
 			.then(() => {
+				window.track("logging_in", {
+					username: username,
+					apiKey: true,
+					planet: "testPlanet3"
+				});
 				net.send({
 					type: 'login',
 					username: username,
@@ -284,6 +289,12 @@ window.login = function () {
 	if (username && color) {
 		net.connect()
 			.then(() => {
+				window.track("logging_in", {
+					username: username,
+					apiKey: false,
+					color: userColor.getHexString(),
+					planet: "testPlanet3"
+				});
 				net.send({
 					type: 'login',
 					username: username,
@@ -292,6 +303,17 @@ window.login = function () {
 				});
 			});
 	}
+}
+
+window.onerror = (msg, url, line, col, error) => {
+	var body = {
+		msg: msg,
+		url: url,
+		line: line,
+		col: col,
+		error: error
+	}
+	window.track("error",body);
 }
 
 export function loginSuccess() {

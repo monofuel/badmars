@@ -80,8 +80,8 @@ class Planet
           if (tile.type == TileType.land)
             db.createUnit(tile,"iron")
             .then((iron) ->
-              thisPlanet.units.push(iron)
               unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
+              thisPlanet.units.push(iron)
             )
 
     for x in [0..@worldSettings.size - 2]
@@ -91,8 +91,8 @@ class Planet
           if (tile.type == TileType.land)
             db.createUnit(tile,"oil")
             .then((oil) ->
-              thisPlanet.units.push(oil)
               unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
+              thisPlanet.units.push(oil)
             )
 
   getPlayersUnits: (userId) ->
@@ -189,10 +189,10 @@ class Planet
     console.log('set unit destination')
     return true
 
-  update: (delta) ->
+  update: () ->
 
     if (@units)
       for unit in @units
-        Units.updateUnit(unit,delta)
+        Units.updateUnit(unit)
 
 module.exports = Planet
