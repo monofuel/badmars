@@ -27,4 +27,4 @@ make
 
 export NODE_ENV="production"
 
-tmux new-session -d -s badmars -c ~/badMars-JS 'supervisor badMars.js'
+tmux new-session -d -s badmars -c ~/badMars-JS 'supervisor -w ./*.js,util/*.js,routes/*.js,models/*.js,config/*.js badMars.js'
