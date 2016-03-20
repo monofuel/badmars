@@ -10,7 +10,7 @@ module.exports = (app) ->
 		Logger.serverInfo('update_hook',{requestIp: req.ip})
 		exec('sh update.sh', (err,stdout,stderr) ->
 			if (err)
-				Logger.error('update_hook',err);
+				Logger.error('update_hook_error',err);
 
 		)
 		res.json(JSON.stringify({success: true}))
