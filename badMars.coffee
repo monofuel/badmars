@@ -11,7 +11,7 @@ sleep = require('sleep')
 
 env = process.env.NODE_ENV || 'dev';
 if (env == 'production')
-  sleep(10) #to prevent multiple restarts when webhook is triggered
+  sleep.sleep(10) #to prevent multiple restarts when webhook is triggered
 
 fonts = figlet.fontsSync();
 font = fonts[Math.floor(Math.random()*fonts.length)];

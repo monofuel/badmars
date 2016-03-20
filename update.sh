@@ -8,6 +8,7 @@ echo "running update"
 git pull origin master
 
 cd ./client
+npm install
 make copy
 make planet_viewer_build
 
