@@ -69,9 +69,8 @@ export function setPlayerInfo(info: Object) {
 	playerInfo = info;
 }
 
-export function onFirstLoad(): boolean {
+export function isFirstLoad(): boolean {
 	if (firstLoad) {
-		console.log('FIRSTLOAD');
 		firstLoad = false;
 		return true;
 	}
@@ -313,7 +312,7 @@ window.onerror = (msg, url, line, col, error) => {
 		col: col,
 		error: error
 	}
-	window.track("error",body);
+	window.track("error", body);
 }
 
 export function loginSuccess() {

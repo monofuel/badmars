@@ -6,6 +6,9 @@ TileType = require('./tileType')
 Nav = require('./nav')
 direction = require('./direction')
 PlanetLoc = require('./PlanetLoc')
+BadMars = require('./badMars.js')
+ticksPerSec = 10
+
 #---------------------------------------------------------------------
 
 #list of units
@@ -24,7 +27,7 @@ Units = [
   {
     name: 'tank',
     range: 5.0,
-    speed: 10,
+    speed: 15,
     hp: 50,
     attack: 10,
     cost: 500,
@@ -138,7 +141,7 @@ exports.updateUnit = (unit) ->
             type: "moving"
             unitId: unit.id
             newLocation: [unit.nextTile.x,unit.nextTile.y]
-            time: 1 / unitInfo.speed
+            time: unitInfo.speed / ticksPerSec
             });
         else
           unit.moveAttempts++

@@ -39,10 +39,13 @@ module.exports.info = function(info, req) {
   }
 };
 
-module.exports.serverInfo = function(info, body) {
+module.exports.serverInfo = function(info, body, silent) {
   var timestamp;
   timestamp = new Date();
   track(info, body);
+  if (silent) {
+    return;
+  }
   if (body) {
     return console.log("INFO: " + dateFormat(timestamp) + ": " + info + " : " + JSON.stringify(body));
   } else {

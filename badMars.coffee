@@ -6,7 +6,14 @@ Planet = require('./planet.js')
 Net = require('./net.js')
 readline = require('readline')
 Logger = require('./util/logger')
+figlet = require('figlet')
 rl = {}
+
+fonts = figlet.fontsSync();
+font = fonts[Math.floor(Math.random()*fonts.length)];
+console.log("----------------------------------------------------------------------------")
+console.log(figlet.textSync("BadMars", {font: font}))
+console.log("----------------------------------------------------------------------------")
 
 env = process.env.NODE_ENV || 'dev';
 if (env == 'production')
@@ -14,10 +21,12 @@ if (env == 'production')
 else
   console.log('running in development')
 
+
 #------------------------------------------------------------
 # Settings
 port = 7005
 ticksPerSec = 10
+module.exports.ticksPerSec = ticksPerSec
 
 #------------------------------------------------------------
 # Commands
@@ -198,25 +207,46 @@ init = () ->
       )
 
     Logger.serverInfo("started")
-    setInterval(mainLoop,1000/ticksPerSec);
+    setTimeout(mainLoop,1000/ticksPerSec);
 
 #@todo variables are getting messy here
 planetList = []
 exports.planetList = planetList
 lastTick = (new Date).getTime()
-
+TPS = 0
+avgTPS = 0
+lastLog = (new Date).getTime()
+offsetMicroSec = 45
 mainLoop = () ->
+
+  #setInterval() isn't terribly good at being reliable.
+  #using setinterval set for 100ms would only run 7 times a sec, not 10.
+  #this hacky solution tries to regulate ticks per second on the fly.
+  curTick = (new Date).getTime()
+  if (curTick - lastTick >= 1000)
+    lastTick = curTick
+    avgTPS = (avgTPS + TPS) / 2
+    TPS = 0
+    #console.log("avg: " + avgTPS + ": " + ticksPerSec + " offset: " + offsetMicroSec)
+    if (avgTPS < ticksPerSec - 0.1)
+      offsetMicroSec += 1
+    else if (avgTPS > ticksPerSec + 0.1)
+      offsetMicroSec -= 1
+    if (curTick - lastLog >= 60 * 1000)
+      Logger.serverInfo("TPS",{ticks: TPS});
+      lastLog = curTick;
+
   # each iteration of the loop is 1 tick
+  TPS++
   for planet in planetList
     planet.update();
 
-  ###had issues with setInterval being delayed
-  nextRun = (1000/20) - (updateEndTime - curTick)
+  nextRun = (1000/ticksPerSec) - offsetMicroSec
   if (nextRun < 0)
     nextRun = 0;
-  console.log('scheduling next run: ',nextRun)
+  #console.log('scheduling next run: ',nextRun)
   #run the main loop 20 times a second
-  setTimeout(mainLoop,nextRun)###
+  setTimeout(mainLoop,nextRun)
 
 #------------------------------------------------------------
 # init other modules

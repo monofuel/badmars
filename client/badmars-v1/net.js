@@ -10,7 +10,7 @@ import {
 	playerInfo,
 	setPlayerInfo,
 	firstLoad,
-	onFirstLoad,
+	isFirstLoad,
 	display,
 	loginSuccess,
 	setApiKey
@@ -25,20 +25,20 @@ import {
 //const SERVER_PORT = 7005;
 
 window.track = (name, kargs) => {
-    if (!kargs)
-        kargs = {};
-    //if window.location.href.indexOf("dev.istrolid.com") != -1
-    //    console.log "track:", name, JSON.stringify(kargs)
-    //    return
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://104.197.78.205:9001/track/event");
-		//xhr.open("POST", "http://zap.istrolid.com/track/event");
-    kargs.name = "badmars_v1_" + name;
-    //kargs.user_iden = commander?.id;
-    //kargs.user_name = commander?.name;
-    xhr.send(JSON.stringify(kargs));
+	if (!kargs)
+		kargs = {};
+	//if window.location.href.indexOf("dev.istrolid.com") != -1
+	//    console.log "track:", name, JSON.stringify(kargs)
+	//    return
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", "http://104.197.78.205:9001/track/event");
+	//xhr.open("POST", "http://zap.istrolid.com/track/event");
+	kargs.name = "badmars_v1_" + name;
+	//kargs.user_iden = commander?.id;
+	//kargs.user_name = commander?.name;
+	xhr.send(JSON.stringify(kargs));
 
-	}
+}
 
 export class Player {
 	id: string;
@@ -151,7 +151,7 @@ export class Net {
 							}
 							if (map && map.units && firstLoad) {
 								for (var unit of map.units) {
-									if (unit && display && playerInfo && unit.owner == playerInfo.id && onFirstLoad()) {
+									if (unit && display && playerInfo && unit.owner == playerInfo.id && isFirstLoad()) {
 										console.log('zooming in on unit: ', unit);
 										display.viewTile(unit.location);
 									}
@@ -166,7 +166,7 @@ export class Net {
 							type: "spawn"
 						}));
 					} else if (data.type == 'spawn') {
-						if (data.spawn.indexOf('success') != -1) {
+						if (data.success) {
 							console.log('player spawned');
 							self.s.send(JSON.stringify({
 								type: "getPlayers"
@@ -180,7 +180,7 @@ export class Net {
 						}
 						window.addUnit(data.unit);
 						if (map && map.units && firstLoad) {
-							if (unit && display && playerInfo && unit.owner == playerInfo.id && onFirstLoad()) {
+							if (unit && display && playerInfo && unit.owner == playerInfo.id && isFirstLoad()) {
 								console.log('zooming in on unit: ', unit);
 								display.viewTile(unit.location);
 							}

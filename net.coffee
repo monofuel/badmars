@@ -156,7 +156,7 @@ class client
 					@planet.getPlayersUnits(@userInfo.id).then((unitList) ->
 						console.log('spawning player ' + thisClient.userInfo.username)
 						if (unitList.length > 0)
-							thisClient.ws.send(errMesg('spawn', 'already have units!'))
+							thisClient.ws.send(errMsg('spawn', 'already have units!'))
 							return;
 
 						thisClient.planet.spawnPlayer(thisClient.userInfo.id).then(() ->

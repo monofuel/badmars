@@ -35,9 +35,11 @@ module.exports.info = (info, req) ->
 	else
 		console.log("INFO: " +dateFormat(timestamp) + ": " + info);
 
-module.exports.serverInfo = (info, body) ->
+module.exports.serverInfo = (info, body,silent) ->
 	timestamp = new Date();
 	track(info,body)
+	if (silent)
+		return
 	if (body)
 		console.log("INFO: " + dateFormat(timestamp) + ": " + info + " : " + JSON.stringify(body));
 	else
