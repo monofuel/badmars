@@ -233,7 +233,10 @@ mainLoop = () ->
     else if (avgTPS > ticksPerSec + 0.1)
       offsetMicroSec -= 1
     if (curTick - lastLog >= 60 * 1000)
-      Logger.serverInfo("TPS",{ticks: Math.round(avgTPS)});
+      Logger.serverInfo("TPS",{
+        ticks: Math.round(avgTPS),
+        avgTicks: avgTPS
+        });
       lastLog = curTick;
 
   # each iteration of the loop is 1 tick
