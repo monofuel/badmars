@@ -13,7 +13,8 @@ import {
 	isFirstLoad,
 	display,
 	loginSuccess,
-	setApiKey
+	setApiKey,
+	version
 } from "./client.js";
 import {
 	Map
@@ -34,8 +35,10 @@ window.track = (name, kargs) => {
 	xhr.open("POST", "http://104.197.78.205:9001/track/event");
 	//xhr.open("POST", "http://zap.istrolid.com/track/event");
 	kargs.name = "badmars_v1_" + name;
-	//kargs.user_iden = commander?.id;
-	//kargs.user_name = commander?.name;
+	kargs.verison = version;
+	if (playerInfo) {
+		kargs.playerInfo = playerInfo;
+	}
 	xhr.send(JSON.stringify(kargs));
 
 }

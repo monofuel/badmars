@@ -44,6 +44,8 @@ const MIDDLE_MOUSE = 1;
 // ---------------------------------------------------------------------
 // globals
 
+export var version = 1;
+
 export var display: Display;
 export var map: Map;
 var net: Net;
@@ -225,6 +227,7 @@ function logicLoop() {
 		display.render(delta);
 	} catch (error) {
 		console.log(error);
+		window.track("error", error)
 	}
 	statsMonitor.end();
 }
