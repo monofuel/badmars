@@ -1,8 +1,10 @@
-var os, request, track;
+var dateFormat, env, os, request, track;
 
 request = require('request');
 
 os = require('os');
+
+env = process.env.NODE_ENV || 'dev';
 
 process.on('uncaughtException', function(err) {
   module.exports.error(err);
@@ -12,7 +14,7 @@ process.on('uncaughtException', function(err) {
 module.exports.error = function(err) {
   var timestamp;
   timestamp = new Date();
-  console.log(timestamp.toTimeString() + " : " + err.stack);
+  console.log(dateFormat(timestamp) + " : " + err.stack);
   return track("error", {
     message: err.message,
     stack: err.stack
@@ -28,12 +30,12 @@ module.exports.info = function(info, req) {
   });
   if (req) {
     if (req.isAuthenticated && req.isAuthenticated()) {
-      return console.log("INFO: " + timestamp.toTimeString() + " : " + info + " FROM: " + req.ip + " USER: " + req.user.username);
+      return console.log("INFO: " + dateFormat(timestamp) + ": " + info + " FROM: " + req.ip + " USER: " + req.user.username);
     } else {
-      return console.log("INFO: " + timestamp.toTimeString() + " : " + info + " FROM: " + req.ip);
+      return console.log("INFO: " + dateFormat(timestamp) + ": " + info + " FROM: " + req.ip);
     }
   } else {
-    return console.log("INFO: " + timestamp.toTimeString() + " : " + info);
+    return console.log("INFO: " + dateFormat(timestamp) + ": " + info);
   }
 };
 
@@ -41,7 +43,15 @@ module.exports.serverInfo = function(info, body) {
   var timestamp;
   timestamp = new Date();
   track(info, body);
-  return console.log("INFO: " + timestamp.toTimeString() + " : " + info + " : " + JSON.stringify(body));
+  if (body) {
+    return console.log("INFO: " + dateFormat(timestamp) + ": " + info + " : " + JSON.stringify(body));
+  } else {
+    return console.log("INFO: " + dateFormat(timestamp) + ": " + info);
+  }
+};
+
+dateFormat = function(date) {
+  return date.getMonth() + "/" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes();
 };
 
 track = function(name, kargs) {
@@ -51,6 +61,7 @@ track = function(name, kargs) {
   name = name.replace('/ /g', "_").replace('/:/g', " ");
   kargs.name = "server_" + name;
   kargs.hostname = os.hostname();
+  kargs.env = env;
   return request({
     url: "http://104.197.78.205:9001/track/event",
     method: 'POST',

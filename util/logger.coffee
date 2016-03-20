@@ -1,6 +1,8 @@
 request = require('request')
 os = require('os')
 
+env = process.env.NODE_ENV || 'dev';
+
 process.on('uncaughtException', (err) ->
 	module.exports.error(err);
 	console.log(err);
@@ -9,7 +11,7 @@ process.on('uncaughtException', (err) ->
 # @param [Object] err javascript error object
 module.exports.error = (err) ->
 	timestamp = new Date();
-	console.log(timestamp.toTimeString() + " : " + err.stack);
+	console.log(dateFormat(timestamp) + " : " + err.stack);
 	track("error", {
 		message: err.message
 		stack: err.stack
@@ -26,26 +28,31 @@ module.exports.info = (info, req) ->
 
 	if (req)
 		if (req.isAuthenticated && req.isAuthenticated())
-			console.log("INFO: " + timestamp.toTimeString() + " : " + info + " FROM: " + req.ip + " USER: " + req.user.username);
+			console.log("INFO: " + dateFormat(timestamp) + ": " + info + " FROM: " + req.ip + " USER: " + req.user.username);
 		else
-			console.log("INFO: " + timestamp.toTimeString() + " : " + info + " FROM: " + req.ip);
+			console.log("INFO: " +dateFormat(timestamp) + ": " + info + " FROM: " + req.ip);
 
 	else
-		console.log("INFO: " + timestamp.toTimeString() + " : " + info);
+		console.log("INFO: " +dateFormat(timestamp) + ": " + info);
 
 module.exports.serverInfo = (info, body) ->
 	timestamp = new Date();
 	track(info,body)
-	console.log("INFO: " + timestamp.toTimeString() + " : " + info + " : " + JSON.stringify(body));
+	if (body)
+		console.log("INFO: " + dateFormat(timestamp) + ": " + info + " : " + JSON.stringify(body));
+	else
+		console.log("INFO: " + dateFormat(timestamp) + ": " + info);
+
+dateFormat = (date) ->
+	return date.getMonth() + "/" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes()
 
 track = (name, kargs) ->
 	if not kargs
 		kargs = {}
-	#xhr.open("POST", "http://104.197.78.205:9001/track/event")
 	name = name.replace('/ /g',"_").replace('/:/g'," ");
 	kargs.name = "server_" + name
-	#xhr.send(JSON.stringify(kargs))
 	kargs.hostname = os.hostname()
+	kargs.env = env
 	request({
 		url: "http://104.197.78.205:9001/track/event",
 		method: 'POST',

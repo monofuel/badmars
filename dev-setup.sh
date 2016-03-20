@@ -5,6 +5,7 @@
 #setup the development environment
 
 #install tools
+sudo apt-get update
 sudo apt-get --assume-yes install make vim git coffeescript npm nodejs tmux
 
 #slightly dangerous- install nodejs 5 for latest language goodies
@@ -15,6 +16,6 @@ sudo apt-get install -y nodejs
 sudo ln -s /usr/bin/nodejs /usr/bin/node
 
 npm install
-sudo npm install -g gulp codo nodemon forever
+sudo npm install -g gulp codo supervisor browserify flow
 
 cd ./client && npm install
