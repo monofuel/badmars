@@ -34,7 +34,7 @@ module.exports = (app) ->
 
 	app.get('/badMars_v1', (req,res) ->
 		#serverAddress = 'ws://localhost';
-		serverAddress = 'ws://130.211.146.168';
+		serverAddress = 'ws://104.154.48.9';
 		port = '7005';
 		env = process.env.NODE_ENV || 'dev';
 		if (env == 'production')

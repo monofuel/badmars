@@ -4,6 +4,8 @@ TileType = require('./tileType.js')
 
 #---------------------------------------------------------------------
 #Representation of a point on a planet
+#TODO this stuff could be unit tested
+
 class PlanetLoc
 
   # @param [Map] planet the planet for this location
@@ -74,6 +76,13 @@ class PlanetLoc
   #@return [PlanetLoc] tile to the north
   N: () ->
     return new PlanetLoc(@planet, @x, @y + 1)
+
+  distance: (tile) ->
+    #TODO doesn't consider map loop
+    deltaX = Math.abs(@x - tile.x);
+    deltaY = Math.abs(@y - tile.y);
+
+    return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY))
 
   #Used to compare PlanetLoc by value
   #@param [PlanetLoc] tile to compare to

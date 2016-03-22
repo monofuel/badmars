@@ -36,9 +36,10 @@ buildingSchema = mongoose.Schema({
 
 unitSchema = mongoose.Schema({
   type: String
-  health: { type: Number, default: 100}
+  health: Number
   constructing: Number
   location: [Number]
+  fireCooldown: Number
   planet: {type: String, index: true}
   owner: String
   destination: [Number]
@@ -217,7 +218,7 @@ exports.updateUnit = (unit) ->
 # @param [String] id unique unit id
 # @return [Promise]
 exports.removeUnit = (unitId) ->
-  return Unit.removeById(unitId)
+  return Unit.findByIdAndRemove(unitId)
   .then(() ->
     console.log('unit deleted')
   ).catch((err) ->

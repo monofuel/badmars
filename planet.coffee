@@ -49,6 +49,8 @@ class Planet
 
         db.getUserById(unit.owner).then((playerInfo) ->
           ownerInList = false
+          #TODO: lots of undocumented fields added to unit at runtime. should refactor
+          unit.player = playerInfo
           for player in thisPlanet.players
             if (player.id == unit.owner)
               ownerInList = true
@@ -91,6 +93,7 @@ class Planet
           if (tile.type == TileType.land)
             db.createUnit(tile,"oil")
             .then((oil) ->
+              #TODO: lots of undocumented fields added to unit at runtime. should refactor
               unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
               thisPlanet.units.push(oil)
             )
@@ -170,6 +173,29 @@ class Planet
         return unit
 
     return null
+
+  # @param [Unit] unit the unit to compare to
+  # @return [Unit]
+  getNearestEnemy: (unit) ->
+
+    #assume all users are enemies.
+    #TODO faction or enemy/ally system thing
+    distance = null
+    nearestEnemy = null
+    for otherUnit in @units
+      if (otherUnit.owner != unit.owner)
+        otherUnitDistance = unit.tile.distance(otherUnit.tile);
+        if (!nearestEnemy || otherUnitDistance < distance)
+          nearestEnemy = otherUnit
+          distance = otherUnitDistance
+
+    return nearestEnemy
+
+  killUnit: (unit) ->
+    index = @units.indexOf(unit)
+    if (index > -1)
+      @units.splice(index, 1);
+    db.removeUnit(unit.id);
 
   broadcastUpdate: (data) ->
     for player in @players

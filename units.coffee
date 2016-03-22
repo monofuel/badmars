@@ -7,6 +7,7 @@ Nav = require('./nav')
 direction = require('./direction')
 PlanetLoc = require('./PlanetLoc')
 BadMars = require('./badMars.js')
+Logger = require('./util/logger.js')
 ticksPerSec = 10
 
 #---------------------------------------------------------------------
@@ -31,8 +32,9 @@ Units = [
     hp: 50,
     attack: 10,
     cost: 500,
-    fireRate: 20
-    firePower: 15
+    range: 8,
+    fireRate: 20, #time between firing in ticks
+    firePower: 15, #damage per shot
     type: 'ground'
   },{
     name: 'scout',
@@ -75,17 +77,31 @@ exports.list = () ->
     list.push(item.name)
   return list
 
+# simulate 1 server tick on a unit
 # @param [Unit] unit the unit to update
-# @param [Number] delta time since last update
 # @return [Promise]
 exports.updateUnit = (unit) ->
+
+  if (!unit)
+    #TODO refactor this
+    #hacky fix for when units are deleted during a simulation tick
+    return
+
+  #rather messy. unit is the instance of a unit, unitInfo is mmetadata for the specific type of unit.
+  #this should be refactored.
+  #TODO: this function should be refactored as i get a better idea of how to lay things out
 
   #bool for if we want to save updates back to DB
   update = false
   unitInfo = exports.get(unit.type)
+  planet = unit.tile.planet
+
+  #TODO: this sets the units default health. this should be coded better
+  if (!unit.health)
+    unit.health = unitInfo.hp
 
   if (unitInfo && unit.destination && unit.destination.length == 2)
-    dest = new PlanetLoc(unit.tile.planet, unit.destination[0], unit.destination[1])
+    dest = new PlanetLoc(planet, unit.destination[0], unit.destination[1])
 
     #clear properties if our tile is the destination
     if (unit.tile.equals(dest))
@@ -135,9 +151,9 @@ exports.updateUnit = (unit) ->
             unit.nextTile = unit.tile
 
         #check if a unit is blocking the next tile
-        if (unit.tile.planet.unitTileCheck(unit.nextTile) == null)
+        if (planet.unitTileCheck(unit.nextTile) == null)
           unit.moving = true;
-          unit.tile.planet.broadcastUpdate({
+          planet.broadcastUpdate({
             type: "moving"
             unitId: unit.id
             newLocation: [unit.nextTile.x,unit.nextTile.y]
@@ -159,6 +175,51 @@ exports.updateUnit = (unit) ->
         unit.distanceMoved = 0
         update = true
         unit.moveAttempts = 0
+
+
+  #cooldown after firing
+  #TODO unitInfo is checked as some units dont' have unit info (maybe should so something about that)
+  if (unitInfo && unitInfo.firePower) #unitInfo.firePower is a little bit hacky of a way to see if a unit can shoot
+    if (!unit.fireCooldown)
+      unit.fireCooldown = 0
+    else if (unit.fireCooldown > 0)
+      update = true
+      unit.fireCooldown--
+    else if (unit.fireCooldown < 0)
+      update = true
+      unit.fireCooldown = 0
+
+  if (unitInfo && unitInfo.firePower && unit.fireCooldown == 0)
+    #check for an enemy to shoot
+    enemy = planet.getNearestEnemy(unit)
+    if (enemy && enemy.tile.distance(unit.tile) < unitInfo.range)
+      update = true;
+      #SHOOT THEM
+      unit.fireCooldown = unitInfo.fireRate
+      enemy.health -= unitInfo.firePower
+      Logger.serverInfo("auto_attack",{
+        unit: unit
+        enemy: enemy
+        distance: enemy.tile.distance(unit.tile)
+        })
+      if (enemy.health <= 0)
+        planet.broadcastUpdate({
+          type: "kill"
+          unitId: unit.id
+          enemyId: enemy.id
+          });
+        planet.killUnit(enemy)
+      else
+        planet.broadcastUpdate({
+          type: "attack"
+          unitId: unit.id
+          enemyId: enemy.id
+          enemyHealth: enemy.health
+          });
+        #TODO we are saving a unit other than the one currently being simulated. this is odd.
+        enemy.save()
+
+
 
   #@todo
   #update info on the unit
