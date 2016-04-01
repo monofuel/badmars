@@ -44,7 +44,7 @@ const MIDDLE_MOUSE = 1;
 // ---------------------------------------------------------------------
 // globals
 
-export var version = 1;
+export var version = 1.1;
 
 export var display: Display;
 export var map: Map;
@@ -81,7 +81,12 @@ export function isFirstLoad(): boolean {
 // ---------------------------------------------------------------------
 // html5
 
+window.debug = {};
+
 window.loadPlanet = function (planet: ? Object) {
+	if (map) {
+		map.destroy();
+	}
 	map = new Map(planet);
 	map.addToRender();
 }
@@ -185,6 +190,7 @@ window.onload = function () {
 				if (unit) {
 					console.log(unit.type + " clicked");
 					selectedUnit = unit;
+					window.debug.selectedUnit = unit;
 					buttonMode = MODE_MOVE;
 					mouseClick = function (tile) {
 						if (selectedUnit) {
@@ -197,6 +203,7 @@ window.onload = function () {
 					}
 				} else {
 					selectedUnit = null;
+					window.debug.selectedUnit = null;
 					buttonMode = MODE_SELECT;
 					mouseClick = null;
 					//TODO clear buttons highlighted

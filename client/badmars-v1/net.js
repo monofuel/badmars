@@ -25,20 +25,42 @@ import {
 //const SERVER_URL = "ws://localhost";
 //const SERVER_PORT = 7005;
 
+// ---------------------------------------------------------------------
+// globals
+
+//map of keys to an array of functions to call
+var listeners = {};
+
+
+export function registerListener(eventType: string, listener: Function) {
+	console.log("registering " + eventType + " listener");
+	if (!listeners[eventType]) {
+		listeners[eventType] = [];
+	}
+	listeners[eventType].push(listener);
+}
+
+export function deleteListener(listener: Function) {
+	for (var eventType of Object.keys(listeners)) {
+		for (var index in listeners[eventType]) {
+			if (listeners[eventType][index] == listener) {
+				listeners[eventType].splice(index, 1);
+			}
+		}
+	}
+}
+
 window.track = (name, kargs) => {
 	if (!kargs)
 		kargs = {};
-	//if window.location.href.indexOf("dev.istrolid.com") != -1
-	//    console.log "track:", name, JSON.stringify(kargs)
-	//    return
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", "http://104.197.78.205:9001/track/event");
-	//xhr.open("POST", "http://zap.istrolid.com/track/event");
 	kargs.name = "badmars_v1_" + name;
 	kargs.verison = version;
 	if (playerInfo) {
 		kargs.playerInfo = playerInfo;
 	}
+	console.log('tracking ' + name);
 	xhr.send(JSON.stringify(kargs));
 
 }
@@ -106,6 +128,12 @@ export class Net {
 				}
 				console.log(data);
 				if (data.type) {
+					if (listeners[data.type]) {
+						for (var listener of listeners[data.type]) {
+							listener(data);
+						}
+					}
+
 					if (data.type == 'login') {
 						if (data.success) {
 							window.track("login_success", {
@@ -154,7 +182,9 @@ export class Net {
 							}
 							if (map && map.units && firstLoad) {
 								for (var unit of map.units) {
-									if (unit && display && playerInfo && unit.owner == playerInfo.id && isFirstLoad()) {
+									if (unit && display && playerInfo && unit.owner && playerInfo.id && unit.owner == playerInfo.id && isFirstLoad()) {
+										console.log(playerInfo.id);
+										console.log(unit.owner);
 										console.log('zooming in on unit: ', unit);
 										display.viewTile(unit.location);
 									}

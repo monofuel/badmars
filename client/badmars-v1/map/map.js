@@ -40,6 +40,11 @@ import {
 	C
 } from '../units/directions.js';
 
+import {
+	registerListener,
+	deleteListener
+} from '../net.js';
+
 export class Map {
 	settings: Settings;
 	grid: Array < Array < number >> ;
@@ -49,6 +54,8 @@ export class Map {
 	units: Array < Entity > ;
 	planetData: Object;
 	worldSettings: Object;
+	attackListener: Function;
+	killListener: Function;
 
 	constructor(planet: ? Object) {
 		console.log('loading map');
@@ -67,6 +74,33 @@ export class Map {
 			console.log("error: invalid planet.");
 		}
 
+		this.attackListener = (data) => {
+			console.log("handling attack");
+			var unit = self.getUnitById(data.enemyId);
+			if (unit && unit.updateHealth) {
+				unit.updateHealth(data.enemyHealth);
+			} else {
+				window.track("error", {
+					message: "tried to attack un-attackable unit",
+					data: data
+				});
+			}
+		};
+		registerListener('attack', this.attackListener);
+
+		this.killListener = (data) => {
+			console.log("handling kill");
+			var unit = self.getUnitById(data.enemyId);
+			if (unit && unit.destroy) {
+				unit.destroy();
+			} else {
+				window.track("error", {
+					message: "tried to kill un-killable unit",
+					data: data
+				});
+			}
+		}
+		registerListener('kill', this.killListener);
 
 		window.addUnit = (unit: Object) => {
 			for (var oldUnit of self.units) {
@@ -94,8 +128,25 @@ export class Map {
 					break;
 			}
 		}
+	}
 
+	destroy() {
 
+		deleteListener(this.attackListener);
+		deleteListener(this.killListener);
+		for (var mesh of this.landMeshes) {
+			Display.removeMesh(mesh);
+		}
+		for (var mesh of this.waterMeshes) {
+			Display.removeMesh(mesh);
+		}
+		var unitListCopy = this.units.slice();
+		for (var unit of unitListCopy) {
+			unit.destroy();
+		}
+		if (this.units.length != 0) {
+			console.log("failed to destroy all units");
+		}
 	}
 
 	generateMesh() {

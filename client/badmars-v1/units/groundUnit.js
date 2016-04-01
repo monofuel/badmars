@@ -24,6 +24,7 @@ export class GroundUnit extends Entity {
 	speed: number;
 	distanceMoved: number;
 	timeToMove: number;
+	health: number;
 
 	constructor(location: PlanetLoc, mesh: THREE.Object3D) {
 		super(location, mesh);
@@ -32,6 +33,10 @@ export class GroundUnit extends Entity {
 		this.distanceMoved = 0;
 		this.timeToMove = 0;
 
+	}
+
+	updateHealth(amount) {
+		this.health = amount;
 	}
 
 	updateNextMove(tile: PlanetLoc, time: number) {
