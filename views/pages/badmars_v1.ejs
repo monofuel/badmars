@@ -2,7 +2,29 @@
 
 <html>
   <head>
-    <% include ../partials/head %>
+    <title>Bad Mars</title>
+    <link rel="stylesheet" type="text/css" href="stylesheets/style.css" media="screen" />
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-28344302-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap-theme.min.css">
+
+    <script src="js/badmars/dependencies/react.js"></script>
+    <script src="js/badmars/dependencies/react-dom.js"></script>
+    <script src="js/badmars/dependencies/react-with-addons.js"></script>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
     <script src="js/badmars/dependencies/three.js"></script>
     <script src="js/badmars/dependencies/jquery.cookie.js"></script>
     <script src="js/badmars/dependencies/stats.min.js"></script>
@@ -52,41 +74,7 @@
     </style>
   </head>
   <body>
-    <canvas id='threePanel'>
-    </canvas>
-
-    <div id="loginModal" class="modal fade" data-keyboard="false" data-backdrop="static" role="dialog">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h4 class="modal-title"> BadMars v1 alpha</h4>
-					</div>
-					<div class="modal-body">
-            <ul>
-						<li>
-              <label for="usernameField">Username:</label>
-						  <input type="text" id="usernameField">
-            </li>
-            <li>
-						  <label for="usernameField">html color:</label>
-						  <input type="text" id="colorField">
-            </li>
-            <li>
-              <p>Controls: WASD to move, Q and E rotate, R and F zoom in and out</p>
-              <p>You can click units to select them, and right click them to move around. You can only move your own units</p>
-              <p>Your color is determined only the first time you log in, and will stay the same every time you reload.</p>
-			  <p>The game might put your view at the opposite side of the map from your units. this is a bug relating to how the map loops around</p>
-              <p>Expect things to be buggy. If everything freezes, reload the page.</p>
-              <p>Accounts are not secure (yet) all you can do is move tanks around based on your username.</p>
-            </li>
-          </ul>
-					</div>
-					<div class="modal-footer">
-						<button onclick="window.login()" type="button" class="btn btn-default" data-dismiss="modal">Login</button>
-					</div>
-				</div>
-			</div>
-		</div>
+    <canvas id='threePanel'></canvas>
   </body>
 
 </html>

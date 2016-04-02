@@ -27,6 +27,10 @@ import {
 	loadAllModelsAsync
 } from "./units/unitModels.js";
 
+import {
+	loginModal
+} from "./ui/login.js";
+
 // ---------------------------------------------------------------------
 // enumerators
 
@@ -326,10 +330,7 @@ window.onerror = (msg, url, line, col, error) => {
 }
 
 export function loginSuccess() {
-	$(".modal-backdrop")
-		.remove();
-	$("#loginModal")
-		.remove();
+	loginModal.close();
 	buttonMode = MODE_SELECT;
 }
 

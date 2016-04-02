@@ -26,8 +26,10 @@
     "simplex-noise": "^2.1.1",
     "supervisor": "^0.9.1",
     "ws": "^1.0.1",
+    "react-bootstrap": "^0.28.5",
     "figlet": "^1.1.1",
-    "sleep": "^3.0.1"
+    "sleep": "^3.0.1",
+    "babel-preset-react": "^6.5.0"
   },
   "devDependencies": {
     "babel-cli": "^6.4.5",
