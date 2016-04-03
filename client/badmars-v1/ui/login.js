@@ -3,13 +3,20 @@
 
 // monofuel
 // 2-7-2016
-export var loginModal = React.createClass({
+
+import React from 'react';
+import { Button,Modal } from 'react-bootstrap';
+
+export var LoginModal = React.createClass({
   getInitialState() {
       return { showModal: true };
     },
 
     close() {
+      console.log('closing modal');
       this.setState({ showModal: false });
+    },
+    login() {
       window.login();
     },
 
@@ -45,7 +52,7 @@ export var loginModal = React.createClass({
               </ul>
             </Modal.Body>
             <Modal.Footer>
-              <Button onClick={this.close}>Close</Button>
+              <Button onClick={this.login}>Login</Button>
             </Modal.Footer>
           </Modal>
         </div>

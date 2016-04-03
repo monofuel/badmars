@@ -8,13 +8,13 @@ var paths = {
 };
 
 
-gulp.task('default', ['check', 'transpile', 'watch']);
+gulp.task('default', ['check', 'transpile']);
 
 gulp.task('transpile', function () {
 
 	return browserify('badmars-v1/client.js')
 		.transform("babelify", {
-			presets: ["es2015", "stage-0"],
+			presets: ["react","es2015", "stage-0"],
 			plugins: ["transform-flow-strip-types"]
 		})
 
@@ -37,5 +37,5 @@ gulp.task('check', function () {
 });
 
 gulp.task('watch', function () {
-	gulp.watch(paths.scripts, ['default']);
+	gulp.watch(paths.scripts, ['transpile']);
 });

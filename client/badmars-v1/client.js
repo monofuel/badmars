@@ -21,15 +21,20 @@ import {
 	StatsMonitor
 } from "./statsMonitor.js";
 import {
-	Net
+	Net,
+	registerListener,
+	deleteListener
 } from "./net.js";
 import {
 	loadAllModelsAsync
 } from "./units/unitModels.js";
 
 import {
-	loginModal
+	LoginModal
 } from "./ui/login.js";
+
+import React from 'react';
+import ReactDOM from 'react-dom';
 
 // ---------------------------------------------------------------------
 // enumerators
@@ -66,6 +71,7 @@ export var username;
 export var playerInfo: ? Object;
 export var firstLoad = true;
 export var apiKey: String;
+var loginModal;
 
 export function setApiKey(key: String) {
 	apiKey = key;
@@ -110,6 +116,8 @@ window.onload = function () {
 
 
 		})
+
+	registerListener('login',loginListener);
 
 	username = $.cookie("username");
 	apiKey = $.cookie("apiKey");
@@ -277,16 +285,38 @@ function handleInput() {
 
 function promptLogin() {
 	console.log('prompting for login');
+	loginModal = ReactDOM.render(<LoginModal/>,document.getElementById("content"));
 	//TODO get a list of planets to select from
 	$('#colorField')
 		.val((Math.round(Math.random() * 0xffffff))
 			.toString(16));
 	//login window takes focus from the game
 	buttonMode = MODE_FOCUS;
-	$("#loginModal")
-		.modal();
 }
 
+
+var loginListener = (data) => {
+	if (data.success) {
+		window.track("login_success", {
+			username: username
+		});
+		if (data.apiKey) {
+			$.cookie("username", username, {
+				expires: 360
+			});
+			$.cookie("apiKey", data.apiKey, {
+				expires: 360
+			});
+			setApiKey(data.apiKey);
+		}
+		self.s.send(JSON.stringify({
+			type: "getMap"
+		}));
+		loginSuccess();
+	} else {
+		console.log('failed login');
+	}
+};
 
 window.login = function () {
 	username = $("#usernameField")
@@ -331,6 +361,7 @@ window.onerror = (msg, url, line, col, error) => {
 
 export function loginSuccess() {
 	loginModal.close();
+	deleteListener(loginListener);
 	buttonMode = MODE_SELECT;
 }
 

@@ -37,6 +37,13 @@ export function registerListener(eventType: string, listener: Function) {
 	if (!listeners[eventType]) {
 		listeners[eventType] = [];
 	}
+	if (listeners[eventType].indexOf(listener) != -1) {
+		console.log("duplicate listener registered for " + eventType);
+		window.track('error',{
+			eventType: eventType,
+			msg: 'duplicate listener'
+		})
+	}
 	listeners[eventType].push(listener);
 }
 
@@ -134,28 +141,8 @@ export class Net {
 						}
 					}
 
-					if (data.type == 'login') {
-						if (data.success) {
-							window.track("login_success", {
-								username: username
-							});
-							if (data.apiKey) {
-								$.cookie("username", username, {
-									expires: 360
-								});
-								$.cookie("apiKey", data.apiKey, {
-									expires: 360
-								});
-								setApiKey(data.apiKey);
-							}
-							self.s.send(JSON.stringify({
-								type: "getMap"
-							}));
-							loginSuccess();
-						} else {
-							console.log('failed login');
-						}
-					} else if (data.type == 'planet') {
+
+						if (data.type == 'planet') {
 						window.loadPlanet(data.planet);
 						self.s.send(JSON.stringify({
 							type: "getPlayers"
