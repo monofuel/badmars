@@ -36,6 +36,6 @@ gulp.task('check', function () {
 
 });
 
-gulp.task('watch', function () {
+gulp.task('watch', ['transpile'], function () {
 	gulp.watch(paths.scripts, ['transpile']);
 });

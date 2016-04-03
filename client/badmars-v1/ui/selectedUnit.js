@@ -5,7 +5,7 @@
 // 4-2-2016
 
 import React from 'react';
-import { Button,Modal,Well,ProgressBar } from 'react-bootstrap';
+import { Button,Modal,Well,ProgressBar,ListGroup,ListGroupItem } from 'react-bootstrap';
 import { AboutModal } from './about.js';
 import ReactDOM from 'react-dom';
 import { getPlayerById } from '../net.js';
@@ -18,11 +18,6 @@ var infoStyle = {
   width: '300px',
   height: 'auto',
   padding: '5px'
-}
-
-var progressBarStyle = {
-  padding: '5px',
-  align: 'right'
 }
 
 export var SelectedUnit = React.createClass({
@@ -47,22 +42,34 @@ export var SelectedUnit = React.createClass({
       let iron = unit.storage.iron;
       let oil = unit.storage.oil;
       let maxStorage = unit.maxStorage;
+      let freeStorage = maxStorage - (iron + oil);
       let health = unit.health;
+      let maxHealth = unit.maxHealth;
       let player = getPlayerById(unit.playerId);
       let playerName = "";
       if (player) {
         playerName = player.username;
       }
+      console.log({
+        iron: iron,
+        oil: oil,
+        maxStorage: maxStorage,
+        freeStorage: freeStorage,
+        health: health,
+        maxHealth: maxHealth
+      });
 
       return (
         <div>
           <Well bsSize="small" style={infoStyle}>
-            <div>Unit: {unit.type}</div>
-            <div>Storage: {iron + oil} / {maxStorage}</div>
-            <div>Owner: {playerName}</div>
-            <div>Iron: <ProgressBar now={60} label="%(now)s%" style={progressBarStyle} /></div>
-            <div>Oil: <ProgressBar now={60} label="%(now)s%" style={progressBarStyle} /></div>
-            <div>Health: <ProgressBar now={500} label="%(now)s%" style={progressBarStyle} /></div>
+            <ListGroup>
+              <ListGroupItem>Unit: {unit.type}</ListGroupItem>
+              <ListGroupItem>Storage: {iron + oil} / {maxStorage}</ListGroupItem>
+              <ListGroupItem>Owner: {playerName}</ListGroupItem>
+              <ListGroupItem>Iron: <ProgressBar now={iron} max={iron + freeStorage} label="%(now)s"/></ListGroupItem>
+              <ListGroupItem>Oil: <ProgressBar now={oil} max={oil + freeStorage} label="%(now)s"/></ListGroupItem>
+              <ListGroupItem>Health: <ProgressBar now={health} max={maxHealth} label="%(now)s"/></ListGroupItem>
+            </ListGroup>
           </Well>
         </div>
     )} else {

@@ -19,6 +19,11 @@ import {
 import {
 	Map
 } from "./map/map.js";
+import {
+	registerBusListener,
+	deleteBusListener,
+	fireBusEvent
+} from './eventBus.js';
 
 //now set by server as global values
 //const SERVER_URL = "ws://dev.japura.net";
@@ -122,6 +127,14 @@ export class Net {
 			self.s.onopen = () => {
 				console.log("connected!");
 				resolve();
+			}
+
+			self.s.onerror = () => {
+				console.log("connection lost");
+				window.track("error", {
+					message: "connection lost"
+				});
+				fireBusEvent('error','The connection to the server was lost. You should reload');
 			}
 
 			window.sendMessage = (data) => {

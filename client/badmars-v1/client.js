@@ -128,6 +128,9 @@ window.onload = function () {
 		})
 
 	registerListener('login',loginListener);
+	registerListener('setDestination', moveListener);
+
+	registerBusListener('error',errorListener);
 
 	username = $.cookie("username");
 	apiKey = $.cookie("apiKey");
@@ -346,6 +349,15 @@ function promptLogin() {
 	buttonMode = MODE_FOCUS;
 }
 
+var moveListener = (data) => {
+	if (!data.success) {
+		hud.updateErrorMessage('That is not your unit, press Home to zoom to you own units.', true);
+	}
+}
+
+var errorListener = (msg) => {
+  hud.updateErrorMessage(msg);
+}
 
 var loginListener = (data) => {
 	if (data.success) {
@@ -367,6 +379,7 @@ var loginListener = (data) => {
 		loginSuccess();
 	} else {
 		console.log('failed login');
+		fireBusEvent('error','Failed to log in, username already in use.');
 	}
 };
 
@@ -409,6 +422,7 @@ window.onerror = (msg, url, line, col, error) => {
 		error: error
 	}
 	window.track("error", body);
+	fireBusEvent('error');
 }
 
 export function loginSuccess() {

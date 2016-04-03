@@ -123,6 +123,7 @@ class client
 				console.log('creating new user');
 				return db.createUser(message.username, message.color)
 				.then( (userInfo) ->
+					thisClient.user = userInfo.username;
 					thisClient.userInfo = userInfo;
 					console.log('account created for user: ' + userInfo.username);
 					thisClient.ws.send(success('login',{apiKey: userInfo.apiKey}))

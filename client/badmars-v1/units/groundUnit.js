@@ -25,6 +25,7 @@ export class GroundUnit extends Entity {
 	distanceMoved: number;
 	timeToMove: number;
 	health: number;
+	maxHealth: number;
 
 	constructor(location: PlanetLoc, mesh: THREE.Object3D) {
 		super(location, mesh);
