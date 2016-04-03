@@ -214,6 +214,7 @@ init = () ->
 
 #@todo variables are getting messy here
 planetList = []
+module.exports.planetList = planetList
 exports.planetList = planetList
 lastTick = (new Date).getTime()
 TPS = 0

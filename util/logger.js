@@ -1,4 +1,4 @@
-var dateFormat, env, os, request, track;
+var dateFormat, env, os, request, track, verifyTrack;
 
 request = require('request');
 
@@ -57,6 +57,26 @@ dateFormat = function(date) {
   return date.getMonth() + "/" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes();
 };
 
+verifyTrack = function(name, kargs) {
+  var key, _i, _len, _ref, _results;
+  _ref = Object.keys(kargs);
+  _results = [];
+  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+    key = _ref[_i];
+    console.log(typeof kargs[key]);
+    if (typeof kargs[key] === 'object') {
+      console.log('invalid element ' + key + ' on ' + name);
+      delete kargs[key];
+      _results.push(track('error', {
+        msg: 'invalid element ' + key + ' on ' + name
+      }));
+    } else {
+      _results.push(void 0);
+    }
+  }
+  return _results;
+};
+
 track = function(name, kargs) {
   if (!kargs) {
     kargs = {};
@@ -65,6 +85,7 @@ track = function(name, kargs) {
   kargs.name = "server_" + name;
   kargs.hostname = os.hostname();
   kargs.env = env;
+  verifyTrack(name, kargs);
   return request({
     url: "http://104.197.78.205:9001/track/event",
     method: 'POST',

@@ -62,7 +62,7 @@ const MIDDLE_MOUSE = 1;
 // ---------------------------------------------------------------------
 // globals
 
-export var version = 1.1;
+export var version = 2;
 
 export var display: Display;
 export var map: Map;

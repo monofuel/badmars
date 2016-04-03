@@ -73,13 +73,28 @@ window.track = (name, kargs) => {
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", "http://104.197.78.205:9001/track/event");
 	kargs.name = "badmars_v1_" + name;
-	kargs.verison = version;
+	kargs.version = version;
 	if (playerInfo) {
-		kargs.playerInfo = playerInfo;
+		kargs.playerName = playerInfo.username;
 	}
+	verifyTrack(name,kargs);
 	console.log('tracking ' + name);
+	console.log(kargs);
 	xhr.send(JSON.stringify(kargs));
 
+}
+
+function verifyTrack(name,kargs) {
+	for (var key of Object.keys(kargs)) {
+		console.log(typeof kargs[key]);
+		if (typeof kargs[key] === 'object') {
+			console.log('invalid element ' + key + ' on ' + name);
+			delete kargs[key];
+			window.track('error', {
+				msg: 'invalid element ' + key + ' on ' + name
+			})
+		}
+	}
 }
 
 export class Player {

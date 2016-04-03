@@ -8,7 +8,7 @@ direction = require('./direction')
 PlanetLoc = require('./PlanetLoc')
 BadMars = require('./badMars.js')
 Logger = require('./util/logger.js')
-ticksPerSec = 10
+fs = require('fs')
 
 #---------------------------------------------------------------------
 
@@ -22,48 +22,22 @@ ticksPerSec = 10
 #cost of the unit
 #
 
+Units = JSON.parse(fs.readFileSync('./units.json'));
+module.exports.Units = Units
 
-
-Units = [
-  {
-    name: 'tank',
-    range: 5.0,
-    speed: 15,
-    hp: 50,
-    attack: 10,
-    cost: 500,
-    range: 8,
-    fireRate: 20, #time between firing in ticks
-    firePower: 15, #damage per shot
-    type: 'ground'
-  },{
-    name: 'scout',
-    range: 5.0,
-    speed: 3,
-    hp: 20,
-    attack: 2,
-    fireRate: 10
-    firePower: 2
-    cost: 100,
-    type: 'ground'
-  },{
-    name: 'builder',
-    range: 1.0,
-    speed: 15,
-    hp: 100,
-    attack: 0,
-    cost: 300,
-    type: 'ground'
-  },{
-    name: 'transport',
-    range: 1.0,
-    speed: 18,
-    hp: 300,
-    attack: 0,
-    cost: 200,
-    type: 'ground'
-  }
-]
+fs.watchFile('./units.json', () ->
+  console.log("units.json updated, reloading");
+  fs.readFile('./units.json', (err,data) ->
+    Units = JSON.parse(data);
+    module.exports.Units = Units
+    for planet in BadMars.planetList
+      planet.broadcastUpdate({
+        type: "unitBalance",
+        units: Units
+        });
+    console.log("new unit data broadcast");
+    )
+  )
 
 #TODO: this might need to be re-done as a hashmap
 exports.get = (name) ->
@@ -81,6 +55,8 @@ exports.list = () ->
 # @param [Unit] unit the unit to update
 # @return [Promise]
 exports.updateUnit = (unit) ->
+
+  ticksPerSec = BadMars.ticksPerSec
 
   if (!unit)
     #TODO refactor this
@@ -189,7 +165,7 @@ exports.updateUnit = (unit) ->
       update = true
       unit.fireCooldown = 0
 
-  if (unitInfo && unitInfo.firePower && unit.fireCooldown == 0)
+  if (unitInfo && unitInfo.firePower && unit.fireCooldown == 0 && !unit.moving)
     #check for an enemy to shoot
     enemy = planet.getNearestEnemy(unit)
     if (enemy && enemy.tile.distance(unit.tile) < unitInfo.range)

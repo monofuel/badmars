@@ -171,6 +171,7 @@ class client
 					)
 				when "getUnits"
 					@ws.send(success('units', {units: @planet.units}))
+					@ws.send(success('unitBalance', {units: Units.Units}))
 				when "getPlayers"
 					@ws.send(success('players', {players: sanitizePlayerList(@planet.players)}))
 				when "setDestination"

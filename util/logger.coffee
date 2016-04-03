@@ -48,6 +48,17 @@ module.exports.serverInfo = (info, body,silent) ->
 dateFormat = (date) ->
 	return date.getMonth() + "/" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes()
 
+verifyTrack = (name,kargs) ->
+	for key in Object.keys(kargs)
+		console.log(typeof kargs[key])
+		if (typeof kargs[key] == 'object')
+			console.log('invalid element ' + key + ' on ' + name);
+			delete kargs[key];
+			track('error', {
+				msg: 'invalid element ' + key + ' on ' + name
+				})
+
+
 track = (name, kargs) ->
 	if not kargs
 		kargs = {}
@@ -55,6 +66,7 @@ track = (name, kargs) ->
 	kargs.name = "server_" + name
 	kargs.hostname = os.hostname()
 	kargs.env = env
+	verifyTrack(name,kargs)
 	request({
 		url: "http://104.197.78.205:9001/track/event",
 		method: 'POST',
