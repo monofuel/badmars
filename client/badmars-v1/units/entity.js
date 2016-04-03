@@ -25,6 +25,7 @@ import {
 export class Entity {
 
 	uid: string;
+	playerId: string;
 	type: string;
 	mesh: THREE.Object3D;
 	unitHeight: number;
@@ -33,13 +34,23 @@ export class Entity {
 	health: number;
 	selectionCircle: THREE.Object3D | null;
 
+	maxStorage: number;
+	storage: Object;
+
 	constructor(location: PlanetLoc, mesh: THREE.Object3D) {
 		this.type = 'entity';
 		this.uid = "";
+		this.playerId = "";
 		this.location = location;
 		this.mesh = mesh;
 		this.mesh.userData = this;
 		this.unitHeight = 0.25;
+
+		this.maxStorage = 0;
+		this.storage = {
+			iron: 0,
+			oil: 0
+		}
 
 		if (!mesh) {
 			console.log('invalid mesh for unit');

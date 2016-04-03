@@ -45,6 +45,8 @@ export class Tank extends GroundUnit {
 		}
 		this.type = 'tank';
 		this.uid = uid;
-		this.speed = 1;
+		this.playerId = playerId;
+		this.speed = 1; //TODO should be set by server
+		this.maxStorage = 200; //TODO should be set by server
 	}
 }

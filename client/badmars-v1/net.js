@@ -154,9 +154,10 @@ export class Net {
 							return;
 						}
 						for (var player of data.players) {
-							playerList.push(new Player(player._id, player.username, player.color));
+							var info = new Player(player._id, player.username, player.color);
+							playerList.push(info);
 							if (player.username == username) {
-								setPlayerInfo(player);
+								setPlayerInfo(info);
 							}
 						}
 						self.s.send(JSON.stringify({
@@ -169,9 +170,7 @@ export class Net {
 							}
 							if (map && map.units && firstLoad) {
 								for (var unit of map.units) {
-									if (unit && display && playerInfo && unit.owner && playerInfo.id && unit.owner == playerInfo.id && isFirstLoad()) {
-										console.log(playerInfo.id);
-										console.log(unit.owner);
+									if (unit && display && playerInfo && unit.playerId && playerInfo.id && unit.playerId == playerInfo.id && isFirstLoad()) {
 										console.log('zooming in on unit: ', unit);
 										display.viewTile(unit.location);
 									}

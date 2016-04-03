@@ -32,6 +32,15 @@ import {
 import {
 	LoginModal
 } from "./ui/login.js";
+import {
+	HUD
+} from "./ui/hud.js";
+
+import {
+	registerBusListener,
+	deleteBusListener,
+	fireBusEvent
+} from './eventBus.js';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -72,6 +81,7 @@ export var playerInfo: ? Object;
 export var firstLoad = true;
 export var apiKey: String;
 var loginModal;
+var hud;
 
 export function setApiKey(key: String) {
 	apiKey = key;
@@ -79,6 +89,8 @@ export function setApiKey(key: String) {
 
 export function setPlayerInfo(info: Object) {
 	playerInfo = info;
+	console.log('found player info');
+	console.log(info);
 }
 
 export function isFirstLoad(): boolean {
@@ -110,8 +122,6 @@ window.onload = function () {
 	loadAllModelsAsync()
 		.then(() => {
 			console.log('models loaded');
-
-			promptLogin();
 			window.requestAnimationFrame(logicLoop);
 
 
@@ -138,6 +148,8 @@ window.onload = function () {
 					planet: "testPlanet3"
 				});
 			});
+	} else {
+		promptLogin();
 	}
 
 
@@ -156,6 +168,15 @@ window.onload = function () {
 		if (keysDown.indexOf(key.keyCode) == -1 && key.keyCode != 18) {
 			keysDown.push(key.keyCode);
 			//console.log('key pressed: ' + key.keyCode);
+
+			//for events that only fire once.
+			switch (key.keyCode) {
+				case 36:
+					var unit = zoomToNextUnit();
+					selectedUnit = unit;
+					fireBusEvent('selectedUnit',unit);
+					break;
+			}
 		}
 	});
 
@@ -202,7 +223,6 @@ window.onload = function () {
 				if (unit) {
 					console.log(unit.type + " clicked");
 					selectedUnit = unit;
-					window.debug.selectedUnit = unit;
 					buttonMode = MODE_MOVE;
 					mouseClick = function (tile) {
 						if (selectedUnit) {
@@ -215,12 +235,13 @@ window.onload = function () {
 					}
 				} else {
 					selectedUnit = null;
-					window.debug.selectedUnit = null;
 					buttonMode = MODE_SELECT;
 					mouseClick = null;
 					//TODO clear buttons highlighted
 					//TODO clear hilight on map
 				}
+				window.debug.selectedUnit = selectedUnit;
+				fireBusEvent('selectedUnit',unit);
 				break;
 			case RIGHT_MOUSE:
 				if (buttonMode = MODE_MOVE) {
@@ -278,10 +299,41 @@ function handleInput() {
 			case 69: //e
 				display.cameraRotateLeft(delta);
 				break;
+			default:
+				//console.log("key press: " + key);
 		}
 	}
 }
 
+function zoomToNextUnit() {
+	var foundUnit = false;
+	var userUnitCount = 0;
+	if (map && map.units) {
+		for (var unit of map.units) {
+			if (unit && display && playerInfo && unit.playerId && playerInfo.id && unit.playerId == playerInfo.id) {
+				userUnitCount++;
+				if (selectedUnit && !foundUnit) { //for cycling around units
+					if (selectedUnit == unit) {
+						foundUnit = true;
+					}
+					continue;
+				}
+				console.log('zooming in on unit: ', unit);
+				display.viewTile(unit.location);
+				return unit;
+			}
+		}
+		if (userUnitCount > 1 && foundUnit) { //when looping cycle back to beginning
+			for (var unit of map.units) {
+				if (unit && display && playerInfo && unit.playerId && playerInfo.id && unit.playerId == playerInfo.id) {
+					console.log('zooming in on unit: ', unit);
+					display.viewTile(unit.location);
+					return unit;
+				}
+			}
+		}
+	}
+}
 
 function promptLogin() {
 	console.log('prompting for login');
@@ -360,9 +412,19 @@ window.onerror = (msg, url, line, col, error) => {
 }
 
 export function loginSuccess() {
-	loginModal.close();
+	console.log("login success");
+	if (loginModal){
+		loginModal.close();
+	}
 	deleteListener(loginListener);
+	console.log("rendering HUD");
+	hud = ReactDOM.render(<HUD/>,document.getElementById("content"));
 	buttonMode = MODE_SELECT;
+
+	var selectedUnitListener = (unit) => {
+	  hud.updateSelectedUnit(unit);
+	}
+	registerBusListener('selectedUnit',selectedUnitListener);
 }
 
 /**

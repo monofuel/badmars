@@ -75,7 +75,7 @@ export class Display {
 		console.log('focusing');
 		console.log(tile);
 		this.camera.position.x = tile.real_x - 45.5;
-		this.camera.position.z = tile.real_y - 50;
+		this.camera.position.z = tile.real_y + 50;
 	}
 
 	updateSunPosition(delta: number) {
