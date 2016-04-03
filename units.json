@@ -2,39 +2,43 @@
   {
     "name": "tank",
     "range": 5.0,
-    "speed": 15,
-    "hp": 50,
+    "speed": 30,
+    "maxHealth": 50,
     "attack": 10,
     "cost": 500,
     "range": 8,
     "fireRate": 20,
     "firePower": 15,
-    "type": "ground"
+    "movementType": "ground",
+    "maxStorage": 300
   },{
     "name": "scout",
     "range": 5.0,
     "speed": 3,
-    "hp": 20,
+    "maxHealth": 20,
     "attack": 2,
     "fireRate": 10,
     "firePower": 2,
     "cost": 100,
-    "type": "ground"
+    "movementType": "ground",
+    "maxStorage": 50
   },{
     "name": "builder",
     "range": 1.0,
     "speed": 15,
-    "hp": 100,
+    "maxHealth": 100,
     "attack": 0,
     "cost": 300,
-    "type": "ground"
+    "movementType": "ground",
+    "maxStorage": 50
   },{
     "name": "transport",
     "range": 1.0,
     "speed": 18,
-    "hp": 300,
+    "maxHealth": 300,
     "attack": 0,
     "cost": 200,
-    "type": "ground"
+    "movementType": "ground",
+    "maxStorage": 2000
   }
 ]

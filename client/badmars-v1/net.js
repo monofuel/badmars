@@ -86,7 +86,6 @@ window.track = (name, kargs) => {
 
 function verifyTrack(name,kargs) {
 	for (var key of Object.keys(kargs)) {
-		console.log(typeof kargs[key]);
 		if (typeof kargs[key] === 'object') {
 			console.log('invalid element ' + key + ' on ' + name);
 			delete kargs[key];

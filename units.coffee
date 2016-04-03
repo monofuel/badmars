@@ -74,7 +74,7 @@ exports.updateUnit = (unit) ->
 
   #TODO: this sets the units default health. this should be coded better
   if (!unit.health)
-    unit.health = unitInfo.hp
+    unit.health = unitInfo.maxHealth
 
   if (unitInfo && unit.destination && unit.destination.length == 2)
     dest = new PlanetLoc(planet, unit.destination[0], unit.destination[1])

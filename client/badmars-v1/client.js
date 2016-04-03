@@ -44,6 +44,7 @@ import {
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import './units/unitBalance.js';
 
 // ---------------------------------------------------------------------
 // enumerators
