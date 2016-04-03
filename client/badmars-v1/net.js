@@ -36,7 +36,6 @@ import {
 //map of keys to an array of functions to call
 var listeners = {};
 
-
 export function registerListener(eventType: string, listener: Function) {
 	console.log("registering " + eventType + " listener");
 	if (!listeners[eventType]) {
@@ -60,6 +59,12 @@ export function deleteListener(listener: Function) {
 			}
 		}
 	}
+}
+
+function connectionError(err) {
+	console.log("connection lost");
+	window.track("error",err);
+	fireBusEvent('error','The connection to the server was lost. You should reload');
 }
 
 window.track = (name, kargs) => {
@@ -124,6 +129,12 @@ export class Net {
 			console.log("connecting to: " + SERVER_URL + ":" + SERVER_PORT);
 			self.s = new WebSocket(SERVER_URL + ":" + SERVER_PORT);
 
+			setInterval(() => {
+				if (self.s.readyState != 1) {
+					connectionError();
+				};
+			},1000);
+
 			self.s.onopen = () => {
 				console.log("connected!");
 				resolve();
@@ -138,7 +149,11 @@ export class Net {
 			}
 
 			window.sendMessage = (data) => {
-				self.s.send(JSON.stringify(data));
+				try {
+					self.s.send(JSON.stringify(data));
+				} catch (err) {
+					connectionError(err);
+				}
 			};
 
 			self.s.onmessage = (event) => {
@@ -224,7 +239,11 @@ export class Net {
 	}
 
 	send(data: Object) {
-		self.s.send(JSON.stringify(data));
+		try {
+			self.s.send(JSON.stringify(data));
+		} catch (err) {
+			connectionError(err);
+		}
 	}
 
 	close() {
