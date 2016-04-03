@@ -29,6 +29,7 @@ fs.watchFile('./units.json', () ->
   console.log("units.json updated, reloading");
   fs.readFile('./units.json', (err,data) ->
     Units = JSON.parse(data);
+    #TODO only send units that change
     module.exports.Units = Units
     for planet in BadMars.planetList
       planet.broadcastUpdate({

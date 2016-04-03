@@ -2,7 +2,7 @@
   {
     "name": "tank",
     "range": 5.0,
-    "speed": 30,
+    "speed": 15,
     "maxHealth": 50,
     "attack": 10,
     "cost": 500,
@@ -10,7 +10,7 @@
     "fireRate": 20,
     "firePower": 15,
     "movementType": "ground",
-    "maxStorage": 300
+    "maxStorage": 200
   },{
     "name": "scout",
     "range": 5.0,
