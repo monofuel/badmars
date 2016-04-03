@@ -48,17 +48,15 @@ class Planet
           continue
 
         db.getUserById(unit.owner).then((playerInfo) ->
-          ownerInList = false
           #TODO: lots of undocumented fields added to unit at runtime. should refactor
           unit.player = playerInfo
           for player in thisPlanet.players
-            if (player.id == unit.owner)
-              ownerInList = true
-          if (!ownerInList)
-            thisPlanet.players.push(playerInfo)
-          ).catch((err) ->
-            console.log(err)
-          )
+            if (playerInfo._id + "" == player._id + "")
+              return
+          thisPlanet.players.push(playerInfo)
+        ).catch((err) ->
+          console.log(err)
+        )
 
       thisPlanet.units = unitList
       console.log('unit count: ',unitList.length)
