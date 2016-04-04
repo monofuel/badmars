@@ -9,7 +9,7 @@ import {
 } from './map/planetLoc.js';
 
 const CAMERA_SPEED = 30;
-const ORTHOGRAPHIC = true;
+const ORTHOGRAPHIC = false;
 const SUN_SPEED = 0.025;
 const SUN_COLOR = 0xDD9A70;
 const MOON_COLOR = 0x9AA09A;
@@ -34,7 +34,7 @@ export class Display {
 		if (ORTHOGRAPHIC) {
 			this.camera = new THREE.OrthographicCamera(-this.d * aspectRatio, this.d * aspectRatio, this.d, -this.d, 1, 1000);
 		} else {
-			this.camera = new THREE.PerspectiveCamera(75, aspectRatio, 0.1, 1000);
+			this.camera = new THREE.PerspectiveCamera(45, aspectRatio, 0.1, 1000);
 		}
 
 		var panel = document.getElementById('threePanel');
@@ -62,7 +62,7 @@ export class Display {
 		} else {
 			this.camera.position.set(8, 20, -8);
 			this.camera.up = new THREE.Vector3(0, 0, 1);
-			this.camera.rotation.set(-0.6, -Math.PI / 4, 0);
+			this.camera.rotation.set(-1, -Math.PI / 2, 0);
 			this.camera.rotation.order = 'YXZ';
 		}
 
@@ -74,8 +74,17 @@ export class Display {
 	viewTile(tile: PlanetLoc) {
 		console.log('focusing');
 		console.log(tile);
-		this.camera.position.x = tile.real_x - 45.5;
-		this.camera.position.z = tile.real_y + 50;
+		if (ORTHOGRAPHIC) {
+			this.camera.position.x = tile.real_x - 45.5;
+			this.camera.position.z = tile.real_y + 50;
+		} else {
+			console.log(tile.getLoc());
+			this.camera.position.copy(tile.getLoc());
+			this.camera.position.x -= 13;
+			this.camera.position.y += 25;
+			this.camera.position.z -= 13;
+			this.camera.rotation.set(-1, -2.3708363267948984, 0);
+		}
 	}
 
 	updateSunPosition(delta: number) {
@@ -103,7 +112,7 @@ export class Display {
 			this.d *= 1 + (1 * delta);
 			this.resize();
 		} else {
-			this.camera.position.y += CAMERA_SPEED * delta;
+			this.camera.position.y -= CAMERA_SPEED * delta;
 		}
 	}
 

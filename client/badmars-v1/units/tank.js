@@ -46,6 +46,7 @@ export class Tank extends GroundUnit {
 			console.log("failed to get tank mesh!");
 			super(location, null);
 		}
+		this.fireSound = getSound('tank');
 		this.type = 'tank';
 		this.uid = uid;
 		this.playerId = playerId;

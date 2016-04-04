@@ -37,6 +37,23 @@ export class GroundUnit extends Entity {
 
 	}
 
+	fire(enemy) {
+		if (this.fireSound) {
+			if (this.fireSound.isPlaying) {
+				console.log('stopping sound');
+				this.fireSound.stop();
+			}
+			//pew
+			var sound = this.fireSound;
+			var location = this.location;
+			setTimeout(() => { //work around issue with 'audio already playing'
+				sound.position.copy(location.getLoc());
+				sound.play();
+			},10);
+
+		}
+	}
+
 	updateHealth(amount) {
 		this.health = amount;
 	}

@@ -2,7 +2,7 @@
   {
     "name": "tank",
     "range": 5.0,
-    "speed": 15,
+    "speed": 6,
     "maxHealth": 50,
     "attack": 10,
     "cost": 500,

@@ -77,6 +77,10 @@ export class Map {
 		this.attackListener = (data) => {
 			console.log("handling attack");
 			var unit = self.getUnitById(data.enemyId);
+			var attackingUnit = self.getUnitById(data.unitId);
+			if (unit && unit.takeDamage) {
+				unit.takeDamage(attackingUnit);
+			}
 			if (unit && unit.updateHealth) {
 				unit.updateHealth(data.enemyHealth);
 			} else {
@@ -84,6 +88,10 @@ export class Map {
 					message: "tried to attack un-attackable unit",
 					data: data
 				});
+			if (attackingUnit && attackingUnit.fire) {
+				console.log("unit taking damage");
+				attackingUnit.fire(unit);
+			}
 			}
 		};
 		registerListener('attack', this.attackListener);

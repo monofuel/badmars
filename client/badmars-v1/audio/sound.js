@@ -45,8 +45,6 @@ export function loadAllSounds() {
 	for (var unitInfo of soundMap) {
     unitInfo.sound = new THREE.PositionalAudio(listener);
 			unitInfo.sound.load('sounds/' + unitInfo.fileName);
+      unitInfo.sound.setVolume(100);
 	}
-  window.debug.testSound = () => {
-    getSound(tank).sound.play();
-  }
 }
