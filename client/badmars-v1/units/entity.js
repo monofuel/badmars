@@ -19,6 +19,7 @@ import {
 } from '../player.js';
 import {
 	selectedUnit,
+	selectedUnits,
 	display
 } from '../client.js';
 
@@ -114,7 +115,8 @@ export class Entity {
 	}
 
 	displayIfSelected() {
-		if (!selectedUnit || selectedUnit != this) {
+
+		if ((!selectedUnit || selectedUnit != this) && (!selectedUnits || selectedUnits.indexOf(this) == -1)) {
 			if (display && this.selectionCircle) {
 				display.removeMesh(this.selectionCircle);
 				this.selectionCircle = null;

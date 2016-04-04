@@ -77,7 +77,13 @@ var buttonMode: Symbol = MODE_SELECT;
 var mouseClick: ? Function;
 var mouseMove: ? Function;
 var keysDown = [];
+var isMouseDown = false;
+var dragStart = [];
+var dragEnd = [];
+var dragCurrent = [];
+var ctrlKey = false;
 export var selectedUnit: ? Entity;
+export var selectedUnits = [];
 var selectedTile: ? PlanetLoc;
 var statsMonitor: StatsMonitor;
 export var username;
@@ -86,6 +92,8 @@ export var firstLoad = true;
 export var apiKey: String;
 var loginModal;
 var hud;
+var hudPanel;
+var hudContext;
 
 export function setApiKey(key: String) {
 	apiKey = key;
@@ -123,6 +131,10 @@ window.onload = function () {
 	clock = new THREE.Clock();
 	statsMonitor = new StatsMonitor();
 	net = new Net();
+	hudPanel = document.getElementById('HUDPanel');
+	hudPanel.width = display.renderer.domElement.clientWidth;
+	hudPanel.height = display.renderer.domElement.clientHeight;
+	hudContext = hudPanel.getContext("2d");
 	loadAllSounds(); //TODO should be done async probably
 	loadAllModelsAsync()
 		.then(() => {
@@ -172,6 +184,10 @@ window.onload = function () {
 		//check if it is a new keypress, but ignore presses for alt (buggy with alt tab)
 		if (keysDown.indexOf(key.keyCode) == -1 && key.keyCode != 18) {
 			keysDown.push(key.keyCode);
+			ctrlKey = key.ctrlKey;
+			if (ctrlKey && key.keyCode == 65) { //block ctrl A
+				event.preventDefault();
+			}
 			//console.log('key pressed: ' + key.keyCode);
 
 			//for events that only fire once.
@@ -203,6 +219,13 @@ window.onload = function () {
 	});
 
 	document.body.addEventListener('mousemove', (event: any) => {
+		if (isMouseDown) {
+			event.preventDefault();
+			dragCurrent = new THREE.Vector2();
+			dragCurrent.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1;
+			dragCurrent.y = -(event.clientY / display.renderer.domElement.clientHeight) * 2 + 1;
+		}
+
 		switch (buttonMode) {
 			case MODE_FOCUS:
 				if (mouseMove)
@@ -212,7 +235,15 @@ window.onload = function () {
 	});
 
 	document.body.addEventListener('mousedown', (event: any) => {
-
+		switch (event.button) {
+			case LEFT_MOUSE:
+				isMouseDown = true;
+				dragStart = new THREE.Vector2();
+				dragStart.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1;
+				dragStart.y = -(event.clientY / display.renderer.domElement.clientHeight) * 2 + 1;
+				dragCurrent = dragStart;
+				break;
+		}
 	});
 
 	document.body.addEventListener('mouseup', (event: any) => {
@@ -221,6 +252,31 @@ window.onload = function () {
 		var mouse = new THREE.Vector2();
 		mouse.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1
 		mouse.y = -(event.clientY / display.renderer.domElement.clientHeight) * 2 + 1
+
+		if (isMouseDown) { //for dragging actions
+			isMouseDown = false;
+			switch (event.button) {
+				case LEFT_MOUSE:
+					if (Math.abs(mouse.x - dragStart.x) > 1 / 100 && Math.abs(mouse.y - dragStart.y) > 1 / 100) {
+						console.log('dragging action');
+						selectedUnits = map.getSelectedUnits(mouse,dragStart);
+						window.debug.selectedUnits = selectedUnits;
+						buttonMode = MODE_MOVE;
+						mouseClick = function (tile) {
+							for (var unit of selectedUnits) {
+								net.send({
+									type: "setDestination",
+									unitId: unit.uid,
+									location: [tile.x, tile.y]
+								});
+							}
+						}
+						return;
+					}
+					break;
+			}
+
+		}
 
 		switch (event.button) {
 			case LEFT_MOUSE:
@@ -240,12 +296,14 @@ window.onload = function () {
 					}
 				} else {
 					selectedUnit = null;
+					selectedUnits = [];
 					buttonMode = MODE_SELECT;
 					mouseClick = null;
 					//TODO clear buttons highlighted
 					//TODO clear hilight on map
 				}
 				window.debug.selectedUnit = selectedUnit;
+				window.debug.selectedUnits = selectedUnits;
 				fireBusEvent('selectedUnit',unit);
 				break;
 			case RIGHT_MOUSE:
@@ -270,6 +328,8 @@ function logicLoop() {
 		}
 		map.update(delta);
 		display.render(delta);
+		hudContext.clearRect(0, 0, hudPanel.width, hudPanel.height);
+		drawSelectionBox();
 	} catch (error) {
 		console.log(error);
 		window.track("error", error)
@@ -284,7 +344,22 @@ function handleInput() {
 				display.cameraForward(delta);
 				break;
 			case 65: //a
-				display.cameraLeft(delta);
+				if (ctrlKey) {
+					selectedUnits = map.getSelectedUnitsInView(); //TODO lots of duplicated unit selection code
+					window.debug.selectedUnits = selectedUnits;
+					buttonMode = MODE_MOVE;
+					mouseClick = function (tile) {
+						for (var unit of selectedUnits) {
+							net.send({
+								type: "setDestination",
+								unitId: unit.uid,
+								location: [tile.x, tile.y]
+							});
+						}
+					}
+				} else {
+					display.cameraLeft(delta);
+				}
 				break;
 			case 83: //s
 				display.cameraBackward(delta);
@@ -307,6 +382,36 @@ function handleInput() {
 			default:
 				//console.log("key press: " + key);
 		}
+	}
+}
+
+function drawSelectionBox() {
+	if (isMouseDown) {
+		//draw from dragStart to dragCurrent
+		//convert from vector back to x and y
+		//dragCurrent.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1;
+		//dragCurrent.y = -(event.clientY / display.renderer.domElement.clientHeight) * 2 + 1;
+		var widthHalf = 0.5*hudPanel.width;
+    var heightHalf = 0.5*hudPanel.height;
+
+		var startVec = new THREE.Vector2();
+		startVec.x = (dragStart.x * widthHalf) + widthHalf;
+		startVec.y = - (dragStart.y * heightHalf) + heightHalf;
+
+		var curVec = new THREE.Vector2();
+		curVec.x = (dragCurrent.x * widthHalf) + widthHalf;
+		curVec.y = - (dragCurrent.y * heightHalf) + heightHalf;
+		var maxX = Math.round(Math.max(startVec.x,curVec.x));
+		var minX = Math.round(Math.min(startVec.x,curVec.x));
+		var maxY = Math.round(Math.max(startVec.y,curVec.y));
+		var minY = Math.round(Math.min(startVec.y,curVec.y));
+
+		console.log(minX,minY,maxX,maxY);
+
+		hudContext.strokeStyle = '#000000';
+		hudContext.lineWidth = 1;
+		hudContext.strokeRect(minX,minY,maxX - minX, maxY - minY);
+
 	}
 }
 

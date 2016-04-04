@@ -17,7 +17,8 @@ import {
 	Entity
 } from '../units/entity.js';
 import {
-	display
+	display,
+	playerInfo
 } from '../client.js';
 import {
 	Display
@@ -348,6 +349,81 @@ export class Map {
 		}
 		console.log("no unit selected");
 		return null;
+	}
+
+	getSelectedUnits(mouseStart: THREE.Vector2, mouseEnd: THREE.Vector2): Array<Entity> {
+		if (!display) {
+			return null;
+		}
+		var maxX = Math.max(mouseStart.x,mouseEnd.x);
+		var minX = Math.min(mouseStart.x,mouseEnd.x);
+		var maxY = Math.max(mouseStart.y,mouseEnd.y);
+		var minY = Math.min(mouseStart.y,mouseEnd.y);
+
+		var unitList = [];
+		for (var unit of this.units)  {
+			var vector = this.toScreenPosition(unit.mesh);
+			if (vector.x < maxX && vector.x > minX && vector.y > minY && vector.y < maxY) {
+				unitList.push(unit);
+			}
+		}
+		return unitList;
+	}
+
+	toScreenPosition(obj){
+    var vector = new THREE.Vector3();
+
+    obj.updateMatrixWorld();
+    vector.setFromMatrixPosition(obj.matrixWorld);
+    vector.project(display.camera);
+
+    return vector;
+
+};
+
+	/*
+	//get units between 2 squares
+	var startTile = this.getTileAtRay(mouseStart);
+	var endTile = this.getTileAtRay(mouseEnd)
+	var startVec = startTile.getVec();
+	var endVec = endTile.getVec();
+	endVec.y -= 50;
+	startVec.y += 50;
+	var boundingBox = new THREE.Box3(endVec,startVec);
+	console.log(boundingBox);
+
+	var unitList = [];
+	for (var unit of this.units)  {
+		if (boundingBox.containsPoint(unit.location.getVec())) {
+			console.log("contains ",unit);
+		}
+		if (boundingBox.containsPoint(unit.location.getVec()) && unit.playerId == playerInfo.id) {
+			unitList.push(unit);
+		}
+	}
+	*/
+
+	getSelectedUnitsInView() {
+		if (!display) {
+			return null;
+		}
+		display.camera.updateMatrix(); // make sure camera's local matrix is updated
+		display.camera.updateMatrixWorld(); // make sure camera's world matrix is updated
+		display.camera.matrixWorldInverse.getInverse( display.camera.matrixWorld );
+
+		var frustum = new THREE.Frustum();
+		var projScreenMatrix = new THREE.Matrix4();
+		projScreenMatrix.multiplyMatrices( display.camera.projectionMatrix, display.camera.matrixWorldInverse );
+
+		frustum.setFromMatrix( new THREE.Matrix4().multiplyMatrices( display.camera.projectionMatrix, display.camera.matrixWorldInverse ) );
+
+		var unitList = [];
+		for (var unit of this.units)  {
+			if (frustum.containsPoint(unit.location.getVec()) && unit.playerId == playerInfo.id) {
+				unitList.push(unit);
+			}
+		}
+		return unitList;
 	}
 
 	update(delta: number) {
