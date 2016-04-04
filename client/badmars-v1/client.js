@@ -456,7 +456,7 @@ function promptLogin() {
 
 var moveListener = (data) => {
 	if (!data.success) {
-		hud.updateErrorMessage('That is not your unit, press Home to zoom to you own units.', true);
+		//hud.updateErrorMessage('That is not your unit, press Home to zoom to you own units.', true);
 	}
 }
 
