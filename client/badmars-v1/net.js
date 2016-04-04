@@ -90,7 +90,8 @@ function verifyTrack(name,kargs) {
 			console.log('invalid element ' + key + ' on ' + name);
 			delete kargs[key];
 			window.track('error', {
-				msg: 'invalid element ' + key + ' on ' + name
+				msg: 'invalid element ' + key + ' on ' + name,
+				data: JSON.stringify(kargs[key])
 			})
 		}
 	}

@@ -24,6 +24,9 @@ function updateUnitsListener(data) {
       for (var key of Object.keys(unitInfo)) {
         unit[key] = unitInfo[key];
       }
+      if (unit.maxHealth && !unit.health) {
+        unit.health = unit.maxHealth;
+      }
     }
   }
 }

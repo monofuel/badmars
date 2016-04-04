@@ -15,12 +15,13 @@ exports.sendMessage = (player, data) ->
 	if (!data || !data.type)
 		console.log('invalid message sent without data.type')
 		console.log(new Error().stack)
+
 	for client in clientList
-		if (client.userInfo.id == player.id)
-			try
+		try
+			if (client.userInfo.id == player.id)
 				client.send(data)
-			catch error
-				console.log('error sending: ',error)
+		catch error
+			console.log('error sending: ',error)
 
 
 

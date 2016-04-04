@@ -5,11 +5,12 @@
 // 4-2-2016
 
 import React from 'react';
-import { Button,Modal } from 'react-bootstrap';
+import { Button,Modal,Alert } from 'react-bootstrap';
 
 export var LoginModal = React.createClass({
   getInitialState() {
-    return { showModal: true };
+    return { showModal: true,
+              loginError: ""};
   },
 
   close() {
@@ -19,15 +20,28 @@ export var LoginModal = React.createClass({
     window.login();
   },
 
+  setError(msg) {
+    this.setState({ loginError: msg});
+  },
+
   open() {
     this.setState({ showModal: true });
   },
 
   render() {
+    var errorMessage;
+    if (this.state.loginError) {
+      errorMessage = (
+        <Alert bsStyle="danger" if>
+          {this.state.loginError}
+        </Alert>
+      )
+    }
+
     return (
       <div>
-        <Modal show={this.state.showModal} onHide={this.close}>
-          <Modal.Header closeButton>
+        <Modal show={this.state.showModal}>
+          <Modal.Header>
             <Modal.Title>BadMars v1 alpha</Modal.Title>
           </Modal.Header>
           <Modal.Body>
@@ -35,6 +49,7 @@ export var LoginModal = React.createClass({
   						<li>
                 <label for="usernameField">Username:</label>
   						  <input type="text" id="usernameField"/>
+                {errorMessage}
               </li>
               <li>
   						  <label for="usernameField">html color:</label>

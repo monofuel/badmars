@@ -106,8 +106,11 @@ export class Entity {
 		if (display) {
 			display.removeMesh(this.mesh);
 		}
-		if (this.planetLoc) {
-			this.planetLoc.planet.removeUnit(this);
+		if (this.selectionCircle) {
+			display.removeMesh(this.selectionCircle);
+		}
+		if (this.location) {
+			this.location.planet.removeUnit(this);
 		}
 	}
 

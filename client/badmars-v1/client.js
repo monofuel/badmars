@@ -63,7 +63,7 @@ const MIDDLE_MOUSE = 1;
 // ---------------------------------------------------------------------
 // globals
 
-export var version = 2;
+export var version = 4;
 
 export var display: Display;
 export var map: Map;
@@ -130,8 +130,6 @@ window.onload = function () {
 
 	registerListener('login',loginListener);
 	registerListener('setDestination', moveListener);
-
-	registerBusListener('error',errorListener);
 
 	username = $.cookie("username");
 	apiKey = $.cookie("apiKey");
@@ -380,7 +378,7 @@ var loginListener = (data) => {
 		loginSuccess();
 	} else {
 		console.log('failed login');
-		fireBusEvent('error','Failed to log in, username already in use.');
+		loginModal.setError('Failed to log in, username already in use.');
 	}
 };
 
@@ -420,7 +418,6 @@ window.onerror = (msg, url, line, col, error) => {
 		url: url,
 		line: line,
 		col: col,
-		error: error
 	}
 	window.track("error", body);
 	fireBusEvent('error');
@@ -432,8 +429,10 @@ export function loginSuccess() {
 		loginModal.close();
 	}
 	deleteListener(loginListener);
+
 	console.log("rendering HUD");
 	hud = ReactDOM.render(<HUD/>,document.getElementById("content"));
+	registerBusListener('error',errorListener);
 	buttonMode = MODE_SELECT;
 
 	var selectedUnitListener = (unit) => {
