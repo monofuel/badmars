@@ -39,6 +39,7 @@ export function getSound(name: string): ? SoundInfo {
  * kick off tasks to load all the models and returns a promise
  */
 export function loadAllSounds() {
+  console.log("loading sounds");
   var listener = new THREE.AudioListener();
   display.camera.add(listener);
 	for (var unitInfo of soundMap) {
