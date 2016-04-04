@@ -406,9 +406,7 @@ function drawSelectionBox() {
 		var maxY = Math.round(Math.max(startVec.y,curVec.y));
 		var minY = Math.round(Math.min(startVec.y,curVec.y));
 
-		console.log(minX,minY,maxX,maxY);
-
-		hudContext.strokeStyle = '#000000';
+		hudContext.strokeStyle = '#7CFC00';
 		hudContext.lineWidth = 1;
 		hudContext.strokeRect(minX,minY,maxX - minX, maxY - minY);
 

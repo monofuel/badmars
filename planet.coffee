@@ -181,7 +181,7 @@ class Planet
     distance = null
     nearestEnemy = null
     for otherUnit in @units
-      if (otherUnit.owner != unit.owner)
+      if (otherUnit.owner != unit.owner && otherUnit.type != 'oil' && otherUnit.type != 'iron')
         otherUnitDistance = unit.tile.distance(otherUnit.tile);
         if (!nearestEnemy || otherUnitDistance < distance)
           nearestEnemy = otherUnit

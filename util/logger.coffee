@@ -50,7 +50,6 @@ dateFormat = (date) ->
 
 verifyTrack = (name,kargs) ->
 	for key in Object.keys(kargs)
-		console.log(typeof kargs[key])
 		if (typeof kargs[key] == 'object')
 			console.log('invalid element ' + key + ' on ' + name);
 			delete kargs[key];

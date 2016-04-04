@@ -63,7 +63,6 @@ verifyTrack = function(name, kargs) {
   _results = [];
   for (_i = 0, _len = _ref.length; _i < _len; _i++) {
     key = _ref[_i];
-    console.log(typeof kargs[key]);
     if (typeof kargs[key] === 'object') {
       console.log('invalid element ' + key + ' on ' + name);
       delete kargs[key];
