@@ -66,7 +66,7 @@ const MIDDLE_MOUSE = 1;
 // ---------------------------------------------------------------------
 // globals
 
-export var version = 4;
+export var version = 5;
 
 export var display: Display;
 export var map: Map;
@@ -261,6 +261,11 @@ window.onload = function () {
 						console.log('dragging action');
 						selectedUnits = map.getSelectedUnits(mouse,dragStart);
 						window.debug.selectedUnits = selectedUnits;
+						if (selectedUnits.length == 1) {
+							selectedUnit = selectedUnits[0];
+							window.debug.selectedUnit = selectedUnit;
+							fireBusEvent('selectedUnit',selectedUnit);
+						}
 						buttonMode = MODE_MOVE;
 						mouseClick = function (tile) {
 							for (var unit of selectedUnits) {
@@ -302,6 +307,8 @@ window.onload = function () {
 					//TODO clear buttons highlighted
 					//TODO clear hilight on map
 				}
+
+				//TODO the whole system needs a lot of refactoring for multiple selected units
 				window.debug.selectedUnit = selectedUnit;
 				window.debug.selectedUnits = selectedUnits;
 				fireBusEvent('selectedUnit',unit);
