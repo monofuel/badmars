@@ -14,6 +14,9 @@ import {
 	getMesh
 } from './unitModels.js';
 import {
+	getSound
+} from '../audio/sound.js';
+import {
 	getPlayerById
 } from '../net.js';
 

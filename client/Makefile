@@ -11,6 +11,7 @@ badmars_v1:
 copy: build
 	cp -r dependencies/ ../public/js/badmars
 	cp -r models/ ../public
+	cp -r sounds/ ../public
 
 docs:
 	#codo -vu -o ../public/clientdocs planet_viewer/*.coffee

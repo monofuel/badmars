@@ -28,6 +28,9 @@ import {
 import {
 	loadAllModelsAsync
 } from "./units/unitModels.js";
+import {
+	loadAllSounds
+} from "./audio/sound.js";
 
 import {
 	LoginModal
@@ -120,13 +123,13 @@ window.onload = function () {
 	clock = new THREE.Clock();
 	statsMonitor = new StatsMonitor();
 	net = new Net();
+	loadAllSounds(); //TODO should be done async probably
 	loadAllModelsAsync()
 		.then(() => {
 			console.log('models loaded');
 			window.requestAnimationFrame(logicLoop);
 
-
-		})
+		});
 
 	registerListener('login',loginListener);
 	registerListener('setDestination', moveListener);
