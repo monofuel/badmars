@@ -35,6 +35,7 @@ export class Entity {
 	health: number;
 	selectionCircle: THREE.Object3D | null;
 	damageSphere: THREE.Object3D | null;
+	ghosting: boolean;
 
 	maxStorage: number;
 	storage: Object;
@@ -48,6 +49,7 @@ export class Entity {
 		this.mesh.userData = this;
 		this.unitHeight = 0.25;
 		this.takingDamage = 0;
+		this.ghosting = false;
 
 		this.maxStorage = 0;
 		this.storage = {
@@ -77,6 +79,14 @@ export class Entity {
 		if (this.takingDamage) {
 			this.animateSmoke();
 		}
+		if (this.ghosting) {
+			this.mesh.material.transparent = true;
+			this.mesh.material.opacity = 0.5;
+		} else {
+			this.mesh.material.transparent = false;
+			this.mesh.material.opacity = 1;
+		}
+
 	}
 
 	takeDamage(source) {

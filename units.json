@@ -2,6 +2,7 @@
   {
     "name": "tank",
     "range": 5.0,
+    "transferRange":0,
     "speed": 6,
     "maxHealth": 50,
     "attack": 10,
@@ -14,6 +15,7 @@
   },{
     "name": "scout",
     "range": 5.0,
+    "transferRange":0,
     "speed": 3,
     "maxHealth": 20,
     "attack": 2,
@@ -25,6 +27,7 @@
   },{
     "name": "builder",
     "range": 1.0,
+    "transferRange":0,
     "speed": 15,
     "maxHealth": 100,
     "attack": 0,
@@ -34,11 +37,40 @@
   },{
     "name": "transport",
     "range": 1.0,
+    "transferRange":10,
     "speed": 18,
     "maxHealth": 300,
     "attack": 0,
     "cost": 200,
     "movementType": "ground",
-    "maxStorage": 2000
+    "maxStorage": 1200
+  },{
+    "name":"factory",
+    "transferRange":0,
+    "cost": 1000,
+    "maxHealth": 500,
+    "movementType": "building",
+    "maxStorage": 1000
+  },{
+    "name":"storage",
+    "transferRange":10,
+    "cost": 500,
+    "maxHealth": 500,
+    "movementType": "building",
+    "maxStorage": 4000
+  },{
+    "name":"ironMine",
+    "transferRange":10,
+    "cost": 500,
+    "maxHealth": 200,
+    "movementType": "building",
+    "maxStorage": 100
+  },{
+    "name":"oilMine",
+    "transferRange":10,
+    "cost": 500,
+    "maxHealth": 200,
+    "movementType": "building",
+    "maxStorage": 100
   }
 ]

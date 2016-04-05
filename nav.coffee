@@ -121,7 +121,8 @@ class AStarPath
         continue
 
       #check if there is already a unit on the tile
-      if (@planet.unitTileCheck(current))
+      unitOnTile = (@planet.unitTileCheck(current))
+      if (unitOnTile && !unitOnTile.ghosting)
         continue
 
       neighbors = [

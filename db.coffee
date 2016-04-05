@@ -206,6 +206,8 @@ exports.createUnit = (tile,unitType,owner,unfinished) ->
   }
   if (unfinished)
     unitData.constructing = 0;
+    unitData.ghosting = true;
+    unitData.ghostCreation = (new Date()).getTime()
   #@todo error check unit type
 
   unitDoc = new Unit(unitData)

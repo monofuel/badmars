@@ -21,9 +21,8 @@ import {
 	playerInfo
 } from '../client.js';
 import {
-	Display
+	Display,
 } from '../display.js';
-
 import {
 	Iron
 } from '../units/iron.js';
@@ -33,6 +32,12 @@ import {
 import {
 	Tank
 } from '../units/tank.js';
+import {
+	Storage
+} from '../units/storage.js'; //oh god so many units so many files dear god why
+import {
+	Builder
+} from '../units/builder.js';
 import {
 	N,
 	S,
@@ -57,6 +62,7 @@ export class Map {
 	worldSettings: Object;
 	attackListener: Function;
 	killListener: Function;
+	ghostUnitListener: Function;
 
 	constructor(planet: ? Object) {
 		console.log('loading map');
@@ -111,6 +117,12 @@ export class Map {
 		}
 		registerListener('kill', this.killListener);
 
+		this.ghostUnitListener = (data) => {
+			console.log('new ghost unit');
+			window.addUnit(data.unit);
+		}
+		registerListener('createGhost',this.ghostUnitListener);
+
 		window.addUnit = (unit: Object) => {
 			for (var oldUnit of self.units) {
 				if (oldUnit.uid == unit._id) {
@@ -118,24 +130,65 @@ export class Map {
 					return;
 				}
 			}
+			console.log(unit);
+			if (unit.ghosting && !playerInfo) {
+				return;
+			}
 
+			if (unit.ghosting && unit.owner != playerInfo.id) {
+				return;
+			}
+
+			var newUnit;
 			switch (unit.type) {
 				case 'iron':
 					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
 
-					self.units.push(new Iron(loc, unit.rate, unit._id));
+					newUnit = new Iron(loc, unit.rate, unit._id);
 					break;
 				case 'oil':
 					var loc = new PlanetLoc(this, unit.location[0], unit.location[1]);
 
-					self.units.push(new Oil(loc, unit.rate, unit._id));
+					newUnit = new Oil(loc, unit.rate, unit._id);
 					break;
 				case 'tank':
 					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-
-					self.units.push(new Tank(loc, unit.owner, unit._id));
+					newUnit = new Tank(loc, unit.owner, unit._id)
+					newUnit.ghosting = unit.ghosting;
 					break;
+				case 'storage':
+					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
+					newUnit = new Storage(loc, unit.owner, unit._id)
+					newUnit.ghosting = unit.ghosting;
+					break;
+				case 'builder':
+					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
+					newUnit = new Builder(loc, unit.owner, unit._id)
+					newUnit.ghosting = unit.ghosting;
+					break;
+				case 'transport':
+					return;
+					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
+					//newUnit = new Transport(loc, unit.owner, unit._id)
+					newUnit.ghosting = unit.ghosting;
+					break;
+				case 'ironMine':
+					return;
+					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
+					//newUnit = new ironMine(loc, unit.owner, unit._id)
+					newUnit.ghosting = unit.ghosting;
+					break;
+				case 'oilMine':
+					return;
+					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
+					//newUnit = new oilMine(loc, unit.owner, unit._id)
+					newUnit.ghosting = unit.ghosting;
+					break;
+				default:
+					console.log('unknown type: ', unit);
+					return;
 			}
+			self.units.push(newUnit);
 		}
 	}
 
@@ -143,6 +196,7 @@ export class Map {
 
 		deleteListener(this.attackListener);
 		deleteListener(this.killListener);
+		deleteListener(this.ghostUnitListener);
 		for (var mesh of this.landMeshes) {
 			Display.removeMesh(mesh);
 		}

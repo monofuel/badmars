@@ -10,6 +10,7 @@ BadMars = require('./badMars.js')
 Logger = require('./util/logger.js')
 Net = require('./net.js')
 fs = require('fs')
+db = require("./db.js");
 
 ASTAR_MAX = 100
 
@@ -61,9 +62,20 @@ Net.registerListener('createGhost', (data,client) ->
   if (!unitInfo)
     client.send(Net.errMsg('createGhost','missing unitType field'));
     return
+  if (!data.location)
+    client.send(Net.errMsg('createGhost','missing location field'));
+    return
 
-  console.log('creating ghost unit')
-  client.send(Net.success('createGhost',{}));
+  tile = new PlanetLoc(client.planet,data.location[0],data.location[1])
+  db.createUnit(tile,unitInfo.name,client.userInfo._id,true)
+    .then((ghost) ->
+      ghost.tile = tile;
+      ghost.totalAttempts = 0
+      ghost.health = unitInfo.maxHealth
+      tile.planet.units.push(ghost)
+      console.log('creating ghost unit')
+      client.send({type: 'createGhost',unit: ghost});
+    )
   )
 
 # simulate 1 server tick on a unit
@@ -78,6 +90,10 @@ exports.updateUnit = (unit) ->
     #hacky fix for when units are deleted during a simulation tick
     return
 
+  if (unit.ghosting)
+    return;
+
+
   #rather messy. unit is the instance of a unit, unitInfo is metadata for the specific type of unit.
   #this should be refactored.
   #TODO: this function should be refactored as i get a better idea of how to lay things out
@@ -85,6 +101,11 @@ exports.updateUnit = (unit) ->
   #bool for if we want to save updates back to DB
   update = false
   unitInfo = exports.get(unit.type)
+  if (!unitInfo)
+    #TODO add logging for this case.
+    #ignoring as i don't want to bother fixing the db atm.
+    return
+
   planet = unit.tile.planet
 
   #TODO: this sets the units default health. this should be coded better
@@ -157,7 +178,8 @@ exports.updateUnit = (unit) ->
             unit.nextTile = unit.tile
 
         #check if a unit is blocking the next tile
-        if (planet.unitTileCheck(unit.nextTile) == null)
+        unitOnTile = planet.unitTileCheck(unit.nextTile);
+        if (unitOnTile == null || unitOnTile.ghosting)
           unit.moving = true;
           planet.broadcastUpdate({
             type: "moving"
