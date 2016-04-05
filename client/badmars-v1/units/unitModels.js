@@ -16,7 +16,8 @@ export class ModelInfo {
 }
 
 var modelMap: Array < ModelInfo > = [
-	(new ModelInfo('tank', 'tank_mockup.obj'))
+	(new ModelInfo('tank', 'tank_mockup.obj')),
+	(new ModelInfo('iron', 'iron_mockup.obj'))
 ];
 
 export var loaded: number;
@@ -45,8 +46,9 @@ export function loadAllModelsAsync() : Promise {
 	}
 	var loader = new THREE.OBJLoader(manager);
 	var allPromises = [];
-	for (var unitInfo of modelMap) {
+	for (var tmp of modelMap) {
 		allPromises.push(new Promise(function (resolve, reject) {
+			var unitInfo = tmp; //passing variable into promise finnickery
 			loader.load('models/' + unitInfo.fileName,
 				function (model: THREE.Mesh3D) {
 					console.log('loaded model for ', unitInfo.name);

@@ -44,6 +44,7 @@ class Planet
       thisPlanet.players = []
       for unit in unitList
         unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
+        unit.totalAttempts = 0
         if (!unit.owner)
           continue
 
@@ -81,6 +82,7 @@ class Planet
             db.createUnit(tile,"iron")
             .then((iron) ->
               unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
+              unit.totalAttempts = 0
               thisPlanet.units.push(iron)
             )
 
@@ -93,6 +95,7 @@ class Planet
             .then((oil) ->
               #TODO: lots of undocumented fields added to unit at runtime. should refactor
               unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
+              unit.totalAttempts = 0
               thisPlanet.units.push(oil)
             )
 

@@ -38,11 +38,15 @@ unitSchema = mongoose.Schema({
   type: String
   health: Number
   constructing: Number
+  ghosting: Boolean
+  ghostCreation: Number
   location: [Number]
   fireCooldown: Number
   planet: {type: String, index: true}
   owner: String
   destination: [Number]
+  iron: Number
+  oil: Number
 })
 
 World = mongoose.model('World',worldSchema)

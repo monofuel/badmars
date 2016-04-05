@@ -6,10 +6,32 @@ BadMars = require('./badMars.js')
 Units = require('./units.js')
 db = require('./db.js')
 hat = require('hat')
+Logger = require('./util/logger.js')
 
 clientList = []
 exports.clientList = clientList
 KEEP_ALIVE = 5000;
+
+listeners = {};
+
+exports.registerListener = (eventType, listener) ->
+	console.log("registering " + eventType + " listener")
+	if (!listeners[eventType])
+		listeners[eventType] = []
+	if (listeners[eventType].indexOf(listener) != -1)
+		console.log("duplicate listener registered for " + eventType);
+		Logger.serverInfo('error',{
+			eventType: eventType,
+			msg: 'duplicate listener',
+			stack: (new Error()).stack()
+			})
+	listeners[eventType].push(listener)
+
+exports.deleteListener = () ->
+	for eventType in Object.keys(listeners)
+		for i in [0..listeners[eventType].length]
+			if (listeners[eventType[i]] == listener)
+				listeners[eventType].splice(i,1);
 
 exports.sendMessage = (player, data) ->
 	if (!data || !data.type)
@@ -138,6 +160,9 @@ class client
 			return
 
 		if (@user && message.type)
+			if (listeners[message.type])
+				for listener in listeners[message.type]
+					listener(message,thisClient)
 			switch(message.type)
 				when "getMap"
 					@ws.send(
@@ -187,8 +212,9 @@ class client
 				when "attack"
 					@ws.send(errMsg('attack', 'not implimented'))
 				else
-					console.log('unknown type recieved: ' + message.type)
-					@ws.send(errMsg('invalid', 'invalid type for request'))
+					if (!listeners[message.type])
+						console.log('unknown type recieved: ' + message.type)
+						@ws.send(errMsg('invalid', 'invalid type for request'))
 
 			return
 
@@ -201,9 +227,11 @@ success = (type,data) ->
 		return JSON.stringify(data)
 	else
 		return JSON.stringify({ type: type, success: true})
+exports.success = success
 
 errMsg = (type,errMsg) ->
 	return JSON.stringify({ type: type, success: false, reason: errMsg})
+exports.errMsg = errMsg
 
 sanitizePlayerList = (playerList) ->
 	newList = []

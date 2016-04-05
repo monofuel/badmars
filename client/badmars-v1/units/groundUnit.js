@@ -39,8 +39,8 @@ export class GroundUnit extends Entity {
 
 	fire(enemy) {
 		if (this.fireSound) {
+			console.log("firing");
 			if (this.fireSound.isPlaying) {
-				console.log('stopping sound');
 				this.fireSound.stop();
 			}
 			//pew
@@ -51,6 +51,8 @@ export class GroundUnit extends Entity {
 				sound.play();
 			},10);
 
+		} else {
+			console.log("no firing sound");
 		}
 	}
 

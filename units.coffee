@@ -8,7 +8,10 @@ direction = require('./direction')
 PlanetLoc = require('./PlanetLoc')
 BadMars = require('./badMars.js')
 Logger = require('./util/logger.js')
+Net = require('./net.js')
 fs = require('fs')
+
+ASTAR_MAX = 100
 
 #---------------------------------------------------------------------
 
@@ -45,12 +48,23 @@ exports.get = (name) ->
   for item in Units
     if item.name == name
       return item
+get = exports.get
 
 exports.list = () ->
   list = []
   for item in Units
     list.push(item.name)
   return list
+
+Net.registerListener('createGhost', (data,client) ->
+  unitInfo = get(data.unitType);
+  if (!unitInfo)
+    client.send(Net.errMsg('createGhost','missing unitType field'));
+    return
+
+  console.log('creating ghost unit')
+  client.send(Net.success('createGhost',{}));
+  )
 
 # simulate 1 server tick on a unit
 # @param [Unit] unit the unit to update
@@ -64,7 +78,7 @@ exports.updateUnit = (unit) ->
     #hacky fix for when units are deleted during a simulation tick
     return
 
-  #rather messy. unit is the instance of a unit, unitInfo is mmetadata for the specific type of unit.
+  #rather messy. unit is the instance of a unit, unitInfo is metadata for the specific type of unit.
   #this should be refactored.
   #TODO: this function should be refactored as i get a better idea of how to lay things out
 
@@ -94,25 +108,40 @@ exports.updateUnit = (unit) ->
         console.log('pathing for new destination')
         unit.totalAttempts = 0
 
+      if (unit.path && unit.path.constructor.name == 'SimplePath' && Nav.distance(unit.tile, dest) < ASTAR_MAX)
+        console.log('switching from simple to A*')
+        unit.path = null;
+
       #if we have no destination, set it
       #or update it if we have a new destination
       #or re-path if we have waited to move for too long
       if (!unit.path || !unit.path.end.equals(dest) || unit.moveAttempts > 8)
 
-        unit.path = new Nav.AStarPath(unit.tile,dest)
-        unit.distanceMoved = 0
-        console.log('updating path')
-        update = true
-        unit.moveAttempts = 0
+        if (Nav.distance(unit.tile, dest) > ASTAR_MAX) #avoid a* over long distances, take dumb approach.
+          unit.path = new Nav.SimplePath(unit.tile,dest)
+          unit.distanceMoved = 0
+          console.log('updating Simple path')
+          update = true
+          unit.moveAttempts = 0
+          #can't find a way after re-pathfing 5 times, give up.
+          if (unit.totalAttempts++ > 5)
+            console.log('giving up on pathing')
+            unit.destination = unit.location
 
-        #can't find a way after re-pathfing 5 times, give up.
-        if (unit.totalAttempts++ > 5)
-          console.log('giving up on pathing')
-          unit.destination = unit.location
+        else
+          unit.path = new Nav.AStarPath(unit.tile,dest)
+          unit.distanceMoved = 0
+          console.log('updating AStar path')
+          update = true
+          unit.moveAttempts = 0
+          #can't find a way after re-pathfing 5 times, give up.
+          if (unit.totalAttempts++ > 5)
+            console.log('giving up on pathing')
+            unit.destination = unit.location
 
 
       #dont' mess with things if we are stil moving
-      if (!unit.moving)
+      if (!unit.moving && unit.fireCooldown == 0)
         unit.nextMove = unit.path.getNext(unit.tile)
         switch(unit.nextMove)
           #TODO should check if another unit is here
@@ -226,12 +255,3 @@ exports.unitTileCheck = (tile) ->
     #if (unit.type == 'storage')
       #TODO fancy thing for multi tile units
   return false
-
-#superclass for all units in the game world with a location and a mesh
-class entity
-  #@property [String] type the type of unit
-  type: 'entity'
-  #@property [String] owner the owner of the unit
-  owner: 'admin'
-
-  constructor: (@data, planet) ->

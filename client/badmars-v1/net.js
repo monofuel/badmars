@@ -136,6 +136,7 @@ export class Net {
 	constructor() {
 		this.self = this;
 		this.listeners = {};
+		window.debug.net = this;
 
 	}
 

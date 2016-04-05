@@ -17,17 +17,26 @@ import {
 	W,
 	C
 } from './directions.js';
+import {
+	getMesh
+} from './unitModels.js';
 
 export class Iron extends Entity {
 	rate: number;
 	constructor(location: PlanetLoc, rate: number, uid: string) {
-		var geometry = new THREE.BoxGeometry(0.75, 0.75, 0.75);
+		var geometry = getMesh('iron');
 		var material = new THREE.MeshLambertMaterial({
 			color: 0xF8F8F8
 		});
-		var cube = new THREE.Mesh(geometry, material);
+		if (geometry) {
+			var ironMesh = new THREE.Mesh(geometry, material);
+			ironMesh.scale.set(0.6, 0.6, 0.6);
 
-		super(location, cube);
+			super(location, ironMesh);
+		} else {
+			console.log("failed to get iron mesh!");
+			super(location, null);
+		}
 		this.rate = rate;
 		this.type = 'iron';
 		this.uid = uid;

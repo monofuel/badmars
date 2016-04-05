@@ -131,6 +131,7 @@ window.onload = function () {
 	clock = new THREE.Clock();
 	statsMonitor = new StatsMonitor();
 	net = new Net();
+	window.debug.fireBusEvent = fireBusEvent;
 	hudPanel = document.getElementById('HUDPanel');
 	hudPanel.width = display.renderer.domElement.clientWidth;
 	hudPanel.height = display.renderer.domElement.clientHeight;
@@ -531,6 +532,8 @@ window.onerror = (msg, url, line, col, error) => {
 		url: url,
 		line: line,
 		col: col,
+		stack: error.stack,
+		filename: error.fileName
 	}
 	window.track("error", body);
 	fireBusEvent('error');

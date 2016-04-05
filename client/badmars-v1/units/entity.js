@@ -80,6 +80,7 @@ export class Entity {
 	}
 
 	takeDamage(source) {
+		console.log('taking damage');
 		display.removeMesh(this.damageSphere); //TODO ugly hack, restarts animation.
 		this.takingDamage = 1;
 		this.animateSmoke();

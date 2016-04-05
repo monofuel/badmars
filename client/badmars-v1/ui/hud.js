@@ -51,10 +51,6 @@ var ErrorAlert = React.createClass({
         <Alert bsStyle="danger" style={errorStyle} onDismiss={this.handleAlertDismiss}>
           <h4>Oops!</h4>
           <p>{this.state.errorMessage}</p>
-          <p>
-            <Button onClick={this.handleAlertReload} bsStyle="danger">Reload</Button>
-            <Button onClick={this.handleAlertDismiss}>Ignore</Button>
-          </p>
         </Alert>
       );
     }

@@ -16,7 +16,10 @@ direction = require('./direction')
 # @param [PlanetLoc] tile second tile
 # @return [Number] distance distance between tiles
 distance = (tile1,tile2) ->
+  #TODO: this doesn't account for the map looping on edges
   return Math.sqrt(Math.pow(tile2.x - tile1.x,2) + Math.pow(tile2.y - tile1.y,2))
+
+exports.distance = distance;
 
 #---------------------------------------------------------------------
 #code for very simple direct pathfinding
@@ -37,7 +40,7 @@ class SimplePath
   # @param [PlanetLoc] tile the current tile
   # @return [PlanetLoc] the next tile in the list
   getNext: (tile) ->
-
+    #TODO should use tile.S,W,E,N()
     if (tile.x < @end.x)
       nextTile = new PlanetLoc(tile.planet,tile.x+1,tile.y)
 
