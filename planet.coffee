@@ -111,7 +111,7 @@ class Planet
   spawnPlayer: (userId) ->
     thisPlanet = this;
     return new Promise((resolve,reject) ->
-      tanksToSpawn = 5;
+      tanksToSpawn = 10
 
       db.getUserById(userId).then((playerInfo) ->
         thisPlanet.players.push(playerInfo)
@@ -170,6 +170,18 @@ class Planet
 
   unitTileCheck: (tile) ->
     for unit in @units
+      if (unit.type == 'storage') #TODO refactor multi-tile units
+        if (tile.equals(unit.tile) ||
+           tile.N().equals(unit.tile) ||
+           tile.S().equals(unit.tile) ||
+           tile.E().equals(unit.tile) ||
+           tile.W().equals(unit.tile) ||
+           tile.E().N().equals(unit.tile) ||
+           tile.E().S().equals(unit.tile) ||
+           tile.W().N().equals(unit.tile) ||
+           tile.W().S().equals(unit.tile))
+         return unit
+
       if (tile.equals(unit.tile) || (tile.equals(unit.nextTile) && unit.moving))
         return unit
 

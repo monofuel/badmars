@@ -39,6 +39,9 @@ import {
 	Builder
 } from '../units/builder.js';
 import {
+	Mine
+} from '../units/mine.js';
+import {
 	N,
 	S,
 	E,
@@ -140,15 +143,13 @@ export class Map {
 			}
 
 			var newUnit;
-			switch (unit.type) {
+			switch (unit.type) { //TODO refactor this. refactor it REAL good.
 				case 'iron':
 					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-
 					newUnit = new Iron(loc, unit.rate, unit._id);
 					break;
 				case 'oil':
 					var loc = new PlanetLoc(this, unit.location[0], unit.location[1]);
-
 					newUnit = new Oil(loc, unit.rate, unit._id);
 					break;
 				case 'tank':
@@ -159,6 +160,11 @@ export class Map {
 				case 'storage':
 					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
 					newUnit = new Storage(loc, unit.owner, unit._id)
+					newUnit.ghosting = unit.ghosting;
+					break;
+				case 'mine':
+					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
+					newUnit = new Mine(loc, unit.owner, unit._id)
 					newUnit.ghosting = unit.ghosting;
 					break;
 				case 'builder':
