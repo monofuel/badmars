@@ -492,7 +492,7 @@ var loginListener = (data) => {
 		loginSuccess();
 	} else {
 		console.log('failed login');
-		loginModal.setError('Failed to log in, username already in use.');
+		promptLogin();
 	}
 };
 
