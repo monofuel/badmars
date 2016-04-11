@@ -82,7 +82,12 @@ class AStarPath
       console.log(@end.toString())
 
     @planet = @start.planet
+    @cost = 0
+    thisPath = this
 
+    new Promise(() ->
+      thisPath.generate()
+    )
 
     @path = []
 
@@ -100,6 +105,11 @@ class AStarPath
       tile.prev = @start
 
     while (open.length > 0)
+      @cost++
+      if (@cost > 2000)
+        console.log("path complexity exceeded")
+        return
+
       #sort open by cost
       open.sort((a,b) ->
         return a.cost - b.cost
