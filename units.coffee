@@ -112,7 +112,7 @@ exports.updateUnit = (unit) ->
   if (!unit.health)
     unit.health = unitInfo.maxHealth
 
-  if (unitInfo && unit.destination && unit.destination.length == 2)
+  if (unitInfo && unitInfo.speed && unit.destination && unit.destination.length == 2)
     dest = new PlanetLoc(planet, unit.destination[0], unit.destination[1])
 
     #clear properties if our tile is the destination
@@ -162,7 +162,7 @@ exports.updateUnit = (unit) ->
 
 
       #dont' mess with things if we are stil moving
-      if (!unit.moving && unit.fireCooldown == 0)
+      if (!unit.moving && (unit.fireCooldown == undefined || unit.fireCooldown == 0))
         unit.nextMove = unit.path.getNext(unit.tile)
         switch(unit.nextMove)
           #TODO should check if another unit is here

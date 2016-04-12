@@ -23,8 +23,6 @@ import {
 
 export class Mine extends Entity {
 	rate: number;
-	iron: number;
-	oil: number;
 	maxStorage: number;
 
 	constructor(location: PlanetLoc, rate: number, uid: string) {
@@ -44,7 +42,5 @@ export class Mine extends Entity {
 		this.rate = rate;
 		this.type = 'mine';
 		this.uid = uid;
-		this.iron = 0;
-		this.oil = 0;
 	}
 }

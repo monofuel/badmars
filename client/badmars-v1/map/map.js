@@ -133,7 +133,7 @@ export class Map {
 					return;
 				}
 			}
-			console.log(unit);
+			//console.log(unit);
 			if (unit.ghosting && !playerInfo) {
 				return;
 			}
@@ -194,6 +194,17 @@ export class Map {
 					console.log('unknown type: ', unit);
 					return;
 			}
+			newUnit.storage = {
+				oil: unit.oil,
+				iron: unit.iron
+			}
+			if (!newUnit.storage.iron) {
+				newUnit.storage.iron = 0;
+			}
+			if (!newUnit.storage.oil) {
+				newUnit.storage.oil = 0;
+			}
+			newUnit.health = unit.health;
 			self.units.push(newUnit);
 		}
 	}

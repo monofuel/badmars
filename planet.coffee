@@ -111,23 +111,21 @@ class Planet
   spawnPlayer: (userId) ->
     thisPlanet = this;
     return new Promise((resolve,reject) ->
-      tanksToSpawn = 10
-
       db.getUserById(userId).then((playerInfo) ->
         thisPlanet.players.push(playerInfo)
         for player in thisPlanet.players
           Net.sendMessage(player,{ type: 'players', players: thisPlanet.players});
 
       ).then(() ->
-
-        while (tanksToSpawn > 0)
+        goodArea = false
+        while (!goodArea)
           x = Math.random() * thisPlanet.worldSettings.size;
           y = Math.random() * thisPlanet.worldSettings.size;
 
           console.log('scanning for potential spawn')
           goodArea = true
-          for x2 in [0..10]
-            for y2 in [0..10]
+          for x2 in [0..6]
+            for y2 in [0..6]
               tile = new PlanetLoc(thisPlanet,x + x2, y + y2)
               if (tile.type != TileType.land)
                 goodArea = false
@@ -139,34 +137,60 @@ class Planet
               break
           if (!goodArea)
             continue
+        console.log('found a good area to spawn')
+        buildings = [
+          thisPlanet.createUnit('storage',new PlanetLoc(thisPlanet,x + 3, y + 3),userId),
+          thisPlanet.createUnit('builder',new PlanetLoc(thisPlanet,x + 1, y + 2),userId),
+          thisPlanet.createUnit('builder',new PlanetLoc(thisPlanet,x + 1, y + 3),userId),
+          thisPlanet.createUnit('tank',new PlanetLoc(thisPlanet,x + 5, y + 2),userId),
+          thisPlanet.createUnit('tank',new PlanetLoc(thisPlanet,x + 5, y + 3),userId),
+          thisPlanet.createUnit('iron',new PlanetLoc(thisPlanet,x, y),userId),
+          thisPlanet.createUnit('oil',new PlanetLoc(thisPlanet,x + 5, y + 5),userId),
+          thisPlanet.createUnit('mine',new PlanetLoc(thisPlanet,x, y),userId),
+          thisPlanet.createUnit('mine',new PlanetLoc(thisPlanet,x + 5, y + 5),userId),
+        ]
+        Promise.all(buildings).then( (units) ->
+          for unit in units
+            switch(unit.type)
+              when 'storage'
+                unit.iron = 1000
+                unit.oil = 1000
+              when 'tank'
+                unit.oil = 50
+              when 'builder'
+                unit.oil = 50
 
-          console.log('found a good area to spawn!')
-          while (tanksToSpawn > 0)
-            x2 = Math.random() * 10
-            y2 = Math.random() * 10
-            tile = new PlanetLoc(thisPlanet,x + x2, y + y2)
-            if (tile.type != TileType.land)
-              continue
-            if (Units.unitTileCheck(tile))
-              continue
-            tanksToSpawn--;
-            db.createUnit(tile,'tank',userId,false).then((unit) ->
-              unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
-              console.log('spawned tank for player: ', userId)
-              thisPlanet.units.push(unit)
-              db.getUserById(userId).then((playerInfo) ->
-                thisPlanet.broadcastUpdate({
-                  type: "newUnit"
-                  unit: unit
-                  player: playerInfo
-                  });
-                )
-            )
-
-
-        resolve();
+          console.log('spawning finished')
+          resolve();
+        )
       )
+    )
+
+  createUnit: (type, tile,userId) ->
+    if (!type)
+      throw new Error('invalid unit type')
+    if (!tile)
+      throw new Error('invalid tile')
+    if (!userId)
+      console.log('creating unit without user')
+
+    console.log('spawning ' + type)
+    thisPlanet = this
+    return db.createUnit(tile,type,userId,false).then((unit) ->
+      unit.tile = tile
+      console.log('spawned ' + ' for player: ', userId)
+      thisPlanet.units.push(unit)
+      db.getUserById(userId).then((playerInfo) ->
+        thisPlanet.broadcastUpdate({
+          type: "newUnit"
+          unit: unit
+          player: playerInfo
+          });
       )
+      return unit
+    ).catch((error) ->
+      console.log(error)
+    )
 
   unitTileCheck: (tile) ->
     for unit in @units
@@ -232,6 +256,11 @@ class Planet
 
     if (@units)
       for unit in @units
-        Units.updateUnit(unit)
+        try
+          Units.updateUnit(unit)
+        catch error
+          Logger.error(error)
+
+
 
 module.exports = Planet
