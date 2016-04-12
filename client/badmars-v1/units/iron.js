@@ -30,7 +30,7 @@ export class Iron extends Entity {
 		});
 		if (geometry) {
 			var ironMesh = new THREE.Mesh(geometry, material);
-			ironMesh.scale.set(0.6, 0.6, 0.6);
+			ironMesh.scale.set(0.3, 0.3, 0.3);
 
 			super(location, ironMesh);
 		} else {

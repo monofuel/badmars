@@ -20,27 +20,38 @@ import {
 import {
 	getMesh
 } from './unitModels.js';
+import {
+	getPlayerById
+} from '../net.js';
 
 export class Mine extends Entity {
-	rate: number;
 	maxStorage: number;
 
-	constructor(location: PlanetLoc, rate: number, uid: string) {
-		var geometry = new THREE.BoxGeometry(0.5,2,0.5);
+	constructor(location: PlanetLoc, playerId: string, uid: string) {
+		var player = getPlayerById(playerId);
+		var color;
+		if (!player || !player.color) {
+			console.log('unknown player color');
+			color = new THREE.Color();
+		} else {
+			color = player.color;
+		}
+
+		var geometry = getMesh('mine');
 		var material = new THREE.MeshLambertMaterial({
-			color: 0xAAAAAA
+			color: color
 		});
 		if (geometry) {
 			var storageMesh = new THREE.Mesh(geometry, material);
-			storageMesh.scale.set(0.6, 0.6, 0.6);
+			storageMesh.scale.set(1.1, 1.1, 1.1);
 
 			super(location, storageMesh);
 		} else {
 			console.log("failed to get mine mesh!");
 			super(location, null);
 		}
-		this.rate = rate;
 		this.type = 'mine';
 		this.uid = uid;
+			this.playerId = playerId
 	}
 }

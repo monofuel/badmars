@@ -28,7 +28,6 @@ import {
 } from '../net.js';
 
 export class Builder extends GroundUnit {
-	rate: number;
 	constructor(location: PlanetLoc, playerId: string, uid: string) {
 		var player = getPlayerById(playerId);
 		var color;
@@ -45,7 +44,7 @@ export class Builder extends GroundUnit {
 		});
 		if (geometry) {
 			var builderMesh = new THREE.Mesh(geometry, material);
-			builderMesh.scale.set(0.3, 0.3, 0.3);
+			builderMesh.scale.set(0.4, 0.4, 0.4);
 
 			super(location, builderMesh);
 		} else {
