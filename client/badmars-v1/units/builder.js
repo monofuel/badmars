@@ -39,13 +39,13 @@ export class Builder extends GroundUnit {
 			color = player.color;
 		}
 
-		var geometry = getMesh('tank');
+		var geometry = getMesh('builder');
 		var material = new THREE.MeshLambertMaterial({
 			color: color
 		});
 		if (geometry) {
 			var builderMesh = new THREE.Mesh(geometry, material);
-			builderMesh.scale.set(0.6, 0.6, 0.6);
+			builderMesh.scale.set(0.3, 0.3, 0.3);
 
 			super(location, builderMesh);
 		} else {
