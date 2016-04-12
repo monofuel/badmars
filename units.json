@@ -53,7 +53,7 @@
     "maxStorage": 1000
   },{
     "name":"storage",
-    "transferRange":10,
+    "transferRange":20,
     "cost": 500,
     "maxHealth": 500,
     "movementType": "building",

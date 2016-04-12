@@ -5,6 +5,7 @@ Units = require('./units.js')
 PlanetLoc = require('./PlanetLoc.js')
 TileType = require('./tileType')
 Net = require('./net')
+Logger = require('./util/logger.js')
 
 
 class Planet
@@ -101,6 +102,67 @@ class Planet
 
   getPlayersUnits: (userId) ->
     return db.listUnitsByUserId(userId)
+
+  #TODO refactor this
+  getPlayersUnitsSync: (userId) -> #oh god this is getting messy
+    ghostUnits = []
+    for unit in this.units
+      if (unit.owner == userId)
+        ghostUnits.push(unit)
+    return ghostUnits
+
+  findNearestGhosts: (unit) ->
+    tile = unit.tile
+    units = this.getPlayersUnitsSync(unit.owner)
+    nearest = []
+    for unit in units
+      if (unit.ghosting)
+        nearest.push(unit)
+    nearest.sort((a,b) ->
+      return a.tile.distance(b.tile)
+    )
+    return nearest;
+
+
+
+  #unit desires resources, and will pull an amount from another unit and 'evaporate' it
+  pullIron: (builder,amount) ->
+    tile = builder.tile
+    units = this.getPlayersUnitsSync(builder.owner)
+    nearest = []
+    for unit in units
+      unitInfo = Units.get(unit.type)
+      if (!unitInfo)
+        continue
+      if (unit._id == builder._id)
+        continue;
+      delta = builder.tile.distance(unit.tile)
+      console.log("nearby unit type " + unit.type + " with iron: " + unit.iron + " and oil " + unit.oil)
+      if (delta < unitInfo.transferRange && unit.iron > 0)
+        nearest.push(unit)
+
+    nearest.sort((a,b) ->
+      return a.tile.distance(b.tile)
+    )
+
+    #see if there are enough resources nearby
+    ironTotal = 0
+    for unit in nearest
+
+      ironTotal += unit.iron
+    console.log("total iron nearby: " + ironTotal)
+
+    if (ironTotal < amount)
+      return false
+
+    for unit in nearest
+      if (unit.iron < amount)
+        amount -= unit.iron
+        unit.iron = 0
+      else
+        unit.iron -= amount
+    return true
+
 
   getUnitById: (unitId) ->
     for unit in @units

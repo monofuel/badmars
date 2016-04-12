@@ -20,13 +20,23 @@ import {
 import {
 	getMesh
 } from './unitModels.js';
+import {
+	getPlayerById
+} from '../net.js';
 
 export class Storage extends Entity {
-	rate: number;
-	constructor(location: PlanetLoc, rate: number, uid: string) {
+	constructor(location: PlanetLoc, playerId: string, uid: string) {
+		var player = getPlayerById(playerId);
+		var color;
+		if (!player || !player.color) {
+			console.log('unknown player color');
+			color = new THREE.Color();
+		} else {
+			color = player.color;
+		}
 		var geometry = new THREE.BoxGeometry(3,3,3);
 		var material = new THREE.MeshLambertMaterial({
-			color: 0xAAAAAA
+			color: color
 		});
 		if (geometry) {
 			var storageMesh = new THREE.Mesh(geometry, material);
@@ -37,8 +47,8 @@ export class Storage extends Entity {
 			console.log("failed to get storage mesh!");
 			super(location, null);
 		}
-		this.rate = rate;
 		this.type = 'storage';
 		this.uid = uid;
+		this.playerId = playerId;
 	}
 }

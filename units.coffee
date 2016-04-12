@@ -112,6 +112,27 @@ exports.updateUnit = (unit) ->
   if (!unit.health)
     unit.health = unitInfo.maxHealth
 
+  if (unit.type == 'builder')
+    ghosts = planet.findNearestGhosts(unit);
+    if (ghosts.length > 0 && ghosts[0].tile.distance(unit.tile) < 3) #construct nearby units
+      unit.destination = [unit.tile.x,unit.tile.y]
+      ghostInfo = exports.get(ghosts[0].type)
+      if (planet.pullIron(unit,ghostInfo.cost))
+        ghosts[0].ghosting = false
+        planet.broadcastUpdate({ #TODO maybe a more generic 'update unit' action
+          type: "getUnits"
+          units: [ghosts[0]]
+          success: true
+          });
+        #TODO make the builder stop moving and take time to build
+
+    #head to nearest ghost
+    if (!unit.destination || unit.destination.length == 0)
+      if (ghosts.length > 0 && ghosts[0].tile.distance(unit.tile) < 30)
+        console.log('builder found ghost, heading to it')
+        unit.destination = [ghosts[0].tile.x,ghosts[0].tile.y]
+
+
   if (unitInfo && unitInfo.speed && unit.destination && unit.destination.length == 2)
     dest = new PlanetLoc(planet, unit.destination[0], unit.destination[1])
 

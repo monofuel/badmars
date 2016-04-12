@@ -178,6 +178,9 @@ export class Net {
 					console.log('received message type: ', data.type);
 				}
 				console.log(data);*/
+				if (!data.success) {
+					console.log(data);
+				}
 				if (data.type) {
 					if (listeners[data.type]) {
 						for (var listener of listeners[data.type]) {

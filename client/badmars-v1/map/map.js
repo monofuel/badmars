@@ -178,18 +178,6 @@ export class Map {
 					//newUnit = new Transport(loc, unit.owner, unit._id)
 					newUnit.ghosting = unit.ghosting;
 					break;
-				case 'ironMine':
-					return;
-					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-					//newUnit = new ironMine(loc, unit.owner, unit._id)
-					newUnit.ghosting = unit.ghosting;
-					break;
-				case 'oilMine':
-					return;
-					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-					//newUnit = new oilMine(loc, unit.owner, unit._id)
-					newUnit.ghosting = unit.ghosting;
-					break;
 				default:
 					console.log('unknown type: ', unit);
 					return;
