@@ -159,7 +159,7 @@ class Planet
                 unit.oil = 50
               when 'builder'
                 unit.oil = 50
-
+            unit.save()
           console.log('spawning finished')
           resolve();
         )

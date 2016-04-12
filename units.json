@@ -59,14 +59,7 @@
     "movementType": "building",
     "maxStorage": 4000
   },{
-    "name":"ironMine",
-    "transferRange":10,
-    "cost": 500,
-    "maxHealth": 200,
-    "movementType": "building",
-    "maxStorage": 100
-  },{
-    "name":"oilMine",
+    "name":"mine",
     "transferRange":10,
     "cost": 500,
     "maxHealth": 200,
