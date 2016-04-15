@@ -44,6 +44,9 @@ import {
 	deleteBusListener,
 	fireBusEvent
 } from './eventBus.js';
+import {
+	Hilight
+} from './ui/hilight.js';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -53,11 +56,11 @@ import './units/unitBalance.js';
 // enumerators
 
 //for when no unit is selected
-const MODE_SELECT = Symbol();
+export const MODE_SELECT = Symbol();
 //when a unit is selected and we can move it
-const MODE_MOVE = Symbol();
+export const MODE_MOVE = Symbol();
 //when a button has been clicked and has ownership of the next action
-const MODE_FOCUS = Symbol();
+export const MODE_FOCUS = Symbol();
 
 const LEFT_MOUSE = 0;
 const RIGHT_MOUSE = 2;
@@ -73,7 +76,7 @@ export var map: Map;
 var net: Net;
 var delta = 0;
 var clock: THREE.Clock;
-var buttonMode: Symbol = MODE_SELECT;
+export var buttonMode: Symbol = MODE_SELECT;
 var mouseClick: ? Function;
 var mouseMove: ? Function;
 var keysDown = [];
@@ -94,6 +97,11 @@ var loginModal;
 var hud;
 var hudPanel;
 var hudContext;
+var hilight;
+
+export function setButtonMode(mode: Symbol) {
+	buttonMode = mode;
+}
 
 export function setApiKey(key: String) {
 	apiKey = key;
@@ -131,6 +139,7 @@ window.onload = function () {
 	clock = new THREE.Clock();
 	statsMonitor = new StatsMonitor();
 	net = new Net();
+	hilight = new Hilight();
 	window.debug.fireBusEvent = fireBusEvent;
 	hudPanel = document.getElementById('HUDPanel');
 	hudPanel.width = display.renderer.domElement.clientWidth;
@@ -286,6 +295,14 @@ window.onload = function () {
 
 		switch (event.button) {
 			case LEFT_MOUSE:
+				if (buttonMode == MODE_FOCUS) {
+					selectedTile = map.getTileAtRay(mouse);
+					if (selectedTile && mouseClick)
+						 mouseClick(selectedTile);
+					break;
+					buttonMode = MODE_MOVE;
+			 }
+
 				var unit = map.getSelectedUnit(mouse);
 				if (unit) {
 					console.log(unit.type + " clicked");
@@ -315,11 +332,13 @@ window.onload = function () {
 				fireBusEvent('selectedUnit',unit);
 				break;
 			case RIGHT_MOUSE:
-				if (buttonMode = MODE_MOVE) {
+				if (buttonMode == MODE_MOVE) {
 					selectedTile = map.getTileAtRay(mouse);
 					if (selectedTile && mouseClick)
 						mouseClick(selectedTile);
-				}
+				} else if (buttonMode == MODE_FOCUS) {
+						buttonMode = MODE_MOVE;
+				 }
 				break;
 		}
 	});
@@ -336,6 +355,7 @@ function logicLoop() {
 		}
 		map.update(delta);
 		display.render(delta);
+		hilight.update();
 		hudContext.clearRect(0, 0, hudPanel.width, hudPanel.height);
 		drawSelectionBox();
 	} catch (error) {
@@ -564,8 +584,11 @@ export function loginSuccess() {
  */
 export function setMouseActions(click: Function, move: Function) {
 	buttonMode = MODE_FOCUS;
-	mouseClick = click;
-	mouseMove = move;
+	console.log('setting mouse focus mode');
+	if (click)
+		mouseClick = click;
+	if (move)
+		mouseMove = move;
 }
 
 /**

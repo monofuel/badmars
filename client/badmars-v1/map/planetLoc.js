@@ -27,6 +27,7 @@ export class PlanetLoc {
 	real_y: number;
 	real_z: number;
 	tileType: Symbol;
+	corners: Array<number>;
 
 	/**
 	 * @param  {Map}     The map this location is on
@@ -76,17 +77,17 @@ export class PlanetLoc {
 					.stack);
 			}
 
-			var corners = [
+			this.corners = [
 				this.planet.grid[this.y][this.x],
 				this.planet.grid[this.y + 1][this.x],
 				this.planet.grid[this.y][this.x + 1],
 				this.planet.grid[this.y + 1][this.x + 1]
 			];
 
-			var avg = (corners[0] +
-				corners[1] +
-				corners[2] +
-				corners[3]) / 4;
+			var avg = (this.corners[0] +
+				this.corners[1] +
+				this.corners[2] +
+				this.corners[3]) / 4;
 			if (avg < this.planet.worldSettings.waterHeight) {
 				this.real_z = this.planet.worldSettings.waterHeight;
 			} else {

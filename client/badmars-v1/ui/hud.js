@@ -7,10 +7,16 @@
 //i have no idea waht i'm doing with react.
 
 import React from 'react';
-import { Button,Modal,Alert } from 'react-bootstrap';
+import { Button,Modal,Alert,Well } from 'react-bootstrap';
 import { AboutModal } from './about.js';
 import { SelectedUnit } from './selectedUnit.js';
 import ReactDOM from 'react-dom';
+import {
+  setButtonMode,
+  setMouseActions,
+  map,
+  display
+} from '../client.js';
 
 var errorStyle = {
   top: '100px',
@@ -80,12 +86,29 @@ var MenuButtons = React.createClass({
       this.aboutModal.open();
     }
   },
+  construct(unitType) {
+    console.log('adding mouse click function for ' + unitType);
+    setMouseActions((selectedTile) => {
+      var type = unitType;
+      console.log('building ' + unitType);
+
+      var newLoc = [selectedTile.x,selectedTile.y];
+      window.sendMessage({type:'createGhost',unitType:unitType,location:newLoc});
+    });
+
+  },
   render() {
+    var constructButtonStyle = {width: '100%', 'paddingBottom':'10px'};
     return (
       <div>
       //"position: absolute; left: 190px; top: 10px; width: 60px"
       <AboutModal ref={(c) => this.aboutModal = c}/>
       <Button onClick={this.openAbout} style={{position: 'absolute',left: '190px', top: '10px', width: '60px'}}>About</Button>
+      <Well id="buttons"  style={{position: 'absolute',right: '0px', top: '200px', width: '100px', padding: '5px', zIndex: '5'}}>
+        <Button onClick={() => this.construct('storage')}style={constructButtonStyle}>Storage</Button>
+        <Button onClick={() => this.construct('mine')}style={constructButtonStyle}>Mine</Button>
+        <Button onClick={() => this.construct('factory')}style={constructButtonStyle}>Factory</Button>
+      </Well>
       </div>
     );
   }

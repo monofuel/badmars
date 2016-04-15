@@ -90,6 +90,11 @@ exports.updateUnit = (unit) ->
     #hacky fix for when units are deleted during a simulation tick
     return
 
+  if (!unit.iron)
+    unit.iron = 0
+  if (!unit.oil)
+    unit.oil = 0
+
   if (unit.ghosting)
     return;
 
