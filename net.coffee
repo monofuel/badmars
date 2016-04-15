@@ -143,6 +143,9 @@ class client
 				if (!message.color)
 					thisClient.ws.send(errMsg('login', 'please specify a color'))
 					return
+
+				if (message.username.length > 32)
+					thisClient.ws.send(errMsg('login' ,'username too long'))
 				console.log('creating new user');
 				return db.createUser(message.username, message.color)
 				.then( (userInfo) ->
