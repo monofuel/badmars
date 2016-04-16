@@ -30,4 +30,7 @@ TODO:
 	detect if mouse click is clicking UI, and then block passing it through to the game. (client)
 	cancel ghost feature (both client and server)
 	trade routes (both client and server)
+	rename 'oil' to 'fuel' (except for deposit)
+	have units actually use fuel
+	time left for fuel usage on units
 	music
