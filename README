@@ -14,12 +14,20 @@ TODO:
 	properly flowtype the entire client code
 	work through TODOs in code and refactor things that i was too lazy to do properly the first time around
 	work on documentation
-	chat
-	SSAO lighting effects
-	better models
-	textures
-	color or flag system
-	unit resource transfering
-	lines between units showing how resources are being automatically delivered.
-	fix common pathfinding hangups.
+
+	chat (client and server)
+	SSAO lighting effects (client)
+	better models (client)
+	textures (client)
+	color or flag system (client)
+	unit resource transfering (client and server)
+	lines between units showing how resources are being automatically delivered. (client)
+	fix common pathfinding hangups. (server)
+	check for multi-tile buildings client-side for building (client)
+	actually check if a building can be legally placed server-side both at ghost placement and construction (server)
+	make builders smarter (don't block ghosts, different builders to different buildings) (server)
+	add construction for factory (client and server)
+	detect if mouse click is clicking UI, and then block passing it through to the game. (client)
+	cancel ghost feature (both client and server)
+	trade routes (both client and server)
 	music
