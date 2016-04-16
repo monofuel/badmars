@@ -16,7 +16,8 @@ import {
   setMouseActions,
   map,
   display,
-  selectedUnit
+  selectedUnit,
+  setHudClick
 } from '../client.js';
 
 var errorStyle = {
@@ -156,12 +157,18 @@ export var HUD = React.createClass({
   updateErrorMessage(msg,vanish) {
     this.errorAlert.updateErrorMessage(msg,vanish);
   },
+  handleMenuClick(e) {
+    console.log('hud blocking click');
+    setHudClick();
+
+    return false;
+  },
   render() {
     return (
-      <div>
-      <MenuButtons/>
-      <SelectedUnit unit={this.state.selectedUnit}/>
-      <ErrorAlert ref={(c) => this.errorAlert = c}/>/>
+      <div onMouseUpCapture={this.handleMenuClick}>
+        <MenuButtons/>
+        <SelectedUnit unit={this.state.selectedUnit}/>
+        <ErrorAlert ref={(c) => this.errorAlert = c}/>
       </div>
     );
   }

@@ -99,6 +99,16 @@ var hudPanel;
 var hudContext;
 var hilight;
 
+export var hudClick = false;
+
+export function setHudClick() {
+	hudClick = true;
+}
+
+export function unsetHudClick() {
+	hudClick = false;
+}
+
 export function setButtonMode(mode: Symbol) {
 	buttonMode = mode;
 }
@@ -242,6 +252,7 @@ window.onload = function () {
 	});
 
 	document.body.addEventListener('mousemove', (event: any) => {
+		unsetHudClick();
 		if (isMouseDown) {
 			event.preventDefault();
 			dragCurrent = new THREE.Vector2();
@@ -272,89 +283,102 @@ window.onload = function () {
 	document.body.addEventListener('mouseup', (event: any) => {
 		event.preventDefault();
 
-		var mouse = new THREE.Vector2();
-		mouse.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1
-		mouse.y = -(event.clientY / display.renderer.domElement.clientHeight) * 2 + 1
 
-		if (isMouseDown) { //for dragging actions
-			isMouseDown = false;
+
+		setTimeout(() => { //hacky fix to make sure this always runs after hud onmouseup
+
+			if (hudClick) {
+				console.log("hud click, ignoring");
+				if (isMouseDown) {
+					isMouseDown = false;
+				}
+				return;
+			}
+
+			var mouse = new THREE.Vector2();
+			mouse.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1
+			mouse.y = -(event.clientY / display.renderer.domElement.clientHeight) * 2 + 1
+
+			if (isMouseDown) { //for dragging actions
+				isMouseDown = false;
+				switch (event.button) {
+					case LEFT_MOUSE:
+						if (Math.abs(mouse.x - dragStart.x) > 1 / 100 && Math.abs(mouse.y - dragStart.y) > 1 / 100) {
+							console.log('dragging action');
+							selectedUnits = map.getSelectedUnits(mouse,dragStart);
+							window.debug.selectedUnits = selectedUnits;
+							if (selectedUnits.length == 1) {
+								selectedUnit = selectedUnits[0];
+								window.debug.selectedUnit = selectedUnit;
+								fireBusEvent('selectedUnit',selectedUnit);
+							}
+							buttonMode = MODE_MOVE;
+							mouseClick = function (tile) {
+								for (var unit of selectedUnits) {
+									net.send({
+										type: "setDestination",
+										unitId: unit.uid,
+										location: [tile.x, tile.y]
+									});
+								}
+							}
+							return;
+						}
+						break;
+				}
+
+			}
+
 			switch (event.button) {
 				case LEFT_MOUSE:
-					if (Math.abs(mouse.x - dragStart.x) > 1 / 100 && Math.abs(mouse.y - dragStart.y) > 1 / 100) {
-						console.log('dragging action');
-						selectedUnits = map.getSelectedUnits(mouse,dragStart);
-						window.debug.selectedUnits = selectedUnits;
-						if (selectedUnits.length == 1) {
-							selectedUnit = selectedUnits[0];
-							window.debug.selectedUnit = selectedUnit;
-							fireBusEvent('selectedUnit',selectedUnit);
-						}
+					if (buttonMode == MODE_FOCUS) {
+						selectedTile = map.getTileAtRay(mouse);
+						if (selectedTile && mouseClick)
+							 mouseClick(selectedTile);
+						break;
+						buttonMode = MODE_MOVE;
+				 }
+
+					var unit = map.getSelectedUnit(mouse);
+					if (unit) {
+						console.log(unit.type + " clicked");
+						selectedUnit = unit;
 						buttonMode = MODE_MOVE;
 						mouseClick = function (tile) {
-							for (var unit of selectedUnits) {
+							if (selectedUnit) {
 								net.send({
 									type: "setDestination",
-									unitId: unit.uid,
+									unitId: selectedUnit.uid,
 									location: [tile.x, tile.y]
 								});
 							}
 						}
-						return;
+					} else {
+						selectedUnit = null;
+						selectedUnits = [];
+						buttonMode = MODE_SELECT;
+						mouseClick = null;
+						//TODO clear buttons highlighted
+						//TODO clear hilight on map
 					}
+
+					//TODO the whole system needs a lot of refactoring for multiple selected units
+					window.debug.selectedUnit = selectedUnit;
+					window.debug.selectedUnits = selectedUnits;
+					fireBusEvent('selectedUnit',unit);
+					break;
+				case RIGHT_MOUSE:
+					if (buttonMode == MODE_MOVE) {
+						selectedTile = map.getTileAtRay(mouse);
+						if (selectedTile && mouseClick)
+							mouseClick(selectedTile);
+					} else if (buttonMode == MODE_FOCUS) {
+							buttonMode = MODE_MOVE;
+					 }
 					break;
 			}
-
-		}
-
-		switch (event.button) {
-			case LEFT_MOUSE:
-				if (buttonMode == MODE_FOCUS) {
-					selectedTile = map.getTileAtRay(mouse);
-					if (selectedTile && mouseClick)
-						 mouseClick(selectedTile);
-					break;
-					buttonMode = MODE_MOVE;
-			 }
-
-				var unit = map.getSelectedUnit(mouse);
-				if (unit) {
-					console.log(unit.type + " clicked");
-					selectedUnit = unit;
-					buttonMode = MODE_MOVE;
-					mouseClick = function (tile) {
-						if (selectedUnit) {
-							net.send({
-								type: "setDestination",
-								unitId: selectedUnit.uid,
-								location: [tile.x, tile.y]
-							});
-						}
-					}
-				} else {
-					selectedUnit = null;
-					selectedUnits = [];
-					buttonMode = MODE_SELECT;
-					mouseClick = null;
-					//TODO clear buttons highlighted
-					//TODO clear hilight on map
-				}
-
-				//TODO the whole system needs a lot of refactoring for multiple selected units
-				window.debug.selectedUnit = selectedUnit;
-				window.debug.selectedUnits = selectedUnits;
-				fireBusEvent('selectedUnit',unit);
-				break;
-			case RIGHT_MOUSE:
-				if (buttonMode == MODE_MOVE) {
-					selectedTile = map.getTileAtRay(mouse);
-					if (selectedTile && mouseClick)
-						mouseClick(selectedTile);
-				} else if (buttonMode == MODE_FOCUS) {
-						buttonMode = MODE_MOVE;
-				 }
-				break;
-		}
-	});
+		},0);
+	},false);
 };
 
 function logicLoop() {
