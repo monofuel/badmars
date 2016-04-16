@@ -126,6 +126,21 @@ export class Map {
 		}
 		registerListener('createGhost',this.ghostUnitListener);
 
+		this.updateUnitsListener = (data) => {
+			for (var updated of data.units) {
+				for (var unit of self.units) {
+					if (unit.uid == updated._id) {
+						window.debug.updateUnit = unit;
+						if (unit.updateUnitData)
+							unit.updateUnitData(updated);
+						break;
+					}
+				}
+			}
+		}
+
+		registerListener('updateUnits',this.updateUnitsListener);
+
 		window.addUnit = (unit: Object) => {
 			for (var oldUnit of self.units) {
 				if (oldUnit.uid == unit._id) {

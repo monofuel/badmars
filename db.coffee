@@ -47,6 +47,8 @@ unitSchema = mongoose.Schema({
   destination: [Number]
   iron: Number
   oil: Number
+  resourceId: String
+  resourceCooldown: Number
 })
 
 World = mongoose.model('World',worldSchema)
@@ -244,3 +246,6 @@ exports.listUnits = (planetName) ->
 
 exports.listUnitsByUserId = (userId) ->
   return Unit.find({owner: userId});
+
+exports.getUnitsAtLoc = (loc) ->
+  return Unit.find({location: loc})

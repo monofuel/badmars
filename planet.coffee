@@ -124,6 +124,103 @@ class Planet
     return nearest;
 
 
+  #TODO produce/pull iron/oil should probably be refactored
+  produceIron: (mine,amount) ->
+    tile = mine.tile
+    units = this.getPlayersUnitsSync(mine.owner)
+    nearest = []
+    for unit in units
+      unitInfo = Units.get(unit.type)
+      if (!unitInfo)
+        continue
+      if (unit._id == mine._id)
+        continue
+      if (unitInfo.movementType != 'building')
+        continue
+
+      delta = mine.tile.distance(unit.tile)
+      #console.log("nearby unit type " + unit.type + " with iron: " + unit.iron + " and oil " + unit.oil)
+      if (delta < unitInfo.transferRange && unit.iron < unitInfo.maxStorage / 2)
+        nearest.push(unit)
+
+    nearest.sort((a,b) ->
+      return a.tile.distance(b.tile)
+    )
+
+    for unit in nearest
+      unitInfo = Units.get(unit.type)
+      #divide by 2 as we want a 50/50 iron oil split
+      if ((unitInfo.maxStorage / 2) - unit.iron < amount)
+        delta = (unitInfo.maxStorage / 2) - unit.iron
+        amount -= delta
+        unit.iron += delta
+      else
+        unit.iron += amount
+        amount = 0
+      this.broadcastUpdate({
+        type: "updateUnits"
+        units: [unit]
+        success: true
+        });
+
+    if (amount > 0)
+      freeStorage = unitInfo.maxStorage - (mine.iron + mine.oil)
+      mine.iron += Math.min(freeStorage,amount)
+    this.broadcastUpdate({
+      type: "updateUnits"
+      units: [mine]
+      success: true
+      });
+    return true
+
+  #produce/pull iron/oil should probably be refactored
+  produceOil: (mine,amount) ->
+    tile = mine.tile
+    units = this.getPlayersUnitsSync(mine.owner)
+    nearest = []
+    for unit in units
+      unitInfo = Units.get(unit.type)
+      if (!unitInfo)
+        continue
+      if (unit._id == mine._id)
+        continue
+      if (unitInfo.movementType != 'building')
+        continue
+
+      delta = mine.tile.distance(unit.tile)
+      #console.log("nearby unit type " + unit.type + " with iron: " + unit.iron + " and oil " + unit.oil)
+      if (delta < unitInfo.transferRange && unit.oil < unitInfo.maxStorage / 2)
+        nearest.push(unit)
+
+    nearest.sort((a,b) ->
+      return a.tile.distance(b.tile)
+    )
+
+    for unit in nearest
+      unitInfo = Units.get(unit.type)
+      #divide by 2 as we want a 50/50 iron oil split
+      if ((unitInfo.maxStorage / 2) - unit.oil < amount)
+        delta = (unitInfo.maxStorage / 2) - unit.oil
+        amount -= delta
+        unit.oil += delta
+      else
+        unit.oil += amount
+        amount = 0
+      this.broadcastUpdate({
+        type: "updateUnits"
+        units: [unit]
+        success: true
+        });
+
+    if (amount > 0)
+      freeStorage = unitInfo.maxStorage - (mine.iron + mine.oil)
+      mine.oil += Math.min(freeStorage,amount);
+    this.broadcastUpdate({
+      type: "updateUnits"
+      units: [mine]
+      success: true
+      });
+    return true
 
   #unit desires resources, and will pull an amount from another unit and 'evaporate' it
   pullIron: (builder,amount) ->
@@ -137,7 +234,7 @@ class Planet
       if (unit._id == builder._id)
         continue;
       delta = builder.tile.distance(unit.tile)
-      console.log("nearby unit type " + unit.type + " with iron: " + unit.iron + " and oil " + unit.oil)
+      #console.log("nearby unit type " + unit.type + " with iron: " + unit.iron + " and oil " + unit.oil)
       if (delta < unitInfo.transferRange && unit.iron > 0)
         nearest.push(unit)
 
@@ -150,7 +247,7 @@ class Planet
     for unit in nearest
 
       ironTotal += unit.iron
-    console.log("total iron nearby: " + ironTotal)
+    #console.log("total iron nearby: " + ironTotal)
 
     if (ironTotal < amount)
       return false
@@ -161,6 +258,8 @@ class Planet
         unit.iron = 0
       else
         unit.iron -= amount
+        amount = 0
+        break
     return true
 
 

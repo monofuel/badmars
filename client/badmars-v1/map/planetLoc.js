@@ -93,7 +93,20 @@ export class PlanetLoc {
 			} else {
 				this.real_z = avg;
 			}
-			this.tileType = this.planet.navGrid[this.x][this.y];
+			switch(this.planet.navGrid[this.x][this.y]) {
+				case 0:
+					this.tileType = TILE_LAND;
+					break;
+				case 1:
+					this.tileType = TILE_CLIFF;
+					break;
+				case 2:
+					this.tileType = TILE_WATER;
+					break;
+				case 3:
+					this.tileType = TILE_COAST;
+					break;
+			}
 			this.real_x = this.x + 0.5;
 			this.real_y = -(this.y + 0.5);
 

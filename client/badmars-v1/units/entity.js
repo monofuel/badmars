@@ -22,6 +22,9 @@ import {
 	selectedUnits,
 	display
 } from '../client.js';
+import {
+	updateUnit
+} from './unitBalance.js';
 
 export class Entity {
 
@@ -87,6 +90,14 @@ export class Entity {
 			this.mesh.material.opacity = 1;
 		}
 
+	}
+
+	updateUnitData(unit) {
+		updateUnit(this);
+		this.health = unit.health;
+		this.storage.iron = unit.iron;
+		this.storage.oil = unit.oil;
+		this.ghosting = unit.ghosting;
 	}
 
 	takeDamage(source) {

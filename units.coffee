@@ -98,7 +98,6 @@ exports.updateUnit = (unit) ->
   if (unit.ghosting)
     return;
 
-
   #rather messy. unit is the instance of a unit, unitInfo is metadata for the specific type of unit.
   #this should be refactored.
   #TODO: this function should be refactored as i get a better idea of how to lay things out
@@ -113,19 +112,55 @@ exports.updateUnit = (unit) ->
 
   planet = unit.tile.planet
 
+  if (unit.type == 'mine')
+    if (unit.resourceCooldown == undefined)
+      unit.resourceCooldown = 0
+    if (unit.resourceCooldown > 0)
+      unit.resourceCooldown--
+
+    if (unit.resourceCooldown == 0)
+      unit.location = [unit.tile.x, unit.tile.y]
+      db.getUnitsAtLoc(unit.location).then((units) ->
+        mine = unit
+        #if (units.length < 2)
+          #do error thing
+        for tileUnit in units
+          if (tileUnit.type == 'iron')
+            mine.resourceCooldown = 10 * 5
+            #console.log('producing iron')
+            planet.produceIron(mine,20)
+            mine.update = true
+          if (tileUnit.type == 'oil')
+            mine.resourceCooldown = 10 * 5
+            #console.log('producing oil')
+            planet.produceOil(mine,20)
+            mine.update = true
+        )
+        .catch((error) ->
+          console.log(error)
+          )
+
   #TODO: this sets the units default health. this should be coded better
   if (!unit.health)
     unit.health = unitInfo.maxHealth
+    unit.update = true
+    planet.broadcastUpdate({
+      type: "updateUnits"
+      units: [unit]
+      success: true
+      });
 
   if (unit.type == 'builder')
     ghosts = planet.findNearestGhosts(unit);
-    if (ghosts.length > 0 && ghosts[0].tile.distance(unit.tile) < 3) #construct nearby units
+    if (ghosts.length > 0 && ghosts[0].tile.distance(unit.tile) < 2.5) #construct nearby units
       unit.destination = [unit.tile.x,unit.tile.y]
       ghostInfo = exports.get(ghosts[0].type)
       if (planet.pullIron(unit,ghostInfo.cost))
         ghosts[0].ghosting = false
-        planet.broadcastUpdate({ #TODO maybe a more generic 'update unit' action
-          type: "getUnits"
+        unit.update = true
+        ghosts[0].save()
+        planet.broadcastUpdate({
+          type: "updateUnits"
           units: [ghosts[0]]
           success: true
           });

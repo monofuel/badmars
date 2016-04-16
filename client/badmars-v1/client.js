@@ -156,6 +156,19 @@ window.onload = function () {
 	registerListener('login',loginListener);
 	registerListener('setDestination', moveListener);
 
+	//hacky way to reload selected view on changes
+	registerListener('updateUnits',(data) => {
+		if (!selectedUnit) {
+			return;
+		}
+		console.log('updating gui');
+	  for (var unit of data.units) {
+	    if (unit._id == selectedUnit.uid) {
+				fireBusEvent('selectedUnit',selectedUnit);
+			}
+	  }
+	});
+
 	username = $.cookie("username");
 	apiKey = $.cookie("apiKey");
 

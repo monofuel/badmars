@@ -19,17 +19,22 @@ function updateUnitsListener(data) {
   units = data.units;
 
   for (var unit of map.units) {
-    var unitInfo = getUnitInfo(unit.type);
-    if (unitInfo) {
-      for (var key of Object.keys(unitInfo)) {
-        unit[key] = unitInfo[key];
-      }
-      if (unit.maxHealth && !unit.health) {
-        unit.health = unit.maxHealth;
-      }
+    updateUnit(unit);
+  }
+}
+
+export function updateUnit(unit) {
+  var unitInfo = getUnitInfo(unit.type);
+  if (unitInfo) {
+    for (var key of Object.keys(unitInfo)) {
+      unit[key] = unitInfo[key];
+    }
+    if (unit.maxHealth && !unit.health) {
+      unit.health = unit.maxHealth;
     }
   }
 }
+
 registerListener('unitBalance',updateUnitsListener);
 
 export function getUnitInfo(type) {

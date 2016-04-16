@@ -98,13 +98,14 @@ var MenuButtons = React.createClass({
 
   },
   render() {
-    var constructButtonStyle = {width: '100%', 'paddingBottom':'10px'};
+    var constructButtonStyle = {width: '100px', 'paddingRight':'10px'};
     return (
       <div>
       //"position: absolute; left: 190px; top: 10px; width: 60px"
       <AboutModal ref={(c) => this.aboutModal = c}/>
       <Button onClick={this.openAbout} style={{position: 'absolute',left: '190px', top: '10px', width: '60px'}}>About</Button>
-      <Well id="buttons"  style={{position: 'absolute',right: '0px', top: '200px', width: '100px', padding: '5px', zIndex: '5'}}>
+      //OH MY GOD I SUCK AT CSS
+      <Well id="buttons"  style={{position: 'absolute', top: '80%', width: '50%', marginLeft: '25%', marginRight: '25%', height: '100px', padding: '5px', zIndex: '5'}}>
         <Button onClick={() => this.construct('storage')}style={constructButtonStyle}>Storage</Button>
         <Button onClick={() => this.construct('mine')}style={constructButtonStyle}>Mine</Button>
         <Button onClick={() => this.construct('factory')}style={constructButtonStyle}>Factory</Button>

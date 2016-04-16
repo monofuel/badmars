@@ -56,6 +56,7 @@ export class GroundUnit extends Entity {
 		}
 	}
 
+	//TODO should be refactored with updateUnitData
 	updateHealth(amount) {
 		this.health = amount;
 	}
