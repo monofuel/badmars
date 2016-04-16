@@ -18,8 +18,12 @@ export class ModelInfo {
 var modelMap: Array < ModelInfo > = [
 	(new ModelInfo('tank', 'tank_mockup.obj')),
 	(new ModelInfo('iron', 'iron_mockup.obj')),
+	(new ModelInfo('oil', 'oil.obj')),
 	(new ModelInfo('builder', 'builder.obj')),
-	(new ModelInfo('mine', 'mine.obj'))
+	(new ModelInfo('mine', 'mine.obj')),
+	(new ModelInfo('storage', 'storage.obj')),
+	(new ModelInfo('factory', 'factory.obj')),
+	(new ModelInfo('transport', 'transport.obj'))
 ];
 
 export var loaded: number;

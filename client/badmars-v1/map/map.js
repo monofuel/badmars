@@ -39,6 +39,12 @@ import {
 	Builder
 } from '../units/builder.js';
 import {
+	Transport
+} from '../units/transport.js';
+import {
+	Factory
+} from '../units/factory.js';
+import {
 	Mine
 } from '../units/mine.js';
 import {
@@ -177,6 +183,11 @@ export class Map {
 					newUnit = new Storage(loc, unit.owner, unit._id)
 					newUnit.ghosting = unit.ghosting;
 					break;
+				case 'factory':
+					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
+					newUnit = new Factory(loc, unit.owner, unit._id)
+					newUnit.ghosting = unit.ghosting;
+					break;
 				case 'mine':
 					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
 					newUnit = new Mine(loc, unit.owner, unit._id)
@@ -190,7 +201,7 @@ export class Map {
 				case 'transport':
 					return;
 					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-					//newUnit = new Transport(loc, unit.owner, unit._id)
+					newUnit = new Transport(loc, unit.owner, unit._id)
 					newUnit.ghosting = unit.ghosting;
 					break;
 				default:

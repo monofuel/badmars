@@ -97,8 +97,39 @@ var MenuButtons = React.createClass({
     });
 
   },
+  factoryOrder(unitType) {
+    console.log('adding mouse click function for ' + unitType);
+    setMouseActions((selectedTile) => {
+      var type = unitType;
+      console.log('factoryOrder ' + unitType);
+
+      var newLoc = [selectedTile.x,selectedTile.y];
+      window.sendMessage({type:'factoryOrder',factory:selectedUnit.uid, unitType:unitType});
+    });
+
+  },
   render() {
     var constructButtonStyle = {width: '100px', 'paddingRight':'10px'};
+
+    var buttons;
+    if (!selectedUnit || selectedUnit.type != 'factory') {
+      buttons = (
+        <div>
+          <Button onClick={() => this.construct('storage')}style={constructButtonStyle}>Storage</Button>
+          <Button onClick={() => this.construct('mine')}style={constructButtonStyle}>Mine</Button>
+          <Button onClick={() => this.construct('factory')}style={constructButtonStyle}>Factory</Button>
+        </div>
+      );
+    } else {
+      buttons = (
+        <div>
+          <Button onClick={() => this.factoryOrder('tank')}style={constructButtonStyle}>Tank</Button>
+          <Button onClick={() => this.factoryOrder('builder')}style={constructButtonStyle}>Builder</Button>
+          <Button onClick={() => this.factoryOrder('transport')}style={constructButtonStyle}>Transport</Button>
+        </div>
+      );
+    }
+
     return (
       <div>
       //"position: absolute; left: 190px; top: 10px; width: 60px"
@@ -106,10 +137,9 @@ var MenuButtons = React.createClass({
       <Button onClick={this.openAbout} style={{position: 'absolute',left: '190px', top: '10px', width: '60px'}}>About</Button>
       //OH MY GOD I SUCK AT CSS
       <Well id="buttons"  style={{position: 'absolute', top: '80%', width: '50%', marginLeft: '25%', marginRight: '25%', height: '100px', padding: '5px', zIndex: '5'}}>
-        <Button onClick={() => this.construct('storage')}style={constructButtonStyle}>Storage</Button>
-        <Button onClick={() => this.construct('mine')}style={constructButtonStyle}>Mine</Button>
-        <Button onClick={() => this.construct('factory')}style={constructButtonStyle}>Factory</Button>
+        {buttons}
       </Well>
+
       </div>
     );
   }

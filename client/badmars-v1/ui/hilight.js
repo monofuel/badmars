@@ -59,6 +59,9 @@ export class Hilight {
         mouse.y = -(event.clientY / display.renderer.domElement.clientHeight) * 2 + 1
         var selectedTile = map.getTileAtRay(mouse);
         this.setGoodColor();
+				if (!selectedTile || !selectedTile.tileType) {
+					return;
+				}
         if (selectedTile.tileType != TILE_LAND){
           console.log(selectedTile);
           console.log('tile not land');

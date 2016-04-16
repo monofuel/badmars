@@ -2,7 +2,7 @@
 'use strict';
 
 // monofuel
-// 2-7-2016
+// 4-15-2016
 
 import {
 	PlanetLoc
@@ -24,7 +24,7 @@ import {
 	getPlayerById
 } from '../net.js';
 
-export class Storage extends Entity {
+export class Factory extends Entity {
 	constructor(location: PlanetLoc, playerId: string, uid: string) {
 		var player = getPlayerById(playerId);
 		var color;
@@ -34,20 +34,20 @@ export class Storage extends Entity {
 		} else {
 			color = player.color;
 		}
-		var geometry = getMesh('storage');
+		var geometry = getMesh('factory');
 		var material = new THREE.MeshLambertMaterial({
 			color: color
 		});
 		if (geometry) {
 			var storageMesh = new THREE.Mesh(geometry, material);
-			storageMesh.scale.set(1.3, 1.3, 1.3);
+			storageMesh.scale.set(1.1, 1.1, 1.1);
 
 			super(location, storageMesh);
 		} else {
-			console.log("failed to get storage mesh!");
+			console.log("failed to get factory mesh!");
 			super(location, null);
 		}
-		this.type = 'storage';
+		this.type = 'factory';
 		this.uid = uid;
 		this.playerId = playerId;
 	}

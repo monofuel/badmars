@@ -17,17 +17,21 @@ import {
 	W,
 	C
 } from './directions.js';
+import {
+	getMesh
+} from './unitModels.js';
 
 export class Oil extends Entity {
 	rate: number;
 	constructor(location: PlanetLoc, rate: number, uid: string) {
-		var geometry = new THREE.BoxGeometry(0.75, 0.75, 0.75);
+		var geometry = getMesh('oil');
 		var material = new THREE.MeshLambertMaterial({
 			color: 0x181818
 		});
-		var cube = new THREE.Mesh(geometry, material);
+		var oilMesh = new THREE.Mesh(geometry, material);
+		oilMesh.scale.set(0.4, 0.4, 0.4);
 
-		super(location, cube);
+		super(location, oilMesh);
 		this.rate = rate;
 		this.type = 'oil';
 		this.uid = uid;
