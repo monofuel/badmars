@@ -15,7 +15,8 @@ import {
   setButtonMode,
   setMouseActions,
   map,
-  display
+  display,
+  selectedUnit
 } from '../client.js';
 
 var errorStyle = {
