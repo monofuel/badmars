@@ -1,30 +1,25 @@
 webGL multiplayer rts game in development
 
-dependencies:
-	run 'npm install'
-	coffee-script and supervisor should be installed manually with -g
 
-how to run:
-	make will compile everything
-	make start will start badmars via supervisor
-
-features:
-	generates worlds and stores them in a db
-	provides a REST api for accessing worlds
 
 documentation:
 	the badmars planet viewer is being documented with codo, documentation
 	documentation is in public/js/badmars/docs
-	currently no serious linting is being done (maybe I should use typescript instead, or facebook flow)
-
-another potential project is https://github.com/monofuel/badMars-Unreal
-will be a viewer done in the unreal engine. currently just experimenting with REST calls from unreal.
 
 TODO:
 	perhaps some sort of world chunk streaming system? maybe with generation too.
 	console acts buggy with supervisor
 	web console would be cool
 	admin page would be cool
-	planet instances
-	spawn players on planets
-	simulate planets on server over time
+	properly flowtype the entire client code
+	work through TODOs in code and refactor things that i was too lazy to do properly the first time around
+	work on documentation
+	chat
+	SSAO lighting effects
+	better models
+	textures
+	color or flag system
+	unit resource transfering
+	lines between units showing how resources are being automatically delivered.
+	fix common pathfinding hangups.
+	music
