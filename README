@@ -26,8 +26,6 @@ TODO:
 	check for multi-tile buildings client-side for building (client)
 	actually check if a building can be legally placed server-side both at ghost placement and construction (server)
 	make builders smarter (don't block ghosts, different builders to different buildings) (server)
-	add construction for factory (client and server)
-	detect if mouse click is clicking UI, and then block passing it through to the game. (client)
 	cancel ghost feature (both client and server)
 	trade routes (both client and server)
 	rename 'oil' to 'fuel' (except for deposit)
