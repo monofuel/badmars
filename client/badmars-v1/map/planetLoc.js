@@ -111,6 +111,15 @@ export class PlanetLoc {
 			this.real_y = -(this.y + 0.5);
 
 		}
+
+	distance(tile){
+		//TODO doesn't consider map loop
+		var deltaX = Math.abs(this.x - tile.x);
+		var deltaY = Math.abs(this.y - tile.y);
+
+		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+	}
+
 		/**
 		 * @return {THREE.Vector3} Get the real location in the world
 		 */

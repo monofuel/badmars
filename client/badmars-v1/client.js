@@ -97,7 +97,7 @@ var loginModal;
 var hud;
 var hudPanel;
 var hudContext;
-var hilight;
+export var hilight;
 
 export var hudClick = false;
 

@@ -398,6 +398,25 @@ export class Map {
 		return null;
 	}
 
+	nearestStorage(tile: PlanetLoc): Storage | null {
+		var storages = [];
+		if (!playerInfo)
+			return;
+		for (var unit of this.units) {
+			if (unit.type == 'storage' && unit.playerId == playerInfo.id) {
+				storages.push(unit);
+			}
+		}
+		storages.sort((a,b) => {
+			return a.location.distance(tile) - b.location.distance(tile);
+		});
+		if (storages.length > 0) {
+			return storages[0];
+		}
+		return null;
+	}
+
+
 	updateUnitDestination(unitId: string, newLocation: Array < number > , time: number) {
 		var unit = this.getUnitById(unitId);
 		if (unit && unit.updateNextMove) {

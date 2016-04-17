@@ -17,7 +17,8 @@ import {
   map,
   display,
   selectedUnit,
-  setHudClick
+  setHudClick,
+  hilight
 } from '../client.js';
 
 var errorStyle = {
@@ -92,7 +93,12 @@ var MenuButtons = React.createClass({
     console.log('adding mouse click function for ' + unitType);
     setMouseActions((selectedTile) => {
       var type = unitType;
-      console.log('building ' + unitType);
+      if (type != 'cancel') {
+        console.log('building ' + unitType);
+        hilight.setDeconstruct(false);
+      } else {
+        hilight.setDeconstruct(true);
+      }
 
       var newLoc = [selectedTile.x,selectedTile.y];
       window.sendMessage({type:'createGhost',unitType:unitType,location:newLoc});
@@ -100,8 +106,6 @@ var MenuButtons = React.createClass({
 
   },
   factoryOrder(unitType) {
-    console.log('adding mouse click function for ' + unitType);
-    var type = unitType;
     console.log('factoryOrder ' + unitType);
     window.sendMessage({type:'factoryOrder',factory:selectedUnit.uid, unitType:unitType});
 
@@ -116,6 +120,7 @@ var MenuButtons = React.createClass({
           <Button onClick={() => this.construct('storage')}style={constructButtonStyle}>Storage</Button>
           <Button onClick={() => this.construct('mine')}style={constructButtonStyle}>Mine</Button>
           <Button onClick={() => this.construct('factory')}style={constructButtonStyle}>Factory</Button>
+          <Button onClick={() => this.construct('cancel')}style={constructButtonStyle}>Cancel</Button>
         </div>
       );
     } else {
@@ -124,6 +129,7 @@ var MenuButtons = React.createClass({
           <Button onClick={() => this.factoryOrder('tank')}style={constructButtonStyle}>Tank</Button>
           <Button onClick={() => this.factoryOrder('builder')}style={constructButtonStyle}>Builder</Button>
           <Button onClick={() => this.factoryOrder('transport')}style={constructButtonStyle}>Transport</Button>
+          <Button onClick={() => this.factoryOrder('cancel')}style={constructButtonStyle}>Cancel</Button>
         </div>
       );
     }
@@ -145,9 +151,20 @@ var MenuButtons = React.createClass({
 
 export var HUD = React.createClass({
   getInitialState() {
+    var self = this;
+    var interval = setInterval(() => {
+      self.updateSelectedUnit(selectedUnit);
+    },200);
+
     return { selectedUnit: null };
   },
   updateSelectedUnit(unit) {
+    if (!unit) {
+      if (map) {
+        var tile = map.getTileAtRay(new THREE.Vector2(0,0));
+        unit = map.nearestStorage(tile);
+      }
+    }
     this.setState({selectedUnit: unit});
   },
   updateErrorMessage(msg,vanish) {

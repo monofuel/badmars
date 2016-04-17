@@ -38,7 +38,8 @@ export var SelectedUnit = React.createClass({
     let unit = this.props.unit;
     if (!unit) {
       return(<div></div>);
-    } else if (unit.type != 'oil' && unit.type != 'iron') {
+    }
+    if (unit.type != 'oil' && unit.type != 'iron') {
       let iron = unit.storage.iron;
       let oil = unit.storage.oil;
       let maxStorage = unit.maxStorage;
@@ -50,14 +51,6 @@ export var SelectedUnit = React.createClass({
       if (player) {
         playerName = player.username;
       }
-      console.log({
-        iron: iron,
-        oil: oil,
-        maxStorage: maxStorage,
-        freeStorage: freeStorage,
-        health: health,
-        maxHealth: maxHealth
-      });
 
       return (
         <div>

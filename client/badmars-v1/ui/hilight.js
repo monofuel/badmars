@@ -28,9 +28,11 @@ export class Hilight {
   location: Array<number>;
   hilightPlane: THREE.Mesh;
   color: number;
+	deconstruct: boolean;
 
   constructor() {
     this.enabled = false;
+		this.deconstruct = false;
     this.setGoodColor();
     window.debug.hilight = this;
   }
@@ -43,6 +45,10 @@ export class Hilight {
     console.log('setting bad color');
     this.color = 0xDC1403;
   }
+
+	setDeconstruct(bool) {
+		this.deconstruct = bool;
+	}
 
   update() {
     if (buttonMode != MODE_FOCUS) {
@@ -62,14 +68,19 @@ export class Hilight {
 				if (!selectedTile || !selectedTile.tileType) {
 					return;
 				}
-        if (selectedTile.tileType != TILE_LAND){
-          console.log(selectedTile);
-          console.log('tile not land');
-          this.setBadColor();
-        }
-        if (selectedTile.planet.unitTileCheck(selectedTile) != null){
-          this.setBadColor();
-        }
+				this.setBadColor();
+				if (this.deconstruct) {
+					if (selectedTile.planet.unitTileCheck(selectedTile) != null){
+	          this.setGoodColor();
+	        }
+				} else {
+	        if (selectedTile.tileType != TILE_LAND){
+	          this.setBadColor();
+	        }
+	        if (selectedTile.planet.unitTileCheck(selectedTile) != null){
+	          this.setBadColor();
+	        }
+				}
 
         var newLoc = [selectedTile.x,selectedTile.y];
         if (!thisHilight.location || location.length != 2 || newLoc[0] != thisHilight.location[0] || newLoc[1] != thisHilight.location[1]) {
@@ -77,8 +88,8 @@ export class Hilight {
           var waterHeight = selectedTile.planet.worldSettings.waterHeight + 0.1;
           var geometry = new THREE.Geometry();
           geometry.vertices.push(new THREE.Vector3(0,0,Math.max(selectedTile.corners[0],waterHeight)));
-          geometry.vertices.push(new THREE.Vector3(1,0,Math.max(selectedTile.corners[1],waterHeight)));
-          geometry.vertices.push(new THREE.Vector3(0,1,Math.max(selectedTile.corners[2],waterHeight)));
+          geometry.vertices.push(new THREE.Vector3(1,0,Math.max(selectedTile.corners[2],waterHeight)));
+          geometry.vertices.push(new THREE.Vector3(0,1,Math.max(selectedTile.corners[1],waterHeight)));
           geometry.vertices.push(new THREE.Vector3(1,1,Math.max(selectedTile.corners[3],waterHeight)));
 
           geometry.faces.push(new THREE.Face3(0,1,2));

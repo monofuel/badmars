@@ -119,7 +119,7 @@ class Planet
       if (unit.ghosting)
         nearest.push(unit)
     nearest.sort((a,b) ->
-      return a.tile.distance(b.tile)
+      return a.tile.distance(unit.tile) - b.tile.distance(unit.tile)
     )
     return nearest;
 
@@ -136,6 +136,8 @@ class Planet
       if (unit._id == mine._id)
         continue
       if (unitInfo.movementType != 'building')
+        continue
+      if (unit.ghosting)
         continue
 
       delta = mine.tile.distance(unit.tile)
@@ -186,6 +188,8 @@ class Planet
         continue
       if (unitInfo.movementType != 'building')
         continue
+      if (unit.ghosting)
+        continue
 
       delta = mine.tile.distance(unit.tile)
       #console.log("nearby unit type " + unit.type + " with iron: " + unit.iron + " and oil " + unit.oil)
@@ -233,6 +237,8 @@ class Planet
         continue
       if (unit._id == builder._id)
         continue;
+      if (unit.ghosting)
+        continue
       delta = builder.tile.distance(unit.tile)
       #console.log("nearby unit type " + unit.type + " with iron: " + unit.iron + " and oil " + unit.oil)
       if (delta < unitInfo.transferRange && unit.iron > 0)
@@ -353,8 +359,35 @@ class Planet
       console.log(error)
     )
 
-  unitTileCheck: (tile) ->
+  checkValidForUnit: (tile,type) ->
+    if (type == 'storage' || type == 'factory') #TODO refactor multi-tile units
+      if (this.checkOpen(tile) &&
+         this.checkOpen(tile.N()) &&
+         this.checkOpen(tile.S()) &&
+         this.checkOpen(tile.E()) &&
+         this.checkOpen(tile.W()) &&
+         this.checkOpen(tile.E().N()) &&
+         this.checkOpen(tile.E().S()) &&
+         this.checkOpen(tile.W().N()) &&
+         this.checkOpen(tile.W().S()))
+       return true
+    else if (type == 'mine')
+      tileUnit = this.unitTileCheck(tile)
+      if (tileUnit && (tileUnit.type == 'iron' || tileUnit.type == 'oil'))
+        return true
+    else if (this.checkOpen(tile))
+      return true
+
+    return false
+
+  checkOpen: (tile) ->
+    return (!this.unitTileCheck(tile)) && tile.type == TileType.land
+
+  unitTileCheck: (tile,includeGhosts) ->
     for unit in @units
+      if (!includeGhosts)
+        if (unit.ghosting)
+          continue
       if (unit.type == 'storage' || unit.type == 'factory') #TODO refactor multi-tile units
         if (tile.equals(unit.tile) ||
            tile.N().equals(unit.tile) ||
@@ -372,10 +405,12 @@ class Planet
 
     return null
 
-  getNearestFreeTile: (center) ->
+  #center: tile to check
+  #unit: unit to ignore
+  getNearestFreeTile: (center,unit,includeGhosts) ->
 
-    unitOnTile = (this.unitTileCheck(center))
-    if (!unitOnTile && center.type == TileType.land)
+    unitOnTile = (this.unitTileCheck(center,includeGhosts))
+    if ((!unitOnTile || unit == unitOnTile) && center.type == TileType.land)
       return center
 
     open = [
@@ -395,8 +430,8 @@ class Planet
       )
 
       for openTile in open
-        unitOnTile = (this.unitTileCheck(openTile))
-        if (unitOnTile)
+        unitOnTile = (this.unitTileCheck(openTile,includeGhosts))
+        if (unitOnTile && unitOnTile != unit)
           continue
 
         if (openTile.type != TileType.land)

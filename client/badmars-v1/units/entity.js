@@ -84,7 +84,7 @@ export class Entity {
 		}
 		if (this.ghosting) {
 			this.mesh.material.transparent = true;
-			this.mesh.material.opacity = 0.5;
+			this.mesh.material.opacity = 0.3;
 		} else {
 			this.mesh.material.transparent = false;
 			this.mesh.material.opacity = 1;
