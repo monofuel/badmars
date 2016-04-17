@@ -11,7 +11,8 @@
     "fireRate": 20,
     "firePower": 15,
     "movementType": "ground",
-    "maxStorage": 200
+    "maxStorage": 200,
+    "buildTime": 20
   },{
     "name": "scout",
     "range": 5.0,
@@ -23,7 +24,8 @@
     "firePower": 2,
     "cost": 100,
     "movementType": "ground",
-    "maxStorage": 50
+    "maxStorage": 50,
+    "buildTime": 100
   },{
     "name": "builder",
     "range": 1.0,
@@ -33,7 +35,8 @@
     "attack": 0,
     "cost": 300,
     "movementType": "ground",
-    "maxStorage": 50
+    "maxStorage": 50,
+    "buildTime": 20
   },{
     "name": "transport",
     "range": 1.0,
@@ -43,27 +46,31 @@
     "attack": 0,
     "cost": 200,
     "movementType": "ground",
-    "maxStorage": 1200
+    "maxStorage": 1200,
+    "buildTime": 20
   },{
     "name":"factory",
     "transferRange":0,
     "cost": 1000,
     "maxHealth": 500,
     "movementType": "building",
-    "maxStorage": 1000
+    "maxStorage": 1000,
+    "buildTime": 50
   },{
     "name":"storage",
     "transferRange":20,
     "cost": 500,
     "maxHealth": 500,
     "movementType": "building",
-    "maxStorage": 4000
+    "maxStorage": 4000,
+    "buildTime": 40
   },{
     "name":"mine",
     "transferRange":10,
     "cost": 500,
     "maxHealth": 200,
     "movementType": "building",
-    "maxStorage": 100
+    "maxStorage": 100,
+    "buildTime": 20
   }
 ]

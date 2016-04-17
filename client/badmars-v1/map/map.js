@@ -134,13 +134,24 @@ export class Map {
 
 		this.updateUnitsListener = (data) => {
 			for (var updated of data.units) {
-				for (var unit of self.units) {
-					if (unit.uid == updated._id) {
+				var unit = window.getUnit(updated._id);
+				if (unit) {
 						window.debug.updateUnit = unit;
-						if (unit.updateUnitData)
+						if (unit.updateUnitData) {
 							unit.updateUnitData(updated);
-						break;
-					}
+						}
+				} else {
+					console.log('new unit found');
+					console.log(updated);
+					window.addUnit(updated);
+				}
+			}
+		}
+
+		window.getUnit = (uid) => {
+			for (var unit of self.units) {
+				if (unit.uid == uid) {
+					return unit;
 				}
 			}
 		}
@@ -199,7 +210,6 @@ export class Map {
 					newUnit.ghosting = unit.ghosting;
 					break;
 				case 'transport':
-					return;
 					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
 					newUnit = new Transport(loc, unit.owner, unit._id)
 					newUnit.ghosting = unit.ghosting;

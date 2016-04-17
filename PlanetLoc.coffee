@@ -53,10 +53,6 @@ class PlanetLoc
     @real_x = @x + 0.5
     @real_y = - (@y + 0.5)
 
-  #function to get the location in 3D space for this tile
-  getLoc: () ->
-    return new THREE.Vector3(@real_x,@avg,@real_y)
-
   #@return [String] readable string for this tile
   toString: () ->
     return "x: " + @x +

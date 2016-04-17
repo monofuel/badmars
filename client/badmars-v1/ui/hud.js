@@ -101,13 +101,9 @@ var MenuButtons = React.createClass({
   },
   factoryOrder(unitType) {
     console.log('adding mouse click function for ' + unitType);
-    setMouseActions((selectedTile) => {
-      var type = unitType;
-      console.log('factoryOrder ' + unitType);
-
-      var newLoc = [selectedTile.x,selectedTile.y];
-      window.sendMessage({type:'factoryOrder',factory:selectedUnit.uid, unitType:unitType});
-    });
+    var type = unitType;
+    console.log('factoryOrder ' + unitType);
+    window.sendMessage({type:'factoryOrder',factory:selectedUnit.uid, unitType:unitType});
 
   },
   render() {

@@ -280,8 +280,8 @@ class Planet
       ).then(() ->
         goodArea = false
         while (!goodArea)
-          x = Math.random() * thisPlanet.worldSettings.size;
-          y = Math.random() * thisPlanet.worldSettings.size;
+          x = Math.random() * (thisPlanet.worldSettings.size - 10);
+          y = Math.random() * (thisPlanet.worldSettings.size - 10);
 
           console.log('scanning for potential spawn')
           goodArea = true
@@ -355,7 +355,7 @@ class Planet
 
   unitTileCheck: (tile) ->
     for unit in @units
-      if (unit.type == 'storage') #TODO refactor multi-tile units
+      if (unit.type == 'storage' || unit.type == 'factory') #TODO refactor multi-tile units
         if (tile.equals(unit.tile) ||
            tile.N().equals(unit.tile) ||
            tile.S().equals(unit.tile) ||
@@ -372,6 +372,57 @@ class Planet
 
     return null
 
+  getNearestFreeTile: (center) ->
+
+    unitOnTile = (this.unitTileCheck(center))
+    if (!unitOnTile && center.type == TileType.land)
+      return center
+
+    open = [
+      new PlanetLoc(this,center.x+1, center.y)
+      new PlanetLoc(this,center.x-1, center.y)
+      new PlanetLoc(this,center.x, center.y-1)
+      new PlanetLoc(this,center.x, center.y+1)
+    ]
+
+    for tile in open
+      tile.cost = center.distance(tile)
+
+    while (true)
+
+      open.sort((a,b) ->
+        return a.cost - b.cost
+      )
+
+      for openTile in open
+        unitOnTile = (this.unitTileCheck(openTile))
+        if (unitOnTile)
+          continue
+
+        if (openTile.type != TileType.land)
+          continue
+        return openTile
+
+      for tile in open
+        neighbors = [
+          tile.N()
+          tile.S()
+          tile.E()
+          tile.W()
+        ]
+
+        for neighbor in neighbors
+          if (@contains(open,neighbor))
+            continue
+          neighbor.cost = neighbor.distance(center)
+          open.push(neighbor)
+
+  contains: (list,tile) ->
+    for item in list
+      if item.equals(tile)
+        return true
+    return false
+
   # @param [Unit] unit the unit to compare to
   # @return [Unit]
   getNearestEnemy: (unit) ->
@@ -381,7 +432,7 @@ class Planet
     distance = null
     nearestEnemy = null
     for otherUnit in @units
-      if (otherUnit.owner != unit.owner && otherUnit.type != 'oil' && otherUnit.type != 'iron')
+      if (otherUnit.owner != unit.owner && otherUnit.type != 'oil' && otherUnit.type != 'iron' && !otherUnit.ghosting)
         otherUnitDistance = unit.tile.distance(otherUnit.tile);
         if (!nearestEnemy || otherUnitDistance < distance)
           nearestEnemy = otherUnit

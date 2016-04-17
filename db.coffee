@@ -26,6 +26,7 @@ resourceSchema = mongoose.Schema({
   location: [Number]
 })
 
+#TODO building schema is not actually used atm, should fix that
 buildingSchema = mongoose.Schema({
   type: String
   rate: Number
@@ -49,6 +50,7 @@ unitSchema = mongoose.Schema({
   oil: Number
   resourceId: String
   resourceCooldown: Number
+  factoryQueue: Mixed
 })
 
 World = mongoose.model('World',worldSchema)

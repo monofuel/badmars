@@ -78,6 +78,32 @@ Net.registerListener('createGhost', (data,client) ->
     )
   )
 
+Net.registerListener('factoryOrder', (data,client) ->
+  # {type:'factoryOrder',factory:selectedUnit.uid, unitType:unitType}
+  unitInfo = get(data.unitType);
+  if (!unitInfo)
+    client.send(Net.errMsg('factoryOrder','missing unitType field'));
+    return
+  if (!data.factory)
+    client.send(Net.errMsg('factoryOrder','missing factory field'));
+    return
+
+  factory = client.planet.getUnitById(data.factory)
+  if (!factory || factory.type != 'factory')
+    client.send(Net.errMsg('factoryOrder','invalid factory'));
+    return;
+
+  if (!factory.factoryQueue)
+    factory.factoryQueue = []
+  console.log('pushing ' + unitInfo.name + ' to queue');
+  factory.factoryQueue.push({
+    remaining: unitInfo.buildTime
+    type: unitInfo.name
+    });
+  factory.save()
+
+)
+
 # simulate 1 server tick on a unit
 # @param [Unit] unit the unit to update
 # @return [Promise]
@@ -111,6 +137,34 @@ exports.updateUnit = (unit) ->
     return
 
   planet = unit.tile.planet
+
+  if (unit.type == 'factory')
+    if (unit.factoryQueue && unit.factoryQueue.length > 0)
+      update = true
+      if (unit.factoryQueue[0].remaining > 0)
+        unit.factoryQueue[0].remaining--
+        console.log(unit.factoryQueue[0])
+      else
+        newUnitData = unit.factoryQueue.shift()
+        newTile = planet.getNearestFreeTile(unit.tile)
+        console.log(unit.factoryQueue.length)
+        unit.save();
+        #should send user the time until the factory completes the next unit
+
+        db.createUnit(newTile,newUnitData.type,unit.owner,true)
+          .then((newUnit) ->
+            newUnitInfo = exports.get(newUnit.type)
+            newUnit.tile = newTile;
+            newUnit.totalAttempts = 0
+            newUnit.ghosting = false
+            newUnit.health = newUnitInfo.maxHealth
+            newTile.planet.units.push(newUnit)
+            console.log('factory creating unit')
+            newTile.planet.broadcastUpdate({type: 'updateUnits',units: [newUnit], success: true});
+          ).catch((error) ->
+            console.log(error)
+            )
+
 
   if (unit.type == 'mine')
     if (unit.resourceCooldown == undefined)
@@ -157,6 +211,8 @@ exports.updateUnit = (unit) ->
       ghostInfo = exports.get(ghosts[0].type)
       if (planet.pullIron(unit,ghostInfo.cost))
         ghosts[0].ghosting = false
+        ghostInfo = exports.get(ghosts[0].type);
+        ghosts[0].health = ghostInfo.maxHealth;
         unit.update = true
         ghosts[0].save()
         planet.broadcastUpdate({
@@ -175,7 +231,7 @@ exports.updateUnit = (unit) ->
 
   if (unitInfo && unitInfo.speed && unit.destination && unit.destination.length == 2)
     dest = new PlanetLoc(planet, unit.destination[0], unit.destination[1])
-
+    dest = planet.getNearestFreeTile(dest)
     #clear properties if our tile is the destination
     if (unit.tile.equals(dest))
       unit.destination = []
