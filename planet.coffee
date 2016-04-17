@@ -82,8 +82,8 @@ class Planet
           if (tile.type == TileType.land)
             db.createUnit(tile,"iron")
             .then((iron) ->
-              unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
-              unit.totalAttempts = 0
+              iron.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
+              iron.totalAttempts = 0
               thisPlanet.units.push(iron)
             )
 
@@ -95,8 +95,8 @@ class Planet
             db.createUnit(tile,"oil")
             .then((oil) ->
               #TODO: lots of undocumented fields added to unit at runtime. should refactor
-              unit.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
-              unit.totalAttempts = 0
+              oil.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
+              oil.totalAttempts = 0
               thisPlanet.units.push(oil)
             )
 
@@ -146,7 +146,7 @@ class Planet
         nearest.push(unit)
 
     nearest.sort((a,b) ->
-      return a.tile.distance(b.tile)
+      return a.tile.distance(mine.tile) - b.tile.distance(mine.tile)
     )
 
     for unit in nearest
@@ -197,7 +197,7 @@ class Planet
         nearest.push(unit)
 
     nearest.sort((a,b) ->
-      return a.tile.distance(b.tile)
+      return a.tile.distance(mine.tile) - b.tile.distance(mine.tile)
     )
 
     for unit in nearest
@@ -245,7 +245,7 @@ class Planet
         nearest.push(unit)
 
     nearest.sort((a,b) ->
-      return a.tile.distance(b.tile)
+      return a.tile.distance(builder.tile) - b.tile.distance(builder.tile)
     )
 
     #see if there are enough resources nearby

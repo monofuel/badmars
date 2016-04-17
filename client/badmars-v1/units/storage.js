@@ -50,5 +50,6 @@ export class Storage extends Entity {
 		this.type = 'storage';
 		this.uid = uid;
 		this.playerId = playerId;
+		this.selectionSize = 2;
 	}
 }

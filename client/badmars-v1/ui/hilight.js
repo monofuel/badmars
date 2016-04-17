@@ -68,8 +68,8 @@ export class Hilight {
 				if (!selectedTile || !selectedTile.tileType) {
 					return;
 				}
-				this.setBadColor();
 				if (this.deconstruct) {
+					this.setBadColor();
 					if (selectedTile.planet.unitTileCheck(selectedTile) != null){
 	          this.setGoodColor();
 	        }

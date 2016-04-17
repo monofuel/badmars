@@ -103,6 +103,7 @@ export var hudClick = false;
 
 export function setHudClick() {
 	hudClick = true;
+	console.log('hudClick set');
 }
 
 export function unsetHudClick() {
@@ -252,7 +253,6 @@ window.onload = function () {
 	});
 
 	document.body.addEventListener('mousemove', (event: any) => {
-		unsetHudClick();
 		if (isMouseDown) {
 			event.preventDefault();
 			dragCurrent = new THREE.Vector2();
@@ -269,6 +269,7 @@ window.onload = function () {
 	});
 
 	document.body.addEventListener('mousedown', (event: any) => {
+		unsetHudClick();
 		switch (event.button) {
 			case LEFT_MOUSE:
 				isMouseDown = true;
@@ -282,18 +283,7 @@ window.onload = function () {
 
 	document.body.addEventListener('mouseup', (event: any) => {
 		event.preventDefault();
-
-
-
 		setTimeout(() => { //hacky fix to make sure this always runs after hud onmouseup
-
-			if (hudClick) {
-				console.log("hud click, ignoring");
-				if (isMouseDown) {
-					isMouseDown = false;
-				}
-				return;
-			}
 
 			var mouse = new THREE.Vector2();
 			mouse.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1
@@ -326,7 +316,9 @@ window.onload = function () {
 						}
 						break;
 				}
-
+			}
+			if (hudClick) {
+				return;
 			}
 
 			switch (event.button) {

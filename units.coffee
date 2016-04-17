@@ -144,20 +144,21 @@ exports.updateUnit = (unit) ->
   planet = unit.tile.planet
 
   if (unit.type == 'factory' && !unit.ghosting)
+    if (!unit.factoryQueue)
+      unit.factoryQueue = []
     if (unit.factoryQueue && unit.factoryQueue.length > 0)
       update = true
       if (unit.factoryQueue[0].cost > 0)
         if (planet.pullIron(unit,unit.factoryQueue[0].cost))
           console.log('paying for unit')
-          unit.factoryQueue[0] = 0
+          unit.factoryQueue[0].cost = 0
       else
         if (unit.factoryQueue[0].remaining > 0)
           unit.factoryQueue[0].remaining--
-          console.log(unit.factoryQueue[0])
         else
           newUnitData = unit.factoryQueue.shift()
           newTile = planet.getNearestFreeTile(unit.tile)
-          console.log(unit.factoryQueue.length)
+          console.log('units left: ', unit.factoryQueue.length)
           unit.save();
           #should send user the time until the factory completes the next unit
 
@@ -218,7 +219,16 @@ exports.updateUnit = (unit) ->
       });
 
   if (unit.type == 'builder')
-    nearestGhost = planet.findNearestGhosts(unit)[0];
+    nearestGhost = null;
+    if (!unit.ghostDestination)
+      ghosts = planet.findNearestGhosts(unit);
+      for ghost in ghosts
+        if (!ghost.assignedBuilder)
+          nearestGhost = ghost
+          break
+    else
+      nearestGhost = unit.ghostDestination
+
     nearestFreeTile = null
     if (nearestGhost)
       nearestFreeTile = planet.getNearestFreeTile(nearestGhost.tile,unit,true)
@@ -242,6 +252,8 @@ exports.updateUnit = (unit) ->
       if (nearestGhost && nearestGhost.tile.distance(unit.tile) < 30)
         console.log('builder found ghost, heading to it')
         unit.destination = [nearestFreeTile.x,nearestFreeTile.y]
+        nearestGhost.assignedBuilder = unit #TODO hacky, could be better
+        unit.ghostDestination = nearestGhost
 
 
   if (unitInfo && unitInfo.speed && unit.destination && unit.destination.length == 2)
@@ -258,6 +270,9 @@ exports.updateUnit = (unit) ->
     else
       dest = planet.getNearestFreeTile(dest,unit)
       if (unit.path && !unit.path.end.equals(dest))
+        if (unit.ghostDestination)
+          delete unit.ghostDestination.assignedBuilder
+          delete unit.ghostDestination
         console.log('pathing for new destination')
         unit.totalAttempts = 0
 

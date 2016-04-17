@@ -25,6 +25,10 @@ import {
 import {
 	updateUnit
 } from './unitBalance.js';
+import {
+	MODE_FOCUS,
+	buttonMode
+} from '../client.js';
 
 export class Entity {
 
@@ -37,8 +41,10 @@ export class Entity {
 	mesh: THREE.OBject3D;
 	health: number;
 	selectionCircle: THREE.Object3D | null;
+	transferCircle: THREE.Object3D | null;
 	damageSphere: THREE.Object3D | null;
 	ghosting: boolean;
+	selectionSize: number;
 
 	maxStorage: number;
 	storage: Object;
@@ -53,6 +59,7 @@ export class Entity {
 		this.unitHeight = 0.25;
 		this.takingDamage = 0;
 		this.ghosting = false;
+		this.selectionSize = 1.1;
 
 		this.maxStorage = 0;
 		this.storage = {
@@ -79,6 +86,7 @@ export class Entity {
 
 	update(delta: number) {
 		this.displayIfSelected();
+		this.showTransferDistance();
 		if (this.takingDamage) {
 			this.animateSmoke();
 		}
@@ -90,6 +98,35 @@ export class Entity {
 			this.mesh.material.opacity = 1;
 		}
 
+	}
+
+	showTransferDistance() {
+		if (buttonMode != MODE_FOCUS) {
+			if (display && this.transferCircle) {
+				display.removeMesh(this.transferCircle);
+				this.transferCircle = null;
+			}
+			return;
+		}
+
+		if (this.transferCircle) {
+			this.transferCircle.position.copy(this.mesh.position);
+			this.transferCircle.position.y += 1;
+		} else if (this.transferRange && this.transferRange > 0){
+			var geometry = new THREE.CircleGeometry(this.transferRange, 32);
+			var material = new THREE.MeshBasicMaterial({
+				color: 0x0000ff,
+				opacity: 0.05,
+				transparent: true,
+				depthWrite: false
+			});
+			this.transferCircle = new THREE.Mesh(geometry, material);
+			this.transferCircle.rotation.x = -Math.PI / 2;
+			this.transferCircle.position.copy(this.mesh.position);
+			this.transferCircle.position.y += 1;
+			if (display)
+				display.addMesh(this.transferCircle);
+		}
 	}
 
 	updateUnitData(unit) {
@@ -149,7 +186,7 @@ export class Entity {
 		if (this.selectionCircle) {
 			this.selectionCircle.position.copy(this.mesh.position);
 		} else {
-			var geometry = new THREE.CircleGeometry(1.1, 12);
+			var geometry = new THREE.CircleGeometry(this.selectionSize, 12);
 			var material = new THREE.MeshBasicMaterial({
 				color: 0x66FF00,
 				wireframe: true

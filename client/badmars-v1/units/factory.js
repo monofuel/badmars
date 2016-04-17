@@ -50,5 +50,6 @@ export class Factory extends Entity {
 		this.type = 'factory';
 		this.uid = uid;
 		this.playerId = playerId;
+		this.selectionSize = 2;
 	}
 }

@@ -400,7 +400,7 @@ export class Map {
 
 	nearestStorage(tile: PlanetLoc): Storage | null {
 		var storages = [];
-		if (!playerInfo)
+		if (!playerInfo || !tile)
 			return;
 		for (var unit of this.units) {
 			if (unit.type == 'storage' && unit.playerId == playerInfo.id) {
