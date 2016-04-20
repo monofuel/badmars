@@ -10,6 +10,7 @@ import React from 'react';
 import { Button,Modal,Alert,Well } from 'react-bootstrap';
 import { AboutModal } from './about.js';
 import { SelectedUnit } from './selectedUnit.js';
+import { TransferModal } from './transfer.js';
 import ReactDOM from 'react-dom';
 import {
   setButtonMode,
@@ -167,6 +168,11 @@ export var HUD = React.createClass({
     }
     this.setState({selectedUnit: unit});
   },
+  updateTransferUnit(unit) {
+    this.setState({transferUnit: unit});
+    this.transferModal.open();
+
+  },
   updateErrorMessage(msg,vanish) {
     this.errorAlert.updateErrorMessage(msg,vanish);
   },
@@ -180,6 +186,7 @@ export var HUD = React.createClass({
     return (
       <div onMouseUpCapture={this.handleMenuClick}>
         <MenuButtons/>
+        <TransferModal source={this.state.selectedUnit} dest={this.state.transferUnit}ref={(c) => this.transferModal = c}/>
         <SelectedUnit unit={this.state.selectedUnit}/>
         <ErrorAlert ref={(c) => this.errorAlert = c}/>
       </div>

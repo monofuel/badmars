@@ -87,6 +87,7 @@ var dragCurrent = [];
 var ctrlKey = false;
 export var selectedUnit: ? Entity;
 export var selectedUnits = [];
+export var transferUnit: ? Entity;
 var selectedTile: ? PlanetLoc;
 var statsMonitor: StatsMonitor;
 export var username;
@@ -362,8 +363,15 @@ window.onload = function () {
 				case RIGHT_MOUSE:
 					if (buttonMode == MODE_MOVE) {
 						selectedTile = map.getTileAtRay(mouse);
-						if (selectedTile && mouseClick)
+						var unit = map.getSelectedUnit(mouse);
+						if (unit && unit.playerId == playerInfo.id) {
+							console.log('right clicked players own unit');
+							transferUnit = unit;
+							hud.updateTransferUnit(transferUnit);
+						}
+						if (selectedTile && mouseClick) {
 							mouseClick(selectedTile);
+						}
 					} else if (buttonMode == MODE_FOCUS) {
 							buttonMode = MODE_MOVE;
 					 }
