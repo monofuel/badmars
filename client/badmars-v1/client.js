@@ -255,7 +255,7 @@ window.onload = function () {
 
 	document.body.addEventListener('mousemove', (event: any) => {
 		if (isMouseDown) {
-			event.preventDefault();
+			//event.preventDefault();
 			dragCurrent = new THREE.Vector2();
 			dragCurrent.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1;
 			dragCurrent.y = -(event.clientY / display.renderer.domElement.clientHeight) * 2 + 1;
@@ -283,7 +283,7 @@ window.onload = function () {
 	});
 
 	document.body.addEventListener('mouseup', (event: any) => {
-		event.preventDefault();
+		//event.preventDefault();
 		setTimeout(() => { //hacky fix to make sure this always runs after hud onmouseup
 
 			var mouse = new THREE.Vector2();

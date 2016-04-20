@@ -121,6 +121,7 @@ var MenuButtons = React.createClass({
           <Button onClick={() => this.construct('storage')}style={constructButtonStyle}>Storage</Button>
           <Button onClick={() => this.construct('mine')}style={constructButtonStyle}>Mine</Button>
           <Button onClick={() => this.construct('factory')}style={constructButtonStyle}>Factory</Button>
+          <Button onClick={() => this.construct('wall')}style={constructButtonStyle}>Wall</Button>
           <Button onClick={() => this.construct('cancel')}style={constructButtonStyle}>Cancel</Button>
         </div>
       );
@@ -186,7 +187,7 @@ export var HUD = React.createClass({
     return (
       <div onMouseUpCapture={this.handleMenuClick}>
         <MenuButtons/>
-        <TransferModal source={this.state.selectedUnit} dest={this.state.transferUnit}ref={(c) => this.transferModal = c}/>
+        <TransferModal source={this.state.selectedUnit} dest={this.state.transferUnit} ref={(c) => this.transferModal = c}/>
         <SelectedUnit unit={this.state.selectedUnit}/>
         <ErrorAlert ref={(c) => this.errorAlert = c}/>
       </div>

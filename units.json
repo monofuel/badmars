@@ -72,5 +72,13 @@
     "movementType": "building",
     "maxStorage": 100,
     "buildTime": 20
+  },{
+    "name":"wall",
+    "transferRange":0,
+    "cost": 200,
+    "maxHealth": 1000,
+    "movementType": "building",
+    "maxStorage": 0,
+    "buildTime": 20
   }
 ]

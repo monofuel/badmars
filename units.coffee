@@ -239,6 +239,7 @@ exports.updateUnit = (unit) ->
         ghostInfo = exports.get(nearestGhost.type);
         nearestGhost.health = ghostInfo.maxHealth;
         unit.update = true
+        delete unit.ghostDestination
         nearestGhost.save()
         planet.broadcastUpdate({
           type: "updateUnits"

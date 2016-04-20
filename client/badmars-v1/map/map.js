@@ -45,6 +45,9 @@ import {
 	Factory
 } from '../units/factory.js';
 import {
+	Wall
+} from '../units/wall.js';
+import {
 	Mine
 } from '../units/mine.js';
 import {
@@ -197,6 +200,11 @@ export class Map {
 				case 'factory':
 					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
 					newUnit = new Factory(loc, unit.owner, unit._id)
+					newUnit.ghosting = unit.ghosting;
+					break;
+				case 'wall':
+					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
+					newUnit = new Wall(loc, unit.owner, unit._id)
 					newUnit.ghosting = unit.ghosting;
 					break;
 				case 'mine':
