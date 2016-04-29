@@ -7,6 +7,7 @@ documentation:
 	documentation is in public/js/badmars/docs
 
 TODO:
+	try out microservice architecture with monq job queues and kubernetes
 	perhaps some sort of world chunk streaming system? maybe with generation too.
 	console acts buggy with supervisor
 	web console would be cool
