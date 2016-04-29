@@ -215,6 +215,7 @@ exports.createUnit = (tile,unitType,owner,unfinished) ->
   #@todo error check unit type
 
   unitDoc = new Unit(unitData)
+  unitDoc.tile = tile
   return unitDoc.save()
   .catch((err) ->
     console.log(err)
@@ -245,6 +246,9 @@ exports.getUnit = (unitId) ->
 # @return [Promise]
 exports.listUnits = (planetName) ->
   return Unit.find({planet: planetName})
+
+exports.listUnitsIds = (planetName) ->
+  return Unit.find({planet: planetName}).select('_id')
 
 exports.listUnitsByUserId = (userId) ->
   return Unit.find({owner: userId});

@@ -84,7 +84,7 @@ class Planet
             .then((iron) ->
               iron.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
               iron.totalAttempts = 0
-              thisPlanet.units.push(iron)
+              thisPlanet.addUnit(iron)
             )
 
     for x in [0..@worldSettings.size - 2]
@@ -97,8 +97,16 @@ class Planet
               #TODO: lots of undocumented fields added to unit at runtime. should refactor
               oil.tile = new PlanetLoc(thisPlanet,unit.location[0],unit.location[1])
               oil.totalAttempts = 0
-              thisPlanet.units.push(oil)
+              thisPlanet.addUnit(oil)
             )
+
+
+  addUnit: (unit) ->
+    #TODO only check this if in dev
+    if (this.units.indexOf(unit) != -1)
+      Logger.serverInfo("attempted duplicate unit")
+      return
+    this.units.push(unit)
 
   getPlayersUnits: (userId) ->
     return db.listUnitsByUserId(userId)
@@ -346,7 +354,7 @@ class Planet
     return db.createUnit(tile,type,userId,false).then((unit) ->
       unit.tile = tile
       console.log('spawned ' + ' for player: ', userId)
-      thisPlanet.units.push(unit)
+      thisPlanet.addUnit(unit)
       db.getUserById(userId).then((playerInfo) ->
         thisPlanet.broadcastUpdate({
           type: "newUnit"
