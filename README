@@ -1,5 +1,9 @@
 webGL multiplayer rts game in development
 
+current task:
+	re-writing all server-side code more organized in server/
+	switching to rethinkDB
+	switching to microservice architecture
 
 
 documentation:
@@ -7,7 +11,7 @@ documentation:
 	documentation is in public/js/badmars/docs
 
 TODO:
-	try out microservice architecture with monq job queues and kubernetes
+	try out microservice architecture with rethink and kubernetes
 	perhaps some sort of world chunk streaming system? maybe with generation too.
 	console acts buggy with supervisor
 	web console would be cool
