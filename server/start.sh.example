@@ -1,0 +1,9 @@
+export GOOGLE_OAUTH_ID=''
+export GOOGLE_OAUTH_CLIENT_SECRET=''
+export GOOGLE_OAUTH_CALLBACK='https://japura.net/auth/google/callback'
+export GOOGLE_OAUTH_SECRET=''
+
+export NSOLID_APPNAME=badmars-monolith
+export NSOLID_HUB=localhost:4001
+
+node app.js
