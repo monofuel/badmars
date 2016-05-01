@@ -13,6 +13,7 @@ var db = require('./db/db.js');
 var logger = require('./util/logger.js')
 var commands = require('./util/commands.js');
 var simulate = require('./core/simulate.js');
+var AI = require('./core/AI.js');
 
 var figlet = require('figlet');
 
@@ -27,6 +28,7 @@ function init() {
 		logger.info("start complete");
 		commands.init();
 		simulate.init();
+		AI.init();
 	}).catch((err) => {
 		console.log(err);
 		process.exit();

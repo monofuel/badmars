@@ -31,6 +31,12 @@ exports.listNames = () => {
 	});
 }
 
+exports.registerListener = (name,func) => {
+	table.changes().run(conn).then((cursor) => {
+		cursor.each(func);
+	});
+}
+
 exports.getPlanet = (name) => {
 	return table.get(name).run(conn).then((doc) => {
 		var planet = new Planet();

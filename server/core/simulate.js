@@ -10,7 +10,7 @@ var env = require('../config/env.js');
 var logger = require('../util/logger.js');
 
 exports.init = () => {
-	setInterval(planetTick, 1000 / env.ticksPerSec);
+	setInterval(planetTick, 1000 / (env.ticksPerSec * 4));
 }
 
 function planetTick() {
@@ -18,9 +18,11 @@ function planetTick() {
 	db.planet.listNames().then((names) => {
 		for (var name of names) {
 			db.planet.getPlanet(name).then((planet) => {
-				planet.lastTickTimestamp = (new Date).getTime();
-				planet.lastTick++;
-				return planet.save().then();
+				if ((new Date()).getTime() - planet.lastTickTimestamp > 1000 / env.ticksPerSec) {
+					planet.lastTickTimestamp = (new Date()).getTime();
+					planet.lastTick++;
+					return planet.save().then();
+				}
 			})
 		}
 	})
