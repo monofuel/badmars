@@ -8,13 +8,12 @@
 
 class Map {
 	constructor(name) {
-		this.name = name || "defaultName";
+		this.name = name;
 		this.water = 1;
-		this.chunks = {};
 		this.settings = {};
 	}
 	getChunk(hash) {
-		return this.chunks[hash];
+		//TODO get chunk from db
 	}
 
 }

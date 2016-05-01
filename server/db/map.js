@@ -20,9 +20,7 @@ exports.init = (connection) => {
 		.then((tableList) => {
 			if (tableList.indexOf('map') == -1) {
 				console.log('creating map table');
-				return r.tableCreate('map').run(conn);
-			} else {
-				console.log('map table exists');
+				return r.tableCreate('map',{primaryKey: 'name'}).run(conn);
 			}
 		}).then(() => {
 			table = r.table('map');
@@ -35,25 +33,15 @@ exports.listNames = () => {
 	});
 }
 
-exports.removeMapByName = (name) => {
-	return table.filter({
-		name: name
-	}).delete().run(conn)
+exports.getMap = (name) => {
+	return table.get(name).run(conn);
+}
+
+exports.removeMap = (name) => {
+	return table.get(name).delete().run(conn)
 }
 
 exports.createRandomMap = (name) => {
 	var map = new Map(name);
-	return table.getField('name').run(conn).then((cursor) => {
-		return cursor.toArray();
-	}).then((results) => {
-		if (results.indexOf(name) != -1) {
-			throw new Error("Map exists");
-		}
-	}).then(() => {
-		table.insert(map).run(conn)
-	});
-}
-
-exports.getMapByName = () => {
-
+	return table.insert(map).run(conn);
 }

@@ -19,10 +19,10 @@ exports.init = () => {
 // map methods
 
 vorpal.command('listmaps', 'list all created maps')
-	.action((args,callback) => {
-		db.map.listNames().then((names) => {
+	.action((args) => {
+		return db.map.listNames().then((names) => {
 			console.log(names);
-		}).then(callback);
+		});
 	});
 
 vorpal.command('removemap [name]', 'remove a specific map')
@@ -31,7 +31,7 @@ vorpal.command('removemap [name]', 'remove a specific map')
 			return db.map.listNames();
 		}
 	})
-	.action((args,callback) => {
+	.action((args, callback) => {
 		if (!args.name) {
 			console.log("you must specify a name");
 			return callback();
@@ -42,7 +42,7 @@ vorpal.command('removemap [name]', 'remove a specific map')
 	});
 
 vorpal.command('createmap [name]', 'create a new random map')
-	.action((args,callback) => {
+	.action((args, callback) => {
 		if (!args.name) {
 			console.log("you must specify a name");
 			return callback();
@@ -56,29 +56,30 @@ vorpal.command('createmap [name]', 'create a new random map')
 // planet methods
 
 vorpal.command('listplanets', 'list all created planets')
-	.action((args,callback) => {
-		console.log("TODO");
-		callback();
+	.action((args) => {
+		return db.planet.listNames().then((names) => {
+			console.log(names);
+		});
 	});
 
 vorpal.command('removeplanet [name]', 'remove a specific planet')
 	.autocomplete({
 		data: () => {
-			console.log("TODO");
+			return db.planet.listNames();
 		}
 	})
-	.action((args,callback) => {
-		console.log("TODO");
-		callback();
+	.action((args, callback) => {
+		if (!args.name) {
+			console.log("you must specify a name");
+			return callback();
+		}
+		return db.planet.removePlanetByName(args.name).then(() => {
+			console.log('success');
+		});
 	});
 
 vorpal.command('createplanet [name] [map]', 'create a new planet')
-	.autocomplete({
-		data: () => {
-			console.log("TODO");
-		}
-	})
-	.action((args,callback) => {
+	.action((args, callback) => {
 		console.log("TODO");
 		callback();
 	});
