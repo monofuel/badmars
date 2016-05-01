@@ -25,6 +25,9 @@ function init() {
 	.then(() => {
 		logger.info("start complete");
 		commands.init();
+	}).catch((err) => {
+		console.log(err);
+		process.exit();
 	})
 }
 
