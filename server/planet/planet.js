@@ -12,7 +12,17 @@ class Planet {
 		this.name = planetName;
 		this.settings = {};
 		this.mapName = mapName;
+		this.lastTickTimestamp = (new Date()).getTime();
+		this.lastTick = 0;
+	}
 
+	save() {
+		return db.planet.savePlanet(this);
+	}
+	clone(object) {
+		for (let key in object) {
+			this[key] = object[key];
+		}
 	}
 
 }

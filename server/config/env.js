@@ -29,15 +29,6 @@ googleAuth.clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
 googleAuth.callbackURL = process.env.GOOGLE_OAUTH_CALLBACK;
 googleAuth.secret = process.env.GOOGLE_OAUTH_SECRET;
 
-if (!googleAuth.clientID ||
-	!googleAuth.clientSecret ||
-	!googleAuth.callbackURL ||
-	!googleAuth.secret) {
-	//TODO perhaps have an offline anonymous mode
-	console.log('oauth environment vars not set');
-	process.exit();
-}
-
 vars.googleAuth = googleAuth;
 
 module.exports = vars;

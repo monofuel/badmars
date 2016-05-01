@@ -14,6 +14,7 @@ class DBChunk {
 		this.conn = connection;
 		this.mapName = mapName;
 	}
+
 	init() {
 		var tableName = this.mapName + "_chunk";
 		var self = this;
@@ -23,13 +24,24 @@ class DBChunk {
 				if (tableList.indexOf(tableName) == -1) {
 					console.log('creating chunk table for ' + mapName);
 					return r.tableCreate(tableName, {
-						primaryKey: 'chunk_coord'
+						primaryKey: 'hash'
 					}).run(self.conn);
 				}
 			}).then(() => {
 				self.table = r.table(tableName);
 			});
 	}
+
+	getChunk(hash) {
+		return this.table.get(hash).run(conn).then((doc) => {
+			var chunk = new Chunk();
+			chunk.clone(doc);
+			return chunk;
+		});
+	}
+
+
 }
+
 
 module.exports = DBChunk;

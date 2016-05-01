@@ -30,8 +30,17 @@ exports.listNames = () => {
 		return cursor.toArray();
 	});
 }
+
 exports.getPlanet = (name) => {
-	return table.get(name).run(conn);
+	return table.get(name).run(conn).then((doc) => {
+		var planet = new Planet();
+		planet.clone(doc)
+		return planet;
+	});
+}
+
+exports.savePlanet = (planet) => {
+	return table.get(planet.name).update(planet).run(conn);
 }
 
 exports.removePlanetByName = (name) => {

@@ -80,6 +80,15 @@ vorpal.command('removeplanet [name]', 'remove a specific planet')
 
 vorpal.command('createplanet [name] [map]', 'create a new planet')
 	.action((args, callback) => {
-		console.log("TODO");
-		callback();
+		if (!args.name) {
+			console.log("you must specify a name");
+			return callback();
+		}
+		if (!args.map) {
+			console.log("you must specify a map");
+			return callback();
+		}
+		return db.planet.createPlanet(args.name,args.map).then(() => {
+			console.log('created planet ' + args.name + " with map " + args.map);
+		});
 	});

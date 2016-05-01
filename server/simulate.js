@@ -17,6 +17,7 @@ var simulate = require('./core/simulate.js');
 var figlet = require('figlet');
 
 function init() {
+	logger.setModule('simulate');
 	logger.info("start begin");
 
 	startupHeader();
@@ -25,7 +26,6 @@ function init() {
 	Promise.all(startupPromises)
 	.then(() => {
 		logger.info("start complete");
-		commands.init();
 		simulate.init();
 	}).catch((err) => {
 		console.log(err);

@@ -9,6 +9,12 @@ var request = require('request');
 var os = require('os');
 var env = require('../config/env.js');
 
+var moduleName = 'monolith';
+
+module.exports.setModule = (name) => {
+	moduleName = name;
+}
+
 process.on('uncaughtException', (err) => {
 	console.log('uncaught error');
 	module.exports.error(err);
@@ -83,7 +89,7 @@ function verifyTrack(name, kargs) {
 function track(name, kargs) {
 	kargs = kargs || {};
 	name = name.replace(/ /g,"_").replace(/:/g," ");
-	kargs.name = "server_" + name;
+	kargs.name = moduleName + "_" + name;
 	kargs.hostname = os.hostname();
 	kargs.env = env.envType;
 	verifyTrack(name,kargs);

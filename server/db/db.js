@@ -56,6 +56,7 @@ exports.init = () => {
 		for (var name of names) {
 			var chunk = new DBChunk(conn, name);
 			chunkPromises.push(chunk.init());
+			exports.chunks[name] = chunk;
 		}
 		return Promise.all(chunkPromises);
 	});

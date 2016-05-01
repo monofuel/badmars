@@ -5,6 +5,7 @@
 
 'use strict';
 
+var db = require('../db/db.js');
 
 class Map {
 	constructor(name) {
@@ -13,9 +14,17 @@ class Map {
 		this.settings = {};
 	}
 	getChunk(hash) {
-		//TODO get chunk from db
+		return db.chunks[this.name].getChunk(hash);
 	}
 
+	save() {
+		return db.map.saveMap(this);
+	}
+	clone(object) {
+		for (let key in object) {
+			this[key] = object[key];
+		}
+	}
 }
 
 module.exports = Map;
