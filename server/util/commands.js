@@ -16,6 +16,21 @@ exports.init = () => {
 }
 
 //==================================================================
+// dev methods
+
+var Unit = require('../unit/unit.js');
+
+vorpal.command('test', 'does SOMETHING')
+	.action((args) => {
+		//today it makes a unit
+		var unit = new Unit('tank');
+		db.units['testplanet'].addUnit(unit).then((delta) => {
+			console.log(delta);
+		});
+
+	});
+
+//==================================================================
 // map methods
 
 vorpal.command('listmaps', 'list all created maps')

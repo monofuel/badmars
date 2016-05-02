@@ -93,6 +93,9 @@ function track(name, kargs) {
 	kargs.hostname = os.hostname();
 	kargs.env = env.envType;
 	verifyTrack(name,kargs);
+
+	//TODO get analytics server back up
+	return;
 	request({
 		url: "http://" + env.trackingServer + ":" + env.trackingPort + "/track/event",
 		method: 'POST',

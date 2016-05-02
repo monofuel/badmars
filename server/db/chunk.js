@@ -22,7 +22,7 @@ class DBChunk {
 		return r.tableList().run(self.conn)
 			.then((tableList) => {
 				if (tableList.indexOf(tableName) == -1) {
-					console.log('creating chunk table for ' + mapName);
+					console.log('creating chunk table for ' + this.mapName);
 					return r.tableCreate(tableName, {
 						primaryKey: 'hash'
 					}).run(self.conn);

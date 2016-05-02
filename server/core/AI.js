@@ -37,7 +37,20 @@ function planetUpdate(err,delta) {
 		//value on a planet changed other than tick count, ignore it.
 		return;
 	}
-	//console.log('simulating units for ' + delta.new_val.name);
-	//TODO
-	//fetch units that need updates
+
+	process(delta);
+}
+
+function process(delta) {
+	db.units[delta.new_val.name].getUnprocessedUnit(delta.new_val.lastTick)
+	.then((unit) => {
+		if (unit) {
+			processUnit(unit);
+			process(delta);
+		}
+	});
+}
+
+function processUnit(unit) {
+
 }

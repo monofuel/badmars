@@ -31,6 +31,7 @@ function init() {
 		AI.init();
 	}).catch((err) => {
 		console.log(err);
+		console.log("exiting");
 		process.exit();
 	})
 }

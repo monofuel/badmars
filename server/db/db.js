@@ -8,12 +8,15 @@
 var env = require('../config/env.js');
 var logger = require('../util/logger.js');
 var r = require('rethinkdb');
+
 var DBChunk = require('./chunk.js');
+var DBUnit = require('./unit.js');
 
 exports.planet = require('./planet.js');
 exports.map = require('./map.js');
 
 exports.chunks = {};
+exports.units = {};
 
 var conn;
 
@@ -58,6 +61,17 @@ exports.init = () => {
 			chunkPromises.push(chunk.init());
 			exports.chunks[name] = chunk;
 		}
-		return Promise.all(chunkPromises);
+		return Promise.all(chunkPromises).then(() => {
+			return exports.planet.listNames();
+		});
+	}).then((names) => {
+		console.log('preparing units')
+		var unitPromises = [];
+		for (var name of names) {
+			var unit = new DBUnit(conn, name);
+			unitPromises.push(unit.init());
+			exports.units[name] = unit;
+		}
+		return Promise.all(unitPromises);
 	});
 }
