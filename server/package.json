@@ -25,10 +25,19 @@
     "url": "https://github.com/monofuel/badMars-JS/issues"
   },
   "dependencies": {
+    "body-parser": "^1.15.0",
     "colors": "^1.1.2",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.1",
+    "ejs": "^2.4.1",
+    "express": "^4.13.4",
+    "express-session": "^1.13.0",
     "figlet": "^1.1.2",
+    "mongoose": "^4.4.14",
+    "passport": "^0.3.2",
     "request": "^2.72.0",
-    "rethinkdb": "^2.3.1",
-    "vorpal": "^1.10.10"
+    "rethinkdb": "2.2.3",
+    "vorpal": "^1.10.10",
+    "ws": "^1.1.0"
   }
 }

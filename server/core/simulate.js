@@ -11,7 +11,7 @@ var logger = require('../util/logger.js');
 
 exports.init = () => {
 	setInterval(planetTick, 1000 / (env.ticksPerSec * 4));
-}
+};
 
 function planetTick() {
 
@@ -30,7 +30,7 @@ function planetTick() {
 					planet.lastTick++;
 					return planet.save().then();
 				}
-			})
+			});
 		}
-	})
+	});
 }

@@ -13,7 +13,7 @@ var moduleName = 'monolith';
 
 module.exports.setModule = (name) => {
 	moduleName = name;
-}
+};
 
 process.on('uncaughtException', (err) => {
 	console.log('uncaught error');
@@ -30,14 +30,11 @@ module.exports.error = (err) => {
 		message: err.message,
 		stack: err.stack
 	});
-}
+};
 
 module.exports.requestInfo = (info, req) => {
 	var timestamp = new Date();
-	req = req || {
-		user: {}
-	};
-
+	req.user = req.user || {};
 	track(info, {
 		ip: req.ip,
 		username: req.user.username
@@ -52,7 +49,7 @@ module.exports.requestInfo = (info, req) => {
 		console.log("INFO: " + dateFormat(timestamp) + ": " + info);
 	}
 
-}
+};
 
 module.exports.info = (info, body, silent) => {
 	var timestamp = new Date();
@@ -64,13 +61,13 @@ module.exports.info = (info, body, silent) => {
 	} else {
 		console.log("INFO: " + dateFormat(timestamp) + ": " + info);
 	}
-}
+};
 
 //==================================================================
 // functions
 
 function dateFormat(date) {
-	return date.getMonth() + "/" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes()
+	return date.getMonth() + "/" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes();
 }
 
 function verifyTrack(name, kargs) {

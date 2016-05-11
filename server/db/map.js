@@ -5,7 +5,7 @@
 
 'use strict';
 
-var Map = require('../map/map.js')
+var Map = require('../map/map.js');
 
 var r = require('rethinkdb');
 
@@ -25,13 +25,13 @@ exports.init = (connection) => {
 		}).then(() => {
 			table = r.table('map');
 		});
-}
+};
 
 exports.listNames = () => {
 	return table.getField('name').run(conn).then((cursor) => {
 		return cursor.toArray();
 	});
-}
+};
 
 exports.getMap = (name) => {
 	return table.get(name).run(conn).then((doc) => {
@@ -39,16 +39,16 @@ exports.getMap = (name) => {
 		map.clone(doc);
 		return map;
 	});
-}
+};
 
 exports.saveMap = (map) => {
 	return table.get(map.name).update(map).run(conn);
-}
+};
 
 exports.removeMap = (name) => {
-	return table.get(name).delete().run(conn)
-}
+	return table.get(name).delete().run(conn);
+};
 
 exports.createRandomMap = (name) => {
 	return exports.saveMap(new Map(name));
-}
+};

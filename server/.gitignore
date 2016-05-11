@@ -1,1 +1,8 @@
 start.sh
+
+public/clientdocs/
+public/docs/
+public/js/badmars/*.js
+public/js/badmars/dependencies/*.js
+public/models/
+public/sounds/

@@ -13,7 +13,7 @@ var registeredPlanets = [];
 
 exports.init = () => {
 	setInterval(registerListeners,1000);
-}
+};
 
 function registerListeners() {
 	db.planet.listNames().then((name) => {

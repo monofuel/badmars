@@ -19,7 +19,7 @@ gulp.task('transpile', function () {
 		})
 
 	.bundle()
-		.pipe(fs.createWriteStream('../public/js/badmars/badmars-v1.js'));
+		.pipe(fs.createWriteStream('../server/public/js/badmars/badmars-v1.js'));
 });
 
 gulp.task('check', function () {
