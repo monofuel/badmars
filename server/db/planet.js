@@ -23,37 +23,44 @@ exports.init = (connection) => {
 		}).then(() => {
 			table = r.table('planet');
 		});
-}
+};
 
 exports.listNames = () => {
 	return table.getField('name').run(conn).then((cursor) => {
 		return cursor.toArray();
 	});
-}
+};
 
 exports.registerListener = (name,func) => {
 	table.changes().run(conn).then((cursor) => {
 		cursor.each(func);
 	});
-}
+};
 
 exports.getPlanet = (name) => {
 	return table.get(name).run(conn).then((doc) => {
+		if (!doc) {
+			return null;
+		}
 		var planet = new Planet();
-		planet.clone(doc)
+		planet.clone(doc);
 		return planet;
 	});
-}
+};
 
 exports.savePlanet = (planet) => {
 	return table.get(planet.name).update(planet).run(conn);
-}
+};
+
+exports.createPlanet = (planet) => {
+	return table.insert(planet,{conflict:"error"}).run(conn);
+};
+
 
 exports.removePlanetByName = (name) => {
-	return table.get(name).delete().run(conn)
-}
+	return table.get(name).delete().run(conn);
+};
 
-exports.createPlanet = (planetName,mapName) => {
-	var planet = new Planet(planetName,mapName);
-	return table.insert(planet).run(conn);
-}
+exports.createNewPlanet = (planetName,mapName) => {
+	return exports.createPlanet(new Planet(planetName,mapName));
+};

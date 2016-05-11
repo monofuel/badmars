@@ -7,11 +7,13 @@
 
 var db = require('../db/db.js');
 
+
 class Map {
 	constructor(name) {
 		this.name = name;
 		this.water = 1;
 		this.settings = {};
+		this.seed = Math.random();
 	}
 	getChunk(hash) {
 		return db.chunks[this.name].getChunk(hash);

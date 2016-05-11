@@ -80,7 +80,9 @@ window.track = (name, kargs) => {
 	verifyTrack(name,kargs);
 	console.log('tracking ' + name);
 	console.log(kargs);
-	xhr.send(JSON.stringify(kargs));
+	//disabled until i get the tracking server back up
+	return;
+	//xhr.send(JSON.stringify(kargs));
 
 }
 

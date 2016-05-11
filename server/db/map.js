@@ -35,6 +35,9 @@ exports.listNames = () => {
 
 exports.getMap = (name) => {
 	return table.get(name).run(conn).then((doc) => {
+		if (!doc) {
+			return null;
+		}
 		var map = new Map();
 		map.clone(doc);
 		return map;
@@ -44,11 +47,14 @@ exports.getMap = (name) => {
 exports.saveMap = (map) => {
 	return table.get(map.name).update(map).run(conn);
 };
+exports.createMap = (map) => {
+	return table.insert(map,{conflict:"error"}).run(conn);
+};
 
 exports.removeMap = (name) => {
 	return table.get(name).delete().run(conn);
 };
 
 exports.createRandomMap = (name) => {
-	return exports.saveMap(new Map(name));
+	return exports.createMap(new Map(name));
 };

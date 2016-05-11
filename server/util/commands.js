@@ -103,7 +103,7 @@ vorpal.command('createplanet [name] [map]', 'create a new planet')
 			console.log("you must specify a map");
 			return callback();
 		}
-		return db.planet.createPlanet(args.name,args.map).then(() => {
+		return db.planet.createNewPlanet(args.name,args.map).then(() => {
 			console.log('created planet ' + args.name + " with map " + args.map);
 		});
 	});

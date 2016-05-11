@@ -6,11 +6,13 @@
 'use strict';
 
 var db = require('../db/db.js');
+var hat = require('hat');
 
 class User {
-	constructor(userName) {
+	constructor(userName,color) {
 		this.name = userName;
-        this.apiKey = "";
+        this.apiKey = hat();
+		this.color = color;
 	}
 
 	save() {

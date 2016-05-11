@@ -8,7 +8,6 @@
 var db = require('../db/db.js');
 var env = require('../config/env.js');
 var logger = require('../util/logger.js');
-var netUtil = require('../net/util.js');
 var authHandler = require('../net/handler/auth.js');
 
 class Client {
@@ -31,8 +30,21 @@ class Client {
             self.handleLogOut();
         });
 
-        ws.send(netUtil.success('connected'));
+        this.send('connected');
     }
+
+	send(type,data) {
+		data = data || {};
+		data.type = type;
+		data.success = true;
+
+		this.ws.send(JSON.stringify(data));
+	}
+
+	sendError(type,errMsg) {
+		console.log('client error: ' + type);
+		this.ws.send(JSON.stringify({type: type, success: false, reason: errMsg}));
+	}
 
     handleLogOut() {
         logger.info('client closed connection');
@@ -41,17 +53,18 @@ class Client {
         }
     }
 
-    handleFromClient(msg) {
+    handleFromClient(data) {
         var self = this;
 
-        console.log('received' + msg);
-        msg = JSON.parse(msg);
+        console.log('received' + data);
+        data = JSON.parse(data);
 
-        if (!msg.type || !self.handlers[msg.type]) {
-            self.ws.send(netUtil.errMsg('invalid','invalid request'));
+        if (!data.type || !self.handlers[data.type]) {
+            self.sendError('invalid','invalid request');
             return;
         }
 
-        self.handlers[msg.type]();
+        self.handlers[data.type](self,data);
     }
 }
+module.exports = Client;

@@ -74,5 +74,13 @@ exports.init = () => {
 			exports.units[name] = unit;
 		}
 		return Promise.all(unitPromises);
-	});
+	}).then(() => {
+		return exports.map.createRandomMap('testmap').then(() => {
+			console.log('created map testmap');
+		})
+	}).then(() => {
+		return exports.planet.createNewPlanet('testplanet','testmap').then(() => {
+			console.log('created planet testplanet with map testmap');
+		});
+	})
 };

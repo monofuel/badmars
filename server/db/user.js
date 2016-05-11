@@ -24,3 +24,34 @@ exports.init = (connection) => {
 			table = r.table('user');
 		});
 };
+
+exports.listAllSanitizedUsers = () => {
+	return table.run(conn).then((cursor) => {
+		return cursor.toArray().then((list) => {
+			var sanitized = [];
+			for (var user of list){
+				sanitized.push({
+					name: user.name,
+					color: user.color
+				});
+			}
+			return sanitized;
+		});
+	});
+};
+
+exports.getUser = (name) => {
+	return table.get(name).run(conn).then((doc) => {
+		if (!doc) {
+			return null;
+		}
+		var user = new User();
+		user.clone(doc);
+		return user;
+	});
+};
+
+exports.createUser = (name,color) => {
+	var user = new User(name,color);
+	return table.insert(user,{conflict:"error", returnChanges: true}).run(conn);
+};

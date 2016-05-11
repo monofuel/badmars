@@ -6,6 +6,7 @@
 'use strict';
 
 var db = require('../db/db.js');
+var SimplexNoise = require('simplex-noise');
 
 class Chunk {
 	constructor(hash,map) {

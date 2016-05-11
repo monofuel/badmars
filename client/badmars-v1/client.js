@@ -191,13 +191,13 @@ window.onload = function () {
 				window.track("logging_in", {
 					username: username,
 					apiKey: true,
-					planet: "testPlanet3"
+					planet: "testplanet"
 				});
 				net.send({
 					type: 'login',
 					username: username,
 					apiKey: apiKey,
-					planet: "testPlanet3"
+					planet: "testplanet"
 				});
 			});
 	} else {
@@ -571,12 +571,12 @@ window.login = function () {
 					username: username,
 					apiKey: false,
 					color: userColor.getHexString(),
-					planet: "testPlanet3"
+					planet: "testPlanet"
 				});
 				net.send({
 					type: 'login',
 					username: username,
-					planet: "testPlanet3",
+					planet: "testPlanet",
 					color: userColor.getHexString()
 				});
 			});

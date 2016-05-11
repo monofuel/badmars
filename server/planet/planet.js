@@ -14,6 +14,7 @@ class Planet {
 		this.mapName = mapName;
 		this.lastTickTimestamp = (new Date()).getTime();
 		this.lastTick = 0;
+		this.users = [];
 	}
 
 	save() {

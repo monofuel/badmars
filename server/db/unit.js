@@ -32,6 +32,12 @@ class DBUnit {
 			});
 	}
 
+	listUnits() {
+		return this.table.run(this.conn).then((cursor) => {
+			return cursor.toArray();
+		});
+	}
+
 	addUnit(unit) {
 		return this.table.insert(unit,{returnChanges: true}).run(this.conn).then((delta) => {
 			return delta.changes[0].new_val;
@@ -49,7 +55,7 @@ class DBUnit {
 	getUnprocessedUnit(tick) {
 
 		return this.table.filter(r.row("lastTick").lt(tick),{default: true}).limit(1).update({lastTick: tick},{returnChanges: true}).run(this.conn).then((delta) => {
-			if (!delta.changes || delta.changes.length == 0) {
+			if (!delta.changes || delta.changes.length === 0) {
 				return null;
 			}
 			var newUnit = delta.changes[0].new_val;
