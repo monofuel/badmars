@@ -23,7 +23,7 @@ module.exports = (client,data) => {
 			throw new Error("planet doesn't exist");
 		}
 		console.log('user planet: ' + planet.name);
-		client.planet = planet.name;
+		client.planet = planet;
 
 		return db.user.getUser(data.username);
 	}).then((user) => {
@@ -37,6 +37,7 @@ module.exports = (client,data) => {
 			//TODO mount all the user handlers
 			client.handlers['getPlayers'] = require('./getPlayers.js');
 			client.handlers['getUnits'] = require('./getUnits.js');
+			client.handlers['getMap'] = require('./getMap.js');
 
 			client.send('login');
 

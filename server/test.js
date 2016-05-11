@@ -34,7 +34,7 @@ function sendAndCheck(data, check) {
 				console.log('got extra packet: ', JSON.stringify(event));
 			};
 			resolve();
-		}
+		};
 		if (data) {
 			s.send(JSON.stringify(data));
 		}
@@ -45,10 +45,10 @@ function connect() {
 	console.log('connecting..');
 	return sendAndCheck(null, (data) => {
 		if (data.type != 'connected') {
-			throw new Error('invalid first packet')
+			throw new Error('invalid first packet');
 		}
 		if (!data.success) {
-			throw new Error('not successful')
+			throw new Error('not successful');
 		}
 		console.log('connected!');
 	});

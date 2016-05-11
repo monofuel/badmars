@@ -31,9 +31,14 @@ class DBChunk {
 				self.table = r.table(tableName);
 			});
 	}
+	listChunks() {
+		return this.table.run(this.conn).then((cursor) => {
+			return cursor.toArray();
+		});
+	}
 
 	getChunk(hash) {
-		return this.table.get(hash).run(conn).then((doc) => {
+		return this.table.get(hash).run(this.conn).then((doc) => {
 			var chunk = new Chunk();
 			chunk.clone(doc);
 			return chunk;

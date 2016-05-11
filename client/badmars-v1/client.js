@@ -571,12 +571,12 @@ window.login = function () {
 					username: username,
 					apiKey: false,
 					color: userColor.getHexString(),
-					planet: "testPlanet"
+					planet: "testplanet"
 				});
 				net.send({
 					type: 'login',
 					username: username,
-					planet: "testPlanet",
+					planet: "testplanet",
 					color: userColor.getHexString()
 				});
 			});
