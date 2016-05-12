@@ -12,8 +12,10 @@ var Chunk = require("../map/chunk.js");
 class Map {
 	constructor(name) {
 		this.name = name;
-		this.water = 1;
-		this.settings = {};
+		this.settings = {
+			chunkSize: 16,
+			waterHeight: 1
+		};
 		this.seed = Math.random();
 	}
 	getChunk(x,y) {

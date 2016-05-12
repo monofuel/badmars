@@ -191,8 +191,8 @@ export class Net {
 					}
 
 
-						if (data.type == 'planet') {
-						window.loadPlanet(data.planet);
+						if (data.type == 'map') {
+						window.loadPlanet(data.map);
 						self.s.send(JSON.stringify({
 							type: "getPlayers"
 						}));

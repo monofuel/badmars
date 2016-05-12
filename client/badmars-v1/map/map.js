@@ -65,8 +65,7 @@ import {
 
 export class Map {
 	settings: Settings;
-	grid: Array < Array < number >> ;
-	navGrid: Array < Array < Symbol >> ;
+	chunkMap;
 	landMeshes: Array < THREE.Object3D > ;
 	waterMeshes: Array < THREE.Object3D > ;
 	units: Array < Entity > ;
@@ -82,25 +81,23 @@ export class Map {
 		this.landMeshes = [];
 		this.waterMeshes = [];
 		this.planetData = {};
+		this.chunkMap = {};
 		var self = this;
 		if (planet) {
 			this.planetData = planet;
-			this.worldSettings = planet.worldSettings;
-			this.navGrid = planet.navGrid;
-			this.grid = planet.grid;
-			this.generateMesh();
+			window.debug.planet = planet;
+
+			window.debug.map = self;
+			this.worldSettings = planet.settings;
 		} else {
 			console.log("error: invalid planet.");
 		}
 
-		window.loadChunk = (chunk) => {
-			//generateChunk(chunkX: number, chunkY: number, chunkArray)
-		}
-
 		this.chunkListener = (data) => {
 			console.log('loading chunk');
-			console.log(data);
-
+			var chunk = data.chunk;
+			self.chunkMap[data.chunk.hash] = chunk;
+			self.generateChunk(chunk.x,chunk.y,chunk.grid);
 		}
 		registerListener('chunk',this.chunkListener);
 
@@ -257,6 +254,7 @@ export class Map {
 		deleteListener(this.attackListener);
 		deleteListener(this.killListener);
 		deleteListener(this.ghostUnitListener);
+		deleteListener(this.chunkListener);
 		for (var mesh of this.landMeshes) {
 			Display.removeMesh(mesh);
 		}
@@ -319,13 +317,17 @@ export class Map {
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x + 1,
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x);
 
+				//TODO redo navgrid shit
+				/*
 				if (this.navGrid[(chunkX * this.worldSettings.chunkSize) + x][(chunkY * this.worldSettings.chunkSize) + y] != 1) {
+				*/
 					landFace1.materialIndex = 0;
 					landFace2.materialIndex = 0;
+					/*
 				} else {
 					landFace1.materialIndex = 1;
 					landFace2.materialIndex = 1;
-				}
+				}*/
 
 				gridGeom.faces.push(landFace1);
 				gridGeom.faces.push(landFace2);
@@ -379,12 +381,23 @@ export class Map {
 		gridMesh.geometry.applyMatrix(centerMatrix);
 		waterMesh.geometry.applyMatrix(centerMatrix);
 
+		//gridMesh.position.z = (chunkX);
+		gridMesh.position.y = 0;
+		//gridMesh.position.x = (chunkY);
+
+
+		waterMesh.position.copy(gridMesh.position)
 		waterMesh.position.x += this.worldSettings.chunkSize / 2;
 		waterMesh.position.y += this.worldSettings.waterHeight;
 		waterMesh.position.z -= this.worldSettings.chunkSize / 2;
 
+
+
 		this.landMeshes.push(gridMesh);
 		this.waterMeshes.push(waterMesh);
+
+		display.addMesh(gridMesh);
+		display.addMesh(waterMesh);
 
 		console.log("Generated Geometry");
 
@@ -392,6 +405,7 @@ export class Map {
 
 
 	addToRender() {
+		throw new Error("depriciated");
 		if (!display) {
 			console.log('error: display not initialized when adding map!');
 			return;

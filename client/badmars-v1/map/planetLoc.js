@@ -28,6 +28,7 @@ export class PlanetLoc {
 	real_z: number;
 	tileType: Symbol;
 	corners: Array<number>;
+	chunk;
 
 	/**
 	 * @param  {Map}     The map this location is on
@@ -36,8 +37,15 @@ export class PlanetLoc {
 	 */
 	constructor(planet: Map, x: number, y: number) {
 			this.planet = planet;
-			this.x = Math.round(x);
-			this.y = Math.round(y);
+			this.real_x = Math.round(x);
+			this.real_y = Math.round(y);
+
+			var chunkX = this.real_x / this.planet.worldSettings.chunkSize;
+			var chunkY = this.real_y / this.planet.worldSettings.chunkSize;
+			this.x = this.real_x % this.planet.worldSettings.chunkSize;
+			this.y = this.real_y % this.planet.worldSettings.chunkSize;
+
+			this.chunk = this.planet.chunkMap[chunkX + ":" + chunkY];
 
 			if (!planet || !planet.grid) {
 				console.log('invalid call to PlanetLoc');
@@ -47,41 +55,11 @@ export class PlanetLoc {
 				return;
 			}
 
-			// loop around bottom
-			if (this.x < 0) {
-				this.x = (this.planet.worldSettings.size + this.x - 1) %
-					(this.planet.worldSettings.size - 1);
-			}
-			// loop around the top
-			if (this.x >= this.planet.worldSettings.size - 1) {
-				this.x = this.x % (this.planet.worldSettings.size - 2);
-			}
-			// loop around the right
-			if (this.y < 0) {
-				this.y = (this.planet.worldSettings.size + this.y - 1) %
-					(this.planet.worldSettings.size - 1);
-			}
-			// loop around the left
-			if (this.y >= this.planet.worldSettings.size - 1) {
-				this.y = this.y % (this.planet.worldSettings.size - 2);
-			}
-
-			if (this.x >= this.planet.grid[0].length - 1 || this.x < 0) {
-				console.log(this.toString());
-				console.log(new Error()
-					.stack);
-			}
-			if (this.y >= this.planet.grid[0].length - 1 || this.y < 0) {
-				console.log(this.toString());
-				console.log(new Error()
-					.stack);
-			}
-
 			this.corners = [
-				this.planet.grid[this.y][this.x],
-				this.planet.grid[this.y + 1][this.x],
-				this.planet.grid[this.y][this.x + 1],
-				this.planet.grid[this.y + 1][this.x + 1]
+				this.chunk.grid[this.y][this.x],
+				this.chunk.grid[this.y + 1][this.x],
+				this.chunk.grid[this.y][this.x + 1],
+				this.chunk.grid[this.y + 1][this.x + 1]
 			];
 
 			var avg = (this.corners[0] +
@@ -107,15 +85,14 @@ export class PlanetLoc {
 					this.tileType = TILE_COAST;
 					break;
 			}
-			this.real_x = this.x + 0.5;
-			this.real_y = -(this.y + 0.5);
+			this.real_x = this.real_x + 0.5;
+			this.real_y = this.real_y + 0.5;
 
 		}
 
 	distance(tile){
-		//TODO doesn't consider map loop
-		var deltaX = Math.abs(this.x - tile.x);
-		var deltaY = Math.abs(this.y - tile.y);
+		var deltaX = Math.abs(this.real_x - tile.real_x);
+		var deltaY = Math.abs(this.real_y - tile.real_y);
 
 		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 	}
@@ -130,8 +107,8 @@ export class PlanetLoc {
 		 * @return {String}  Debug information for the tile
 		 */
 	toString(): string {
-		var line = "x: " + this.x;
-		line += ", y: " + this.y;
+		var line = "x: " + this.real_x;
+		line += ", y: " + this.real_y;
 		line += ", type: " + getTypeName(this.tileType);
 		if (this.planet && this.planet.worldSettings) {
 			line += ", planet: " + this.planet.worldSettings.name;
@@ -143,25 +120,25 @@ export class PlanetLoc {
 	 * @return {PlanetLoc} Tile to the west
 	 */
 	W(): PlanetLoc {
-			return new PlanetLoc(this.planet, this.x - 1, this.y);
+			return new PlanetLoc(this.planet, this.real_x - 1, this.real_y);
 		}
 		/**
 		 * @return {PlanetLoc} Tile to the east
 		 */
 	E(): PlanetLoc {
-			return new PlanetLoc(this.planet, this.x + 1, this.y);
+			return new PlanetLoc(this.planet, this.real_x + 1, this.real_y);
 		}
 		/**
 		 * @return {PlanetLoc} Tile to the south
 		 */
 	S(): PlanetLoc {
-			return new PlanetLoc(this.planet, this.x, this.y - 1);
+			return new PlanetLoc(this.planet, this.real_x, this.real_y - 1);
 		}
 		/**
 		 * @return {PlanetLoc} Tile to the north
 		 */
 	N(): PlanetLoc {
-		return new PlanetLoc(this.planet, this.x, this.y + 1);
+		return new PlanetLoc(this.planet, this.real_x, this.real_y + 1);
 	}
 
 	getVec(): THREE.vector3 {
@@ -174,8 +151,8 @@ export class PlanetLoc {
 	 * @return {boolean}   Equality
 	 */
 	equals(otherLoc: PlanetLoc): boolean {
-		return (otherLoc.x == this.x &&
-			otherLoc.y == this.y &&
+		return (otherLoc.real_x == this.real_x &&
+			otherLoc.real_y == this.real_y &&
 			otherLoc.planet == this.planet);
 	}
 }

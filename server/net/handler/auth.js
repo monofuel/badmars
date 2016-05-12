@@ -9,6 +9,13 @@ var db = require('../../db/db.js');
 var env = require('../../config/env.js');
 var logger = require('../../util/logger.js');
 
+function mountUserHandlers(client) {
+	client.handlers['getPlayers'] = require('./getPlayers.js');
+	client.handlers['getUnits'] = require('./getUnits.js');
+	client.handlers['getMap'] = require('./getMap.js');
+	client.handlers['getChunk'] = require('./getChunk.js');
+}
+
 module.exports = (client,data) => {
 
 	if (!data.planet) {
@@ -34,12 +41,7 @@ module.exports = (client,data) => {
 			}
 			console.log('login success for ' + user.name);
 			client.username = user.name;
-
-			//TODO mount all the user handlers
-			client.handlers['getPlayers'] = require('./getPlayers.js');
-			client.handlers['getUnits'] = require('./getUnits.js');
-			client.handlers['getMap'] = require('./getMap.js');
-			client.handlers['getChunk'] = require('./getChunk.js');
+			mountUserHandlers(client);
 
 			client.send('login');
 
@@ -54,8 +56,11 @@ module.exports = (client,data) => {
 			return db.user.createUser(data.username,data.color).then((result) => {
 				if (result.inserted == 1) {
 					var user = result.changes[0].new_val;
+					
 					console.log('account created for ' + user.name);
 					client.username = user.name;
+					mountUserHandlers(client);
+
 					client.send('login',{apiKey: user.apiKey});
 				} else {
 					console.log('creating user failed');

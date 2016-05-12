@@ -142,7 +142,6 @@ window.loadPlanet = function (planet: ? Object) {
 		map.destroy();
 	}
 	map = new Map(planet);
-	map.addToRender();
 }
 
 window.onload = function () {

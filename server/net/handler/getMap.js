@@ -14,8 +14,12 @@ module.exports = (client,data) => {
 		client.send('map',{map:map});
 
 		//TODO: be more intelligent on this. only send chunks where the owner has units at
-		/*client.planet.getChunk(0,0).then((chunk) => {
-			client.send('chunk',{chunk:chunk});
-		});*/
+		for (var i = -6; i < 6; i++) {
+			for (var j = -6; j < 6; j++) {
+				client.planet.getChunk(i,j).then((chunk) => {
+					client.send('chunk',{chunk:chunk});
+				});
+			}
+		}
 	});
 };
