@@ -10,6 +10,7 @@ var vars = {};
 vars.envType = process.env.NODE_ENV || 'dev';
 
 vars.ticksPerSec = process.env.TICKS_PER_SEC || 1;
+vars.chunkSize = process.env.CHUNK_SIZE || 16;
 
 vars.dbHost = process.env.BADMARS_DB || 'localhost';
 vars.database = process.env.BADMARS_DATABASE || 'badmars';

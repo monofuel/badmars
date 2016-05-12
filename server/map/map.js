@@ -6,6 +6,7 @@
 'use strict';
 
 var db = require('../db/db.js');
+var Chunk = require("../map/chunk.js");
 
 
 class Map {
@@ -15,8 +16,18 @@ class Map {
 		this.settings = {};
 		this.seed = Math.random();
 	}
-	getChunk(hash) {
-		return db.chunks[this.name].getChunk(hash);
+	getChunk(x,y) {
+		var self = this;
+		return db.chunks[this.name].getChunk(x,y).then((chunk) => {
+			if (!chunk || !chunk.isValid()) {
+				chunk = new Chunk(x,y,self.name);
+				return chunk.save().then(() => {
+					return chunk;
+				});
+			} else {
+				return chunk;
+			}
+		});
 	}
 
 	save() {

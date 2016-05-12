@@ -33,11 +33,13 @@ module.exports = (client,data) => {
 				throw new Error('invalid api key');
 			}
 			console.log('login success for ' + user.name);
+			client.username = user.name;
 
 			//TODO mount all the user handlers
 			client.handlers['getPlayers'] = require('./getPlayers.js');
 			client.handlers['getUnits'] = require('./getUnits.js');
 			client.handlers['getMap'] = require('./getMap.js');
+			client.handlers['getChunk'] = require('./getChunk.js');
 
 			client.send('login');
 
@@ -53,6 +55,7 @@ module.exports = (client,data) => {
 				if (result.inserted == 1) {
 					var user = result.changes[0].new_val;
 					console.log('account created for ' + user.name);
+					client.username = user.name;
 					client.send('login',{apiKey: user.apiKey});
 				} else {
 					console.log('creating user failed');

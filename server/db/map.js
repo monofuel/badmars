@@ -34,6 +34,9 @@ exports.listNames = () => {
 };
 
 exports.getMap = (name) => {
+	if (!name) {
+		throw new Error('invalid map get');
+	}
 	return table.get(name).run(conn).then((doc) => {
 		if (!doc) {
 			return null;

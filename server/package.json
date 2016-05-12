@@ -25,6 +25,7 @@
     "url": "https://github.com/monofuel/badMars-JS/issues"
   },
   "dependencies": {
+    "alea": "0.0.9",
     "body-parser": "^1.15.0",
     "colors": "^1.1.2",
     "connect-flash": "^0.1.1",

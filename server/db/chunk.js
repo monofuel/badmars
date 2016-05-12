@@ -37,12 +37,19 @@ class DBChunk {
 		});
 	}
 
-	getChunk(hash) {
-		return this.table.get(hash).run(this.conn).then((doc) => {
+	getChunk(x,y) {
+		return this.table.get(x + ":" + y).run(this.conn).then((doc) => {
+			if (!doc) {
+				return null;
+			}
 			var chunk = new Chunk();
 			chunk.clone(doc);
 			return chunk;
 		});
+	}
+
+	saveChunk(chunk) {
+		return this.table.insert(chunk,{conflict:"replace"}).run(this.conn);
 	}
 
 

@@ -9,6 +9,8 @@ const SERVER_PORT = 7005;
 var s = new WebSocket(SERVER_URL + ":" + SERVER_PORT);
 var players = [];
 var units = [];
+var map;
+var chunks = {};
 
 function verify(data) {
 	if (!data) {
@@ -116,12 +118,58 @@ function getUnits() {
 	});
 }
 
+function getMap() {
+	console.log('fetching map');
+	return sendAndCheck({
+		type: 'getMap'
+	}, (data) => {
+		if (!data.success) {
+			console.log(data);
+			throw new Error('not successful');
+		}
+		if (data.type != 'map') {
+			console.log(data);
+			throw new Error('invalid response');
+		}
+		if (!data.map) {
+			console.log(data);
+			throw new Error('missing map');
+		}
+		map = data.map;
+	});
+}
+
+function getChunk() {
+	console.log('fetching chunk 0,0');
+	return sendAndCheck({
+		type: 'getChunk',
+		x: 0,
+		y: 0
+	}, (data) => {
+		if (!data.success) {
+			console.log(data);
+			throw new Error('not successful');
+		}
+		if (data.type != 'chunk') {
+			console.log(data);
+			throw new Error('invalid response');
+		}
+		if (!data.chunk) {
+			console.log(data);
+			throw new Error('missing chunk');
+		}
+		chunks[data.chunk.hash] = data.chunk;
+	});
+}
+
 function doAllTests() {
 
 	connect()
 		.then(login)
 		.then(getPlayers)
 		.then(getUnits)
+		.then(getMap)
+		.then(getChunk)
 		.then(() => {
 			console.log('tests passed!');
 			process.exit(0);

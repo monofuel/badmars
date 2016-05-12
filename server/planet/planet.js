@@ -25,11 +25,16 @@ class Planet {
 			this[key] = object[key];
 		}
 	}
+	getChunk(x,y) {
+		return getMap(this.mapName).then((map) => {
+			return map.getChunk(x,y);
+		});
+	}
 
 }
 
 function getMap(mapName) {
-	return db.map.getMap(mapname);
+	return db.map.getMap(mapName);
 }
 
 module.exports = Planet;

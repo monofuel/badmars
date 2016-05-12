@@ -34,11 +34,15 @@ class Client {
     }
 
 	send(type,data) {
+		if (!this.ws) return;
 		data = data || {};
 		data.type = type;
 		data.success = true;
-
-		this.ws.send(JSON.stringify(data));
+		try {
+			this.ws.send(JSON.stringify(data));
+		} catch (err) {
+			this.handleLogOut();
+		}
 	}
 
 	sendError(type,errMsg) {
@@ -51,6 +55,7 @@ class Client {
         if (this.username) {
             logger.info(this.username + ' logged out');
         }
+		this.ws = null;
     }
 
     handleFromClient(data) {

@@ -93,6 +93,17 @@ export class Map {
 			console.log("error: invalid planet.");
 		}
 
+		window.loadChunk = (chunk) => {
+			//generateChunk(chunkX: number, chunkY: number, chunkArray)
+		}
+
+		this.chunkListener = (data) => {
+			console.log('loading chunk');
+			console.log(data);
+
+		}
+		registerListener('chunk',this.chunkListener);
+
 		this.attackListener = (data) => {
 			console.log("handling attack");
 			var unit = self.getUnitById(data.enemyId);
@@ -262,6 +273,7 @@ export class Map {
 	}
 
 	generateMesh() {
+		throw new Error('depriciated');
 		var chunkCount = (this.worldSettings.size - 2) / this.worldSettings.chunkSize;
 
 		console.log("chunk count: " + chunkCount);
@@ -273,7 +285,7 @@ export class Map {
 		console.log("generated all chunks");
 	}
 
-	generateChunk(chunkX: number, chunkY: number) {
+	generateChunk(chunkX: number, chunkY: number, chunkArray) {
 		var gridGeom = new THREE.Geometry();
 		var waterGeom = new THREE.PlaneBufferGeometry(this.worldSettings.chunkSize, this.worldSettings.chunkSize);
 
@@ -290,9 +302,10 @@ export class Map {
 		for (var y = 0; y <= this.worldSettings.chunkSize; y++) {
 			for (var x = 0; x <= this.worldSettings.chunkSize; x++) {
 				gridGeom.vertices.push(new THREE.Vector3(x, y,
-					this.grid[(chunkY * this.worldSettings.chunkSize) + y][(chunkX * this.worldSettings.chunkSize) + x]));
+					chunkArray[y][x]));
 			}
 		}
+		//TODO work point counter
 
 		for (var y = 0; y < this.worldSettings.chunkSize; y++) {
 			for (var x = 0; x < this.worldSettings.chunkSize; x++) {
