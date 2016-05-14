@@ -33,7 +33,7 @@ class Chunk {
 				var x = (self.x * self.chunkSize) + i;
 				for (var j = 0; j < self.chunkSize + 1; j++) {
 					var y = (self.y * self.chunkSize) + j;
-					self.grid[i].push(simplex.noise2D(x,y) * 3);
+					self.grid[i].push((simplex.noise2D(x / 50,y/ 50) * 3) + 1.5);
 				}
 			}
 		});
@@ -59,7 +59,7 @@ class Chunk {
 
 		//TODO check if map chunk size changed
 
-		return true;
+		return false; //for development
 	}
 
 	clone(object) {

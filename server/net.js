@@ -11,10 +11,6 @@
 var env = require('./config/env.js');
 var db = require('./db/db.js');
 var logger = require('./util/logger.js');
-var commands = require('./util/commands.js');
-var simulate = require('./core/simulate.js');
-var AI = require('./core/AI.js');
-var web = require('./core/web.js');
 var net = require('./core/net.js');
 var figlet = require('figlet');
 
@@ -24,14 +20,10 @@ function init() {
     startupHeader();
     var startupPromises = [];
     startupPromises.push(db.init());
-    //startupPromises.push(web.init());
     Promise.all(startupPromises)
         .then(() => {
             logger.info("start complete");
-            simulate.init();
-            AI.init();
-            //net.init();
-            commands.init();
+            net.init();
         }).catch((err) => {
             console.log(err.stack);
             console.log("exiting badmars");

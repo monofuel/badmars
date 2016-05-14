@@ -82,6 +82,7 @@ export class Map {
 		this.waterMeshes = [];
 		this.planetData = {};
 		this.chunkMap = {};
+		this.viewRange = 4;
 		var self = this;
 		if (planet) {
 			this.planetData = planet;
@@ -92,6 +93,14 @@ export class Map {
 		} else {
 			console.log("error: invalid planet.");
 		}
+
+		window.debug.loadChunks = () => {
+			self.loadChunksNearCamera();
+		}
+
+		setInterval(() => {
+			self.loadChunksNearCamera();
+		},1000);
 
 		this.chunkListener = (data) => {
 			console.log('loading chunk');
@@ -300,7 +309,7 @@ export class Map {
 		for (var y = 0; y <= this.worldSettings.chunkSize; y++) {
 			for (var x = 0; x <= this.worldSettings.chunkSize; x++) {
 				gridGeom.vertices.push(new THREE.Vector3(x, y,
-					chunkArray[y][x]));
+					chunkArray[x][y]));
 			}
 		}
 		//TODO work point counter
@@ -581,6 +590,49 @@ export class Map {
 		}
 	}
 
+	getChunksAroundTile(tile) {
+		var chunks = [];
+		for (var i = -this.viewRange; i < this.viewRange; i++) {
+			for (var j = -this.viewRange; j < this.viewRange; j++) {
+				if (i + j < this.viewRange) {
+					var chunkX = tile.chunkX + i;
+					var chunkY = tile.chunkY + j;
+					chunks.push(chunkX + ":" + chunkY);
+				}
+			}
+		}
+		return chunks;r
+	}
+
+	getUnloadedChunks(chunks) {
+		var notLoaded = [];
+		for (var chunk of chunks) {
+			if (!this.chunkMap[chunk]) {
+				notLoaded.push(chunk);
+			}
+		}
+		return notLoaded;
+	}
+
+	loadChunksNearTile(tile) {
+		var chunks = this.getUnloadedChunks(this.getChunksAroundTile(tile));
+		for (var chunk of chunks) {
+			var x = chunk.split(":")[0];
+			var y = chunk.split(":")[1];
+			window.sendMessage({type:"getChunk",x:x,y:y});
+		}
+
+	}
+
+	loadChunksNearCamera() {
+		var tile = this.getTileAtRay(new THREE.Vector2());
+		if (!tile) {
+			console.log('no land in view');
+			return;
+		}
+		this.loadChunksNearTile(tile);
+	}
+
 	getTileAtRay(mouse: THREE.Vector2): ? PlanetLoc {
 		if (!display) {
 			return null;
@@ -597,7 +649,6 @@ export class Map {
 			return new PlanetLoc(this, x, y);
 		}
 		return null;
-
 	}
 
 }
