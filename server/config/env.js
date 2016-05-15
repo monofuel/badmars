@@ -17,7 +17,8 @@ vars.dbPort = process.env.BADMARS_DB_PORT;
 vars.dbUser = process.env.BADMARS_DB_USER;
 vars.dbPassword = process.env.BADMARS_DB_PASSWORD;
 vars.wwwPort = process.env.BADMARS_WWW || '3002';
-vars.wsPort = process.env.BADMARS_WWW || '7005';
+vars.wsPort = process.env.BADMARS_WS_PORT || '7005';
+vars.wsPublicPort = process.env.BADMARS_WS_PUBLIC_PORT || '7005';
 
 vars.trackingServer = process.env.TRACKING_SERVER || "104.197.78.205";
 vars.trackingPort = process.env.TRACKING_PORT || "9001";

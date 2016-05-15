@@ -82,7 +82,8 @@ export class Map {
 		this.waterMeshes = [];
 		this.planetData = {};
 		this.chunkMap = {};
-		this.viewRange = 7;
+		this.chunkCache = {};
+		this.viewRange = 9;
 		this.unloadRange = this.viewRange + 5;
 		var self = this;
 		if (planet) {
@@ -99,9 +100,9 @@ export class Map {
 			self.loadChunksNearCamera();
 		}
 
-		setInterval(() => {
+		this.chunkInterval = setInterval(() => {
 			self.loadChunksNearCamera();
-		},500);
+		},750);
 
 		this.chunkListener = (data) => {
 			console.log('loading chunk');
@@ -261,6 +262,8 @@ export class Map {
 
 	destroy() {
 
+
+		clearInterval(this.chunkInterval);
 		deleteListener(this.attackListener);
 		deleteListener(this.killListener);
 		deleteListener(this.ghostUnitListener);
@@ -404,6 +407,10 @@ export class Map {
 
 		this.landMeshes.push(gridMesh);
 		this.waterMeshes.push(waterMesh);
+
+		this.chunkMap[chunk.hash].landMesh = gridMesh;
+		this.chunkMap[chunk.hash].waterMesh = waterMesh;
+
 
 		display.addMesh(gridMesh);
 		display.addMesh(waterMesh);
@@ -594,14 +601,14 @@ export class Map {
 		var chunks = [];
 		for (var i = -this.viewRange; i < this.viewRange; i++) {
 			for (var j = -this.viewRange; j < this.viewRange; j++) {
-				if (Math.abs(i) + Math.abs(j) < this.viewRange) {
+				if (Math.sqrt(i * i + j * j) < this.viewRange) {
 					var chunkX = tile.chunkX + i;
 					var chunkY = tile.chunkY + j;
 					chunks.push(chunkX + ":" + chunkY);
 				}
 			}
 		}
-		return chunks;r
+		return chunks;
 	}
 
 	getUnloadedChunks(chunks) {
@@ -619,17 +626,50 @@ export class Map {
 		for (var chunk of chunks) {
 			var x = chunk.split(":")[0];
 			var y = chunk.split(":")[1];
-			window.sendMessage({type:"getChunk",x:x,y:y});
+			var cacheChunk = this.chunkCache[chunk];
+			if (cacheChunk) {
+				this.chunkMap[chunk] = cacheChunk;
+				this.generateChunk(x,y,cacheChunk);
+			} else {
+				window.sendMessage({type:"getChunk",x:x,y:y});
+			}
 		}
 	}
 
 	unloadChunksNearTile(tile) {
-
+		for (var hash in this.chunkMap) {
+			var x = hash.split(":")[0];
+			var y = hash.split(":")[1];
+			var xdist = Math.abs(tile.chunkX - x);
+			var ydist = Math.abs(tile.chunkY - y);
+			if (Math.sqrt(xdist * xdist + ydist * ydist) > this.unloadRange) {
+				console.log("removing chunk:" + hash);
+				var chunk = this.chunkMap[hash];
+				if (!chunk) {
+					continue;
+				}
+				var index = this.landMeshes.indexOf(chunk.landMesh)
+				if (index != -1){
+					this.landMeshes.splice(index,1);
+				}
+				index = this.waterMeshes.indexOf(chunk.waterMesh)
+				if (index != -1){
+					this.waterMeshes.splice(index,1);
+				}
+				display.removeMesh(chunk.landMesh);
+				display.removeMesh(chunk.waterMesh);
+				chunk.landMesh = null;
+				chunk.waterMesh = null;
+				delete this.chunkMap[hash];
+				this.chunkCache[hash] = chunk;
+			}
+		}
 	}
 
 	loadChunksNearCamera() {
-		var tile = this.getTileAtRay(new THREE.Vector2());
+		var tile = this.getTileAtRay(new THREE.Vector2(0,0));
 		if (!tile) {
+			console.log('no tile found at camera');
 			return;
 		}
 		this.loadChunksNearTile(tile);
@@ -640,6 +680,7 @@ export class Map {
 		if (!display) {
 			return null;
 		}
+
 		var raycaster = new THREE.Raycaster();
 		raycaster.setFromCamera(mouse, display.camera);
 
