@@ -7,7 +7,7 @@ echo "running update"
 #pull latest changes
 git pull origin master
 
-cd ./client
+cd ../client
 npm install
 make copy
 

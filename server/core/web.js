@@ -81,9 +81,8 @@ exports.init = () => {
     app.set('views', __dirname + '/../web/views');
 
     require('../web/routes/main')(app);
-    //require('./routes/worlds')(app);
-    //require('./routes/planets')(app);
-    //require('./routes/management')(app);
+    require('../web/routes/management')(app);
+
     return new Promise((resolve,reject) => {
         var server = app.listen(env.wwwPort, () => {
 

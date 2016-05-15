@@ -17,12 +17,11 @@ var db = require('../../db/db.js');
 module.exports = (app) => {
     app.get('/management/pull', (req,res) => {
         logger.requestInfo("GET /management/pull",req);
-        exec('sh ../update.sh', (err,stdout,stderr) ->
-          if (err)
-            Logger.error('update_hook_error',err);
-
-        )
-        res.json(JSON.stringify({success: true}))
-        process.exit();
+        exec('sh update.sh', (err,stdout,stderr) => {
+          if (err) {
+            logger.error('update_hook_error',err);
+          }
+        });
+        res.json(JSON.stringify({success: true}));
     });
 };
