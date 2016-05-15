@@ -26,7 +26,7 @@ vars.trackingPort = process.env.TRACKING_PORT || "9001";
 vars.authServer = process.env.BADMARS_AUTH_SERVER || 'localhost';
 vars.authDB = process.env.BADMARS_AUTH_DATABASE || 'japura';
 
-vars.wsServer = process.env.BADMARS_WS_SERVER || 'localhost';
+vars.wsServer = process.env.BADMARS_WS_SERVER || 'ws://localhost';
 
 var googleAuth = {};
 
