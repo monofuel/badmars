@@ -82,7 +82,8 @@ export class Map {
 		this.waterMeshes = [];
 		this.planetData = {};
 		this.chunkMap = {};
-		this.viewRange = 4;
+		this.viewRange = 7;
+		this.unloadRange = this.viewRange + 5;
 		var self = this;
 		if (planet) {
 			this.planetData = planet;
@@ -100,13 +101,13 @@ export class Map {
 
 		setInterval(() => {
 			self.loadChunksNearCamera();
-		},1000);
+		},500);
 
 		this.chunkListener = (data) => {
 			console.log('loading chunk');
 			var chunk = data.chunk;
 			self.chunkMap[data.chunk.hash] = chunk;
-			self.generateChunk(chunk.x,chunk.y,chunk.grid);
+			self.generateChunk(chunk.x,chunk.y,chunk);
 		}
 		registerListener('chunk',this.chunkListener);
 
@@ -292,7 +293,9 @@ export class Map {
 		console.log("generated all chunks");
 	}
 
-	generateChunk(chunkX: number, chunkY: number, chunkArray) {
+	generateChunk(chunkX: number, chunkY: number, chunk) {
+		var chunkArray = chunk.grid;
+		var navGrid = chunk.navGrid;
 		var gridGeom = new THREE.Geometry();
 		var waterGeom = new THREE.PlaneBufferGeometry(this.worldSettings.chunkSize, this.worldSettings.chunkSize);
 
@@ -326,17 +329,14 @@ export class Map {
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x + 1,
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x);
 
-				//TODO redo navgrid shit
-				/*
-				if (this.navGrid[(chunkX * this.worldSettings.chunkSize) + x][(chunkY * this.worldSettings.chunkSize) + y] != 1) {
-				*/
+				if (navGrid[x][y] != 1) {
 					landFace1.materialIndex = 0;
 					landFace2.materialIndex = 0;
-					/*
+
 				} else {
 					landFace1.materialIndex = 1;
 					landFace2.materialIndex = 1;
-				}*/
+				}
 
 				gridGeom.faces.push(landFace1);
 				gridGeom.faces.push(landFace2);
@@ -594,7 +594,7 @@ export class Map {
 		var chunks = [];
 		for (var i = -this.viewRange; i < this.viewRange; i++) {
 			for (var j = -this.viewRange; j < this.viewRange; j++) {
-				if (i + j < this.viewRange) {
+				if (Math.abs(i) + Math.abs(j) < this.viewRange) {
 					var chunkX = tile.chunkX + i;
 					var chunkY = tile.chunkY + j;
 					chunks.push(chunkX + ":" + chunkY);
@@ -621,16 +621,19 @@ export class Map {
 			var y = chunk.split(":")[1];
 			window.sendMessage({type:"getChunk",x:x,y:y});
 		}
+	}
+
+	unloadChunksNearTile(tile) {
 
 	}
 
 	loadChunksNearCamera() {
 		var tile = this.getTileAtRay(new THREE.Vector2());
 		if (!tile) {
-			console.log('no land in view');
 			return;
 		}
 		this.loadChunksNearTile(tile);
+		this.unloadChunksNearTile(tile);
 	}
 
 	getTileAtRay(mouse: THREE.Vector2): ? PlanetLoc {

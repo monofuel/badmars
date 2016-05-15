@@ -13,7 +13,7 @@ import {
 } from '../client.js';
 
 
-var units = [];
+var units = {};
 
 function updateUnitsListener(data) {
   units = data.units;
@@ -35,14 +35,8 @@ export function updateUnit(unit) {
   }
 }
 
-registerListener('unitBalance',updateUnitsListener);
+registerListener('unitStats',updateUnitsListener);
 
 export function getUnitInfo(type) {
-  for (var index in units) {
-    var unit = units[index];
-    if (unit.name == type) {
-      return unit;
-    }
-  }
-  return null;
+  return units[type];
 }

@@ -6,10 +6,10 @@
 'use strict';
 
 module.exports = {
-    LAND: Symbol(),
-    CLIFF: Symbol(),
-    WATER: Symbol(),
-    COAST: Symbol(),
+    LAND: 0,
+    CLIFF: 1,
+    WATER: 2,
+    COAST: 3,
 
     getTypeName(type) {
         switch(type) {
@@ -23,5 +23,6 @@ module.exports = {
             return 'coast';
           default:
             return 'unknown';
-    }
-}
+	    }
+	}
+};

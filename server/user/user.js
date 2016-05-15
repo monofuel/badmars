@@ -11,6 +11,7 @@ var hat = require('hat');
 class User {
 	constructor(userName,color) {
 		this.name = userName;
+		//uuid is set by DB
         this.apiKey = hat();
 		this.color = color;
 	}

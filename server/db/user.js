@@ -18,7 +18,9 @@ exports.init = (connection) => {
 		.then((tableList) => {
 			if (tableList.indexOf('user') == -1) {
 				console.log('creating user table');
-				return r.tableCreate('user',{primaryKey: 'name'}).run(conn);
+				return r.tableCreate('user',{primaryKey: 'uuid'}).run(conn).then(() => {
+					return r.table('user').indexCreate("name").run(conn);
+				});
 			}
 		}).then(() => {
 			table = r.table('user');
@@ -41,7 +43,8 @@ exports.listAllSanitizedUsers = () => {
 };
 
 exports.getUser = (name) => {
-	return table.get(name).run(conn).then((doc) => {
+	return table.getAll(name,{index: "name"}).coerceTo('array').run(conn).then((docs) => {
+		var doc = docs[0];
 		if (!doc) {
 			return null;
 		}

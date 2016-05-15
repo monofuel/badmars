@@ -14,6 +14,11 @@ function mountUserHandlers(client) {
 	client.handlers['getUnits'] = require('./getUnits.js');
 	client.handlers['getMap'] = require('./getMap.js');
 	client.handlers['getChunk'] = require('./getChunk.js');
+	client.handlers['createGhost'] = require('./createGhost.js');
+	client.handlers['spawn'] = require('./spawn.js');
+	client.handlers['setDestination'] = require('./setDestination.js');
+	client.handlers['unitStats'] = require('./unitStats.js');
+
 }
 
 module.exports = (client,data) => {
@@ -56,7 +61,7 @@ module.exports = (client,data) => {
 			return db.user.createUser(data.username,data.color).then((result) => {
 				if (result.inserted == 1) {
 					var user = result.changes[0].new_val;
-					
+
 					console.log('account created for ' + user.name);
 					client.username = user.name;
 					mountUserHandlers(client);

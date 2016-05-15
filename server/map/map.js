@@ -14,7 +14,17 @@ class Map {
 		this.name = name;
 		this.settings = {
 			chunkSize: 16,
-			waterHeight: 1
+			waterHeight: 6.4,
+			cliffDelta: 0.3,
+			water: true,
+			bigNoise: 0.07,
+		    medNoise: 0.24,
+		    smallNoise: 0.53,
+		    bigNoiseScale: 1.8,
+		    medNoiseScale: 0.25,
+		    smallNoiseScale: 0.25,
+		    ironChance: 0.003,
+		    oilChance: 0.002
 		};
 		this.seed = Math.random();
 	}
@@ -39,6 +49,20 @@ class Map {
 		for (let key in object) {
 			this[key] = object[key];
 		}
+		this.settings = {
+			chunkSize: 16,
+			waterHeight: 0,
+			cliffDelta: 0.4,
+			water: true,
+			bigNoise: 0.005,
+		    medNoise: 0.04,
+		    smallNoise: 0.1,
+		    bigNoiseScale: 15,
+		    medNoiseScale: 3,
+		    smallNoiseScale: 1,
+		    ironChance: 0.003,
+		    oilChance: 0.002
+		};
 	}
 }
 
