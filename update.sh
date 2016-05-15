@@ -10,8 +10,9 @@ git pull origin master
 cd ./client
 npm install
 make copy
-make planet_viewer_build
 
 cd ~/badMars-JS
+cd ./server
 npm install
-make
+
+#processes running with nodemon or supervisor will restart

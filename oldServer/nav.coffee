@@ -1,8 +1,10 @@
 #monofuel
 #1-2016
 'use strict';
-### @flow weak ###
 
+PlanetLoc = require('./PlanetLoc')
+tileType = require('./tileType')
+direction = require('./direction')
 #code that interfaces with the map for pathfinding and detecting
 #valid placements and movement.
 
@@ -14,7 +16,10 @@
 # @param [PlanetLoc] tile second tile
 # @return [Number] distance distance between tiles
 distance = (tile1,tile2) ->
+  #TODO: this doesn't account for the map looping on edges
   return Math.sqrt(Math.pow(tile2.x - tile1.x,2) + Math.pow(tile2.y - tile1.y,2))
+
+exports.distance = distance;
 
 #---------------------------------------------------------------------
 #code for very simple direct pathfinding
@@ -26,8 +31,8 @@ class SimplePath
     if (!@start || !@end || @start.planet != @end.planet)
       console.log('invalid start and end points')
       console.log(new Error().stack)
-      console.log(@start)
-      console.log(@end)
+      console.log(@start.toString())
+      console.log(@end.toString())
 
     @planet = @start.planet
 
@@ -35,7 +40,7 @@ class SimplePath
   # @param [PlanetLoc] tile the current tile
   # @return [PlanetLoc] the next tile in the list
   getNext: (tile) ->
-
+    #TODO should use tile.S,W,E,N()
     if (tile.x < @end.x)
       nextTile = new PlanetLoc(tile.planet,tile.x+1,tile.y)
 
@@ -73,11 +78,16 @@ class AStarPath
     if (!@start || !@end || @start.planet != @end.planet)
       console.log('invalid start and end points')
       console.log(new Error().stack)
-      console.log(@start)
-      console.log(@end)
+      console.log(@start.toString())
+      console.log(@end.toString())
 
     @planet = @start.planet
+    @cost = 0
+    thisPath = this
 
+    new Promise(() ->
+      thisPath.generate()
+    )
 
     @path = []
 
@@ -95,6 +105,11 @@ class AStarPath
       tile.prev = @start
 
     while (open.length > 0)
+      @cost++
+      if (@cost > 2000)
+        console.log("path complexity exceeded")
+        return
+
       #sort open by cost
       open.sort((a,b) ->
         return a.cost - b.cost
@@ -114,8 +129,10 @@ class AStarPath
       #check if the tile is passable
       if (current.type != tileType.land)
         continue
+
       #check if there is already a unit on the tile
-      if (unitTileCheck(current))
+      unitOnTile = (@planet.unitTileCheck(current))
+      if (unitOnTile && !unitOnTile.ghosting)
         continue
 
       neighbors = [
@@ -167,3 +184,6 @@ class AStarPath
 
     #if all else fails
     return direction.C
+
+exports.SimplePath = SimplePath
+exports.AStarPath = AStarPath

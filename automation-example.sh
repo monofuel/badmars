@@ -1,12 +1,9 @@
 #!/bin/bash
-#example script to use in the automation field
+#example script
 
 useradd -m badmars -s /bin/bash
-echo "module.exports = {
-{{CONTENTS OF AUTH.JS}}
-}" > ~badmars/badMars-JS/config/auth.js
 
-chown badmars ~badmars/auth.js
+#set environment variables
 
 curl https://raw.githubusercontent.com/monofuel/badMars-JS/master/prod-setup.sh | sh
 
