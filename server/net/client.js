@@ -10,6 +10,8 @@ var env = require('../config/env.js');
 var logger = require('../util/logger.js');
 var authHandler = require('../net/handler/auth.js');
 
+var KEEP_ALIVE = 5000;
+
 class Client {
     constructor(ws) {
         this.ws = ws;
@@ -19,43 +21,56 @@ class Client {
 
         var self = this;
 
-        ws.on('message',(msg) => {
+        ws.on('message', (msg) => {
             self.handleFromClient(msg);
         });
-        ws.on('error',(err) => {
+        ws.on('error', (err) => {
             logger.error(err);
         });
 
-        ws.on('close',() => {
+        ws.on('close', () => {
             self.handleLogOut();
         });
 
         this.send('connected');
+
+        this.keepAlive = setInterval(() => {
+            try {
+                this.ws.ping();
+            } catch (err) {
+                clearInterval(self.keepAlive);
+            }
+        }, KEEP_ALIVE);
     }
 
-	send(type,data) {
-		if (!this.ws) return;
-		data = data || {};
-		data.type = type;
-		data.success = true;
-		try {
-			this.ws.send(JSON.stringify(data));
-		} catch (err) {
-			this.handleLogOut();
-		}
-	}
+    send(type, data) {
+        if (!this.ws) return;
+        data = data || {};
+        data.type = type;
+        data.success = true;
+        try {
+            this.ws.send(JSON.stringify(data));
+        } catch (err) {
+            this.handleLogOut();
+        }
+    }
 
-	sendError(type,errMsg) {
-		console.log('client error: ' + type);
-		this.ws.send(JSON.stringify({type: type, success: false, reason: errMsg}));
-	}
+    sendError(type, errMsg) {
+        console.log('client error: ' + type);
+        this.ws.send(JSON.stringify({
+            type: type,
+            success: false,
+            reason: errMsg
+        }));
+    }
 
     handleLogOut() {
         logger.info('client closed connection');
         if (this.username) {
             logger.info(this.username + ' logged out');
         }
-		this.ws = null;
+        clearInterval(this.keepAlive);
+        this.ws = null;
     }
 
     handleFromClient(data) {
@@ -65,11 +80,11 @@ class Client {
         data = JSON.parse(data);
 
         if (!data.type || !self.handlers[data.type]) {
-            self.sendError('invalid','invalid request');
+            self.sendError('invalid', 'invalid request');
             return;
         }
 
-        self.handlers[data.type](self,data);
+        self.handlers[data.type](self, data);
     }
 }
 module.exports = Client;
