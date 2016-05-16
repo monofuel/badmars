@@ -25,7 +25,7 @@ import {
 } from '../net.js';
 
 export class Factory extends Entity {
-	constructor(location: PlanetLoc, playerId: string, uid: string) {
+	constructor(location: PlanetLoc, playerId: string, uuid: string) {
 		var player = getPlayerById(playerId);
 		var color;
 		if (!player || !player.color) {
@@ -48,7 +48,7 @@ export class Factory extends Entity {
 			super(location, null);
 		}
 		this.type = 'factory';
-		this.uid = uid;
+		this.uuid = uuid;
 		this.playerId = playerId;
 		this.selectionSize = 2;
 	}

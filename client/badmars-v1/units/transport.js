@@ -22,7 +22,7 @@ import {
 
 
 export class Transport extends GroundUnit {
-	constructor(location: PlanetLoc, playerId: string, uid: string) {
+	constructor(location: PlanetLoc, playerId: string, uuid: string) {
 		var player = getPlayerById(playerId);
 		var color;
 		if (!player || !player.color) {
@@ -47,7 +47,7 @@ export class Transport extends GroundUnit {
 			super(location, null);
 		}
 		this.type = 'transport';
-		this.uid = uid;
+		this.uuid = uuid;
 		this.playerId = playerId;
 	}
 }

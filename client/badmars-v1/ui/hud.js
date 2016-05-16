@@ -108,7 +108,7 @@ var MenuButtons = React.createClass({
   },
   factoryOrder(unitType) {
     console.log('factoryOrder ' + unitType);
-    window.sendMessage({type:'factoryOrder',factory:selectedUnit.uid, unitType:unitType});
+    window.sendMessage({type:'factoryOrder',factory:selectedUnit.uuid, unitType:unitType});
 
   },
   render() {

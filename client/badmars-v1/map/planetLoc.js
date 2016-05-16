@@ -37,13 +37,13 @@ export class PlanetLoc {
 	 */
 	constructor(planet: Map, x: number, y: number) {
 			this.planet = planet;
-			this.real_x = Math.round(x);
-			this.real_y = Math.round(y);
+			this.real_x = Math.floor(x);
+			this.real_y = Math.floor(y);
 
 			var chunkX = Math.floor(this.real_x / this.planet.worldSettings.chunkSize);
 			var chunkY = Math.floor(this.real_y / this.planet.worldSettings.chunkSize);
-			this.x = this.real_x % this.planet.worldSettings.chunkSize;
-			this.y = this.real_y % this.planet.worldSettings.chunkSize;
+			this.x = this.real_x - (chunkX * this.planet.worldSettings.chunkSize);
+			this.y = this.real_y - (chunkY * this.planet.worldSettings.chunkSize);
 
 			if (this.x < 0) {
 				this.x = this.x + this.planet.worldSettings.chunkSize;
@@ -82,10 +82,10 @@ export class PlanetLoc {
 			window.debug.chunk = this.chunk;
 
 			this.corners = [
-				this.chunk.grid[this.y][this.x],
-				this.chunk.grid[this.y + 1][this.x],
-				this.chunk.grid[this.y][this.x + 1],
-				this.chunk.grid[this.y + 1][this.x + 1]
+				this.chunk.grid[this.x][this.y],
+				this.chunk.grid[this.x + 1][this.y],
+				this.chunk.grid[this.x][this.y + 1],
+				this.chunk.grid[this.x + 1][this.y + 1]
 			];
 
 			var avg = (this.corners[0] +

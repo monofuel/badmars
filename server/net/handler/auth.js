@@ -23,14 +23,14 @@ function mountUserHandlers(client) {
 
 module.exports = (client,data) => {
 
-	if (!data.planet) {
+	if (!data.planet) { //TODO change from planet to map
 		client.sendError('login','specify a planet');
 	}
 	if (!data.username) {
 		client.sendError('login','invalid username');
 	}
 	console.log(data.planet);
-	db.planet.getPlanet(data.planet).then((planet) => {
+	db.map.getMap(data.planet).then((planet) => {
 		if (!planet) {
 			throw new Error("planet doesn't exist");
 		}

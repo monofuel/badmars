@@ -174,7 +174,7 @@ window.onload = function () {
 		}
 		console.log('updating gui');
 	  for (var unit of data.units) {
-	    if (unit._id == selectedUnit.uid) {
+	    if (unit.uuid == selectedUnit.uuid) {
 				fireBusEvent('selectedUnit',selectedUnit);
 			}
 	  }
@@ -190,13 +190,13 @@ window.onload = function () {
 				window.track("logging_in", {
 					username: username,
 					apiKey: true,
-					planet: "testplanet"
+					planet: "testmap"
 				});
 				net.send({
 					type: 'login',
 					username: username,
 					apiKey: apiKey,
-					planet: "testplanet"
+					planet: "testmap"
 				});
 			});
 	} else {
@@ -307,7 +307,7 @@ window.onload = function () {
 								for (var unit of selectedUnits) {
 									net.send({
 										type: "setDestination",
-										unitId: unit.uid,
+										unitId: unit.uuid,
 										location: [tile.x, tile.y]
 									});
 								}
@@ -340,7 +340,7 @@ window.onload = function () {
 							if (selectedUnit) {
 								net.send({
 									type: "setDestination",
-									unitId: selectedUnit.uid,
+									unitId: selectedUnit.uuid,
 									location: [tile.x, tile.y]
 								});
 							}
@@ -416,7 +416,7 @@ function handleInput() {
 						for (var unit of selectedUnits) {
 							net.send({
 								type: "setDestination",
-								unitId: unit.uid,
+								unitId: unit.uuid,
 								location: [tile.x, tile.y]
 							});
 						}
@@ -570,12 +570,12 @@ window.login = function () {
 					username: username,
 					apiKey: false,
 					color: userColor.getHexString(),
-					planet: "testplanet"
+					planet: "testmap"
 				});
 				net.send({
 					type: 'login',
 					username: username,
-					planet: "testplanet",
+					planet: "testmap",
 					color: userColor.getHexString()
 				});
 			});

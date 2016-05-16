@@ -25,7 +25,7 @@ import {
 } from '../net.js';
 
 export class Storage extends Entity {
-	constructor(location: PlanetLoc, playerId: string, uid: string) {
+	constructor(location: PlanetLoc, playerId: string, uuid: string) {
 		var player = getPlayerById(playerId);
 		var color;
 		if (!player || !player.color) {
@@ -48,7 +48,7 @@ export class Storage extends Entity {
 			super(location, null);
 		}
 		this.type = 'storage';
-		this.uid = uid;
+		this.uuid = uuid;
 		this.playerId = playerId;
 		this.selectionSize = 2;
 	}

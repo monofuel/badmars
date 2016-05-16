@@ -12,7 +12,6 @@ var r = require('rethinkdb');
 var DBChunk = require('./chunk.js');
 var DBUnit = require('./unit.js');
 
-exports.planet = require('./planet.js');
 exports.map = require('./map.js');
 exports.user = require('./user.js');
 
@@ -48,7 +47,6 @@ exports.init = () => {
 		r.db('badmars');
 		console.log('preparing tables');
 		var initPromises = [];
-		initPromises.push(exports.planet.init(conn));
 		initPromises.push(exports.map.init(conn));
 		initPromises.push(exports.user.init(conn));
 		return Promise.all(initPromises);
@@ -63,7 +61,7 @@ exports.init = () => {
 			exports.chunks[name] = chunk;
 		}
 		return Promise.all(chunkPromises).then(() => {
-			return exports.planet.listNames();
+			return exports.map.listNames();
 		});
 	}).then((names) => {
 		console.log('preparing units');
@@ -77,10 +75,6 @@ exports.init = () => {
 	}).then(() => {
 		return exports.map.createRandomMap('testmap').then(() => {
 			console.log('created map testmap');
-		})
-	}).then(() => {
-		return exports.planet.createNewPlanet('testplanet','testmap').then(() => {
-			console.log('created planet testplanet with map testmap');
 		});
-	})
+	});
 };

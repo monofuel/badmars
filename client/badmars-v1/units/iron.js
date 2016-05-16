@@ -23,7 +23,7 @@ import {
 
 export class Iron extends Entity {
 	rate: number;
-	constructor(location: PlanetLoc, rate: number, uid: string) {
+	constructor(location: PlanetLoc, rate: number, uuid: string) {
 		var geometry = getMesh('iron');
 		var material = new THREE.MeshLambertMaterial({
 			color: 0xF8F8F8
@@ -39,6 +39,6 @@ export class Iron extends Entity {
 		}
 		this.rate = rate;
 		this.type = 'iron';
-		this.uid = uid;
+		this.uuid = uuid;
 	}
 }

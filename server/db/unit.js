@@ -7,6 +7,7 @@
 
 var r = require('rethinkdb');
 var Unit = require('../unit/unit.js');
+var db = require("./db.js");
 
 class DBUnit {
 
@@ -18,14 +19,21 @@ class DBUnit {
 	init() {
 		var tableName = this.mapName + "_unit";
 		var self = this;
+		//r.tableDrop(tableName).run(self.conn);
 
 		return r.tableList().run(self.conn)
 			.then((tableList) => {
 				if (tableList.indexOf(tableName) == -1) {
-					console.log('creating unit table for ' + this.mapName);
+					console.log('creating unit table for ' + self.mapName);
 					return r.tableCreate(tableName, {
 						primaryKey: 'uuid'
-					}).run(self.conn);
+					}).run(self.conn).then(() => {
+						console.log("adding tile hash");
+						return r.table(tableName).indexCreate("tileHash").run(self.conn);
+					}).then(() => {
+						console.log("adding chunk hash");
+						return r.table(tableName).indexCreate("chunkHash").run(self.conn);
+					});
 				}
 			}).then(() => {
 				self.table = r.table(tableName);
@@ -39,14 +47,56 @@ class DBUnit {
 	}
 
 	addUnit(unit) {
-		return this.table.insert(unit,{returnChanges: true}).run(this.conn).then((delta) => {
+		return this.table.insert(unit, {
+			returnChanges: true
+		}).run(this.conn).then((delta) => {
 			return delta.changes[0].new_val;
 		});
 	}
 
 	getUnit(uuid) {
+		var self = this;
 		return this.table.get(uuid).run(this.conn).then((doc) => {
-			var unit = new Unit();
+			return self.loadUnit(doc);
+		});
+	}
+
+	getUnitAtTile(hash) {
+		var self = this;
+		return this.table.getAll(hash, {
+			index: "tileHash"
+		}).coerceTo('array').run(this.conn).then((docs) => {
+			var doc = docs[0];
+			if (docs.length > 1) {
+				console.log('error: multiple units at tile');
+			}
+			if (!doc) {
+				return null;
+			}
+			return self.loadUnit(doc);
+
+		});
+	}
+
+	getUnitsAtChunk(x,y) {
+		var hash = x + ":" + y;
+		var self = this;
+		return this.table.getAll(hash, {
+			index: "chunkHash"
+		}).coerceTo('array').run(this.conn).then((docs) => {
+			var units = [];
+			var unitPromises = [];
+			for (let doc of docs) {
+				unitPromises.push(self.loadUnit(doc));
+			}
+			return Promise.all(unitPromises);
+
+		});
+	}
+
+	loadUnit(doc) {
+		return db.map.getMap(doc.map).then((map) => {
+			var unit = new Unit(doc.type,map,doc.x,doc.y);
 			unit.clone(doc);
 			return unit;
 		});
@@ -54,7 +104,14 @@ class DBUnit {
 
 	getUnprocessedUnit(tick) {
 
-		return this.table.filter(r.row("lastTick").lt(tick),{default: true}).limit(1).update({lastTick: tick},{returnChanges: true}).run(this.conn).then((delta) => {
+
+		return this.table.filter(r.row("lastTick").lt(tick), {
+			default: true
+		}).limit(1).update({
+			lastTick: tick
+		}, {
+			returnChanges: true
+		}).run(this.conn).then((delta) => {
 			if (!delta.changes || delta.changes.length === 0) {
 				return null;
 			}

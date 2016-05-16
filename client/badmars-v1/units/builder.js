@@ -28,7 +28,7 @@ import {
 } from '../net.js';
 
 export class Builder extends GroundUnit {
-	constructor(location: PlanetLoc, playerId: string, uid: string) {
+	constructor(location: PlanetLoc, playerId: string, uuid: string) {
 		var player = getPlayerById(playerId);
 		var color;
 		if (!player || !player.color) {
@@ -52,7 +52,7 @@ export class Builder extends GroundUnit {
 			super(location, null);
 		}
 		this.type = 'builder';
-		this.uid = uid;
+		this.uuid = uuid;
 		this.playerId = playerId
 	}
 }

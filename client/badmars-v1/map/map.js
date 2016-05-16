@@ -105,7 +105,7 @@ export class Map {
 		},750);
 
 		this.chunkListener = (data) => {
-			console.log('loading chunk');
+			//console.log('loading chunk');
 			var chunk = data.chunk;
 			self.chunkMap[data.chunk.hash] = chunk;
 			self.generateChunk(chunk.x,chunk.y,chunk);
@@ -156,7 +156,7 @@ export class Map {
 
 		this.updateUnitsListener = (data) => {
 			for (var updated of data.units) {
-				var unit = window.getUnit(updated._id);
+				var unit = window.getUnit(updated.uuid);
 				if (unit) {
 						window.debug.updateUnit = unit;
 						if (unit.updateUnitData) {
@@ -170,9 +170,9 @@ export class Map {
 			}
 		}
 
-		window.getUnit = (uid) => {
+		window.getUnit = (uuid) => {
 			for (var unit of self.units) {
-				if (unit.uid == uid) {
+				if (unit.uuid == uuid) {
 					return unit;
 				}
 			}
@@ -181,8 +181,9 @@ export class Map {
 		registerListener('updateUnits',this.updateUnitsListener);
 
 		window.addUnit = (unit: Object) => {
+
 			for (var oldUnit of self.units) {
-				if (oldUnit.uid == unit._id) {
+				if (oldUnit.uuid == unit.uuid) {
 					console.log('duplicate unit');
 					return;
 				}
@@ -199,46 +200,46 @@ export class Map {
 			var newUnit;
 			switch (unit.type) { //TODO refactor this. refactor it REAL good.
 				case 'iron':
-					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-					newUnit = new Iron(loc, unit.rate, unit._id);
+					var loc = new PlanetLoc(self, unit.x, unit.y);
+					newUnit = new Iron(loc, unit.rate, unit.uuid);
 					break;
 				case 'oil':
-					var loc = new PlanetLoc(this, unit.location[0], unit.location[1]);
-					newUnit = new Oil(loc, unit.rate, unit._id);
+					var loc = new PlanetLoc(this, unit.x, unit.y);
+					newUnit = new Oil(loc, unit.rate, unit.uuid);
 					break;
 				case 'tank':
-					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-					newUnit = new Tank(loc, unit.owner, unit._id)
+					var loc = new PlanetLoc(self, unit.x, unit.y);
+					newUnit = new Tank(loc, unit.owner, unit.uuid)
 					newUnit.ghosting = unit.ghosting;
 					break;
 				case 'storage':
-					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-					newUnit = new Storage(loc, unit.owner, unit._id)
+					var loc = new PlanetLoc(self, unit.x, unit.y);
+					newUnit = new Storage(loc, unit.owner, unit.uuid)
 					newUnit.ghosting = unit.ghosting;
 					break;
 				case 'factory':
-					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-					newUnit = new Factory(loc, unit.owner, unit._id)
+					var loc = new PlanetLoc(self, unit.x, unit.y);
+					newUnit = new Factory(loc, unit.owner, unit.uuid)
 					newUnit.ghosting = unit.ghosting;
 					break;
 				case 'wall':
-					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-					newUnit = new Wall(loc, unit.owner, unit._id)
+					var loc = new PlanetLoc(self, unit.x, unit.y);
+					newUnit = new Wall(loc, unit.owner, unit.uuid)
 					newUnit.ghosting = unit.ghosting;
 					break;
 				case 'mine':
-					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-					newUnit = new Mine(loc, unit.owner, unit._id)
+					var loc = new PlanetLoc(self, unit.x, unit.y);
+					newUnit = new Mine(loc, unit.owner, unit.uuid)
 					newUnit.ghosting = unit.ghosting;
 					break;
 				case 'builder':
-					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-					newUnit = new Builder(loc, unit.owner, unit._id)
+					var loc = new PlanetLoc(self, unit.x, unit.y);
+					newUnit = new Builder(loc, unit.owner, unit.uuid)
 					newUnit.ghosting = unit.ghosting;
 					break;
 				case 'transport':
-					var loc = new PlanetLoc(self, unit.location[0], unit.location[1]);
-					newUnit = new Transport(loc, unit.owner, unit._id)
+					var loc = new PlanetLoc(self, unit.x, unit.y);
+					newUnit = new Transport(loc, unit.owner, unit.uuid)
 					newUnit.ghosting = unit.ghosting;
 					break;
 				default:
@@ -312,13 +313,12 @@ export class Map {
 			color: 0x54958A
 		});
 
-		for (var y = 0; y <= this.worldSettings.chunkSize; y++) {
-			for (var x = 0; x <= this.worldSettings.chunkSize; x++) {
-				gridGeom.vertices.push(new THREE.Vector3(x, y,
-					chunkArray[x][y]));
+		for (var x = 0; x <= this.worldSettings.chunkSize; x++) {
+			for (var y = 0; y <= this.worldSettings.chunkSize; y++) {
+				gridGeom.vertices.push(new THREE.Vector3(y, x,
+					chunkArray[y][x]));
 			}
 		}
-		//TODO work point counter
 
 		for (var y = 0; y < this.worldSettings.chunkSize; y++) {
 			for (var x = 0; x < this.worldSettings.chunkSize; x++) {
@@ -385,13 +385,13 @@ export class Map {
 		var gridMesh = new THREE.Mesh(gridGeom, planetMaterials);
 		var waterMesh = new THREE.Mesh(waterGeom, waterMaterial);
 
-		gridMesh.rotation.x = -Math.PI / 2;
-		waterMesh.rotation.x = -Math.PI / 2;
-
 		var centerMatrix = new THREE.Matrix4()
 			.makeTranslation(chunkX * this.worldSettings.chunkSize, chunkY * this.worldSettings.chunkSize, 0);
 		gridMesh.geometry.applyMatrix(centerMatrix);
 		waterMesh.geometry.applyMatrix(centerMatrix);
+
+		gridMesh.rotation.x = -Math.PI / 2;
+		waterMesh.rotation.x = -Math.PI / 2;
 
 		//gridMesh.position.z = (chunkX);
 		gridMesh.position.y = 0;
@@ -471,7 +471,7 @@ export class Map {
 	updateUnitDestination(unitId: string, newLocation: Array < number > , time: number) {
 		var unit = this.getUnitById(unitId);
 		if (unit && unit.updateNextMove) {
-			var tile = new PlanetLoc(unit.location.planet, newLocation[0], newLocation[1]);
+			var tile = new PlanetLoc(unit.location.planet, newx, newy);
 			return unit.updateNextMove(tile, time);
 		}
 		if (!unit) {
@@ -488,7 +488,7 @@ export class Map {
 
 	getUnitById(unitId: string): ? Entity {
 		for (var unit of this.units) {
-			if (unit.uid == unitId)
+			if (unit.uuid == unitId)
 				return unit;
 		}
 		return null;
@@ -643,7 +643,7 @@ export class Map {
 			var xdist = Math.abs(tile.chunkX - x);
 			var ydist = Math.abs(tile.chunkY - y);
 			if (Math.sqrt(xdist * xdist + ydist * ydist) > this.unloadRange) {
-				console.log("removing chunk:" + hash);
+				//console.log("removing chunk:" + hash);
 				var chunk = this.chunkMap[hash];
 				if (!chunk) {
 					continue;

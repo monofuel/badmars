@@ -203,7 +203,7 @@ export class Net {
 							return;
 						}
 						for (var player of data.players) {
-							var info = new Player(player._id, player.username, player.color);
+							var info = new Player(player.uuid, player.username, player.color);
 							playerList.push(info);
 							if (player.username == username) {
 								setPlayerInfo(info);
@@ -230,9 +230,10 @@ export class Net {
 							console.log('error: got units before planet loaded!');
 						}
 						//TODO check if we have any units. if not, request spawn
+						/*
 						self.s.send(JSON.stringify({
 							type: "spawn"
-						}));
+						}));*/
 					} else if (data.type == 'spawn') {
 						if (data.success) {
 							console.log('player spawned');
@@ -244,7 +245,7 @@ export class Net {
 						map.updateUnitDestination(data.unitId, data.newLocation, data.time);
 					} else if (data.type == 'newUnit') {
 						if (data.player) {
-							playerList.push(new Player(data.player._id, data.player.username, data.player.color));
+							playerList.push(new Player(data.player.uuid, data.player.username, data.player.color));
 						}
 						window.addUnit(data.unit);
 						if (map && map.units && firstLoad) {

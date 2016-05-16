@@ -26,6 +26,9 @@ class Map {
 		    ironChance: 0.003,
 		    oilChance: 0.002
 		};
+		this.lastTickTime =  (new Date()).getTime();
+		this.lastTick = 0;
+		this.users = [];
 		this.seed = Math.random();
 	}
 	getChunk(x,y) {
@@ -39,6 +42,16 @@ class Map {
 			} else {
 				return chunk;
 			}
+		});
+	}
+
+	spawnUnit(newUnit) {
+		db.units[this.name].getUnitAtTile(newUnit.tileHash).then((unit) => {
+			if (unit) {
+				console.log('attempted to spawn unit where unit exists');
+				return;
+			}
+			db.units[this.name].addUnit(newUnit);
 		});
 	}
 

@@ -6,10 +6,10 @@
 
 export class Player {
 	username: String;
-	uid: String;
+	uuid: String;
 
-	constructor(username: String, uid: String) {
+	constructor(username: String, uuid: String) {
 		this.username = username;
-		this.uid = uid;
+		this.uuid = uuid;
 	}
 }

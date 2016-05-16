@@ -14,5 +14,8 @@ module.exports = (client,data) => {
 	var y = data.y || 0;
 	client.planet.getChunk(x,y).then((chunk) => {
 		client.send('chunk',{chunk:chunk});
+		db.units[client.planet.name].getUnitsAtChunk(x,y).then((units) => {
+			client.send('units',{units:units});
+		});
 	});
 };

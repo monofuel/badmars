@@ -18,14 +18,20 @@ fs.watchFile("config/units.json", () => {
 });
 
 class Unit {
-	constructor(unitType, mapName) {
+	constructor(unitType, map,x,y) {
 
 		this.type = unitType;
 		//uuid is set by DB
-		this.lastTick = 0;
-		this.chunkHash = "";
 
-		this.map = mapName;
+		this.chunkX = Math.floor(x / map.settings.chunkSize);
+		this.chunkY = Math.floor(y / map.settings.chunkSize);
+		this.x = x;
+		this.y = y;
+		this.lastTick = 0;
+		this.chunkHash = this.chunkX + ":" + this.chunkY;
+		this.tileHash = x +":" + y;
+
+		this.map = map.name;
 
 		this.constructing = 0;
 		this.ghosting = false;
@@ -40,7 +46,7 @@ class Unit {
 		}
 		this.health = this.maxHealth || 0;
 		this.iron = 0;
-		this.oil = 0;
+		this.fuel = 0;
 
 		this.factoryQueue = [];
 		this.resourceCooldown = 0;
@@ -53,6 +59,10 @@ class Unit {
 	clone(object) {
 		for (let key in object) {
 			this[key] = object[key];
+		}
+		var stats = unitStats[this.unitType];
+		for (let key in stats) {
+			this[key] = stats[key];
 		}
 	}
 

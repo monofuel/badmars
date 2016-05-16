@@ -10,8 +10,7 @@ var env = require('../../config/env.js');
 var logger = require('../../util/logger.js');
 
 module.exports = (client,data) => {
-	db.map.getMap(client.planet.mapName).then((map) => {
-		client.send('map',{map:map});
+		client.send('map',{map:client.planet});
 
 		//TODO: be more intelligent on this. only send chunks where the owner has units at
 		for (var i = -6; i < 6; i++) {
@@ -21,5 +20,4 @@ module.exports = (client,data) => {
 				});
 			}
 		}
-	});
 };

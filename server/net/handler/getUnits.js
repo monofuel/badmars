@@ -10,7 +10,7 @@ var env = require('../../config/env.js');
 var logger = require('../../util/logger.js');
 
 module.exports = (client,data) => {
-	db.units[client.planet.name].listUnits().then((units) => {
+	/*db.units[client.planet.name].listUnits().then((units) => {
 		client.send('units',{units:units});
-	});
+	});*/
 };

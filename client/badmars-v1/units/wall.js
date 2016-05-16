@@ -27,7 +27,7 @@ import {
 export class Wall extends Entity {
 	maxStorage: number;
 
-	constructor(location: PlanetLoc, playerId: string, uid: string) {
+	constructor(location: PlanetLoc, playerId: string, uuid: string) {
 		var player = getPlayerById(playerId);
 		var color;
 		if (!player || !player.color) {
@@ -51,7 +51,7 @@ export class Wall extends Entity {
 			super(location, null);
 		}
 		this.type = 'wall';
-		this.uid = uid;
+		this.uuid = uuid;
 		this.playerId = playerId
 	}
 }

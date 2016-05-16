@@ -87,10 +87,10 @@ export class Hilight {
 					thisHilight.location = newLoc;
 					var waterHeight = selectedTile.planet.worldSettings.waterHeight + 0.1;
 					var geometry = new THREE.Geometry();
-					geometry.vertices.push(new THREE.Vector3(0, 0, Math.max(selectedTile.corners[3], waterHeight)));
+					geometry.vertices.push(new THREE.Vector3(0, 0, Math.max(selectedTile.corners[0], waterHeight)));
 					geometry.vertices.push(new THREE.Vector3(1, 0, Math.max(selectedTile.corners[1], waterHeight)));
 					geometry.vertices.push(new THREE.Vector3(0, 1, Math.max(selectedTile.corners[2], waterHeight)));
-					geometry.vertices.push(new THREE.Vector3(1, 1, Math.max(selectedTile.corners[0], waterHeight)));
+					geometry.vertices.push(new THREE.Vector3(1, 1, Math.max(selectedTile.corners[3], waterHeight)));
 
 					//0 goes in bottom right
 

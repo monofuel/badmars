@@ -27,7 +27,7 @@ module.exports = (app) => {
     app.get('/badMars_v1', (req,res) => {
 
         var serverAddress = env.wsServer;
-        var port = env.wsPort;
+        var port = env.wsPublicPort;
 
         res.render('pages/badmars_v1', {
             user: req.user,

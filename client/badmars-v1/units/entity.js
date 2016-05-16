@@ -32,7 +32,7 @@ import {
 
 export class Entity {
 
-	uid: string;
+	uuid: string;
 	playerId: string;
 	type: string;
 	mesh: THREE.Object3D;
@@ -51,7 +51,7 @@ export class Entity {
 
 	constructor(location: PlanetLoc, mesh: THREE.Object3D) {
 		this.type = 'entity';
-		this.uid = "";
+		this.uuid = "";
 		this.playerId = "";
 		this.location = location;
 		this.mesh = mesh;
@@ -80,7 +80,7 @@ export class Entity {
 		}
 		this.mesh.position.y = this.location.real_z + this.unitHeight;
 		this.mesh.position.x = this.location.real_x;
-		this.mesh.position.z = this.location.real_y;
+		this.mesh.position.z = - this.location.real_y;
 
 	}
 
