@@ -7,11 +7,16 @@
 
 var db = require('../db/db.js');
 var Chunk = require("../map/chunk.js");
+var PlanetLoc = require("./planetloc.js");
 
+var chunkCache = {};
 
 class Map {
 	constructor(name) {
 		this.name = name;
+		if (name && !chunkCache[name]) {
+			chunkCache[name] = {};
+		}
 		this.settings = {
 			chunkSize: 16,
 			waterHeight: 6.4,
@@ -26,13 +31,19 @@ class Map {
 		    ironChance: 0.003,
 		    oilChance: 0.002
 		};
-		this.lastTickTime =  (new Date()).getTime();
+		this.lastTickTimestamp =  (new Date()).getTime();
 		this.lastTick = 0;
 		this.users = [];
 		this.seed = Math.random();
 	}
 	getChunk(x,y) {
 		var self = this;
+		var hash = x + ":" + y;
+		if (chunkCache[this.name][hash]) {
+			return new Promise((reject,resolve) => {
+				resolve(chunkCache[this.name][hash]);
+			});
+		}
 		return db.chunks[this.name].getChunk(x,y).then((chunk) => {
 			if (!chunk || !chunk.isValid()) {
 				chunk = new Chunk(x,y,self.name);
@@ -45,6 +56,15 @@ class Map {
 		});
 	}
 
+	getLoc(x,y) {
+		var self = this;
+		var chunkX = Math.floor(x / map.settings.chunkSize);
+    var chunkY = Math.floor(y / map.settings.chunkSize);
+		return getChunk(x,y).then((chunk) => {
+			return new PlanetLoc(self,chunk,x,y);
+		});
+	}
+
 	spawnUnit(newUnit) {
 		db.units[this.name].getUnitAtTile(newUnit.tileHash).then((unit) => {
 			if (unit) {
@@ -53,6 +73,16 @@ class Map {
 			}
 			db.units[this.name].addUnit(newUnit);
 		});
+	}
+
+	spawnUser(client) {
+		//find a spawn location
+
+		//spawn units for them
+		var unitPromises = [];
+
+		//return a promise that returns all the units
+		return Promise.all(unitPromises);
 	}
 
 	save() {

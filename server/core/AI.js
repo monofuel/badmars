@@ -9,27 +9,27 @@ var db = require('../db/db.js');
 var env = require('../config/env.js');
 var logger = require('../util/logger.js');
 
-var registeredPlanets = [];
+var registeredMaps = [];
 
 exports.init = () => {
 	setInterval(registerListeners,1000);
 };
 
 function registerListeners() {
-	db.planet.listNames().then((name) => {
-		if (registeredPlanets.indexOf(name) == -1) {
-			registeredPlanets.push(name);
-			db.planet.registerListener(name,planetUpdate);
+	db.map.listNames().then((name) => {
+		if (registeredMaps.indexOf(name) == -1) {
+			registeredMaps.push(name);
+			db.map.registerListener(name,mapUpdate);
 		}
 	});
 }
 
-function planetUpdate(err,delta) {
+function mapUpdate(err,delta) {
 	if (err) {
 		logger.error(err);
 	}
 	if (!delta.new_val) {
-		console.log('planet deleted: ' + delta.old_val.name);
+		console.log('map deleted: ' + delta.old_val.name);
 		return;
 	}
 
@@ -45,7 +45,6 @@ function process(delta) {
 	db.units[delta.new_val.name].getUnprocessedUnit(delta.new_val.lastTick)
 	.then((unit) => {
 		if (unit) {
-			processUnit(unit);
 			process(delta);
 		}
 	});

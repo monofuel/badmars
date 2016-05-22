@@ -22,16 +22,17 @@ class Unit {
 
 		this.type = unitType;
 		//uuid is set by DB
-
-		this.chunkX = Math.floor(x / map.settings.chunkSize);
-		this.chunkY = Math.floor(y / map.settings.chunkSize);
+		if (map && map.settings) {
+			this.chunkX = Math.floor(x / map.settings.chunkSize);
+			this.chunkY = Math.floor(y / map.settings.chunkSize);
+			this.map = map.name;
+		}
 		this.x = x;
 		this.y = y;
 		this.lastTick = 0;
 		this.chunkHash = this.chunkX + ":" + this.chunkY;
 		this.tileHash = x +":" + y;
-
-		this.map = map.name;
+		
 
 		this.constructing = 0;
 		this.ghosting = false;

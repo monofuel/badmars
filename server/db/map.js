@@ -47,6 +47,18 @@ exports.getMap = (name) => {
 	});
 };
 
+exports.registerListener = (name,func) => {
+	table.changes().run(conn).then((cursor) => {
+		cursor.each(func);
+	});
+};
+
+exports.listNames = () => {
+	return table.getField('name').run(conn).then((cursor) => {
+		return cursor.toArray();
+	});
+};
+
 exports.saveMap = (map) => {
 	return table.get(map.name).update(map).run(conn);
 };

@@ -103,8 +103,6 @@ class DBUnit {
 	}
 
 	getUnprocessedUnit(tick) {
-
-
 		return this.table.filter(r.row("lastTick").lt(tick), {
 			default: true
 		}).limit(1).update({
@@ -129,7 +127,15 @@ class DBUnit {
 		});
 	}
 
+	countUnprocessedUnits(tick) {
+		return this.table.filter(r.row("lastTick").lt(tick), {
+			default: true
+		}).count().run(this.conn).then();
+	}
 
+	countAllUnits() {
+		return this.table.count().run(this.conn);
+	}
 }
 
 

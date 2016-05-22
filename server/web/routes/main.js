@@ -16,7 +16,7 @@ var db = require('../../db/db.js');
 module.exports = (app) => {
     app.get('/', (req,res) => {
         logger.requestInfo("GET /",req);
-        db.planet.listNames().then((list) => {
+        db.map.listNames().then((list) => {
             res.render('pages/index', {
                 worlds: list,
                 user: req.user
