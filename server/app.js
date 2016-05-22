@@ -16,6 +16,7 @@ var simulate = require('./core/simulate.js');
 var AI = require('./core/AI.js');
 var web = require('./core/web.js');
 var net = require('./core/net.js');
+var pathfinding = require('./core/pathfinding.js');
 var figlet = require('figlet');
 
 function init() {
@@ -32,6 +33,7 @@ function init() {
             AI.init();
             //net.init();
             commands.init();
+            pathfinding.init();
         }).catch((err) => {
             console.log(err.stack);
             console.log("exiting badmars");

@@ -102,6 +102,24 @@ class DBUnit {
 		});
 	}
 
+	//would be nice if i could combine
+	//pathlistener and getunprocessed into one step
+	//atm pathlistener will trigger a check to fetch unprocessed
+	//and unprocessed atomicly picks off a unit
+	registerPathListener(listener) {
+		return this.table.filter(r.row("destination"))
+			.filter(r.row("path"))
+			.filter(r.row("isPathing").eq('false'))
+			.changes().run(this.conn);
+	}
+
+	getUnprocessedPath() {
+		return this.table.filter(r.row("destination"))
+			.filter(r.row("path"))
+			.filter(r.row("isPathing").eq('false'))
+			.update({isPathing:true,pathUpdate: (new Date()).getTime()}).run(this.conn);
+	}
+
 	getUnprocessedUnit(tick) {
 		return this.table.filter(r.row("lastTick").lt(tick), {
 			default: true

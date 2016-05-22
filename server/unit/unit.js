@@ -52,6 +52,11 @@ class Unit {
 		this.iron = 0;
 		this.fuel = 0;
 
+		this.path = [];
+		this.pathAttempts = 0;
+		this.isPathing = false;
+		this.pathUpdate = 0;
+
 		this.factoryQueue = [];
 		this.resourceCooldown = 0;
 
