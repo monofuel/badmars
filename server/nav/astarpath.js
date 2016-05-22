@@ -55,8 +55,9 @@ class AStarPath {
       if (result === 'complete') {
         return;
       }
+      return self.repeatUntilDone();
     }).catch(() => {
-      return self.getNext();
+      return self.repeatUntilDone();
     });
   }
 
