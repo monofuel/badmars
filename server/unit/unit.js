@@ -8,6 +8,9 @@
 var db = require('../db/db.js');
 var fs = require('fs');
 
+var simplePath = require('../nav/simplepath.js');
+var astarpath = require('../nav/astarpath.js');
+
 var unitStats = JSON.parse(fs.readFileSync('config/units.json'));
 
 fs.watchFile("config/units.json", () => {
@@ -32,7 +35,7 @@ class Unit {
 		this.lastTick = 0;
 		this.chunkHash = this.chunkX + ":" + this.chunkY;
 		this.tileHash = x +":" + y;
-		
+
 
 		this.constructing = 0;
 		this.ghosting = false;

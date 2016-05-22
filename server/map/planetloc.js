@@ -19,18 +19,15 @@ class PlanetLoc {
       console.log(new Error().stack);
     }
 
-    this.real_x = Math.floor(x);
-    this.real_y = Math.floor(y);
+    this.x = Math.floor(x);
+    this.y = Math.floor(y);
     this.map = map;
     this.chunk = chunk;
 
-    this.x = this.real_x - (chunk.x * map.settings.chunkSize);
-    this.y = this.real_y - (chunk.y * map.settings.chunkSize);
-
-    console.log("x: " + this.real_x + ", y: " + this.real_y + "chunkx: " + this.chunkX + ", chunky: " + this.chunkY);
+    console.log("x: " + this.x + ", y: " + this.y + "chunkx: " + this.chunkX + ", chunky: " + this.chunkY);
 
     if (!this.chunk) {
-      console.log("tile on not loaded chunk: " + this.real_x + "," + this.real_y);
+      console.log("tile on not loaded chunk: " + this.x + "," + this.y);
       console.log('chunk hash: ' + chunkX + ":" + chunkY);
       return;
     }
@@ -40,14 +37,14 @@ class PlanetLoc {
   }
 
   distance(tile) {
-    var deltaX = Math.abs(this.real_x - tile.real_x);
-    var deltaY = Math.abs(this.real_y - tile.real_y);
+    var deltaX = Math.abs(this.x - tile.x);
+    var deltaY = Math.abs(this.y - tile.y);
 
     return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
   }
   toString() {
-    var line = "x: " + this.real_x;
-		line += ", y: " + this.real_y;
+    var line = "x: " + this.x;
+		line += ", y: " + this.y;
 		line += ", type: " + TILETYPES.getTypeName(this.tileType);
 		if (this.map) {
 			line += ", map: " + this.map.name;
@@ -55,21 +52,21 @@ class PlanetLoc {
 		return line;
   }
   N() {
-    return this.map.getLoc(this.real_x,this.real_y + 1);
+    return this.map.getLoc(this.x,this.y + 1);
   }
   S() {
-    return this.map.getLoc(this.real_x,this.real_y - 1);
+    return this.map.getLoc(this.x,this.y - 1);
   }
   E() {
-    return this.map.getLoc(this.real_x + 1,this.real_y);
+    return this.map.getLoc(this.x + 1,this.y);
   }
   W() {
-    return this.map.getLoc(this.real_x - 1,this.real_y);
+    return this.map.getLoc(this.x - 1,this.y);
   }
 
   equals(otherLoc) {
-    return (otherLoc.real_x === this.real_x &&
-			otherLoc.real_y === this.real_y &&
+    return (otherLoc.x === this.x &&
+			otherLoc.y === this.y &&
 			otherLoc.map.name === this.map.name);
   }
 }
