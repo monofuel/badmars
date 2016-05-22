@@ -9,7 +9,7 @@ var vars = {};
 
 vars.envType = process.env.NODE_ENV || 'dev';
 
-vars.ticksPerSec = process.env.TICKS_PER_SEC || 4;
+vars.ticksPerSec = process.env.TICKS_PER_SEC || 1;
 
 vars.dbHost = process.env.BADMARS_DB || 'localhost';
 vars.database = process.env.BADMARS_DATABASE || 'badmars';
