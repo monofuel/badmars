@@ -42,5 +42,8 @@
     "simplex-noise": "^2.2.0",
     "vorpal": "^1.10.10",
     "ws": "^1.1.0"
+  },
+  "devDependencies": {
+    "flow-bin": "^0.25.0"
   }
 }

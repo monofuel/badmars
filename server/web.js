@@ -10,7 +10,7 @@
 
 var env = require('./config/env.js');
 var db = require('./db/db.js');
-var logger = require('./util/logger.js')
+var logger = require('./util/logger.js');
 var commands = require('./util/commands.js');
 var web = require('./core/web.js');
 

@@ -9,7 +9,7 @@ TODO:
 	admin page would be cool
 	properly flowtype the entire codebase
 	work through TODOs in code and refactor things that I was too lazy to do properly the first time around
-	work on documentation
+	work on documentation (hint: https://github.com/documentationjs/documentation/blob/master/docs/GETTING_STARTED.md )
 	chat (client and server)
 	SSAO lighting effects (client)
 	better models (client)

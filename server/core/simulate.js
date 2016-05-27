@@ -21,19 +21,23 @@ function mapTick() {
 			//but it works, and allows for multiple instances running this to not step over each other for now.
 			//this was probably done in completely the wrong way.
 			//the updating of this value 'kicks off' the entire system, and starts unit simulation.
-			db.map.getMap(name).then((map) => {
-				if (map.lastTick == 0 || (new Date()).getTime() - map.lastTickTimestamp > 1000 / env.ticksPerSec) {
-					return db.units[name].countUnprocessedUnits(map.lastTick).then((uCount) => {
-						db.units[name].countAllUnits().then((allCount) => {
-
-							console.log("units processed: " + uCount + " /" + allCount)
-							map.lastTickTimestamp = (new Date()).getTime();
-							map.lastTick++;
-							return map.save().then();
-						});
-					});
-				}
-			});
+			tryNewTick(name);
 		}
 	});
+}
+
+function tryNewTick(name) {
+	db.map.getMap(name).then((map) => {
+			if (map.lastTick === 0 || (new Date()).getTime() - map.lastTickTimestamp > 1000 / env.ticksPerSec) {
+				return db.units[name].countUnprocessedUnits(map.lastTick).then((uCount) => {
+					db.units[name].countAllUnits().then((allCount) => {
+
+						console.log("units processed: " + uCount + " /" + allCount);
+						map.lastTickTimestamp = (new Date()).getTime();
+						map.lastTick++;
+						return map.save().then();
+					});
+				});
+			}
+		});
 }

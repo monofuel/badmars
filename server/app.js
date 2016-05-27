@@ -19,42 +19,49 @@ var net = require('./core/net.js');
 var pathfinding = require('./core/pathfinding.js');
 var figlet = require('figlet');
 
+/**
+ * Boot up everything (and i mean everything)
+ * mainly ment for development.
+ */
 function init() {
-    logger.info("start begin");
+	logger.info('start begin');
 
-    startupHeader();
-    var startupPromises = [];
-    startupPromises.push(db.init());
-    //startupPromises.push(web.init());
-    Promise.all(startupPromises)
-        .then(() => {
-            logger.info("start complete");
-            simulate.init();
-            AI.init();
-            //net.init();
-            commands.init();
-            pathfinding.init();
-        }).catch((err) => {
-            console.log(err.stack);
-            console.log("exiting badmars");
-            process.exit();
-        });
+	startupHeader();
+	var startupPromises = [];
+	startupPromises.push(db.init());
+	startupPromises.push(web.init());
+	Promise.all(startupPromises)
+		.then(() => {
+			logger.info('start complete');
+			simulate.init();
+			AI.init();
+			net.init();
+			commands.init();
+			pathfinding.init();
+		}).catch((err) => {
+			console.log(err.stack);
+			console.log('exiting badmars');
+			process.exit();
+		});
 }
 
+/**
+ * Pretty header for startup
+ */
 function startupHeader() {
-    var fonts = figlet.fontsSync();
-    var font = fonts[Math.floor(Math.random() * fonts.length)];
-    console.log("----------------------------------------------------------------------------");
-    console.log(figlet.textSync("BadMars", {
-        font: font
-    }));
-    console.log("----------------------------------------------------------------------------");
+	var fonts = figlet.fontsSync();
+	var font = fonts[Math.floor(Math.random() * fonts.length)];
+	console.log('----------------------------------------------------------------------------');
+	console.log(figlet.textSync('BadMars', {
+		font: font
+	}));
+	console.log('----------------------------------------------------------------------------');
 
-    if (env.envType == 'production') {
-        console.log('running in production!');
-    } else {
-        console.log('running in development');
-    }
+	if (env.envType == 'production') {
+		console.log('running in production!');
+	} else {
+		console.log('running in development');
+	}
 }
 
 init();

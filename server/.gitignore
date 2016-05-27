@@ -1,7 +1,7 @@
 start.sh
 
 public/clientdocs/
-public/docs/
+public/docs/index.html
 public/js/badmars/*.js
 public/js/badmars/dependencies/*.js
 public/models/
