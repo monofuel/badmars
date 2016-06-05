@@ -33,10 +33,13 @@ exports.init = () => {
 };
 
 function registerListeners() {
-	return db.map.listNames().then((name) => {
-		if (registeredMaps.indexOf(name) == -1) {
-			registeredMaps.push(name);
-			db.map.registerListener(name,mapUpdate);
+	return db.map.listNames().then((names) => {
+		for (let name of names) {
+			if (registeredMaps.indexOf(name) === -1) {
+				registeredMaps.push(name);
+				db.map.registerListener(name,mapUpdate);
+				console.log('registering for ' + name);
+			}
 		}
 	});
 }
