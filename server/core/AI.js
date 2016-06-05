@@ -55,14 +55,16 @@ function mapUpdate(err,delta) {
 }
 
 function process(mapName, lastTick) {
-	db.units[mapName].getUnprocessedUnits(lastTick)
+	return db.units[mapName].getUnprocessedUnits(lastTick)
 	.then((units) => {
 		if (units.length > 0) {
 			for (let unit of units) {
 				processUnit(unit);
 			}
-			console.log('processed unit chunk');
-			process(mapName, lastTick);
+			console.log('processed units: ' + units.length);
+			return process(mapName, lastTick);
+		} else {
+			console.log('all units processed for tick');
 		}
 	});
 }

@@ -40,9 +40,6 @@ class DBUnit {
 					}).then(() => {
 						console.log("adding awake index");
 						return r.table(tableName).indexCreate("awake").run(self.conn);
-					}).then(() => {
-						console.log("adding uprocessed lastTick/awake compound index");
-						return r.table(tableName).indexCreate("unprocessed",  [r.row("lastTick"), r.row("awake")]).run(self.conn);
 					});
 				}
 			}).then(() => {
@@ -138,9 +135,9 @@ class DBUnit {
 	}
 
 	getUnprocessedUnits(tick) {
-		return this.table.between([0,true], [tick - 1,true], {
-			index: "unprocessed"
-		}).limit(env.unitProcessChunks).update({
+		return this.table.getAll(true, {
+			index: 'awake'
+		}).filter(r.row('lastTick').lt(tick)).limit(env.unitProcessChunks).update({
 			lastTick: tick
 		}, {
 			returnChanges: true
@@ -166,9 +163,9 @@ class DBUnit {
 	countUnprocessedUnits(tick) {
 		//new units will have lastTick set to 0. we do not want this in the 'unprocessed' count
 		//however we still want to process them next tick.
-		return this.table.between([1,true], [tick - 1,true], {
-			index: "unprocessed"
-		}).count().run(this.conn);
+		return this.table.getAll(true, {
+			index: 'awake'
+		}).filter(r.row('lastTick').lt(tick).gt(0)).count().run(this.conn);
 	}
 
 	countAllUnits() {
@@ -176,7 +173,9 @@ class DBUnit {
 	}
 
 	countAwakeUnits() {
-		return this.table.getAll(true,{index: 'awake'}).count().run(this.conn);
+		return this.table.getAll(true, {
+			index: 'awake'
+		}).count().run(this.conn);
 	}
 
 }

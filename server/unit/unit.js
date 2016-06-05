@@ -65,6 +65,9 @@ class Unit {
 	}
 
 	simulate() {
+		if (!this.awake) {
+			console.log('simulated sleeping unit');
+		}
 		this.awake = false;
 	}
 
