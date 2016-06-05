@@ -11,6 +11,9 @@ var fs = require('fs');
 var simplePath = require('../nav/simplepath.js');
 var astarpath = require('../nav/astarpath.js');
 
+var groundUnitAI = require('./ai/groundunit.js');
+var attackAI = require('./ai/attack.js');
+
 var unitStats = JSON.parse(fs.readFileSync('config/units.json'));
 
 fs.watchFile("config/units.json", () => {
@@ -37,6 +40,7 @@ class Unit {
 		this.tileHash = x +":" + y;
 
 
+		//TODO optimize values stored on units depending on type
 		this.constructing = 0;
 		this.ghosting = false;
 		this.ghostCreation = 0;
@@ -52,6 +56,7 @@ class Unit {
 		this.iron = 0;
 		this.fuel = 0;
 
+		//TODO pathing stuff should probably be stored in it's own table
 		this.path = [];
 		this.pathAttempts = 0;
 		this.isPathing = false;
@@ -65,15 +70,42 @@ class Unit {
 	}
 
 	simulate() {
-		if (!this.awake) {
-			console.log('simulated sleeping unit');
+		var update = false; //only save when there are changes
+		this.awake = false; //awake should be updated to true if we need another simulation tick soon
+
+		switch (this.movementType) {
+			case 'ground':
+				groundUnitAI.simulate(this);
+				break;
 		}
-		this.awake = false;
+
+		if (this.attack != 0 && this.range != 0) {
+			//do attack stuff
+		}
+
+		if (this.construction) {
+			//do construction stuff
+		}
+
+		//special one-off AI
+		//mines should always be awake
+		if (this.type === 'mine') {
+			this.awake = true;
+		}
+
+		if (!update && !this.awake) {
+			//if there is no update but the unit will no longer be awake, update to sleep it
+			update = true;
+		}
+		return update;
 	}
 
 	save() {
 		//TODO
 		//bad way to update units. should white-list and apply updates atomicly.
+
+		//TODO
+		//remove unit stats from object before saving (or impliment update whitelist)
 		return db.units[this.map].saveUnit(this);
 	}
 	clone(object) {

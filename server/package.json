@@ -38,12 +38,12 @@
     "mongoose": "^4.4.14",
     "passport": "^0.3.2",
     "request": "^2.72.0",
-    "rethinkdb": "2.2.3",
+    "rethinkdb": "2.3.2",
     "simplex-noise": "^2.2.0",
     "vorpal": "^1.10.10",
     "ws": "^1.1.0"
   },
   "devDependencies": {
-    "flow-bin": "^0.25.0"
+    "flow-bin": "^0.26.0"
   }
 }

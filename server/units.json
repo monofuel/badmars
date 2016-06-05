@@ -34,6 +34,7 @@
     "attack": 0,
     "cost": 300,
     "movementType": "ground",
+	"construction": true,
     "maxStorage": 50,
     "buildTime": 20
 }, {
@@ -53,6 +54,7 @@
     "cost": 1000,
     "maxHealth": 500,
     "movementType": "building",
+	"construction": true,
     "maxStorage": 1000,
     "buildTime": 50
 }, {

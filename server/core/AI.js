@@ -71,6 +71,7 @@ function process(mapName, lastTick) {
 
 function processUnit(unit) {
 	logger.addSumStat('unit_AI',1);
-	unit.simulate();
-	unit.save();
+	if (unit.simulate()) {
+		unit.save();
+	}
 }
