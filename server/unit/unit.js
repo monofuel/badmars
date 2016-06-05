@@ -62,6 +62,10 @@ class Unit {
 
 	}
 
+	simulate() {
+		
+	}
+
 	save() {
 		return db.unit.saveUnit(this);
 	}

@@ -29,11 +29,14 @@ class DBUnit {
 					return r.tableCreate(tableName, {
 						primaryKey: 'uuid'
 					}).run(self.conn).then(() => {
-						console.log("adding tile hash");
+						console.log("adding tile hash index");
 						return r.table(tableName).indexCreate("tileHash").run(self.conn);
 					}).then(() => {
-						console.log("adding chunk hash");
+						console.log("adding chunk hash index");
 						return r.table(tableName).indexCreate("chunkHash").run(self.conn);
+					}).then(() => {
+						console.log("adding lastTick index");
+						return r.table(tableName).indexCreate("lastTick").run(self.conn);
 					});
 				}
 			}).then(() => {
@@ -79,7 +82,7 @@ class DBUnit {
 		});
 	}
 
-	getUnitsAtChunk(x,y) {
+	getUnitsAtChunk(x, y) {
 		var hash = x + ":" + y;
 		var self = this;
 		return this.table.getAll(hash, {
@@ -97,7 +100,7 @@ class DBUnit {
 
 	loadUnit(doc) {
 		return db.map.getMap(doc.map).then((map) => {
-			var unit = new Unit(doc.type,map,doc.x,doc.y);
+			var unit = new Unit(doc.type, map, doc.x, doc.y);
 			unit.clone(doc);
 			return unit;
 		});
@@ -118,12 +121,15 @@ class DBUnit {
 		return this.table.filter(r.row("destination"))
 			.filter(r.row("path"))
 			.filter(r.row("isPathing").eq('false'))
-			.update({isPathing:true,pathUpdate: (new Date()).getTime()}).run(this.conn);
+			.update({
+				isPathing: true,
+				pathUpdate: (new Date()).getTime()
+			}).run(this.conn);
 	}
 
 	getUnprocessedUnits(tick) {
-		return this.table.filter(r.row("lastTick").lt(tick), {
-			default: true
+		return this.table.between(0, tick - 1, {
+			index: "lastTick"
 		}).limit(env.unitProcessChunks).update({
 			lastTick: tick
 		}, {
@@ -148,9 +154,9 @@ class DBUnit {
 	}
 
 	countUnprocessedUnits(tick) {
-		return this.table.filter(r.row("lastTick").lt(tick), {
-			default: true
-		}).count().run(this.conn).then();
+		return this.table.between(0, tick - 1, {
+			index: "lastTick"
+		}).count().run(this.conn);
 	}
 
 	countAllUnits() {

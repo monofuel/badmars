@@ -44,7 +44,6 @@ function mapUpdate(err,delta) {
 function process(delta) {
 	db.units[delta.new_val.name].getUnprocessedUnits(delta.new_val.lastTick)
 	.then((units) => {
-		console.log(units.length);
 		if (units.length > 0) {
 			process(delta);
 			for (let unit of units) {
@@ -57,4 +56,5 @@ function process(delta) {
 
 function processUnit(unit) {
 	logger.addSumStat('unit_AI',1);
+	unit.simulate();
 }
