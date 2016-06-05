@@ -8,17 +8,37 @@
 var request = require('request');
 var os = require('os');
 var env = require('../config/env.js');
+var stats = require('./stats.js');
+stats.init();
 
 var moduleName = 'monolith';
 
-module.exports.setModule = (name) => {
+exports.setModule = (name) => {
 	moduleName = name;
 };
 
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', unhandled);
+process.on('unhandledRejection', unhandled);
+
+function unhandled() {
 	console.log('uncaught error');
-	module.exports.error(err);
-});
+	console.error(err.stack);
+	if (logger) {
+		try {
+			logger.error(err);
+		} catch(err) {
+			console.log('failed to track unhandled error');
+		}
+	}
+	console.log('uncaught exception, bailing out');
+  process.exit(1);
+};
+
+//==================================================================
+// stat functions
+
+exports.addAverageStat = stats.addAverageStat;
+exports.addSumStat = stats.addSumStat;
 
 //==================================================================
 // logging methods

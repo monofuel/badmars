@@ -10,6 +10,8 @@ var vars = {};
 vars.envType = process.env.NODE_ENV || 'dev';
 
 vars.ticksPerSec = process.env.TICKS_PER_SEC || 1;
+vars.stressTest = process.env.STRESS_TEST || false;
+vars.statReportRate = process.env.STAT_REPORT_RATE || 1; //in minutes
 
 vars.dbHost = process.env.BADMARS_DB || 'localhost';
 vars.database = process.env.BADMARS_DATABASE || 'badmars';

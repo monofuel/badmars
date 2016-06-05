@@ -104,12 +104,12 @@ class Chunk {
 
 					if (resourceAlea() < map.settings.ironChance) {
 						//console.log('spawning iron');
-						let unit = new Unit('iron',map,x,y);
+						let unit = new Unit('iron', map, x, y);
 						map.spawnUnit(unit);
 
 					} else if (resourceAlea() < map.settings.oilChance) {
 						//console.log('spawning oil');
-						let unit = new Unit('oil',map,x,y);
+						let unit = new Unit('oil', map, x, y);
 						map.spawnUnit(unit);
 
 					}
@@ -138,7 +138,8 @@ class Chunk {
 
 		//TODO check if map chunk size changed
 
-		return false; //for development
+		//while stress testing, always re-generate chunks
+		return !env.stressTest;
 	}
 
 	clone(object) {

@@ -78,6 +78,7 @@ class Map {
 	spawnUser(client) {
 		//find a spawn location
 
+
 		//spawn units for them
 		var unitPromises = [];
 

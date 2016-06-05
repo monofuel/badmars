@@ -16,6 +16,8 @@ var web = require('./core/web.js');
 
 var figlet = require('figlet');
 
+logger.setModule('web');
+
 function init() {
 	logger.setModule('simulate');
 	logger.info("start begin");

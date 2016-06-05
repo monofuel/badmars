@@ -29,13 +29,13 @@ function init() {
 	startupHeader();
 	var startupPromises = [];
 	startupPromises.push(db.init());
-	startupPromises.push(web.init());
 	Promise.all(startupPromises)
 		.then(() => {
 			logger.info('start complete');
 			simulate.init();
 			AI.init();
-			net.init();
+			//net.init();
+			//web.init();
 			commands.init();
 			pathfinding.init();
 		}).catch((err) => {

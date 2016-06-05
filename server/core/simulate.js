@@ -28,16 +28,21 @@ function mapTick() {
 
 function tryNewTick(name) {
 	db.map.getMap(name).then((map) => {
-			if (map.lastTick === 0 || (new Date()).getTime() - map.lastTickTimestamp > 1000 / env.ticksPerSec) {
-				return db.units[name].countUnprocessedUnits(map.lastTick).then((uCount) => {
-					db.units[name].countAllUnits().then((allCount) => {
+		if (map.lastTick === 0 || (new Date()).getTime() - map.lastTickTimestamp > 1000 / env.ticksPerSec) {
+			return db.units[name].countUnprocessedUnits(map.lastTick).then((uCount) => {
+				db.units[name].countAllUnits().then((allCount) => {
 
-						console.log("units processed: " + uCount + " /" + allCount);
-						map.lastTickTimestamp = (new Date()).getTime();
-						map.lastTick++;
-						return map.save().then();
-					});
+					console.log("units processed: " + uCount + " /" + allCount);
+					logger.addAverageStat('unprocessedUnitCount', uCount);
+					logger.addAverageStat('totalUnitCount', allCount);
+
+					map.lastTickTimestamp = (new Date()).getTime();
+					map.lastTick++;
+					//TODO do this more elegantly
+					//clobbers all updated values for map
+					return map.save().then();
 				});
-			}
-		});
+			});
+		}
+	});
 }

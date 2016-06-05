@@ -46,10 +46,11 @@ function process(delta) {
 	.then((unit) => {
 		if (unit) {
 			process(delta);
+			processUnit(unit);
 		}
 	});
 }
 
 function processUnit(unit) {
-
+	logger.addSumStat('unit_AI',1);
 }

@@ -35,7 +35,8 @@ module.exports = (client,data) => {
 			throw new Error("planet doesn't exist");
 		}
 		console.log('user planet: ' + planet.name);
-		client.planet = planet;
+		client.planet = planet; //TODO remove this when save
+		client.map = planet;
 
 		return db.user.getUser(data.username);
 	}).then((user) => {

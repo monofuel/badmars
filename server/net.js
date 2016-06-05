@@ -14,6 +14,8 @@ var logger = require('./util/logger.js');
 var net = require('./core/net.js');
 var figlet = require('figlet');
 
+logger.setModule('net');
+
 function init() {
     logger.info("start begin");
 
