@@ -20,15 +20,13 @@ exports.setModule = (name) => {
 process.on('uncaughtException', unhandled);
 process.on('unhandledRejection', unhandled);
 
-function unhandled() {
+function unhandled(err) {
 	console.log('uncaught error');
 	console.error(err.stack);
-	if (logger) {
-		try {
-			logger.error(err);
-		} catch(err) {
-			console.log('failed to track unhandled error');
-		}
+	try {
+		logger.error(err);
+	} catch(err) {
+		console.log('failed to track unhandled error');
 	}
 	console.log('uncaught exception, bailing out');
   process.exit(1);

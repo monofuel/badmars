@@ -8,6 +8,7 @@
 var r = require('rethinkdb');
 var Unit = require('../unit/unit.js');
 var db = require("./db.js");
+var env = require('../config/env.js');
 
 class DBUnit {
 
@@ -120,28 +121,29 @@ class DBUnit {
 			.update({isPathing:true,pathUpdate: (new Date()).getTime()}).run(this.conn);
 	}
 
-	getUnprocessedUnit(tick) {
+	getUnprocessedUnits(tick) {
 		return this.table.filter(r.row("lastTick").lt(tick), {
 			default: true
-		}).limit(1).update({
+		}).limit(env.unitProcessChunks).update({
 			lastTick: tick
 		}, {
 			returnChanges: true
 		}).run(this.conn).then((delta) => {
 			if (!delta.changes || delta.changes.length === 0) {
-				return null;
-			}
-			var newUnit = delta.changes[0].new_val;
-			var oldUnit = delta.changes[0].old_val;
 
-			if (newUnit && oldUnit && newUnit.lastTick == oldUnit.lastTick) {
-				console.log('tick update fubared');
-				return null;
-			} else {
+				return [];
+			}
+			var units = [];
+			for (let i = 0; i < delta.changes.length; i++) {
+				var newUnit = delta.changes[i].new_val;
+				var oldUnit = delta.changes[i].old_val;
+
 				var properUnit = new Unit();
 				properUnit.clone(newUnit);
-				return properUnit;
+				units.push(properUnit);
+
 			}
+			return units;
 		});
 	}
 

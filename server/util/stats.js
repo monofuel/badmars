@@ -41,6 +41,7 @@ function reportStats() {
 		avg /= array.length;
 		stats[key] = avg;
 	}
+	avgStats = {};
 	for (let key of Object.keys(sumStats)) {
 		var array = sumStats[key];
 		var avg = 0;
@@ -49,5 +50,6 @@ function reportStats() {
 		}
 		stats[key] = avg;
 	}
+	sumStats = {};
 	logger.info('stats',stats,false); //set to true after testing
 };

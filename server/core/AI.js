@@ -42,11 +42,15 @@ function mapUpdate(err,delta) {
 }
 
 function process(delta) {
-	db.units[delta.new_val.name].getUnprocessedUnit(delta.new_val.lastTick)
-	.then((unit) => {
-		if (unit) {
+	db.units[delta.new_val.name].getUnprocessedUnits(delta.new_val.lastTick)
+	.then((units) => {
+		console.log(units.length);
+		if (units.length > 0) {
 			process(delta);
-			processUnit(unit);
+			for (let unit of units) {
+				processUnit(unit);
+			}
+			console.log('processed chunk');
 		}
 	});
 }
