@@ -71,7 +71,7 @@ window.track = (name, kargs) => {
 	if (!kargs)
 		kargs = {};
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://104.197.78.205:9001/track/event");
+	xhr.open("POST", "http://japura.net:9001/track/event");
 	kargs.name = "badmars_v1_" + name;
 	kargs.version = version;
 	if (playerInfo) {
@@ -80,9 +80,7 @@ window.track = (name, kargs) => {
 	verifyTrack(name,kargs);
 	console.log('tracking ' + name);
 	console.log(kargs);
-	//disabled until i get the tracking server back up
-	return;
-	//xhr.send(JSON.stringify(kargs));
+	xhr.send(JSON.stringify(kargs));
 
 }
 

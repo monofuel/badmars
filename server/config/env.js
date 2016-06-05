@@ -20,8 +20,8 @@ vars.wwwPort = process.env.BADMARS_WWW || '3002';
 vars.wsPort = process.env.BADMARS_WS_PORT || '7005';
 vars.wsPublicPort = process.env.BADMARS_WS_PUBLIC_PORT || '7005';
 
-vars.trackingServer = process.env.TRACKING_SERVER || "104.197.78.205";
-vars.trackingPort = process.env.TRACKING_PORT || "9001";
+vars.trackingServer = process.env.TRACKING_SERVER || 'japura.net';
+vars.trackingPort = process.env.TRACKING_PORT || '9001';
 
 vars.authServer = process.env.BADMARS_AUTH_SERVER || 'localhost';
 vars.authDB = process.env.BADMARS_AUTH_DATABASE || 'japura';

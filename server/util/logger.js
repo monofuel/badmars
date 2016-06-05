@@ -25,8 +25,8 @@ process.on('uncaughtException', (err) => {
 
 module.exports.error = (err) => {
 	var timestamp = new Date();
-	console.log(dateFormat(timestamp) + " : " + err.stack);
-	track("error", {
+	console.log(dateFormat(timestamp) + ' : ' + err.stack);
+	track('error', {
 		message: err.message,
 		stack: err.stack
 	});
@@ -86,15 +86,14 @@ function verifyTrack(name, kargs) {
 function track(name, kargs) {
 	kargs = kargs || {};
 	name = name.replace(/ /g,"_").replace(/:/g," ");
-	kargs.name = moduleName + "_" + name;
+	kargs.name = "server_" + name;
+	kargs.module = moduleName;
 	kargs.hostname = os.hostname();
 	kargs.env = env.envType;
 	verifyTrack(name,kargs);
 
-	//TODO get analytics server back up
-	return;
 	request({
-		url: "http://" + env.trackingServer + ":" + env.trackingPort + "/track/event",
+		url: 'http://' + env.trackingServer + ':' + env.trackingPort + '/track/event',
 		method: 'POST',
 		body: JSON.stringify(kargs)
 	}, (error, response, body) => {
