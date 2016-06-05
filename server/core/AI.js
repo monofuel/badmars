@@ -13,10 +13,27 @@ var registeredMaps = [];
 
 exports.init = () => {
 	setInterval(registerListeners,1000);
+
+
+	return registerListeners().then(() => {
+		return db.map.listNames();
+	}).then((names) => {
+		var mapPromises = [];
+		for (let name of names) {
+			mapPromises.push(db.map.getMap(name));
+		}
+		return Promise.all(mapPromises);
+	}).then((maps) => {
+		for (let map of maps) {
+			process(map.name, map.lastTick);
+		}
+	});
+
+
 };
 
 function registerListeners() {
-	db.map.listNames().then((name) => {
+	return db.map.listNames().then((name) => {
 		if (registeredMaps.indexOf(name) == -1) {
 			registeredMaps.push(name);
 			db.map.registerListener(name,mapUpdate);
@@ -30,26 +47,22 @@ function mapUpdate(err,delta) {
 	}
 	if (!delta.new_val) {
 		console.log('map deleted: ' + delta.old_val.name);
+		//TODO remove listener
 		return;
 	}
 
-	if (!delta.old_val || delta.old_val.lastTick == delta.new_val.lastTick) {
-		//value on a planet changed other than tick count, ignore it.
-		return;
-	}
-
-	process(delta);
+	process(delta.new_val.name,delta.new_val.lastTick);
 }
 
-function process(delta) {
-	db.units[delta.new_val.name].getUnprocessedUnits(delta.new_val.lastTick)
+function process(mapName, lastTick) {
+	db.units[mapName].getUnprocessedUnits(lastTick)
 	.then((units) => {
 		if (units.length > 0) {
-			process(delta);
 			for (let unit of units) {
 				processUnit(unit);
 			}
-			console.log('processed chunk');
+			console.log('processed unit chunk');
+			process(mapName, lastTick);
 		}
 	});
 }
@@ -57,4 +70,5 @@ function process(delta) {
 function processUnit(unit) {
 	logger.addSumStat('unit_AI',1);
 	unit.simulate();
+	unit.save();
 }

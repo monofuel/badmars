@@ -60,14 +60,18 @@ class Unit {
 		this.factoryQueue = [];
 		this.resourceCooldown = 0;
 
+		this.awake = true;
+
 	}
 
 	simulate() {
-		
+		this.awake = false;
 	}
 
 	save() {
-		return db.unit.saveUnit(this);
+		//TODO
+		//bad way to update units. should white-list and apply updates atomicly.
+		return db.units[this.map].saveUnit(this);
 	}
 	clone(object) {
 		for (let key in object) {
