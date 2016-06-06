@@ -19,6 +19,8 @@ function mountUserHandlers(client) {
 	client.handlers['setDestination'] = require('./setDestination.js');
 	client.handlers['unitStats'] = require('./unitStats.js');
 
+	//TODO mount listener for unit changes
+
 }
 
 module.exports = (client,data) => {
@@ -35,7 +37,7 @@ module.exports = (client,data) => {
 			throw new Error("planet doesn't exist");
 		}
 		console.log('user planet: ' + planet.name);
-		client.planet = planet; //TODO remove this when save
+		client.planet = planet; //TODO remove this when updated in other places
 		client.map = planet;
 
 		return db.user.getUser(data.username);

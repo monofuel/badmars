@@ -86,6 +86,26 @@ class Map {
 		return Promise.all(unitPromises);
 	}
 
+	pullIron(unit,amount) {
+		return true;
+	}
+
+	pullOil(unit,amount) {
+		return true;
+	}
+
+	produceIron(unit,amount) {
+
+	}
+
+	produceOil(unit,amount) {
+		
+	}
+
+	getNearestFreeTile(tile) {
+
+	}
+
 	save() {
 		return db.map.saveMap(this);
 	}

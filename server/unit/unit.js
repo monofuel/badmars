@@ -13,6 +13,8 @@ var astarpath = require('../nav/astarpath.js');
 
 var groundUnitAI = require('./ai/groundunit.js');
 var attackAI = require('./ai/attack.js');
+var constructAI = require('./ai/construction.js');
+var mineAI = require('./ai/mine.js');
 
 var unitStats = JSON.parse(fs.readFileSync('config/units.json'));
 
@@ -70,34 +72,57 @@ class Unit {
 	}
 
 	simulate() {
-		var update = false; //only save when there are changes
-		this.awake = false; //awake should be updated to true if we need another simulation tick soon
+		var self = this;
+		var update = false;  //only save when there are changes
+		self.awake = false; //awake should be updated to true if we need another simulation tick soon
 
-		switch (this.movementType) {
-			case 'ground':
-				groundUnitAI.simulate(this);
-				break;
-		}
+		//either only move, attack or construct. not doing multiple at once.
 
-		if (this.attack != 0 && this.range != 0) {
-			//do attack stuff
-		}
+		return db.map.getMap(this.map).then((map) => {
+			var movementPromise = new Promise();
+			switch (self.movementType) {
+				case 'ground':
+					movementPromise = groundUnitAI.simulate(self,map);
+					break;
+			}
+			movementPromise.then((moved) => {
+				if (moved) {
+					update = true;
+					awake = true;
+				}
+				if (!update && self.attack != 0 && self.range != 0) {
+					return attackAI.simulate(self,map);
+				}
 
-		if (this.construction) {
-			//do construction stuff
-		}
+			}).then((attacked) => {
+				if (attacked) {
+					update = true;
+					awake = true;
+				}
+				if (!update && self.construction) {
+					return constructionAI.simulate(self,map);
+				}
 
-		//special one-off AI
-		//mines should always be awake
-		if (this.type === 'mine') {
-			this.awake = true;
-		}
+			}).then((constructed) => {
+				if (constructed) {
+					update = true;
+					awake = true;
+				}
 
-		if (!update && !this.awake) {
-			//if there is no update but the unit will no longer be awake, update to sleep it
-			update = true;
-		}
-		return update;
+				//special one-off AI
+				//mines should always be awake
+				if (self.type === 'mine') {
+					self.awake = true;
+					return mineAI.simulate(unit,map);
+				}
+
+				if (!update && !self.awake) {
+					//if there is no update but the unit will no longer be awake, update to sleep it
+					update = true;
+				}
+				return update;
+			});
+		});
 	}
 
 	save() {

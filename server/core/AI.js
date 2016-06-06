@@ -61,11 +61,14 @@ function process(mapName, lastTick) {
 	return db.units[mapName].getUnprocessedUnits(lastTick)
 	.then((units) => {
 		if (units.length > 0) {
+			var processPromises = [];
 			for (let unit of units) {
-				processUnit(unit);
+				processPromises.push(processUnit(unit));
 			}
-			console.log('processed units: ' + units.length);
-			return process(mapName, lastTick);
+			return Promise.all(processPromises).then(() => {
+				console.log('processed units: ' + units.length);
+				return process(mapName, lastTick);
+			});
 		} else {
 			console.log('all units processed for tick');
 		}
@@ -74,7 +77,9 @@ function process(mapName, lastTick) {
 
 function processUnit(unit) {
 	logger.addSumStat('unit_AI',1);
-	if (unit.simulate()) {
-		unit.save();
-	}
+	return unit.simulate().then((update) => {
+		if (update) {
+			unit.save();
+		}
+	});
 }

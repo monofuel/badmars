@@ -1,22 +1,21 @@
-webGL multiplayer rts game in development
+webGL mmorts game in development
 
 current task:
-	re-writing server to as microservices and with rethinkDB
-	unit resource transfering (client and server)
+	finish up all the current TODOs in the server rewrite
+	unit resource transferring (client and server)
 
 TODO:
 	web console would be cool
 	admin page would be cool
 	properly flowtype the entire codebase
 	work through TODOs in code and refactor things that I was too lazy to do properly the first time around
-	work on documentation (hint: https://github.com/documentationjs/documentation/blob/master/docs/GETTING_STARTED.md )
+	work on documentation
 	chat (client and server)
 	SSAO lighting effects (client)
 	better models (client)
 	textures (client)
-	color or flag system (client)
+	color or flag system (client & server)
 	lines between units showing how resources are being automatically delivered. (client)
-	fix common pathfinding hangups. (server)
 	cancel ghost feature (server)
 	trade routes (both client and server)
 	rename 'oil' to 'fuel' (except for deposit)
