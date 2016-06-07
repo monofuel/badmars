@@ -19,7 +19,7 @@ function mountUserHandlers(client) {
 	client.handlers['setDestination'] = require('./setDestination.js');
 	client.handlers['unitStats'] = require('./unitStats.js');
 
-	//TODO mount listener for unit changes
+	client.registerUnitListener();
 
 }
 

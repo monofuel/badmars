@@ -178,6 +178,12 @@ class DBUnit {
 		}).count().run(this.conn);
 	}
 
+	registerListener(func) {
+		this.table.changes().run(this.conn).then((cursor) => {
+			cursor.each(func);
+		});
+	};
+
 }
 
 

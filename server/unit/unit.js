@@ -79,14 +79,15 @@ class Unit {
 		//either only move, attack or construct. not doing multiple at once.
 
 		return db.map.getMap(this.map).then((map) => {
-			var movementPromise = new Promise();
+			var movementPromise = Promise.resolve(false);
 			switch (self.movementType) {
 				case 'ground':
 					movementPromise = groundUnitAI.simulate(self,map);
 					break;
 			}
-			movementPromise.then((moved) => {
+			return movementPromise.then((moved) => {
 				if (moved) {
+					console.log('moved');
 					update = true;
 					awake = true;
 				}
@@ -96,6 +97,7 @@ class Unit {
 
 			}).then((attacked) => {
 				if (attacked) {
+					console.log('attacking');
 					update = true;
 					awake = true;
 				}
@@ -105,6 +107,7 @@ class Unit {
 
 			}).then((constructed) => {
 				if (constructed) {
+					console.log('constructing');
 					update = true;
 					awake = true;
 				}

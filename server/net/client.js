@@ -86,5 +86,27 @@ class Client {
 
         self.handlers[data.type](self, data);
     }
+
+		registerUnitListener() {
+			var self = this;
+			db.units[this.map.name].registerListener((err,delta) => {
+				self.handleUnitUpdate(err,delta);
+			});
+		}
+
+		handleUnitUpdate(err,delta) {
+			console.log('unit update');
+			if (!delta.new_val) {
+				if (delta.old_val) {
+					//TODO update client for new 'kill' system.
+					this.send('kill',{unitId: delta.old_val.uuid});
+				}
+			} else {
+				//TODO compare old vs new and optimize network usage
+				this.send('units',{units:[delta.new_val]});
+			}
+
+
+		}
 }
 module.exports = Client;

@@ -11,7 +11,8 @@ var logger = require('../../util/logger.js');
 
 //TODO not tested  yet
 exports.simulate = (unit,map) => {
-	
+
+	return false;
 	//TODO
 
 	/* // old code

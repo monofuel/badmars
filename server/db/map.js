@@ -48,7 +48,7 @@ exports.getMap = (name) => {
 };
 
 exports.registerListener = (name,func) => {
-	table.changes().run(conn).then((cursor) => {
+	table.get(name).changes().run(conn).then((cursor) => {
 		cursor.each(func);
 	});
 };
