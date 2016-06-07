@@ -102,7 +102,9 @@ class Client {
 					this.send('kill',{unitId: delta.old_val.uuid});
 				}
 			} else {
-				//TODO compare old vs new and optimize network usage
+				//TODO compare old vs new and optimize network usage. only send changes and only send things that the client should act on.
+				//TODO like seriously
+				//TODO this is awful
 				this.send('units',{units:[delta.new_val]});
 			}
 
