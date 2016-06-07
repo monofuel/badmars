@@ -188,8 +188,11 @@ export class Net {
 						}
 					}
 
-
-						if (data.type == 'map') {
+						if (data.type === 'login') {
+							self.s.send(JSON.stringify({
+								type: "spawn"
+							}));
+						} else if (data.type == 'map') {
 						window.loadPlanet(data.map);
 						self.s.send(JSON.stringify({
 							type: "getPlayers"

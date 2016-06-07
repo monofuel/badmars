@@ -9,6 +9,8 @@ var db = require('../db/db.js');
 var Chunk = require("../map/chunk.js");
 var PlanetLoc = require("./planetloc.js");
 
+var Tiletypes = require('../map/tiletypes.js');
+
 var chunkCache = {};
 
 class Map {
@@ -40,9 +42,7 @@ class Map {
 		var self = this;
 		var hash = x + ":" + y;
 		if (chunkCache[this.name][hash]) {
-			return new Promise((reject, resolve) => {
-				resolve(chunkCache[this.name][hash]);
-			});
+			return new Promise.resolve(chunkCache[this.name][hash]);
 		}
 		return db.chunks[this.name].getChunk(x, y).then((chunk) => {
 			if (!chunk || !chunk.isValid()) {
@@ -58,10 +58,27 @@ class Map {
 
 	getLoc(x, y) {
 		var self = this;
-		var chunkX = Math.floor(x / map.settings.chunkSize);
-		var chunkY = Math.floor(y / map.settings.chunkSize);
-		return getChunk(x, y).then((chunk) => {
-			return new PlanetLoc(self, chunk, x, y);
+		var real_x = Math.floor(x);
+		var real_y = Math.floor(y);
+		var chunkX = Math.floor(real_x / this.settings.chunkSize);
+		var chunkY = Math.floor(real_y / this.settings.chunkSize);
+		var local_x = real_x - (chunkX * this.settings.chunkSize);
+		var local_y = real_y - (chunkY * this.settings.chunkSize);
+		if (local_x < 0) {
+			local_x += this.settings.chunkSize;
+			chunkX--;
+		}
+		if (local_y < 0) {
+			local_y += this.settings.chunkSize;
+			chunkY--;
+		}
+		//console.log("real: " + real_x + ":" + real_y);
+		//console.log("chunk: " + chunkX + ":" + chunkY);
+		//console.log("local: " + local_x + ":" + local_y);
+
+
+		return self.getChunk(chunkX, chunkY).then((chunk) => {
+			return new PlanetLoc(self,chunk, real_x, real_y);
 		});
 	}
 
@@ -77,64 +94,76 @@ class Map {
 		});
 	}
 
-	checkValidForUnit(tile, type) {
-		/* //old code
-		if (type == 'storage' || type == 'factory') #TODO refactor multi-tile units
-	      if (this.checkOpen(tile) &&
-	         this.checkOpen(tile.N()) &&
-	         this.checkOpen(tile.S()) &&
-	         this.checkOpen(tile.E()) &&
-	         this.checkOpen(tile.W()) &&
-	         this.checkOpen(tile.E().N()) &&
-	         this.checkOpen(tile.E().S()) &&
-	         this.checkOpen(tile.W().N()) &&
-	         this.checkOpen(tile.W().S()))
-	       return true
-	    else if (type == 'mine')
-	      tileUnit = this.unitTileCheck(tile)
-	      if (tileUnit && (tileUnit.type == 'iron' || tileUnit.type == 'oil'))
-	        return true
-	    else if (this.checkOpen(tile))
-	      return true
+	checkValidForUnit(tile, unit) {
 
-	    return false
-		*/
+		var tilePromises = [];
+		for (let tileHash of unit.tileHash) {
+
+		}
+		return Promise.all(tilePromises).then((units) => {
+			var overlapping = [];
+
+			if (unit.ghosting) {
+				//unit construction
+				if (unit.type == 'mine') {
+					for (let unit2 of units) {
+						if (unit2.type !== 'iron' && unit2.type !== 'oil') {
+							return false;
+						}
+					}
+					return true;
+				} else {
+					//TODO handle the construction of air units
+					return units.length == 0;
+				}
+			} else {
+				//unit movement
+				//TODO handle flying units
+				for (let unit2 of units) {
+					if (!unit2.ghosting) {
+						return false;
+					}
+				}
+				return true;
+			}
+		});
 	}
 
-	unitTileCheck(tile, includeGhosts) {
-		/* //old code
-		for unit in @units
-	      if (!includeGhosts)
-	        if (unit.ghosting)
-	          continue
-	      if (unit.type == 'storage' || unit.type == 'factory') #TODO refactor multi-tile units
-	        if (tile.equals(unit.tile) ||
-	           tile.N().equals(unit.tile) ||
-	           tile.S().equals(unit.tile) ||
-	           tile.E().equals(unit.tile) ||
-	           tile.W().equals(unit.tile) ||
-	           tile.E().N().equals(unit.tile) ||
-	           tile.E().S().equals(unit.tile) ||
-	           tile.W().N().equals(unit.tile) ||
-	           tile.W().S().equals(unit.tile))
-	         return unit
+	checkOpen(tile) {
+		return this.unitsTileCheck(tile, false).then((units) => {
+			return units.length === 0;
+		})
+	}
 
-	      if (tile.equals(unit.tile) || (tile.equals(unit.nextTile) && unit.moving))
-	        return unit
-
-	    return null
-		*/
+	unitsTileCheck(tile, includeGhosts) {
+		return db.units[this.name].getUnitsAtTile(tile.hash).then((units) => {
+			if (!includeGhosts) {
+				var unitsToReturn = [];
+				for (let unit of units) {
+					if (!unit.ghosting) {
+						unitsToReturn.push(unit);
+					}
+				}
+				return unitsToReturn;
+			} else {
+				return units;
+			}
+		});
 	}
 
 	spawnUser(client) {
 		//find a spawn location
+		return this.findSpawnLocation().then((chunk) => {
+			//spawn units for them on the chunk
+			var unitPromises = [];
+
+			//return a promise that returns all the units
+			return Promise.all(unitPromises);
+		});
 
 
-		//spawn units for them
-		var unitPromises = [];
 
-		//return a promise that returns all the units
-		return Promise.all(unitPromises);
+
 
 		/* //old code
 		thisPlanet = this;
@@ -194,6 +223,63 @@ class Map {
 	      )
 	    )
 		*/
+	}
+
+	//find random spawn locations, looking farther away depending on how many attempts tried
+	//returns a chunk of all free tiles
+	findSpawnLocation(attempts) {
+		attempts = attempts || 0;
+
+		var direction = Math.random() * attempts * 50; //100 is a magic number
+		var rotation = Math.random() * Math.PI * 2; //random value between 0 and 2PI
+
+		var x = direction * Math.cos(rotation);
+		var y = direction * Math.sin(rotation);
+
+		var self = this;
+
+		return this.getLoc(x, y).then((tile) => {
+			return self.validChunkForSpawn(tile.chunk);
+		}).then((isValid, chunk) => {
+			if (isValid) {
+				return chunk;
+			} else {
+				return self.findSpawnLocation(attempts + 1);
+			}
+		})
+	}
+
+
+	//TODO this function could use some love to be a bit more sane about spawning
+	validChunkForSpawn(chunk) {
+		var self = this;
+		return chunk.getTiles().then((tiles) => {
+			console.log('checking tile types');
+			var landTiles = 0;
+			for (let tile of tiles) {
+				if (tile.tileType === Tiletypes.LAND) {
+					landTiles++;
+				}
+			}
+			//only spawn on chunks that are 80% land
+			if (landTiles < self.settings.chunkSize * self.settings.chunkSize * 0.2) {
+				return false;
+			}
+			var unitTileChecks = [];
+			for (let tile of tiles) {
+				unitTileChecks.push(self.checkOpen(tile));
+			}
+			console.log(unitTileChecks.length);
+			return Promise.all(unitTileChecks).then((tileChecks) => {
+				for (let valid of tileChecks) {
+					if (!valid) {
+						return false;
+					}
+				}
+				console.log('found valid chunk for spawn');
+				return true;
+			});
+		});
 	}
 
 	pullIron(unit, amount) {

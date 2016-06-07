@@ -5,6 +5,7 @@ current task:
 	unit resource transferring (client and server)
 
 TODO:
+	dummy DB interface to allow testing modules in production without actually writing changes
 	web console would be cool
 	admin page would be cool
 	properly flowtype the entire codebase

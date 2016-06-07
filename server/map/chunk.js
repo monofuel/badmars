@@ -11,6 +11,7 @@ var SimplexNoise = require('simplex-noise');
 var Alea = require('alea');
 var Tiletypes = require('./tiletypes.js');
 var Unit = require('../unit/unit.js');
+var PlanetLoc = require("./planetloc.js");
 
 class Chunk {
 	constructor(x, y, map) {
@@ -146,6 +147,19 @@ class Chunk {
 		for (let key in object) {
 			this[key] = object[key];
 		}
+	}
+
+	getTiles() {
+		//TODO caching system
+		var tiles = [];
+		for (let i = 0; i < this.chunkSize; i++) {
+			for (let j = 0; j < this.chunkSize; j++) {
+				var x = i + (this.x * this.chunkSize);
+				var y = j + (this.y * this.chunkSize);
+				tiles.push(new PlanetLoc(this.map,this,x,y));
+			}
+		}
+		return Promise.resolve(tiles);
 	}
 }
 

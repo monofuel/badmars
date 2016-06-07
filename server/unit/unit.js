@@ -38,9 +38,6 @@ class Unit {
 		this.x = x;
 		this.y = y;
 		this.lastTick = 0;
-		this.chunkHash = this.chunkX + ":" + this.chunkY;
-		this.tileHash = x +":" + y;
-
 
 		//TODO optimize values stored on units depending on type
 		this.constructing = 0;
@@ -54,6 +51,32 @@ class Unit {
 		for (let key in stats) {
 			this[key] = stats[key];
 		}
+
+		if (!this.size || this.size === 1) {
+			this.chunkHash = [this.chunkX + ":" + this.chunkY];
+			this.tileHash = [x +":" + y];
+		} else if (this.size === 3) {
+			var tiles = [
+				map.getloc(x - 1, y - 1), map.getLoc(x,y - 1), map.getLoc(x + 1, y - 1),
+				map.getloc(x - 1, y),     map.getLoc(x,y),     map.getLoc(x + 1, y),
+				map.getloc(x - 1, y + 1), map.getLoc(x,y + 1), map.getLoc(x + 1, y + 1)
+			];
+			this.tileHash = [];
+			this.chunkHash = [];
+			for (let tile of tiles) {
+				if (this.tileHash.indexOf(tile.hash) == -1) {
+					this.tileHash.push(tile.hash);
+				}
+				if (this.chunkHash.indexOf(tile.chunk.hash) == -1) {
+					this.chunkHash.push(tile.chunk.hash);
+				}
+			}
+
+		} else {
+			console.log('unsupported unit size in config: ' + this.size);
+		}
+
+
 		this.health = this.maxHealth || 0;
 		this.iron = 0;
 		this.fuel = 0;

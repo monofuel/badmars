@@ -22,17 +22,37 @@ class PlanetLoc {
     this.x = Math.floor(x);
     this.y = Math.floor(y);
     this.map = map;
-    this.chunk = chunk;
+		this.hash = x + ":" + y;
+		this.chunk = chunk;
 
-    console.log("x: " + this.x + ", y: " + this.y + "chunkx: " + this.chunkX + ", chunky: " + this.chunkY);
+		this.local_x = this.x - (chunk.x * chunk.chunkSize);
+		this.local_y = this.y - (chunk.y * chunk.chunkSize);
+
+		if (this.local_x < 0) {
+			this.local_x = this.local_x + chunk.chunkSize;
+		}
+
+		if (this.local_y < 0) {
+			this.local_y = this.local_y + chunk.chunkSize;
+		}
+
+
+    //console.log("x: " + this.x + ", y: " + this.y + " chunkx: " + this.chunk.x + ", chunky: " + this.chunk.y + " localx: " + this.local_x + " localy: " + this.local_y);
 
     if (!this.chunk) {
       console.log("tile on not loaded chunk: " + this.x + "," + this.y);
-      console.log('chunk hash: ' + chunkX + ":" + chunkY);
+      console.log('chunk hash: ' + chunk.hash);
       return;
     }
 
-    this.tileType = this.chunk.navGrid[this.x][this.y];
+		if (this.local_x > this.chunk.navGrid.length || this.local_y > this.chunk.navGrid[0].length) {
+			console.log('invalid chunk');
+			console.log("x: " + this.x + ", y: " + this.y + " chunkx: " + this.chunk.x + ", chunky: " + this.chunk.y + " localx: " + this.local_x + " localy: " + this.local_y);
+
+			console.log((new Error()).stack);
+		}
+
+    this.tileType = this.chunk.navGrid[this.local_x][this.local_y];
 
   }
 

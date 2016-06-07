@@ -30,10 +30,10 @@ class DBUnit {
 						primaryKey: 'uuid'
 					}).run(self.conn).then(() => {
 						console.log("adding tile hash index");
-						return r.table(tableName).indexCreate("tileHash").run(self.conn);
+						return r.table(tableName).indexCreate("tileHash", {multi: true}).run(self.conn);
 					}).then(() => {
 						console.log("adding chunk hash index");
-						return r.table(tableName).indexCreate("chunkHash").run(self.conn);
+						return r.table(tableName).indexCreate("chunkHash", {multi: true}).run(self.conn);
 					}).then(() => {
 						console.log("adding lastTick index");
 						return r.table(tableName).indexCreate("lastTick").run(self.conn);
@@ -73,6 +73,11 @@ class DBUnit {
 	};
 
 	getUnitAtTile(hash) {
+
+		//TODO find all uses of this function and remove it
+		//console.log('depreciated');
+		//console.log((new Error()).stack);
+
 		var self = this;
 		return this.table.getAll(hash, {
 			index: "tileHash"
@@ -89,13 +94,25 @@ class DBUnit {
 		});
 	}
 
+	getUnitsAtTile(hash) {
+		var self = this;
+		return this.table.getAll(hash, {
+			index: "tileHash"
+		}).coerceTo('array').run(this.conn).then((docs) => {
+			var unitPromises = [];
+			for (let doc of docs) {
+				unitPromises.push(self.loadUnit(doc));
+			}
+			return Promise.all(unitPromises);
+		});
+	}
+
 	getUnitsAtChunk(x, y) {
 		var hash = x + ":" + y;
 		var self = this;
 		return this.table.getAll(hash, {
 			index: "chunkHash"
 		}).coerceTo('array').run(this.conn).then((docs) => {
-			var units = [];
 			var unitPromises = [];
 			for (let doc of docs) {
 				unitPromises.push(self.loadUnit(doc));
