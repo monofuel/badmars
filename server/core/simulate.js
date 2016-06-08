@@ -26,40 +26,30 @@ function mapTick() {
 	});
 }
 
-function tryNewTick(name) {
-	db.map.getMap(name).then((map) => {
-		let uCount = 0;
-		let allCount = 0;
-		let awakeCount = 0;
+async function tryNewTick(name) {
+	let map = await db.map.getMap(name);
 
-		if (map.lastTick !== 0 && (new Date()).getTime() - map.lastTickTimestamp < 1000 / env.ticksPerSec) {
-			return;
-		}
+	if (map.lastTick !== 0 && (new Date()).getTime() - map.lastTickTimestamp < 1000 / env.ticksPerSec) {
+		return;
+	}
 
-		return db.units[name].countUnprocessedUnits(map.lastTick).then((newUCount) => {
-			uCount = newUCount;
-			return db.units[name].countAwakeUnits();
-		}).then((newAwakeCount) => {
-			awakeCount = newAwakeCount;
-			return db.units[name].countAllUnits();
-		}).then((newAllCount) => {
-			allCount = newAllCount;
-		}).then(() => {
-			console.log("(unprocessed/awake/all) | (" + uCount + "/" + awakeCount + "/" + allCount + ")");
-			logger.addAverageStat('unprocessedUnitCount', uCount);
-			logger.addAverageStat('totalUnitCount', allCount);
-			logger.addAverageStat('totalAwakeCount', awakeCount);
+	let uCount = await db.units[name].countUnprocessedUnits(map.lastTick);
+	let awakeCount = await db.units[name].countAwakeUnits();
+	let allCount = await db.units[name].countAllUnits();
+	
+	console.log("(unprocessed/awake/all) | (" + uCount + "/" + awakeCount + "/" + allCount + ")");
+	logger.addAverageStat('unprocessedUnitCount', uCount);
+	logger.addAverageStat('totalUnitCount', allCount);
+	logger.addAverageStat('totalAwakeCount', awakeCount);
 
-			if (uCount > 0) {
-				console.info('skipping tick');
-				return;
-			}
+	if (uCount > 0) {
+		console.info('skipping tick');
+		return;
+	}
 
-			map.lastTickTimestamp = (new Date()).getTime();
-			map.lastTick++;
-			//TODO do this more elegantly
-			//clobbers all updated values for map
-			return map.save().then();
-		});
-	});
+	map.lastTickTimestamp = (new Date()).getTime();
+	map.lastTick++;
+	//TODO do this more elegantly
+	//clobbers all updated values for map
+	return map.save().then();
 }
