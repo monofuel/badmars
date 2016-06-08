@@ -48,6 +48,7 @@ module.exports = (client,data) => {
 				throw new Error('invalid api key');
 			}
 			console.log('login success for ' + user.name);
+			client.user = user;
 			client.username = user.name;
 			mountUserHandlers(client);
 
@@ -66,6 +67,7 @@ module.exports = (client,data) => {
 					var user = result.changes[0].new_val;
 
 					console.log('account created for ' + user.name);
+					client.user = user;
 					client.username = user.name;
 					mountUserHandlers(client);
 

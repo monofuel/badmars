@@ -215,7 +215,12 @@ export class Net {
 						}));
 					} else if (data.type == 'units') {
 						if (window.addUnit) {
-							for (var unit of data.units) {
+							if (!data.units) {
+								console.error('invalid unit payload');
+								console.log(data);
+								return;
+							}
+							for (let unit of data.units) {
 								window.addUnit(unit);
 							}
 							if (map && map.units && firstLoad) {

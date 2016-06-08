@@ -10,8 +10,18 @@ var Chunk = require("../map/chunk.js");
 var PlanetLoc = require("./planetloc.js");
 
 var Tiletypes = require('../map/tiletypes.js');
+var Unit = require('../unit/unit.js');
 
 var chunkCache = {};
+
+function containsTile(list,tile) {
+	for (let item of list) {
+		if (item.equals(tile)) {
+			return true;
+		}
+	}
+	return false;
+}
 
 class Map {
 	constructor(name) {
@@ -56,8 +66,13 @@ class Map {
 		});
 	}
 
-	getLoc(x, y) {
-		var self = this;
+	async getLocFromHash(hash) {
+		let x = hash.split(':')[0];
+		let y = hash.split(':')[1];
+		return await this.getLoc(x,y);
+	}
+
+	async getLoc(x, y) {
 		var real_x = Math.floor(x);
 		var real_y = Math.floor(y);
 		var chunkX = Math.floor(real_x / this.settings.chunkSize);
@@ -77,157 +92,128 @@ class Map {
 		//console.log("local: " + local_x + ":" + local_y);
 
 
-		return self.getChunk(chunkX, chunkY).then((chunk) => {
-			return new PlanetLoc(self,chunk, real_x, real_y);
-		});
+		let chunk = await this.getChunk(chunkX, chunkY);
+
+		return new PlanetLoc(this,chunk, real_x, real_y);
 	}
 
-	spawnUnit(newUnit) {
+	async spawnUnit(newUnit) {
 		//TODO check if valid for unit
 		//since some units are multi-tile, and mines can be on iron/oil
-		db.units[this.name].getUnitAtTile(newUnit.tileHash).then((unit) => {
-			if (unit) {
+		var unit = await db.units[this.name].getUnitAtTile(newUnit.tileHash);
+		for (let tileHash of newUnit.tileHash) {
+			if (!await this.checkValidForUnit( await this.getLocFromHash(tileHash),newUnit)) {
 				console.log('attempted to spawn unit where unit exists');
-				return;
+				return false;
 			}
-			db.units[this.name].addUnit(newUnit);
-		});
-	}
-
-	checkValidForUnit(tile, unit) {
-
-		var tilePromises = [];
-		for (let tileHash of unit.tileHash) {
-
 		}
-		return Promise.all(tilePromises).then((units) => {
-			var overlapping = [];
+		await db.units[this.name].addUnit(newUnit);
+		return true;
+	}
 
-			if (unit.ghosting) {
-				//unit construction
-				if (unit.type == 'mine') {
-					for (let unit2 of units) {
-						if (unit2.type !== 'iron' && unit2.type !== 'oil') {
-							return false;
-						}
-					}
-					return true;
-				} else {
-					//TODO handle the construction of air units
-					return units.length == 0;
+	async checkValidForUnit(tile, unit) {
+
+		var units = [];
+		for (let tileHash of unit.tileHash) {
+			units.push(await this.unitsTileCheck(await this.getLocFromHash(tileHash),false));
+		}
+
+		if (unit.type === 'mine') {
+			for (let unit2 of units) {
+				if (unit2.type !== 'iron' && unit2.type !== 'oil') {
+					console.log('mine requires iron or oil');
+					return false;
 				}
-			} else {
-				//unit movement
-				//TODO handle flying units
-				for (let unit2 of units) {
-					if (!unit2.ghosting) {
-						return false;
-					}
-				}
-				return true;
 			}
-		});
-	}
+			return true;
+		}
 
-	checkOpen(tile) {
-		return this.unitsTileCheck(tile, false).then((units) => {
-			return units.length === 0;
-		})
-	}
-
-	unitsTileCheck(tile, includeGhosts) {
-		return db.units[this.name].getUnitsAtTile(tile.hash).then((units) => {
-			if (!includeGhosts) {
-				var unitsToReturn = [];
-				for (let unit of units) {
-					if (!unit.ghosting) {
-						unitsToReturn.push(unit);
-					}
+		if (unit.ghosting) {
+			//unit construction
+			//TODO handle the construction of air units
+			return units.length == 0;
+		} else {
+			//unit movement
+			//TODO handle flying units
+			for (let unit2 of units) {
+				if (unit2.ghosting) {
+					console.log('ghosts should not overlap');
+					return false;
 				}
-				return unitsToReturn;
-			} else {
-				return units;
 			}
-		});
+			return true;
+		}
 	}
 
-	spawnUser(client) {
+	async checkOpen(tile) {
+		//TODO handle air units
+		return (await this.unitsTileCheck(tile, false)).length === 0;
+	}
+
+	async unitsTileCheck(tile, includeGhosts) {
+		let units = await db.units[this.name].getUnitsAtTile(tile.hash);
+		if (!includeGhosts) {
+			var unitsToReturn = [];
+			for (let unit of units) {
+				if (!unit.ghosting) {
+					unitsToReturn.push(unit);
+				}
+			}
+			return unitsToReturn;
+		} else {
+			return units;
+		}
+	}
+
+	async spawnUser(client) {
 		//find a spawn location
-		return this.findSpawnLocation().then((chunk) => {
-			//spawn units for them on the chunk
-			var unitPromises = [];
+		let chunk = await this.findSpawnLocation();
 
-			//return a promise that returns all the units
-			return Promise.all(unitPromises);
-		});
+		//spawn units for them on the chunk
+		let unitsToSpawn = [
+			'storage','builder','builder','tank','tank','iron','oil'
+		];
 
+		for (let unitType of unitsToSpawn) {
+			while (true) {
+				let x = this.settings.chunkSize * Math.random();
+				let y = this.settings.chunkSize * Math.random();
 
+				x += this.settings.chunkSize * chunk.x;
+				y += this.settings.chunkSize * chunk.y;
+				x = Math.round(x);
+				y = Math.round(y);
 
+				let unit = new Unit(unitType,this,x,y);
+				unit.owner = client.user.uuid;
+				switch (unitType) {
+					case 'storage':
+						unit.fuel = 1000;
+						unit.iron = 1000;
+						break;
+					case 'tank':
+					case 'builder':
+						unit.fuel = 50;
+						break;
+				}
 
-
-		/* //old code
-		thisPlanet = this;
-	    return new Promise((resolve,reject) ->
-	      db.getUserById(userId).then((playerInfo) ->
-	        thisPlanet.players.push(playerInfo)
-	        for player in thisPlanet.players
-	          Net.sendMessage(player,{ type: 'players', players: thisPlanet.players});
-
-	      ).then(() ->
-	        goodArea = false
-	        while (!goodArea)
-	          x = Math.random() * (thisPlanet.worldSettings.size - 10);
-	          y = Math.random() * (thisPlanet.worldSettings.size - 10);
-
-	          console.log('scanning for potential spawn')
-	          goodArea = true
-	          for x2 in [0..6]
-	            for y2 in [0..6]
-	              tile = new PlanetLoc(thisPlanet,x + x2, y + y2)
-	              if (tile.type != TileType.land)
-	                goodArea = false
-	                break
-	              if (Units.unitTileCheck(tile))
-	                goodArea = false
-	                break
-	            if (!goodArea)
-	              break
-	          if (!goodArea)
-	            continue
-	        console.log('found a good area to spawn')
-	        buildings = [
-	          thisPlanet.createUnit('storage',new PlanetLoc(thisPlanet,x + 3, y + 3),userId),
-	          thisPlanet.createUnit('builder',new PlanetLoc(thisPlanet,x + 1, y + 2),userId),
-	          thisPlanet.createUnit('builder',new PlanetLoc(thisPlanet,x + 1, y + 3),userId),
-	          thisPlanet.createUnit('tank',new PlanetLoc(thisPlanet,x + 5, y + 2),userId),
-	          thisPlanet.createUnit('tank',new PlanetLoc(thisPlanet,x + 5, y + 3),userId),
-	          thisPlanet.createUnit('iron',new PlanetLoc(thisPlanet,x, y),userId),
-	          thisPlanet.createUnit('oil',new PlanetLoc(thisPlanet,x + 5, y + 5),userId),
-	          thisPlanet.createUnit('mine',new PlanetLoc(thisPlanet,x, y),userId),
-	          thisPlanet.createUnit('mine',new PlanetLoc(thisPlanet,x + 5, y + 5),userId),
-	        ]
-	        Promise.all(buildings).then( (units) ->
-	          for unit in units
-	            switch(unit.type)
-	              when 'storage'
-	                unit.iron = 1000
-	                unit.oil = 1000
-	              when 'tank'
-	                unit.oil = 50
-	              when 'builder'
-	                unit.oil = 50
-	            unit.save()
-	          console.log('spawning finished')
-	          resolve();
-	        )
-	      )
-	    )
-		*/
+				if (await this.spawnUnit(unit)) {
+					if (unit === 'iron' || unit === 'oil') {
+						let mine = new Unit('mine',this,x,y);
+						console.log('spawned mine for player ' + client.username);
+						await this.spawnUnit(unit);
+					}
+					console.log('spawned ' + unitType + ' for player ' + client.username);
+					break;
+				}
+			}
+		}
+		console.log('spawn finished');
 	}
 
 	//find random spawn locations, looking farther away depending on how many attempts tried
 	//returns a chunk of all free tiles
-	findSpawnLocation(attempts) {
+	async findSpawnLocation(attempts) {
 		attempts = attempts || 0;
 
 		var direction = Math.random() * attempts * 50; //100 is a magic number
@@ -236,17 +222,14 @@ class Map {
 		var x = direction * Math.cos(rotation);
 		var y = direction * Math.sin(rotation);
 
-		var self = this;
+		let tile = await this.getLoc(x, y);
+		let isValid = await this.validChunkForSpawn(tile.chunk);
 
-		return this.getLoc(x, y).then((tile) => {
-			return self.validChunkForSpawn(tile.chunk);
-		}).then((isValid, chunk) => {
-			if (isValid) {
-				return chunk;
-			} else {
-				return self.findSpawnLocation(attempts + 1);
-			}
-		})
+		if (isValid) {
+			return tile.chunk;
+		} else {
+			return await this.findSpawnLocation(attempts + 1);
+		}
 	}
 
 
@@ -262,7 +245,7 @@ class Map {
 				}
 			}
 			//only spawn on chunks that are 80% land
-			if (landTiles < self.settings.chunkSize * self.settings.chunkSize * 0.2) {
+			if (landTiles < self.settings.chunkSize * self.settings.chunkSize * 0.1) {
 				return false;
 			}
 			var unitTileChecks = [];
@@ -391,52 +374,69 @@ class Map {
 
 	}
 
-	getNearestFreeTile(tile) {
-		/* //old code
+	//doot doot
 
-		    unitOnTile = (this.unitTileCheck(center,includeGhosts))
-		    if ((!unitOnTile || unit == unitOnTile) && center.type == TileType.land)
-		      return center
+	//tile is the tile to check
+	//unit is an optional unit to ignore
+	//includeGhosts decide if we should consider ghosts as units
+	async getNearestFreeTile(center,unit,includeGhosts) {
+		let unitsOnTile = await this.unitsOnTile(center,includeGhosts);
 
-		    open = [
-		      new PlanetLoc(this,center.x+1, center.y)
-		      new PlanetLoc(this,center.x-1, center.y)
-		      new PlanetLoc(this,center.x, center.y-1)
-		      new PlanetLoc(this,center.x, center.y+1)
-		    ]
+		//check if the tile we are checking is already free
+		if (unitsOnTile.length == 0 && center.tileType == Tiletypes.LAND) {
+			return center;
+		} else {
+			//check if the unit is already on this tile
+			for (let unit2 of unitsOnTile) {
+				if (unit.uuid === unit2.uuid) {
+					return center;
+				}
+			}
+		}
 
-		    for tile in open
-		      tile.cost = center.distance(tile)
+		let open = [
+			await this.getLoc(center.x + 1, center.y),
+			await this.getLoc(center.x - 1, center.y),
+			await this.getLoc(center.x, center.y - 1),
+			await this.getLoc(center.x, center.y + 1)
+		];
 
-		    while (true)
+		for (let tile of open) {
+			tile.cost = tile.distance(center);
+		}
 
-		      open.sort((a,b) ->
-		        return a.cost - b.cost
-		      )
+		while (true) {
+			open.sort((a,b) => {
+				return a.cost - b.cost;
+			});
 
-		      for openTile in open
-		        unitOnTile = (this.unitTileCheck(openTile,includeGhosts))
-		        if (unitOnTile && unitOnTile != unit)
-		          continue
+			for (let openTile of open) {
+				let unitsOnTile = await this.unitsOnTile(openTile,includeGhosts);
+				if (unitsOnTile.length !== 0) {
+					continue;
+				}
+				if (openTile.tileType !== Tiletypes.LAND) {
+					continue;
+				}
+				return openTile;
+			}
 
-		        if (openTile.type != TileType.land)
-		          continue
-		        return openTile
-
-		      for tile in open
-		        neighbors = [
-		          tile.N()
-		          tile.S()
-		          tile.E()
-		          tile.W()
-		        ]
-
-		        for neighbor in neighbors
-		          if (@contains(open,neighbor))
-		            continue
-		          neighbor.cost = neighbor.distance(center)
-		          open.push(neighbor)
-				  */
+			for (let tile of open) {
+				let neighbors = [
+					await tile.N(),
+					await tile.S(),
+					await tile.E(),
+					await tile.W()
+				];
+				for (let neighbor of neighbors) {
+					if (containsTile(open,neighbor)) {
+						continue;
+					}
+					neighbor.cost = neighbor.distance(center);
+					open.push(neighbor);
+				}
+			}
+		}
 	}
 
 	getNearestEnemy(unit) {

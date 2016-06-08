@@ -48,8 +48,13 @@ class Unit {
 		this.owner = "";
 
 		var stats = unitStats[unitType];
-		for (let key in stats) {
-			this[key] = stats[key];
+		if (!stats && unitType !== 'iron' && unitType !== 'oil') {
+			console.log('could not find stats for ' + unitType);
+		} else {
+			//console.log(stats);
+			for (let key in stats) {
+				this[key] = stats[key];
+			}
 		}
 
 		if (!this.size || this.size === 1) {

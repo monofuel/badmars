@@ -11,7 +11,8 @@
     "firePower": 15,
     "movementType": "ground",
     "maxStorage": 200,
-    "buildTime": 20
+    "buildTime": 20,
+		"size":1
   },
   "scout":{
     "range": 5.0,
@@ -24,7 +25,8 @@
     "cost": 100,
     "movementType": "ground",
     "maxStorage": 50,
-    "buildTime": 100
+    "buildTime": 100,
+		"size":1
   },
   "builder":{
     "range": 1.0,
@@ -34,8 +36,10 @@
     "attack": 0,
     "cost": 300,
     "movementType": "ground",
+		"construction": true,
     "maxStorage": 50,
-    "buildTime": 20
+    "buildTime": 20,
+		"size":1
   },
   "transport":{
     "range": 1.0,
@@ -46,7 +50,8 @@
     "cost": 200,
     "movementType": "ground",
     "maxStorage": 1200,
-    "buildTime": 20
+    "buildTime": 20,
+		"size":1
   },
   "factory":{
     "transferRange":0,
@@ -54,7 +59,9 @@
     "maxHealth": 500,
     "movementType": "building",
     "maxStorage": 1000,
-    "buildTime": 50
+    "buildTime": 50,
+		"size":1,
+		"construction":true
   },
   "storage":{
     "transferRange":20,
@@ -62,7 +69,8 @@
     "maxHealth": 500,
     "movementType": "building",
     "maxStorage": 4000,
-    "buildTime": 40
+    "buildTime": 40,
+		"size":1
   },
   "mine":{
     "transferRange":10,
@@ -70,7 +78,8 @@
     "maxHealth": 200,
     "movementType": "building",
     "maxStorage": 100,
-    "buildTime": 20
+    "buildTime": 20,
+		"size":1
   },
   "wall":{
     "transferRange":0,
@@ -78,6 +87,7 @@
     "maxHealth": 1000,
     "movementType": "building",
     "maxStorage": 0,
-    "buildTime": 20
+    "buildTime": 20,
+		"size":1
   }
 }

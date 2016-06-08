@@ -94,6 +94,7 @@ class Client {
 			});
 		}
 
+		//TODO also handle player list updates
 		handleUnitUpdate(err,delta) {
 			console.log('unit update');
 			if (!delta.new_val) {

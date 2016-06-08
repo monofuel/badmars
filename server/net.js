@@ -5,6 +5,7 @@
 
 'use strict';
 require("babel-register");
+require("babel-polyfill");
 //this app.js script is ment for running the whole server at once
 //usually either for development or if we are just running on 1 process.
 
