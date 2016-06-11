@@ -15,7 +15,10 @@ module.exports = (client,data) => {
 	client.planet.getChunk(x,y).then((chunk) => {
 		client.send('chunk',{chunk:chunk});
 		chunk.getUnits().then((units) => {
-			client.send('units',{units:units});
+			if (units.length > 0) {
+				//TODO sanitize unit data
+				client.send('units',{units:units});
+			}
 		});
 	});
 };

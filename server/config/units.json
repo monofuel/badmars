@@ -60,7 +60,7 @@
     "movementType": "building",
     "maxStorage": 1000,
     "buildTime": 50,
-		"size":1,
+		"size":3,
 		"construction":true
   },
   "storage":{
@@ -70,7 +70,7 @@
     "movementType": "building",
     "maxStorage": 4000,
     "buildTime": 40,
-		"size":1
+		"size":3
   },
   "mine":{
     "transferRange":10,

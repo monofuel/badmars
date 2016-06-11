@@ -9,9 +9,24 @@ var db = require('../../db/db.js');
 var env = require('../../config/env.js');
 var logger = require('../../util/logger.js');
 
-module.exports = (client,data) => {
-	//TODO
+async function setDestination(client,data) {
+	if (!data.unitId) {
+		return client.sendError('setDestination', 'no unit specified');
+	}
+	if (!data.location || data.location.length !== 2) {
+		return client.sendError('setDestination', 'no or invalid location set');
+	}
+
+	let unit = await db.units[client.planet.name].getUnit(data.unitId);
+	if (unit.owner !== client.user.uuid) {
+		return client.sendError('setDestination', 'not your unit');
+	}
+
+	let result = await unit.setDestination(data.location[0],data.location[1]);
+
 };
+
+module.exports = setDestination;
 
 /* //old code
 if (!message.unitId)

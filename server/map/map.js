@@ -98,13 +98,17 @@ class Map {
 	}
 
 	async spawnUnit(newUnit) {
+		console.log('spawning unit: ' + newUnit.type);
 		//TODO check if valid for unit
 		//since some units are multi-tile, and mines can be on iron/oil
 		var unit = await db.units[this.name].getUnitAtTile(newUnit.tileHash);
+		console.log('unit tiles: ' + newUnit.tileHash.length);
 		for (let tileHash of newUnit.tileHash) {
 			if (!await this.checkValidForUnit( await this.getLocFromHash(tileHash),newUnit)) {
 				console.log('attempted to spawn unit where unit exists');
 				return false;
+			} else {
+				console.log('valid tile for unit: ' + tileHash);
 			}
 		}
 		await db.units[this.name].addUnit(newUnit);
@@ -112,6 +116,11 @@ class Map {
 	}
 
 	async checkValidForUnit(tile, unit) {
+
+		//TODO handle air and water units
+		if (tile.tileType !== Tiletypes.LAND) {
+			return false;
+		}
 
 		var units = [];
 		for (let tileHash of unit.tileHash) {
@@ -125,6 +134,7 @@ class Map {
 					return false;
 				}
 			}
+			console.log('found iron or oil for mine');
 			return true;
 		}
 
@@ -185,7 +195,9 @@ class Map {
 				y = Math.round(y);
 
 				let unit = new Unit(unitType,this,x,y);
-				unit.owner = client.user.uuid;
+				if (unitType !== 'iron' && unitType !== 'oil') {
+					unit.owner = client.user.uuid;
+				}
 				switch (unitType) {
 					case 'storage':
 						unit.fuel = 1000;
@@ -198,13 +210,19 @@ class Map {
 				}
 
 				if (await this.spawnUnit(unit)) {
-					if (unit === 'iron' || unit === 'oil') {
-						let mine = new Unit('mine',this,x,y);
-						console.log('spawned mine for player ' + client.username);
-						await this.spawnUnit(unit);
-					}
 					console.log('spawned ' + unitType + ' for player ' + client.username);
+					if (unitType === 'iron' || unitType === 'oil') {
+						let mine = new Unit('mine',this,x,y);
+						mine.owner = client.user.uuid;
+						console.log('spawned mine for player ' + client.username);
+						if (! await this.spawnUnit(unit)) {
+							console.log('spawning mine failed');
+						}
+					}
 					break;
+				} else {
+					unitsToSpawn.push(unitType);
+					console.log('unit spawn failed');
 				}
 			}
 		}
@@ -244,15 +262,15 @@ class Map {
 					landTiles++;
 				}
 			}
+			console.log('land tiles: ' + landTiles);
 			//only spawn on chunks that are 80% land
-			if (landTiles < self.settings.chunkSize * self.settings.chunkSize * 0.1) {
+			if (landTiles < self.settings.chunkSize * self.settings.chunkSize * 0.8) {
 				return false;
 			}
 			var unitTileChecks = [];
 			for (let tile of tiles) {
 				unitTileChecks.push(self.checkOpen(tile));
 			}
-			console.log(unitTileChecks.length);
 			return Promise.all(unitTileChecks).then((tileChecks) => {
 				for (let valid of tileChecks) {
 					if (!valid) {

@@ -11,8 +11,12 @@ var logger = require('../../util/logger.js');
 
 //TODO
 //not tested yet
-exports.simulate = (unit,map) => {
-	return new Promise();
+async function simulate(unit,map) {
+	return;
+}
+
+exports.simulate = simulate;
+
 		//TODO
 		/* //old code
 		if (unitInfo && unitInfo.speed && unit.destination && unit.destination.length == 2)
@@ -111,4 +115,3 @@ exports.simulate = (unit,map) => {
 	          unit.moveAttempts = 0
 
 		*/
-}

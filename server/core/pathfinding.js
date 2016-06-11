@@ -11,15 +11,29 @@ var logger = require('../util/logger.js');
 
 var registeredMaps = [];
 
-exports.init = () => {
+async function init() {
 	setInterval(registerListeners,1000);
+
+	await registerListeners();
+
+	let maps = await db.map.listNames();
+
+	for (let mapName of maps) {
+		while (await process(mapName));
+		//process(mapName);
+	}
+
 };
+exports.init = init;
 
 function registerListeners() {
-	db.map.listNames().then((name) => {
-		if (registeredMaps.indexOf(name) == -1) {
-			registeredMaps.push(name);
-			db.units[name].registerPathListener(pathfind);
+	db.map.listNames().then((names) => {
+		for (let name of names) {
+			if (registeredMaps.indexOf(name) === -1) {
+				registeredMaps.push(name);
+				db.units[name].registerPathListener(pathfind);
+				console.log('registering for ' + name);
+			}
 		}
 	});
 }
@@ -29,16 +43,33 @@ function pathfind(err,delta) {
 		logger.error(err);
 	}
 
-  if (!delta.new_val) {
-		console.log('unit deleted: ' + delta.old_val.name);
+	if (!delta.new_val) {
 		return;
 	}
 
   console.log('unit updated');
-  db.units[delta.new_val.map].getUnprocessedPath().then((unit) => {
-    console.log('pathing for unit');
-    //TODO
-    //calculate the path for the unit
-    //save the path back to the unit
-  });
+	process(delta.new_val.map);
+}
+
+async function process(mapName) {
+	let results = await db.units[mapName].getUnprocessedPath();
+	if (results.replaced == 0) {
+		return false;
+	}
+
+	for (let delta of results.changes) {
+		if (delta.new_val) {
+			await processUnit(delta.new_val);
+		}
+	}
+
+	return true;
+}
+
+async function processUnit(unit) {
+	console.log('pathing for unit ' + unit.type);
+	//console.log(unit);
+	//TODO
+	//calculate the path for the unit
+	//save the path back to the unit
 }

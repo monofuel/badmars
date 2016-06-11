@@ -13,7 +13,7 @@ var Unit = require('../../unit/unit.js');
 
 //pass in the unit to update
 //returns true if the unit was updated
-exports.simulate = (unit,map) => {
+async function simulate(unit,map){
 	if (unit.ghosting) {
 		return false;
 	}
@@ -28,6 +28,8 @@ exports.simulate = (unit,map) => {
 			return false;
 	}
 }
+
+exports.simulate = simulate;
 
 //TODO
 //not tested yet

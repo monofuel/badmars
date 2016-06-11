@@ -35,6 +35,7 @@ exports.listAllSanitizedUsers = () => {
 			var sanitized = [];
 			for (var user of list) {
 				sanitized.push({
+					uuid: user.uuid,
 					name: user.name,
 					color: user.color
 				});

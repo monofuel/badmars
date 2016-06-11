@@ -188,16 +188,13 @@ export class Net {
 						}
 					}
 
-						if (data.type === 'login') {
-							self.s.send(JSON.stringify({
-								type: "spawn"
-							}));
-						} else if (data.type == 'map') {
+						if (data.type == 'map') {
 						window.loadPlanet(data.map);
 						self.s.send(JSON.stringify({
 							type: "getPlayers"
 						}));
 					} else if (data.type == 'players') {
+						console.log(data);
 						if (!data.players) {
 							console.log('missing players in data');
 							console.log(data);
@@ -213,7 +210,11 @@ export class Net {
 						self.s.send(JSON.stringify({
 							type: "getUnits"
 						}));
+						self.s.send(JSON.stringify({
+							type: "spawn"
+						}));
 					} else if (data.type == 'units') {
+						console.log(data);
 						if (window.addUnit) {
 							if (!data.units) {
 								console.error('invalid unit payload');

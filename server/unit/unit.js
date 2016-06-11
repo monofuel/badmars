@@ -13,7 +13,7 @@ var astarpath = require('../nav/astarpath.js');
 
 var groundUnitAI = require('./ai/groundunit.js');
 var attackAI = require('./ai/attack.js');
-var constructAI = require('./ai/construction.js');
+var constructionAI = require('./ai/construction.js');
 var mineAI = require('./ai/mine.js');
 
 var unitStats = JSON.parse(fs.readFileSync('config/units.json'));
@@ -48,8 +48,9 @@ class Unit {
 		this.owner = "";
 
 		var stats = unitStats[unitType];
-		if (!stats && unitType !== 'iron' && unitType !== 'oil') {
+		if (!stats && unitType && unitType !== 'iron' && unitType !== 'oil') {
 			console.log('could not find stats for ' + unitType);
+			throw new Error('invalid unitType');
 		} else {
 			//console.log(stats);
 			for (let key in stats) {
@@ -61,21 +62,14 @@ class Unit {
 			this.chunkHash = [this.chunkX + ":" + this.chunkY];
 			this.tileHash = [x +":" + y];
 		} else if (this.size === 3) {
-			var tiles = [
-				map.getloc(x - 1, y - 1), map.getLoc(x,y - 1), map.getLoc(x + 1, y - 1),
-				map.getloc(x - 1, y),     map.getLoc(x,y),     map.getLoc(x + 1, y),
-				map.getloc(x - 1, y + 1), map.getLoc(x,y + 1), map.getLoc(x + 1, y + 1)
+			//TODO multi-chunk should have all chunks listed
+			this.chunkHash = [this.chunkX + ":" + this.chunkY];
+
+			this.tileHash = [
+				(x-1) +":" + (y-1), (x) +":" + (y-1), (x+1) +":" + (y-1),
+				(x-1) +":" + (y), (x) +":" + (y), (x+1) +":" + (y),
+				(x-1) +":" + (y+1), (x) +":" + (y+1), (x+1) +":" + (y+1)
 			];
-			this.tileHash = [];
-			this.chunkHash = [];
-			for (let tile of tiles) {
-				if (this.tileHash.indexOf(tile.hash) == -1) {
-					this.tileHash.push(tile.hash);
-				}
-				if (this.chunkHash.indexOf(tile.chunk.hash) == -1) {
-					this.chunkHash.push(tile.chunk.hash);
-				}
-			}
 
 		} else {
 			console.log('unsupported unit size in config: ' + this.size);
@@ -99,7 +93,7 @@ class Unit {
 
 	}
 
-	simulate() {
+	async simulate() {
 		var self = this;
 		var update = false;  //only save when there are changes
 		self.awake = false; //awake should be updated to true if we need another simulation tick soon
@@ -154,6 +148,11 @@ class Unit {
 				return update;
 			});
 		});
+	}
+
+	async setDestination(x,y) {
+		let hash = x + ":" + y;
+		return db.units[this.map].updateUnit(this.uuid,{destination: hash, isPathing: false, path: []});
 	}
 
 	save() {
