@@ -26,28 +26,30 @@ class SimplePath {
   }
 
   //given a tile, find the next one
-  getNext(tile) {
-    if (tile.x < this.end.tile.x) {
-      let nextTile = this.map.getLoc(tile.x + 1, tile.y);
-      if (nextTile.type === TILETYPES.LAND) {
+  async getNext(tile) {
+		console.log(tile.toString());
+		console.log(this.end.toString());
+    if (tile.x < this.end.x) {
+      let nextTile = await this.map.getLoc(tile.x + 1, tile.y);
+      if (nextTile.tileType === TILETYPES.LAND) {
         return DIRECTION.E;
       }
     }
-    if (tile.x > this.end.tile.x) {
-      let nextTile = this.map.getLoc(tile.x - 1, tile.y);
-      if (nextTile.type === TILETYPES.LAND) {
+    if (tile.x > this.end.x) {
+      let nextTile = await this.map.getLoc(tile.x - 1, tile.y);
+      if (nextTile.tileType === TILETYPES.LAND) {
         return DIRECTION.W;
       }
     }
-    if (tile.y < this.end.tile.y) {
-      let nextTile = this.map.getLoc(tile.x, tile.y + 1);
-      if (nextTile.type === TILETYPES.LAND) {
+    if (tile.y < this.end.y) {
+      let nextTile = await this.map.getLoc(tile.x, tile.y + 1);
+      if (nextTile.tileType === TILETYPES.LAND) {
         return DIRECTION.N;
       }
     }
-    if (tile.y > this.end.tile.y) {
-      let nextTile = this.map.getLoc(tile.x, tile.y - 1);
-      if (nextTile.type === TILETYPES.LAND) {
+    if (tile.y > this.end.y) {
+      let nextTile = await this.map.getLoc(tile.x, tile.y - 1);
+      if (nextTile.tileType === TILETYPES.LAND) {
         return DIRECTION.S;
       }
     }

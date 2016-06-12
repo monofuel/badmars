@@ -2,7 +2,7 @@
   "tank": {
     "range": 5.0,
     "transferRange":0,
-    "speed": 5,
+    "speed": 2,
     "maxHealth": 50,
     "attack": 10,
     "cost": 500,
@@ -17,7 +17,7 @@
   "scout":{
     "range": 5.0,
     "transferRange":0,
-    "speed": 3,
+    "speed": 1,
     "maxHealth": 20,
     "attack": 2,
     "fireRate": 10,
@@ -31,7 +31,7 @@
   "builder":{
     "range": 1.0,
     "transferRange":0,
-    "speed": 8,
+    "speed": 2,
     "maxHealth": 100,
     "attack": 0,
     "cost": 300,
@@ -44,7 +44,7 @@
   "transport":{
     "range": 1.0,
     "transferRange":10,
-    "speed": 18,
+    "speed": 3,
     "maxHealth": 300,
     "attack": 0,
     "cost": 200,

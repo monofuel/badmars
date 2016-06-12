@@ -183,8 +183,18 @@ export class Map {
 		window.addUnit = (unit: Object) => {
 
 			for (var oldUnit of self.units) {
-				if (oldUnit.uuid == unit.uuid) {
-					console.log('duplicate unit');
+				if (oldUnit.uuid === unit.uuid) {
+
+					//update monkeypatch
+					//TODO make this more elegant
+					for (let key of Object.keys(unit)) {
+						oldUnit[key] = unit[key];
+						let tile = new PlanetLoc(self,unit.x,unit.y);
+						if (oldUnit.updateNextMove) {
+							oldUnit.updateNextMove(tile,0.5);
+						}
+					}
+					console.log('updating unit');
 					return;
 				}
 			}

@@ -6,6 +6,7 @@
 'use strict';
 
 var TILETYPES = require('./tiletypes.js');
+var DIRECTION = require('../map/directions.js');
 
 /**
  * Representation of a point on a planet
@@ -71,18 +72,35 @@ class PlanetLoc {
 		}
 		return line;
   }
-  N() {
-    return this.map.getLoc(this.x,this.y + 1);
+  async N() {
+    return await this.map.getLoc(this.x,this.y + 1);
   }
-  S() {
-    return this.map.getLoc(this.x,this.y - 1);
+  async S() {
+    return await this.map.getLoc(this.x,this.y - 1);
   }
-  E() {
-    return this.map.getLoc(this.x + 1,this.y);
+  async E() {
+    return await this.map.getLoc(this.x + 1,this.y);
   }
-  W() {
-    return this.map.getLoc(this.x - 1,this.y);
+  async W() {
+    return await this.map.getLoc(this.x - 1,this.y);
   }
+
+	async getDirTile(dir) {
+		switch(dir) {
+			case DIRECTION.N:
+				return await this.N();
+			case DIRECTION.S:
+				return await this.S();
+			case DIRECTION.E:
+				return await this.E();
+			case DIRECTION.W:
+				return await this.W();
+			case DIRECTION.C:
+			default:
+				return this;
+		}
+
+	}
 
   equals(otherLoc) {
     return (otherLoc.x === this.x &&

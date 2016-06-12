@@ -13,7 +13,7 @@ vars.ticksPerSec = process.env.TICKS_PER_SEC || 1;
 vars.stressTest = process.env.STRESS_TEST || false;
 vars.statReportRate = process.env.STAT_REPORT_RATE || 1; //in minutes
 vars.unitProcessChunks = process.env.UNIT_PROCESS_CHUNKS || 200;
-vars.pathChunks = process.env.PATH_CHUNKS || 2;
+vars.pathChunks = process.env.PATH_CHUNKS || 1;
 
 vars.dbHost = process.env.BADMARS_DB || 'localhost';
 vars.database = process.env.BADMARS_DATABASE || 'badmars';

@@ -161,7 +161,7 @@ class DBUnit {
 			.update({
 				isPathing: true,
 				pathUpdate: (new Date()).getTime()
-			},{returnChanges: true}).run(this.conn);
+			},{durability: 'hard', returnChanges: true}).run(this.conn);
 	}
 
 	getUnprocessedUnits(tick) {

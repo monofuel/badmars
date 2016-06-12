@@ -27,5 +27,21 @@ module.exports = {
           default:
             return 'unknown';
 	    }
+	},
+	getTypeFromName(name) {
+		switch(name) {
+			case 'N':
+				return this.N;
+			case 'S':
+				return this.S;
+			case 'E':
+				return this.E;
+			case 'W':
+				return this.W;
+			case 'C':
+			default:
+				return this.C;
+		}
 	}
+
 };

@@ -43,6 +43,7 @@ class Unit {
 		this.constructing = 0;
 		this.ghosting = false;
 		this.ghostCreation = 0;
+		this.movementCooldown = 0;
 		this.fireCooldown = 0;
 
 		this.owner = "";
@@ -111,7 +112,7 @@ class Unit {
 				if (moved) {
 					console.log('moved');
 					update = true;
-					awake = true;
+					self.awake = true;
 				}
 				if (!update && self.attack != 0 && self.range != 0) {
 					return attackAI.simulate(self,map);
@@ -152,7 +153,46 @@ class Unit {
 
 	async setDestination(x,y) {
 		let hash = x + ":" + y;
+		this.destination = hash;
 		return db.units[this.map].updateUnit(this.uuid,{destination: hash, isPathing: false, path: []});
+	}
+
+	async setPath(path) {
+		this.path = path;
+		return db.units[this.map].updateUnit(this.uuid,{path: path, isPathing: false, awake: true});
+	}
+
+	async tickMovement() {
+		if (this.movementCooldown > 0) {
+			this.movementCooldown--;
+			await db.units[this.map].updateUnit(this.uuid,{movementCooldown: this.movementCooldown});
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	async moveToTile(tile) {
+		this.x = tile.x;
+		this.y = tile.y;
+		console.log('old:', this.tileHash);
+		this.tileHash = [tile.hash];
+		this.movementCooldown = this.speed;
+		console.log('new:', this.tileHash);
+		//TODO update chunk hash
+		await db.units[this.map].updateUnit(this.uuid,
+			{
+				x: this.x,
+				y: this.y,
+				tileHash: this.tileHash,
+				movementCooldown: this.movementCooldown
+			}
+		);
+
+		return true;
+
+		//TODO check if the tile we are moving to is open
+		//return false;
 	}
 
 	save() {
