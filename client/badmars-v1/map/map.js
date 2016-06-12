@@ -83,8 +83,8 @@ export class Map {
 		this.planetData = {};
 		this.chunkMap = {};
 		this.chunkCache = {};
-		this.viewRange = 9;
-		this.unloadRange = this.viewRange + 5;
+		this.viewRange = 5;
+		this.unloadRange = this.viewRange + 3;
 		var self = this;
 		if (planet) {
 			this.planetData = planet;
@@ -191,7 +191,7 @@ export class Map {
 						oldUnit[key] = unit[key];
 						let tile = new PlanetLoc(self,unit.x,unit.y);
 						if (oldUnit.updateNextMove && !oldUnit.location.equals(tile)) {
-							oldUnit.updateNextMove(tile,unit.speed);
+							oldUnit.updateNextMove(tile,oldUnit.speed);
 						}
 					}
 					console.log('updating unit');
@@ -425,7 +425,7 @@ export class Map {
 		display.addMesh(gridMesh);
 		display.addMesh(waterMesh);
 
-		console.log("Generated Geometry");
+		//console.log("Generated Geometry");
 
 	}
 

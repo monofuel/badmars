@@ -16,6 +16,7 @@ import {
 var units = {};
 
 function updateUnitsListener(data) {
+	console.log('new units data',data.units);
   units = data.units;
 
   for (var unit of map.units) {
@@ -32,7 +33,9 @@ export function updateUnit(unit) {
     if (unit.maxHealth && !unit.health) {
       unit.health = unit.maxHealth;
     }
-  }
+  } else {
+		console.log('MISSING UNIT DATA FOR ' + unit.type);
+	}
 }
 
 registerListener('unitStats',updateUnitsListener);

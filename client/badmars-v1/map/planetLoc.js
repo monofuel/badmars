@@ -69,6 +69,8 @@ export class PlanetLoc {
 			if (!this.chunk) {
 				console.log("tile on not loaded chunk: " + this.real_x + "," + this.real_y);
 				console.log('chunk hash: ' + chunkX + ":" + chunkY);
+				console.log('requesting');
+				planet.loadChunksNearTile(this);
 				return;
 			}
 

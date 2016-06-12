@@ -98,17 +98,15 @@ class Map {
 	}
 
 	async spawnUnit(newUnit) {
-		console.log('spawning unit: ' + newUnit.type);
-		//TODO check if valid for unit
-		//since some units are multi-tile, and mines can be on iron/oil
+		//console.log('spawning unit: ' + newUnit.type);
 		var unit = await db.units[this.name].getUnitAtTile(newUnit.tileHash);
-		console.log('unit tiles: ' + newUnit.tileHash.length);
+		//console.log('unit tiles: ' + newUnit.tileHash.length);
 		for (let tileHash of newUnit.tileHash) {
 			if (!await this.checkValidForUnit( await this.getLocFromHash(tileHash),newUnit)) {
-				console.log('attempted to spawn unit where unit exists');
+				//console.log('attempted to spawn unit where unit exists');
 				return false;
 			} else {
-				console.log('valid tile for unit: ' + tileHash);
+				//console.log('valid tile for unit: ' + tileHash);
 			}
 		}
 		await db.units[this.name].addUnit(newUnit);
@@ -221,7 +219,7 @@ class Map {
 					}
 					break;
 				} else {
-					unitsToSpawn.push(unitType);
+					//unitsToSpawn.push(unitType);
 					console.log('unit spawn failed');
 				}
 			}

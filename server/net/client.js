@@ -9,6 +9,7 @@ var db = require('../db/db.js');
 var env = require('../config/env.js');
 var logger = require('../util/logger.js');
 var authHandler = require('../net/handler/auth.js');
+var _ = require('underscore');
 
 var KEEP_ALIVE = 5000;
 
@@ -76,7 +77,7 @@ class Client {
     handleFromClient(data) {
         var self = this;
 
-        console.log('received' + data);
+        //console.log('received' + data);
         data = JSON.parse(data);
 
         if (!data.type || !self.handlers[data.type]) {
@@ -96,7 +97,6 @@ class Client {
 
 		//TODO also handle player list updates
 		handleUnitUpdate(err,delta) {
-			console.log('unit update');
 			if (!delta.new_val) {
 				if (delta.old_val) {
 					//TODO update client for new 'kill' system.
@@ -106,10 +106,50 @@ class Client {
 				//TODO compare old vs new and optimize network usage. only send changes and only send things that the client should act on.
 				//TODO like seriously
 				//TODO this is awful
-				this.send('units',{units:[delta.new_val]});
+
+				let newUnit = sanitizeUnit(delta.new_val);
+				if (delta.old_val) {
+					let oldUnit = sanitizeUnit(delta.old_val);
+					if (! _.isEqual(newUnit,oldUnit)) {
+						console.log('sending unit update');
+						this.send('units',{units:[newUnit]});
+					}
+				} else {
+					this.send('units',{units:[newUnit]});
+				}
+
+
 			}
-
-
 		}
 }
 module.exports = Client;
+
+const unitKeyWhitelist = [
+	'x',
+	'y',
+	'chunkX',
+	'chunkY',
+	'uuid',
+	'type',
+	'map',
+	'iron',
+	'fuel',
+	'health',
+	'tileHash',
+	'chunkHash',
+	'factoryQueue',
+	'ghosting',
+	'owner',
+	'speed' //unit stats was being finnicky on the client TODO fix this
+]
+
+function sanitizeUnit(unit) {
+
+	//whitelist
+	let sanitized = {}
+	for (let key of unitKeyWhitelist) {
+		sanitized[key] = unit[key];
+	}
+	return sanitized;
+
+}

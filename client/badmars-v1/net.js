@@ -193,6 +193,9 @@ export class Net {
 						self.s.send(JSON.stringify({
 							type: "getPlayers"
 						}));
+						self.s.send(JSON.stringify({
+							type: "unitStats"
+						}));
 					} else if (data.type == 'players') {
 						console.log(data);
 						if (!data.players) {
@@ -201,9 +204,9 @@ export class Net {
 							return;
 						}
 						for (var player of data.players) {
-							var info = new Player(player.uuid, player.username, player.color);
+							var info = new Player(player.uuid, player.name, player.color);
 							playerList.push(info);
-							if (player.username == username) {
+							if (player.name === username) {
 								setPlayerInfo(info);
 							}
 						}
@@ -214,7 +217,7 @@ export class Net {
 							type: "spawn"
 						}));
 					} else if (data.type == 'units') {
-						console.log(data);
+						//console.log(data);
 						if (window.addUnit) {
 							if (!data.units) {
 								console.error('invalid unit payload');
@@ -225,8 +228,20 @@ export class Net {
 								window.addUnit(unit);
 							}
 							if (map && map.units && firstLoad) {
+								let hasPlayer = false;
+								for (let unit of map.units) {
+									if (playerInfo && unit.owner === playerInfo.id) {
+										console.log('found player');
+										hasPlayer = true;
+									}
+								}
+								if (!hasPlayer) {
+									console.log('could not find player');
+								}
+
+
 								for (var unit of map.units) {
-									if (unit && display && playerInfo && unit.playerId && playerInfo.id && unit.playerId == playerInfo.id && isFirstLoad()) {
+									if (unit && display && playerInfo && hasPlayer && unit.playerId && playerInfo.id && unit.playerId == playerInfo.id && isFirstLoad()) {
 										console.log('zooming in on unit: ', unit);
 										display.viewTile(unit.location);
 									}
@@ -250,17 +265,6 @@ export class Net {
 						}
 					} else if (data.type == "moving" && map) {
 						map.updateUnitDestination(data.unitId, data.newLocation, data.time);
-					} else if (data.type == 'newUnit') {
-						if (data.player) {
-							playerList.push(new Player(data.player.uuid, data.player.username, data.player.color));
-						}
-						window.addUnit(data.unit);
-						if (map && map.units && firstLoad) {
-							if (unit && display && playerInfo && unit.owner == playerInfo.id && isFirstLoad()) {
-								console.log('zooming in on unit: ', unit);
-								display.viewTile(unit.location);
-							}
-						}
 					}
 				}
 			}

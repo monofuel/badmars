@@ -212,9 +212,6 @@ class Unit {
 		var stats = unitStats[this.type];
 		for (let key in stats) {
 			this[key] = stats[key];
-			if (key === 'speed') {
-				console.log(this.unitType + ' speed: ' + stats[key]);
-			}
 		}
 	}
 
