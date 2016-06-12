@@ -304,11 +304,12 @@ window.onload = function () {
 							}
 							buttonMode = MODE_MOVE;
 							mouseClick = function (tile) {
+								console.log(tile);
 								for (var unit of selectedUnits) {
 									net.send({
 										type: "setDestination",
 										unitId: unit.uuid,
-										location: [tile.x, tile.y]
+										location: [Math.round(tile.real_x), Math.round(tile.real_y)]
 									});
 								}
 							}

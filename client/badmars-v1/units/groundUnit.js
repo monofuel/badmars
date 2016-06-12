@@ -102,7 +102,7 @@ export class GroundUnit extends Entity {
 				this.moving = false;
 				this.mesh.position.x = this.location.real_x;
 				this.mesh.position.y = this.location.real_z + this.unitHeight;
-				this.mesh.position.z = this.location.real_y;
+				this.mesh.position.z = - this.location.real_y;
 				this.distanceMoved = 0;
 				this.timeToMove = 0;
 				this.nextTile = null;

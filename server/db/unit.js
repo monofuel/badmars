@@ -182,6 +182,7 @@ class DBUnit {
 				var oldUnit = delta.changes[i].old_val;
 
 				var properUnit = new Unit();
+				console.log('cloning');
 				properUnit.clone(newUnit);
 				units.push(properUnit);
 

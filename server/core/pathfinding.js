@@ -90,7 +90,7 @@ async function processUnit(unitDoc) {
 	let pathFinder = new SimplePath(start,end);
 
 	let dir = await pathFinder.getNext(start);
-	if (dir = DIRECITON.C) {
+	if (dir === DIRECTION.C) {
 		return;
 	}
 

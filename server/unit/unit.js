@@ -95,6 +95,7 @@ class Unit {
 	}
 
 	async simulate() {
+		console.log('simulating unit');
 		var self = this;
 		var update = false;  //only save when there are changes
 		self.awake = false; //awake should be updated to true if we need another simulation tick soon
@@ -158,6 +159,7 @@ class Unit {
 	}
 
 	async setPath(path) {
+		console.log('setting path: ', path);
 		this.path = path;
 		return db.units[this.map].updateUnit(this.uuid,{path: path, isPathing: false, awake: true});
 	}
@@ -207,9 +209,12 @@ class Unit {
 		for (let key in object) {
 			this[key] = object[key];
 		}
-		var stats = unitStats[this.unitType];
+		var stats = unitStats[this.type];
 		for (let key in stats) {
 			this[key] = stats[key];
+			if (key === 'speed') {
+				console.log(this.unitType + ' speed: ' + stats[key]);
+			}
 		}
 	}
 

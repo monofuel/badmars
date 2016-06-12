@@ -190,8 +190,8 @@ export class Map {
 					for (let key of Object.keys(unit)) {
 						oldUnit[key] = unit[key];
 						let tile = new PlanetLoc(self,unit.x,unit.y);
-						if (oldUnit.updateNextMove) {
-							oldUnit.updateNextMove(tile,0.5);
+						if (oldUnit.updateNextMove && !oldUnit.location.equals(tile)) {
+							oldUnit.updateNextMove(tile,unit.speed);
 						}
 					}
 					console.log('updating unit');

@@ -131,7 +131,7 @@ export class PlanetLoc {
 		 * @return {THREE.Vector3} Get the real location in the world
 		 */
 	getLoc(): THREE.Vector3 {
-			return new THREE.Vector3(this.real_x, this.real_z, this.real_y);
+			return new THREE.Vector3(this.real_x, this.real_z, - this.real_y);
 		}
 		/**
 		 * @return {String}  Debug information for the tile
@@ -172,7 +172,7 @@ export class PlanetLoc {
 	}
 
 	getVec(): THREE.vector3 {
-		return new THREE.Vector3(this.real_x, this.real_z, this.real_y);
+		return new THREE.Vector3(this.real_x, this.real_z, - this.real_y);
 	}
 
 	/**
