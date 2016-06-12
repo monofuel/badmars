@@ -210,9 +210,11 @@ export class Net {
 								setPlayerInfo(info);
 							}
 						}
-						self.s.send(JSON.stringify({
-							type: "getUnits"
-						}));
+						if (map && map.units === 0) {
+							self.s.send(JSON.stringify({
+								type: "getUnits"
+							}));
+						}
 						self.s.send(JSON.stringify({
 							type: "spawn"
 						}));

@@ -78,10 +78,17 @@ export class Entity {
 		if (display) {
 			display.addMesh(this.mesh);
 		}
+		this.updateLoc();
+
+	}
+
+	updateLoc() {
+		//re-generate the location in case if the chunk was not loaded the first time around
+		this.location = this.location.clone();
+
 		this.mesh.position.y = this.location.real_z + this.unitHeight;
 		this.mesh.position.x = this.location.real_x;
 		this.mesh.position.z = - this.location.real_y;
-
 	}
 
 	update(delta: number) {

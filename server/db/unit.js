@@ -140,6 +140,14 @@ class DBUnit {
 		});
 	}
 
+	addFactoryOrder(uuid, order) {
+		return this.table.get(uuid).update(
+			{
+				factoryQueue: r.row('factoryQueue').append(order)
+			}
+		).run(this.conn);
+	}
+
 	//would be nice if i could combine
 	//pathlistener and getunprocessed into one step
 	//atm pathlistener will trigger a check to fetch unprocessed
@@ -182,7 +190,6 @@ class DBUnit {
 				var oldUnit = delta.changes[i].old_val;
 
 				var properUnit = new Unit();
-				console.log('cloning');
 				properUnit.clone(newUnit);
 				units.push(properUnit);
 

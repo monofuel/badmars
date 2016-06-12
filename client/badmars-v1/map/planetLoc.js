@@ -37,6 +37,9 @@ export class PlanetLoc {
 	 */
 	constructor(planet: Map, x: number, y: number) {
 			this.planet = planet;
+
+			//TODO should refer to the local x as local_x and real_x as just regular x
+			//dear god why did i name it this way
 			this.real_x = Math.floor(x);
 			this.real_y = Math.floor(y);
 
@@ -127,6 +130,11 @@ export class PlanetLoc {
 		var deltaY = Math.abs(this.real_y - tile.real_y);
 
 		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+	}
+
+	clone() {
+		let newLoc = new PlanetLoc(this.planet,this.real_x,this.real_y);
+		return newLoc;
 	}
 
 		/**

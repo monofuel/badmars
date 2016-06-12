@@ -22,19 +22,18 @@ async function setDestination(client,data) {
 		return client.sendError('setDestination', 'not your unit');
 	}
 
-	let result = await unit.setDestination(data.location[0],data.location[1]);
+	try {
+		let success = await unit.setDestination(data.location[0],data.location[1]);
 
+		if (success) {
+			client.send('setDestination');
+		} else {
+			client.sendError('setDestination', 'invalid order');
+		}
+	} catch (err) {
+		logger.error(err);
+		client.sendError('setDestination', 'server error');
+	}
 };
 
 module.exports = setDestination;
-
-/* //old code
-if (!message.unitId)
-	return @ws.send(errMsg('setDestination', 'no unit specified'))
-if (!message.location)
-	return @ws.send(errMsg('setDestination', 'no location set'))
-if (@planet.updateUnitDestination(@userInfo.id,message.unitId,message.location))
-	@ws.send(success('setDestination'))
-else
-	@ws.send(errMsg('setDestination', 'invalid'))
-*/

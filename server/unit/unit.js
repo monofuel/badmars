@@ -152,6 +152,35 @@ class Unit {
 		});
 	}
 
+	async update(patch) {
+		return db.units[this.map].updateUnit(this.uuid,patch);
+	}
+
+	async addFactoryOrder(unitType) {
+
+		if (!this.movementType === 'building') {
+			return false;
+		}
+
+		if (!this.construction) {
+			return false;
+		}
+
+		let stats = unitStats[unitType];
+		if (!stats) {
+			return false;
+		}
+
+		let order = {
+			remaining: stats.buildTime,
+			type: unitType,
+			cost: unitInfo.cost
+		}
+		console.log('pushing onto queue:',order);
+		return db.units[this.map].addFactoryOrder(this.uuid,order);
+
+	}
+
 	async setDestination(x,y) {
 		let hash = x + ":" + y;
 		this.destination = hash;
@@ -175,26 +204,34 @@ class Unit {
 	}
 
 	async moveToTile(tile) {
-		this.x = tile.x;
-		this.y = tile.y;
-		console.log('old:', this.tileHash);
-		this.tileHash = [tile.hash];
-		this.movementCooldown = this.speed;
-		console.log('new:', this.tileHash);
-		//TODO update chunk hash
-		await db.units[this.map].updateUnit(this.uuid,
-			{
-				x: this.x,
-				y: this.y,
-				tileHash: this.tileHash,
-				movementCooldown: this.movementCooldown
-			}
-		);
+
+
+		//TODO there is a hole between checking the tile and upating the unit.
+		//this will need some sort of work-around as rethink doesn't do transactions.
+		//let validMove = await tile.map.checkValidForUnit(tile,this);
+		let validMove = true;
+		console.log('validMove: ' + validMove);
+		if (!validMove) {
+			return false;
+		} else {
+
+			this.x = tile.x;
+			this.y = tile.y;
+			this.tileHash = [tile.hash];
+			this.movementCooldown = this.speed;
+			//TODO update chunk hash
+			await db.units[this.map].updateUnit(this.uuid,
+				{
+					x: this.x,
+					y: this.y,
+					tileHash: this.tileHash,
+					movementCooldown: this.movementCooldown
+				}
+			);
+			console.log('moved');
+		}
 
 		return true;
-
-		//TODO check if the tile we are moving to is open
-		//return false;
 	}
 
 	save() {

@@ -109,6 +109,10 @@ export class Map {
 			var chunk = data.chunk;
 			self.chunkMap[data.chunk.hash] = chunk;
 			self.generateChunk(chunk.x,chunk.y,chunk);
+
+			//TODO: should force only units at the specific chunk to re-check their location
+			//this is to avoid issues when chunks load after units do.
+			self.fixAllLocations();
 		}
 		registerListener('chunk',this.chunkListener);
 
@@ -181,7 +185,6 @@ export class Map {
 		registerListener('updateUnits',this.updateUnitsListener);
 
 		window.addUnit = (unit: Object) => {
-
 			for (var oldUnit of self.units) {
 				if (oldUnit.uuid === unit.uuid) {
 
@@ -429,6 +432,13 @@ export class Map {
 
 	}
 
+	fixAllLocations() {
+		for (let unit of this.units) {
+			if (unit.updateLoc) {
+				unit.updateLoc();
+			}
+		}
+	}
 
 	addToRender() {
 		throw new Error("depriciated");
@@ -507,6 +517,13 @@ export class Map {
 	removeUnit(unit: Entity) {
 		this.units.splice(this.units.indexOf(unit), 1);
 	}
+
+	destroyUnits(units: Array<Entity>) {
+		for (let unit of units) {
+			unit.destroy();
+		}
+	}
+
 	getSelectedUnit(mouse: THREE.Vector2): ? Entity {
 		if (!display) {
 			return null;
@@ -646,6 +663,17 @@ export class Map {
 		}
 	}
 
+	getUnitsOnChunk(chunkHash) {
+		let unitsOnChunk = [];
+		for (let unit of this.units) {
+			let unitChunkHash = unit.location.chunkX + ":" + unit.location.chunkY;
+			if (chunkHash === unitChunkHash) {
+				unitsOnChunk.push(unit);
+			}
+		}
+		return unitsOnChunk;
+	}
+
 	unloadChunksNearTile(tile) {
 		for (var hash in this.chunkMap) {
 			var x = hash.split(":")[0];
@@ -654,6 +682,9 @@ export class Map {
 			var ydist = Math.abs(tile.chunkY - y);
 			if (Math.sqrt(xdist * xdist + ydist * ydist) > this.unloadRange) {
 				//console.log("removing chunk:" + hash);
+				this.destroyUnits(this.getUnitsOnChunk(hash));
+
+
 				var chunk = this.chunkMap[hash];
 				if (!chunk) {
 					continue;

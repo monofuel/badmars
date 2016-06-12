@@ -9,36 +9,34 @@ var db = require('../../db/db.js');
 var env = require('../../config/env.js');
 var logger = require('../../util/logger.js');
 
-module.exports = (client,data) => {
-	console.log('CREATE GHOST NOT IMPLEMENTED');
-	//TODO
+async function factoryOrder(client,data) {
+	if (!data.unitId) {
+		return client.sendError('factoryOrder', 'no unitId specified');
+	}
+
+	if (!data.unitType) {
+		return client.sendError('factoryOrder', 'no unitTtype specified');
+	}
+
+	let unit = await db.units[client.planet.name].getUnit(data.unitId);
+	if (unit.owner !== client.user.uuid) {
+		return client.sendError('factoryOrder', 'not your unit');
+	}
+
+	try {
+		let success = await unit.addFactoryOrder(data.unitType);
+
+		if (success) {
+			client.send('factoryOrder');
+		} else {
+				client.sendError('factoryOrder', 'invalid order');
+		}
+
+	} catch (err) {
+		logger.error(err);
+		client.sendError('factoryOrder', 'server error');
+	}
+
 };
 
-/* // old code
-Net.registerListener('factoryOrder', (data,client) ->
-  # {type:'factoryOrder',factory:selectedUnit.uid, unitType:unitType}
-  unitInfo = get(data.unitType);
-  if (!unitInfo)
-    client.send(Net.errMsg('factoryOrder','missing unitType field'));
-    return
-  if (!data.factory)
-    client.send(Net.errMsg('factoryOrder','missing factory field'));
-    return
-
-  factory = client.planet.getUnitById(data.factory)
-  if (!factory || factory.type != 'factory')
-    client.send(Net.errMsg('factoryOrder','invalid factory'));
-    return;
-
-  if (!factory.factoryQueue)
-    factory.factoryQueue = []
-  console.log('pushing ' + unitInfo.name + ' to queue');
-  factory.factoryQueue.push({
-    remaining: unitInfo.buildTime
-    type: unitInfo.name
-    cost: unitInfo.cost
-    });
-  factory.save()
-
-)
-*/
+module.exports = factoryOrder;

@@ -122,7 +122,10 @@ class Map {
 
 		var units = [];
 		for (let tileHash of unit.tileHash) {
-			units.push(await this.unitsTileCheck(await this.getLocFromHash(tileHash),false));
+			let units2 = await this.unitsTileCheck(await this.getLocFromHash(tileHash),false);
+			for (let unit2 of units2) {
+				units.push(unit2);
+			}
 		}
 
 		if (unit.type === 'mine') {
@@ -136,13 +139,16 @@ class Map {
 			return true;
 		}
 
-		if (unit.ghosting) {
-			//unit construction
-			//TODO handle the construction of air units
-			return units.length == 0;
-		} else {
+		if (!unit.ghosting) {
 			//unit movement
 			//TODO handle flying units
+			if (units.length === 0) {
+				return true;
+			}
+			return units.length === 1 && unit.uuid === units[0].uuid;
+		} else {
+			//unit construction
+			//TODO handle the construction of air units
 			for (let unit2 of units) {
 				if (unit2.ghosting) {
 					console.log('ghosts should not overlap');

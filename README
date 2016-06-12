@@ -6,9 +6,11 @@ current task:
 
 TODO:
 	dummy DB interface to allow testing modules in production without actually writing changes
+	properly flowtype the entire codebase
+	make sure that .save() is rarely used, and make sure that all writes do not clobber
+	maybe a distributed locking system for unit movement?
 	web console would be cool
 	admin page would be cool
-	properly flowtype the entire codebase
 	work through TODOs in code and refactor things that I was too lazy to do properly the first time around
 	work on documentation
 	chat (client and server)

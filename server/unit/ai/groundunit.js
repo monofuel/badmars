@@ -23,7 +23,6 @@ async function simulate(unit,map) {
 	}
 
 	if (!unit.path || unit.path.length === 0) {
-
 		return false;
 	}
 
@@ -34,12 +33,12 @@ async function simulate(unit,map) {
 
 	let dir = DIRECTION.getTypeFromName(unit.path.shift());
 	let nextTile = await start.getDirTile(dir);
-	console.log('start: ' + start.toString());
-	console.log('nextTile: ' + nextTile.toString());
-	console.log('next direction: ',dir);
 	if (await unit.moveToTile(nextTile)) {
 		console.log('updating path');
 		await unit.setPath(unit.path);
+	} else {
+		console.log('move halted');
+		return false;
 	}
 
 	return true;
