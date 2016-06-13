@@ -228,6 +228,12 @@ window.onload = function () {
 			switch (key.keyCode) {
 				case 36:
 					var unit = zoomToNextUnit();
+					if (!unit) {
+						window.sendMessage({
+							type: 'getUnits'
+						});
+						//TODO re-zoom to unit after loading
+					}
 					selectedUnit = unit;
 					fireBusEvent('selectedUnit',unit);
 					break;
@@ -342,7 +348,7 @@ window.onload = function () {
 								net.send({
 									type: "setDestination",
 									unitId: selectedUnit.uuid,
-									location: [tile.x, tile.y]
+									location: [Math.floor(tile.real_x), Math.floor(tile.real_y)]
 								});
 							}
 						}
@@ -418,7 +424,7 @@ function handleInput() {
 							net.send({
 								type: "setDestination",
 								unitId: unit.uuid,
-								location: [tile.x, tile.y]
+								location: [Math.floor(tile.real_x), Math.floor(tile.real_y)]
 							});
 						}
 					}
