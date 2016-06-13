@@ -35,7 +35,7 @@ export class PlanetLoc {
 	 * @param  {Number}  The X coordinate
 	 * @param  {Number}  The Y coordinate
 	 */
-	constructor(planet: Map, x: number, y: number) {
+	constructor(planet: Map, x: number, y: number, skipChunk: boolean) {
 			this.planet = planet;
 
 			//TODO should refer to the local x as local_x and real_x as just regular x
@@ -72,8 +72,10 @@ export class PlanetLoc {
 			if (!this.chunk) {
 				console.log("tile on not loaded chunk: " + this.real_x + "," + this.real_y);
 				console.log('chunk hash: ' + chunkX + ":" + chunkY);
-				console.log('requesting');
-				planet.loadChunksNearTile(this);
+				if (!skipChunk) {
+					console.log('requesting');
+					window.sendMessage({type:"getChunk",x:chunkX,y:chunkY});
+				}
 				return;
 			}
 

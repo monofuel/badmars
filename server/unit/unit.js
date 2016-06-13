@@ -141,7 +141,7 @@ class Unit {
 
 				//special one-off AI
 				//mines should always be awake
-				if (self.type === 'mine') {
+				if (self.type === 'mine' && !self.ghosting) {
 					self.awake = true;
 					//return mineAI.simulate(self,map);
 				}

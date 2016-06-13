@@ -185,7 +185,6 @@ export class Map {
 		registerListener('updateUnits',this.updateUnitsListener);
 
 		window.addUnit = (unit: Object) => {
-			console.log(unit);
 			for (var oldUnit of self.units) {
 				if (oldUnit.uuid === unit.uuid) {
 
@@ -193,7 +192,9 @@ export class Map {
 					//TODO make this more elegant
 					for (let key of Object.keys(unit)) {
 						oldUnit[key] = unit[key];
-						let tile = new PlanetLoc(self,unit.x,unit.y);
+						let skipChunk = playerInfo && unit.owner !== playerInfo.id
+						let tile = new PlanetLoc(self,unit.x,unit.y,unit.owner !== playerInfo.id);
+
 						if (oldUnit.updateNextMove && !oldUnit.location.equals(tile)) {
 							oldUnit.updateNextMove(tile,oldUnit.speed);
 						}
@@ -202,6 +203,14 @@ export class Map {
 					return;
 				}
 			}
+			if (playerInfo && unit.owner !== playerInfo.id) {
+				let tile = new PlanetLoc(self,unit.x,unit.y,true);
+				if (!tile.chunk) {
+					console.log('ignoring unit update');
+					return;
+				}
+			}
+
 			//console.log(unit);
 			if (unit.ghosting && !playerInfo) {
 				return;

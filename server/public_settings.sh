@@ -1,0 +1,4 @@
+export BADMARS_WWW='3012'
+export BADMARS_WS_PORT='7004'
+export BADMARS_WS_SERVER='wss://japura.net'
+export BADMARS_WS_PUBLIC_PORT='7006'

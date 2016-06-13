@@ -138,14 +138,21 @@ class Map {
 		}
 
 		if (unit.type === 'mine') {
+			console.log('checking mine');
+			let resource = false;
 			for (let unit2 of units) {
-				if (unit2.type !== 'iron' && unit2.type !== 'oil') {
-					console.log('mine requires iron or oil');
+				if (unit2.type === 'iron' || unit2.type === 'oil') {
+					console.log('found resource');
+					resource = true;
+				}
+				//already has a mine
+				if (unit2.type === 'mine') {
 					return false;
 				}
 			}
+
 			//console.log('found iron or oil for mine');
-			return true;
+			return resource;
 		}
 
 		if (units.length === 0) {

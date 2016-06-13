@@ -188,15 +188,12 @@ export class Net {
 						}
 					}
 
-						if (data.type == 'map') {
-						window.loadPlanet(data.map);
-						self.s.send(JSON.stringify({
-							type: "getPlayers"
-						}));
+					if (data.type === 'map') {
 						self.s.send(JSON.stringify({
 							type: "unitStats"
 						}));
-					} else if (data.type == 'players') {
+						window.loadPlanet(data.map);
+					} else if (data.type === 'players') {
 						console.log(data);
 						if (!data.players) {
 							console.log('missing players in data');
@@ -210,16 +207,15 @@ export class Net {
 								setPlayerInfo(info);
 							}
 						}
-						if (map && map.units === 0) {
-							self.s.send(JSON.stringify({
-								type: "getUnits"
-							}));
-						}
+						console.log('getting units');
+						self.s.send(JSON.stringify({
+							type: "getUnits"
+						}));
 						self.s.send(JSON.stringify({
 							type: "spawn"
 						}));
-					} else if (data.type == 'units') {
-						//console.log(data);
+					} else if (data.type === 'units' || data.type === 'getUnits') {
+						console.log('got units');
 						if (window.addUnit) {
 							if (!data.units) {
 								console.error('invalid unit payload');
@@ -233,15 +229,10 @@ export class Net {
 								let hasPlayer = false;
 								for (let unit of map.units) {
 									if (playerInfo && unit.owner === playerInfo.id) {
-										console.log('found player');
+										console.log('FOUND PLAYERS UNITS');
 										hasPlayer = true;
 									}
 								}
-								if (!hasPlayer) {
-									console.log('could not find player');
-								}
-
-
 								for (var unit of map.units) {
 									if (unit && display && playerInfo && hasPlayer && unit.playerId && playerInfo.id && unit.playerId == playerInfo.id && isFirstLoad()) {
 										console.log('zooming in on unit: ', unit);
