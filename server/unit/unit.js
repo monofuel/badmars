@@ -196,6 +196,10 @@ class Unit {
 		return db.units[this.map].updateUnit(this.uuid,{path: path, isPathing: false, awake: true});
 	}
 
+	async clearDestination() {
+		return db.units[this.map].updateUnit(this.uuid,{destination: null, isPathing: false, path: []});
+	}
+
 	async tickMovement() {
 		if (this.movementCooldown > 0) {
 			this.movementCooldown--;

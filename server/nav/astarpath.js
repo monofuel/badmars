@@ -24,9 +24,10 @@ This code has not really been tested since re-writing. there are probably bugs i
 */
 
 class AStarPath {
-  constructor(start,end) {
+  constructor(start,end,unit) {
     this.start = start;
     this.end = end;
+		this.unit = unit;
     if (!this.start || !this.end || this.start.map !== this.end.map) {
       console.log('invalid start and end points');
       console.log(new Error().stack);
@@ -38,103 +39,137 @@ class AStarPath {
     this.cost = 0;
     this.path = [];
   }
-  generate() {
-    var self = this;
-    var openPromises = [
-      this.map.getLoc(this.start.x + 1, this.start.y),
-      this.map.getLoc(this.start.x - 1, this.start.y),
-      this.map.getLoc(this.start.x, this.start.y + 1),
-      this.map.getLoc(this.start.x, this.start.y - 1)
+  async generate() {
+    this.open = [
+      await this.map.getLoc(this.start.x + 1, this.start.y),
+      await this.map.getLoc(this.start.x - 1, this.start.y),
+      await this.map.getLoc(this.start.x, this.start.y + 1),
+      await this.map.getLoc(this.start.x, this.start.y - 1)
     ];
-    return Promise.all(openPromises).then((open) => {
-      var closed = [self.start];
-      for (var tile of open) {
-        tile.cost = 1 + tile.distance(self.end);
-        tile.realCost = 1;
-        tile.prev = self.start;
-      }
-      return self.repeatUntilDone();
-    });
+
+    this.closed = [this.start];
+    for (var tile of this.open) {
+      tile.cost = 1 + tile.distance(this.end);
+      tile.realCost = 1;
+      tile.prev = this.start;
+    }
+
+		let result;
+		do {
+			result = await this.searchNext();
+			//console.log('result: ', result);
+		} while (result !== 'complete');
   }
 
-  //oh god this is ugly
-  //at least it works?
-  //TODO re-do this  more elegant
-  repeatUntilDone() {
-    var self = this;
-    return self.getNext().then((result) => {
-      if (result === 'complete') {
-        return;
-      }
-      return self.repeatUntilDone();
-    }).catch(() => {
-      return self.repeatUntilDone();
-    });
-  }
+  async searchNext() {
 
+    this.cost++;
 
-  getNext() {
-    var self = this;
-    return new Promise((resolve,reject) => {
-      self.cost++;
-      if (self.cost > 2000) {
-        console.log("path complexity exceeded");
-        return;
-      }
+		this.open.sort((a,b) => {
+			return a.cost - b.cost;
+		});
 
-      self.open.sort((a,b) => {
-        return a.cost - b.cost;
-      });
-      self.current = self.open.shift();
-      self.closed.push(self.current);
+		if (this.open.length === 0) {
+			//save out what we have so far.
+			this.path.push(this.current);
+			while (!this.start.equals(this.current)) {
+				this.current = this.current.prev;
+				this.path.push(this.current);
+			}
+			console.log("complete path calculated: " + this.path.length);
 
-      if (self.current.equals(self.end)) {
-        //we're done, save this path
-        self.path.push(self.current);
-        while (!self.start.equals(self.current)) {
-          self.current = self.current.prev;
-          self.path.push(self.current);
-        }
-        console.log("path calculated: " + self.path.length);
-        resolve('complete');
-      }
+			return 'complete';
+		}
+		this.current = this.open.shift();
+		this.closed.push(this.current);
 
-      //check if tile is passable
-      if (self.current.type != TILETYPE.LAND) {
-        reject('not passable');
+    if (this.cost > 50) {
+			console.log(this.cost);
+      console.log("path complexity exceeded");
+
+			//save out what we have so far.
+			this.path.push(this.current);
+      while (!this.start.equals(this.current)) {
+        this.current = this.current.prev;
+        this.path.push(this.current);
       }
-      //check if there are units on the tile
-      return self.map.getUnitAtLoc(self.current);
-    }).then((unitAtLoc) => {
-      if (unitAtLoc && !unitAtLoc.ghosting) {
-        throw new Error('unit exists');
+      console.log("complete path calculated: " + this.path.length);
+
+      return 'complete';
+    }
+
+    if (this.current.equals(this.end)) {
+      //we're done, save this path
+      this.path.push(this.current);
+      while (!this.start.equals(this.current)) {
+        this.current = this.current.prev;
+        this.path.push(this.current);
       }
-      var neigborPromises = [
-        self.current.N(),
-        self.current.S(),
-        self.current.W(),
-        self.current.E()
-      ];
-      return Promise.all(neighborPromises);
-    }).then((neighbors) => {
-      for (var tile of neighbors) {
-        if (contains(self.closed,tile)) {
-          continue;
-        }
-        tile.cost = self.current.realCost + tile.distance(self.end);
-        tile.realCost = self.current.realCost + 1;
-        tile.prev = self.current;
-        if (!contains(self.open,tile)) {
-          self.open.push(tile);
-        }
-      }
-      return 'continue';
-    });
-  }
+      console.log("complete path calculated: " + this.path.length);
+      return 'complete';
+    }
+
+    //check if the tile is open and passable
+	  let isValid = await this.map.checkValidForUnit(this.current, this.unit);
+		if (!isValid) {
+			//console.log('not passible for unit');
+			return 'continue';
+		}
+
+	  let neighbors = [
+	    await this.current.N(),
+	    await this.current.S(),
+	    await this.current.W(),
+	    await this.current.E()
+	  ];
+
+	  for (var tile of neighbors) {
+	    if (contains(this.closed,tile)) {
+	      continue;
+	    }
+	    tile.cost = this.current.realCost + tile.distance(this.end);
+	    tile.realCost = this.current.realCost + 1;
+	    tile.prev = this.current;
+	    if (!contains(this.open,tile)) {
+	      this.open.push(tile);
+	    }
+	  }
+	  return 'continue';
+	}
 
   save() {
     //TODO implement this
   }
+
+	async getNext(tile) {
+
+		if (tile === null) {
+			return DIRECTION.C;
+		}
+		let nextTile = null;
+		for (let i = 0; i < this.path.length; i++) {
+			if (tile.equals(this.path[i])) {
+				nextTile = this.path[i-1];
+				break;
+			}
+		}
+
+		if (nextTile === null) {
+			return DIRECTION.C;
+		}
+
+		if ((await tile.E()).equals(nextTile))
+			return DIRECTION.E;
+		if ((await tile.W()).equals(nextTile))
+			return DIRECTION.W;
+		if ((await tile.N()).equals(nextTile))
+			return DIRECTION.N;
+		if ((await tile.S()).equals(nextTile))
+			return DIRECTION.S;
+
+		console.log('invalid next tile');
+		return DIRECTION.C;
+	}
 }
 
 function contains(list,tile) {

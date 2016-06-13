@@ -30,6 +30,7 @@ export class Display {
 
 	constructor() {
 		this.scene = new THREE.Scene();
+		window.debug.scene = this.scene;
 
 		var aspectRatio = window.innerWidth / window.innerHeight;
 		this.lightAngle = 0.0;
@@ -171,6 +172,7 @@ export class Display {
 
 
 	addMesh(mesh: THREE.Object3D) {
+
 		this.scene.add(mesh);
 	}
 

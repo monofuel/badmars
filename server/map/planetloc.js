@@ -103,6 +103,7 @@ class PlanetLoc {
 	}
 
   equals(otherLoc) {
+		if (!otherLoc || !otherLoc.map) return false;
     return (otherLoc.x === this.x &&
 			otherLoc.y === this.y &&
 			otherLoc.map.name === this.map.name);

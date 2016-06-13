@@ -109,7 +109,6 @@ class DBUnit {
 		return this.table.getAll(hash, {
 			index: "tileHash"
 		}).coerceTo('array').run(this.conn).then((docs) => {
-			console.log('get units at tile: ' + docs.length);
 			var unitPromises = [];
 			for (let doc of docs) {
 				unitPromises.push(self.loadUnit(doc));

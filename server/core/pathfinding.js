@@ -10,6 +10,7 @@ var env = require('../config/env.js');
 var logger = require('../util/logger.js');
 var Unit = require('../unit/unit.js');
 var SimplePath = require('../nav/simplepath.js');
+var AStarPath = require('../nav/astarpath.js');
 
 var TILETYPES = require('../map/tiletypes.js');
 var DIRECTION = require('../map/directions.js');
@@ -83,19 +84,36 @@ async function processUnit(unitDoc) {
 	let map = await db.map.getMap(unit.map);
 
 	let start = await map.getLoc(unit.x,unit.y);
+	if (!unit.destination) {
+		return;
+	}
 	let destinationX = unit.destination.split(":")[0];
 	let destinationY = unit.destination.split(":")[1];
 	let end = await map.getLoc(destinationX,destinationY);
 
-	let pathFinder = new SimplePath(start,end);
-
-	let dir = await pathFinder.getNext(start);
-	if (dir === DIRECTION.C) {
+	if (start.equals(end)) {
+		await unit.clearDestination();
 		return;
 	}
 
-	let path = [DIRECTION.getTypeName(dir)];
-	console.log(path);
+	let pathfinder = new AStarPath(start,end, unit);
+
+	if (pathfinder.generate) {
+		//console.log('generating path');
+		await pathfinder.generate();
+	}
+	let path = [];
+	let dir = await pathfinder.getNext(start);
+	let nextTile = start;
+	do {
+		let dir = await pathfinder.getNext(nextTile);
+		//console.log('dir:' + DIRECTION.getTypeName(dir));
+		nextTile = await nextTile.getDirTile(dir);
+		path.push(DIRECTION.getTypeName(dir));
+		if (dir === DIRECTION.C || nextTile.equals(end)) {
+			break;
+		}
+	} while (true);
 
 	unit.setPath(path);
 }

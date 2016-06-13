@@ -144,12 +144,11 @@ class Map {
 					return false;
 				}
 			}
-			console.log('found iron or oil for mine');
+			//console.log('found iron or oil for mine');
 			return true;
 		}
 
 		if (units.length === 0) {
-			console.log('no overlapping');
 			return true;
 		}
 
@@ -185,6 +184,10 @@ class Map {
 		let unitsToSpawn = [
 			'storage','builder','builder','tank','tank','iron','oil'
 		];
+
+		/*for (let i = 0; i < 50; i++) {
+			unitsToSpawn.push('tank');
+		}*/
 
 		for (let unitType of unitsToSpawn) {
 			while (true) {
