@@ -35,6 +35,9 @@ class Unit {
 			this.chunkY = Math.floor(y / map.settings.chunkSize);
 			this.map = map.name;
 		}
+		x = Math.round(x);
+		y = Math.round(y);
+
 		this.x = x;
 		this.y = y;
 		this.lastTick = 0;
@@ -140,7 +143,7 @@ class Unit {
 				//mines should always be awake
 				if (self.type === 'mine') {
 					self.awake = true;
-					return mineAI.simulate(unit,map);
+					//return mineAI.simulate(self,map);
 				}
 
 				if (!update && !self.awake) {
@@ -174,7 +177,7 @@ class Unit {
 		let order = {
 			remaining: stats.buildTime,
 			type: unitType,
-			cost: unitInfo.cost
+			cost: stats.cost
 		}
 		console.log('pushing onto queue:',order);
 		return db.units[this.map].addFactoryOrder(this.uuid,order);
@@ -208,8 +211,8 @@ class Unit {
 
 		//TODO there is a hole between checking the tile and upating the unit.
 		//this will need some sort of work-around as rethink doesn't do transactions.
-		//let validMove = await tile.map.checkValidForUnit(tile,this);
-		let validMove = true;
+		let validMove = await tile.map.checkValidForUnit(tile,this);
+		//let validMove = true;
 		console.log('validMove: ' + validMove);
 		if (!validMove) {
 			return false;

@@ -309,7 +309,7 @@ window.onload = function () {
 									net.send({
 										type: "setDestination",
 										unitId: unit.uuid,
-										location: [Math.round(tile.real_x), Math.round(tile.real_y)]
+										location: [Math.floor(tile.real_x), Math.floor(tile.real_y)]
 									});
 								}
 							}

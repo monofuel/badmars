@@ -99,7 +99,6 @@ class Map {
 
 	async spawnUnit(newUnit) {
 		//console.log('spawning unit: ' + newUnit.type);
-		var unit = await db.units[this.name].getUnitAtTile(newUnit.tileHash);
 		//console.log('unit tiles: ' + newUnit.tileHash.length);
 		for (let tileHash of newUnit.tileHash) {
 			if (!await this.checkValidForUnit( await this.getLocFromHash(tileHash),newUnit)) {
@@ -120,11 +119,21 @@ class Map {
 			return false;
 		}
 
-		var units = [];
-		for (let tileHash of unit.tileHash) {
-			let units2 = await this.unitsTileCheck(await this.getLocFromHash(tileHash),false);
-			for (let unit2 of units2) {
-				units.push(unit2);
+		//TODO handle multi tile units properly
+		let units = [];
+		if (!unit.size || unit.size === 1) {
+			 units = await this.unitsTileCheck(await this.getLocFromHash(tile.hash),unit.ghosting);
+		} else {
+			let tilesToCheck = [
+				(tile.x-1) +":" + (tile.y-1), (tile.x) +":" + (tile.y-1), (tile.x+1) +":" + (tile.y-1),
+				(tile.x-1) +":" + (tile.y), (tile.x) +":" + (tile.y), (tile.x+1) +":" + (tile.y),
+				(tile.x-1) +":" + (tile.y+1), (tile.x) +":" + (tile.y+1), (tile.x+1) +":" + (tile.y+1)
+			];
+			for (let tileHash of tilesToCheck) {
+				let units2 = await this.unitsTileCheck(await this.getLocFromHash(tileHash),unit.ghosting);
+				for (let unit2 of units2) {
+					units.push(unit2);
+				}
 			}
 		}
 
@@ -139,24 +148,13 @@ class Map {
 			return true;
 		}
 
-		if (!unit.ghosting) {
-			//unit movement
-			//TODO handle flying units
-			if (units.length === 0) {
-				return true;
-			}
-			return units.length === 1 && unit.uuid === units[0].uuid;
-		} else {
-			//unit construction
-			//TODO handle the construction of air units
-			for (let unit2 of units) {
-				if (unit2.ghosting) {
-					console.log('ghosts should not overlap');
-					return false;
-				}
-			}
+		if (units.length === 0) {
+			console.log('no overlapping');
 			return true;
 		}
+
+
+		return units.length === 1 && unit.uuid === units[0].uuid;
 	}
 
 	async checkOpen(tile) {
@@ -213,13 +211,14 @@ class Map {
 						break;
 				}
 
+				// https://www.youtube.com/watch?v=eVB8lM-oCSk
 				if (await this.spawnUnit(unit)) {
 					console.log('spawned ' + unitType + ' for player ' + client.username);
 					if (unitType === 'iron' || unitType === 'oil') {
 						let mine = new Unit('mine',this,x,y);
 						mine.owner = client.user.uuid;
 						console.log('spawned mine for player ' + client.username);
-						if (! await this.spawnUnit(unit)) {
+						if (! await this.spawnUnit(mine)) {
 							console.log('spawning mine failed');
 						}
 					}

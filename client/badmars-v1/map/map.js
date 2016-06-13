@@ -153,8 +153,8 @@ export class Map {
 		registerListener('kill', this.killListener);
 
 		this.ghostUnitListener = (data) => {
-			console.log('new ghost unit');
-			window.addUnit(data.unit);
+			console.log('create ghost success');
+			//window.addUnit(data.unit);
 		}
 		registerListener('createGhost',this.ghostUnitListener);
 
@@ -185,6 +185,7 @@ export class Map {
 		registerListener('updateUnits',this.updateUnitsListener);
 
 		window.addUnit = (unit: Object) => {
+			console.log(unit);
 			for (var oldUnit of self.units) {
 				if (oldUnit.uuid === unit.uuid) {
 

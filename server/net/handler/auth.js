@@ -18,6 +18,7 @@ function mountUserHandlers(client) {
 	client.handlers['spawn'] = require('./spawn.js');
 	client.handlers['setDestination'] = require('./setDestination.js');
 	client.handlers['unitStats'] = require('./unitStats.js');
+	client.handlers['factoryOrder'] = require('./factoryOrder.js');
 
 	client.registerUnitListener();
 

@@ -33,6 +33,8 @@ async function simulate(unit,map) {
 
 	let dir = DIRECTION.getTypeFromName(unit.path.shift());
 	let nextTile = await start.getDirTile(dir);
+	//console.log(start.toString());
+	//console.log(nextTile.toString());
 	if (await unit.moveToTile(nextTile)) {
 		console.log('updating path');
 		await unit.setPath(unit.path);

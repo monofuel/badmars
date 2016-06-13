@@ -101,7 +101,7 @@ var MenuButtons = React.createClass({
         hilight.setDeconstruct(true);
       }
 
-      var newLoc = [selectedTile.x,selectedTile.y];
+      var newLoc = [Math.floor(selectedTile.real_x),Math.floor(selectedTile.real_y)];
       window.sendMessage({type:'createGhost',unitType:unitType,location:newLoc});
     });
 

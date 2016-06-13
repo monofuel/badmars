@@ -17,6 +17,9 @@ import {
 	W,
 	C
 } from './directions.js';
+import {
+	display
+} from '../client.js';
 
 export class GroundUnit extends Entity {
 	nextTile: PlanetLoc | null;
@@ -27,6 +30,8 @@ export class GroundUnit extends Entity {
 	health: number;
 	maxHealth: number;
 	fireSound: THREE.PositionalAudio;
+
+	destHilightPlane: THREE.Mesh;
 
 	constructor(location: PlanetLoc, mesh: THREE.Object3D) {
 		super(location, mesh);
@@ -74,6 +79,7 @@ export class GroundUnit extends Entity {
 	update(delta: number) {
 		super.update(delta);
 		this.selection();
+		this.hilightDestination();
 
 		var deltaMove = 0;
 		if (this.timeToMove != 0)
@@ -109,6 +115,51 @@ export class GroundUnit extends Entity {
 			}
 		}
 	}
+
+	hilightDestination() {
+		if (this.destination) {
+			let x = this.destination.split(":")[0];
+			let y = this.destination.split(":")[1];
+			let tile = new PlanetLoc(this.location.planet, x,y);
+
+			var waterHeight = tile.planet.worldSettings.waterHeight + 0.1;
+			var geometry = new THREE.Geometry();
+			geometry.vertices.push(new THREE.Vector3(0, 0, Math.max(tile.corners[0], waterHeight)));
+			geometry.vertices.push(new THREE.Vector3(1, 0, Math.max(tile.corners[1], waterHeight)));
+			geometry.vertices.push(new THREE.Vector3(0, 1, Math.max(tile.corners[2], waterHeight)));
+			geometry.vertices.push(new THREE.Vector3(1, 1, Math.max(tile.corners[3], waterHeight)));
+
+			//0 goes in bottom right
+
+			geometry.faces.push(new THREE.Face3(0, 1, 2));
+			geometry.faces.push(new THREE.Face3(1, 2, 3));
+
+
+			geometry.computeBoundingSphere();
+			geometry.computeFaceNormals();
+			geometry.computeVertexNormals();
+
+			var material = new THREE.MeshBasicMaterial({
+				color: 0xB2C248,
+				side: THREE.DoubleSide
+			});
+			if (this.destHilightPlane) {
+				display.removeMesh(this.destHilightPlane);
+			}
+			this.destHilightPlane = new THREE.Mesh(geometry, material);
+			this.destHilightPlane.position.x = x;
+			this.destHilightPlane.position.z = - y;
+			this.destHilightPlane.position.y = 0.2;
+			this.destHilightPlane.rotation.x = -Math.PI / 2;
+			display.addMesh(this.destHilightPlane);
+
+		} else {
+			if (this.destHilightPlane) {
+				display.removeMesh(this.destHilightPlane);
+			}
+		}
+	}
+
 	checkGroundTile(tile: PlanetLoc): boolean {
 		return tile.equals(this.location);
 	}

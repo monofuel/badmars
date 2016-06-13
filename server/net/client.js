@@ -98,6 +98,7 @@ class Client {
 		//TODO also handle player list updates
 		handleUnitUpdate(err,delta) {
 			if (!delta.new_val) {
+				console.log('unit destroyed');
 				if (delta.old_val) {
 					//TODO update client for new 'kill' system.
 					this.send('kill',{unitId: delta.old_val.uuid});
@@ -109,12 +110,14 @@ class Client {
 
 				let newUnit = sanitizeUnit(delta.new_val);
 				if (delta.old_val) {
+					//console.log('unit change');
 					let oldUnit = sanitizeUnit(delta.old_val);
 					if (! _.isEqual(newUnit,oldUnit)) {
-						console.log('sending unit update');
+						//console.log('sending unit update');
 						this.send('units',{units:[newUnit]});
 					}
 				} else {
+					//console.log('brand new unit');
 					this.send('units',{units:[newUnit]});
 				}
 
@@ -138,11 +141,13 @@ const unitKeyWhitelist = [
 	'tileHash',
 	'chunkHash',
 	'factoryQueue',
+	'destination',
 	'ghosting',
 	'owner',
 	'speed' //unit stats was being finnicky on the client TODO fix this
 ]
 
+//TODO should break this off into a helper file
 function sanitizeUnit(unit) {
 
 	//whitelist

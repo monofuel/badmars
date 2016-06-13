@@ -11,6 +11,8 @@ var logger = require('../../util/logger.js');
 
 var Unit = require('../../unit/unit.js');
 
+// https://www.youtube.com/watch?v=PK-tVTsSKpw
+
 async function createGhost(client,data) {
 	if (!data.unitType) {
 		return client.sendError('createGhost', 'no unit specified');
@@ -26,12 +28,12 @@ async function createGhost(client,data) {
 		//maybe this logic should be moved into map
 		let unit = new Unit(data.unitType,map,data.location[0],data.location[1]);
 		unit.ghosting = true;
-
+		unit.owner = client.user.uuid;
 		let success = map.spawnUnit(unit);
 
 		if (success) {
 			console.log('new ghost unit');
-			client.send('createGhost',{unit: unit});
+			client.send('createGhost');
 		} else {
 			client.sendError('createGhost', 'invalid order');
 		}
