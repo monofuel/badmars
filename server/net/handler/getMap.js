@@ -16,7 +16,7 @@ async function getMap(client,data) {
 		client.send('players',{players:userList});
 
 		//TODO: be more intelligent on this. only send chunks where the owner has units at
-		for (var i = -6; i < 6; i++) {
+		/*for (var i = -6; i < 6; i++) {
 			for (var j = -6; j < 6; j++) {
 				let chunk = await client.planet.getChunk(i,j);
 
@@ -28,7 +28,7 @@ async function getMap(client,data) {
 					client.send('units',{units:units});
 				}
 			}
-		}
+		}*/
 };
 
 module.exports = getMap;
