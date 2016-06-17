@@ -5,6 +5,7 @@
 
 'use strict';
 
+var r = require('rethinkdb');
 var db = require('../db/db.js');
 var fs = require('fs');
 
@@ -162,6 +163,47 @@ class Unit {
 		return db.units[this.map].updateUnit(this.uuid,patch);
 	}
 
+	//returns the amount that actually could be deposited
+	async addIron(amount) {
+		if (!this.maxStorage) {
+			return 0;
+		}
+		let max = (this.maxStorage / 2) - this.iron;
+		if (max === 0) {
+			return 0;
+		}
+		if (amount > max) {
+			this.iron += max;
+			db.units[this.map].updateUnit(this.uuid,{iron: r.row('iron').default(0).add(max)});
+			return max;
+		}
+		if (amount <= max) {
+			this.iron += amount;
+			db.units[this.map].updateUnit(this.uuid,{iron: r.row('iron').default(0).add(amount)});
+			return amount;
+		}
+	}
+
+	async addFuel(amount) {
+		if (!this.maxStorage) {
+			return 0;
+		}
+		let max = (this.maxStorage / 2) - this.fuel;
+		if (max === 0) {
+			return 0;
+		}
+		if (amount > max) {
+			this.fuel += max;
+			db.units[this.map].updateUnit(this.uuid,{fuel: r.row('fuel').default(0).add(max)});
+			return max;
+		}
+		if (amount <= max) {
+			this.fuel += amount;
+			db.units[this.map].updateUnit(this.uuid,{fuel: r.row('fuel').default(0).add(amount)});
+			return amount;
+		}
+	}
+
 	async addFactoryOrder(unitType) {
 
 		if (!this.movementType === 'building') {
@@ -242,6 +284,12 @@ class Unit {
 		}
 
 		return true;
+	}
+
+	distance(unit) {
+		let deltaX = Math.abs(this.x - unit.x);
+		let deltaY = Math.abs(this.y - unit.y);
+		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 	}
 
 	save() {

@@ -18,7 +18,7 @@ async function pullResource(unit,map) {
 	}
 	if (unit.resourceCooldown === 0) {
 
-		let tile = await map.getLocFromHash(unit.tileHash[0])
+		let tile = await map.getLocFromHash(unit.tileHash[0]);
 		let unitsAtTile = await map.unitsTileCheck(tile);
 		//get the iron or oil at the location
 		let resource = null;

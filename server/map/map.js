@@ -265,17 +265,28 @@ class Map {
 		}
 	}
 
-	async getUnitAtChunks(chunkHashList) {
-		let units = [];
-		for (let chunkHash of chunkHashList) {
+	async getNearbyUnitsFromChunk(chunkHash,chunkRange) {
+		let chunkHashes = await this.getNearbyChunkHashes(chunkHash,chunkRange);
+		return await this.getUnitsAtChunks(chunkHashes);
+	}
 
+	async getUnitsAtChunks(chunkHashes) {
+		let units = [];
+		for (let chunkHash of chunkHashes) {
+			let x = chunkHash.split(':')[0];
+			let y = chunkHash.split(':')[1];
+			let chunk = await this.getChunk(x,y);
+			let chunkUnits = await chunk.getUnits();
+			for (let unit of chunkUnits) {
+				units.push(unit);
+			}
 		}
 		return units;
 	}
 
 	getNearbyChunkHashes(chunkHash, range) {
-		let x = chunkHash.split(':')[0];
-		let y = chunkHash.split(':')[1];
+		let x = parseInt(chunkHash.split(':')[0]);
+		let y = parseInt(chunkHash.split(':')[1]);
 
 		var chunks = [];
 		for (let i = -range; i < range; i++) {
@@ -374,58 +385,27 @@ class Map {
 		//TODO same as iron but for oil
 	}
 
-	produceIron(unit, amount) {
-		//console.log('producing iron');
-		/* // old code
-		tile = mine.tile
-	    units = this.getPlayersUnitsSync(mine.owner)
-	    nearest = []
-	    for unit in units
-	      unitInfo = Units.get(unit.type)
-	      if (!unitInfo)
-	        continue
-	      if (unit._id == mine._id)
-	        continue
-	      if (unitInfo.movementType != 'building')
-	        continue
-	      if (unit.ghosting)
-	        continue
+	async produceIron(mine, amount) {
 
-	      delta = mine.tile.distance(unit.tile)
-	      #console.log("nearby unit type " + unit.type + " with iron: " + unit.iron + " and oil " + unit.oil)
-	      if (delta < unitInfo.transferRange && unit.iron < unitInfo.maxStorage / 2)
-	        nearest.push(unit)
+		//TODO 3 is a magic number- should calculate based on transfer range
+		let units = await this.getNearbyUnitsFromChunk(mine.chunkHash[0],2);
+		this.sortByNearestUnit(units,mine);
 
-	    nearest.sort((a,b) ->
-	      return a.tile.distance(mine.tile) - b.tile.distance(mine.tile)
-	    )
-
-	    for unit in nearest
-	      unitInfo = Units.get(unit.type)
-	      #divide by 2 as we want a 50/50 iron oil split
-	      if ((unitInfo.maxStorage / 2) - unit.iron < amount)
-	        delta = (unitInfo.maxStorage / 2) - unit.iron
-	        amount -= delta
-	        unit.iron += delta
-	      else
-	        unit.iron += amount
-	        amount = 0
-	      this.broadcastUpdate({
-	        type: "updateUnits"
-	        units: [unit]
-	        success: true
-	        });
-
-	    if (amount > 0)
-	      freeStorage = unitInfo.maxStorage - (mine.iron + mine.oil)
-	      mine.iron += Math.min(freeStorage,amount)
-	    this.broadcastUpdate({
-	      type: "updateUnits"
-	      units: [mine]
-	      success: true
-	      });
-	    return true
-		*/
+		for (let unit of units) {
+			if (unit.ghosting) {
+				continue;
+			}
+			if (unit.movementType !== 'building') {
+				continue;
+			}
+			let deposited =  await(unit.addIron(amount));
+			console.log('deposited :' + deposited);
+			amount = amount - deposited;
+			if (amount <= 0) {
+				break;
+			}
+		}
+		console.log('producted iron');
 	}
 
 	produceFuel(unit, amount) {
@@ -433,6 +413,12 @@ class Map {
 
 		//same as iron, but with oil
 
+	}
+
+	sortByNearestUnit(units, unit) {
+		units.sort((a,b) => {
+			return a.distance(unit) - b.distance(unit);
+		});
 	}
 
 	//doot doot

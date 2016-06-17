@@ -114,6 +114,9 @@ class Client {
 					let oldUnit = sanitizeUnit(delta.old_val);
 					if (! _.isEqual(newUnit,oldUnit)) {
 						//console.log('sending unit update');
+						//if (newUnit.iron != oldUnit.iron) {
+						//	console.log('sending iron change');
+						//}
 						this.send('units',{units:[newUnit]});
 					}
 				} else {
