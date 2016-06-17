@@ -11,47 +11,36 @@ var logger = require('../../util/logger.js');
 
 //TODO
 //not tested yet
-exports.simulate = (unit,map) => {
+async function pullResource(unit,map) {
 
 	if (unit.resourceCooldown > 0) {
 		unit.resourceCooldown--;
 	}
 	if (unit.resourceCooldown === 0) {
-		//TODO
+
+		let tile = await map.getLocFromHash(unit.tileHash[0])
+		let unitsAtTile = await map.unitsTileCheck(tile);
 		//get the iron or oil at the location
-		//map.produceIron
-		//map.produceOil
+		let resource = null;
+		for (let otherUnit of unitsAtTile) {
+			if (otherUnit.type === 'iron' || otherUnit.type === 'oil') {
+				resource = otherUnit;
+			}
+		}
+		if (!resource) {
+			//invalid mine
+			console.log('invalid mine: ' + unit.tileHash);
+			return
+		}
+		if (resource.type === 'iron') {
+			map.produceIron(unit,10);
+		} else if (resource.type === 'oil') {
+			map.produceFuel(unit,10);
+		}
+
 	}
 
 	return true;
-
-	/* //old code
-	if (unit.type == 'mine')
-      if (unit.resourceCooldown == undefined)
-        unit.resourceCooldown = 0
-      if (unit.resourceCooldown > 0)
-        unit.resourceCooldown--
-
-      if (unit.resourceCooldown == 0)
-        unit.location = [unit.tile.x, unit.tile.y]
-        db.getUnitsAtLoc(unit.location).then((units) ->
-          mine = unit
-          #if (units.length < 2)
-            #do error thing
-          for tileUnit in units
-            if (tileUnit.type == 'iron')
-              mine.resourceCooldown = 10 * 5
-              #console.log('producing iron')
-              planet.produceIron(mine,20)
-              mine.update = true
-            if (tileUnit.type == 'oil')
-              mine.resourceCooldown = 10 * 5
-              #console.log('producing oil')
-              planet.produceOil(mine,20)
-              mine.update = true
-          )
-          .catch((error) ->
-            console.log(error)
-            )
-	*/
 }
+
+exports.simulate = pullResource;

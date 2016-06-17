@@ -48,6 +48,7 @@ class Map {
 		this.users = [];
 		this.seed = Math.random();
 	}
+
 	getChunk(x, y) {
 		var self = this;
 		var hash = x + ":" + y;
@@ -65,6 +66,7 @@ class Map {
 			}
 		});
 	}
+
 
 	async getLocFromHash(hash) {
 		let x = hash.split(':')[0];
@@ -263,6 +265,32 @@ class Map {
 		}
 	}
 
+	async getUnitAtChunks(chunkHashList) {
+		let units = [];
+		for (let chunkHash of chunkHashList) {
+
+		}
+		return units;
+	}
+
+	getNearbyChunkHashes(chunkHash, range) {
+		let x = chunkHash.split(':')[0];
+		let y = chunkHash.split(':')[1];
+
+		var chunks = [];
+		for (let i = -range; i < range; i++) {
+			for (let j = -range; j < range; j++) {
+				if (Math.sqrt(i * i + j * j) < range) {
+					let chunkX = x + i;
+					let chunkY = y + j;
+					chunks.push(chunkX + ":" + chunkY);
+				}
+			}
+		}
+		return chunks;
+
+	}
+
 
 	//TODO this function could use some love to be a bit more sane about spawning
 	validChunkForSpawn(chunk) {
@@ -347,6 +375,7 @@ class Map {
 	}
 
 	produceIron(unit, amount) {
+		//console.log('producing iron');
 		/* // old code
 		tile = mine.tile
 	    units = this.getPlayersUnitsSync(mine.owner)
@@ -399,7 +428,8 @@ class Map {
 		*/
 	}
 
-	produceOil(unit, amount) {
+	produceFuel(unit, amount) {
+		//console.log('producing fuel');
 
 		//same as iron, but with oil
 

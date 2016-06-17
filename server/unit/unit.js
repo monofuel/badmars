@@ -98,61 +98,64 @@ class Unit {
 	}
 
 	async simulate() {
-		console.log('simulating unit');
+		//console.log('simulating unit');
 		var self = this;
 		var update = false;  //only save when there are changes
 		self.awake = false; //awake should be updated to true if we need another simulation tick soon
 
 		//either only move, attack or construct. not doing multiple at once.
 
-		return db.map.getMap(this.map).then((map) => {
-			var movementPromise = Promise.resolve(false);
+		let map = await db.map.getMap(this.map);
+
+		let hasActed = false;
+
+		//special one-off AI
+		//mines should always be awake
+		if (self.type === 'mine' && !self.ghosting) {
+			hasActed = true;
+			self.awake = true;
+			update = true;
+			await mineAI.simulate(self,map);
+		}
+		if (!hasActed) {
 			switch (self.movementType) {
 				case 'ground':
-					movementPromise = groundUnitAI.simulate(self,map);
+					hasActed = await groundUnitAI.simulate(self,map);
 					break;
 			}
-			return movementPromise.then((moved) => {
-				if (moved) {
-					console.log('moved');
-					update = true;
-					self.awake = true;
-				}
-				if (!update && self.attack != 0 && self.range != 0) {
-					return attackAI.simulate(self,map);
-				}
 
-			}).then((attacked) => {
-				if (attacked) {
-					console.log('attacking');
-					update = true;
-					awake = true;
-				}
-				if (!update && self.construction) {
-					return constructionAI.simulate(self,map);
-				}
+			if (hasActed) {
+				console.log('moved');
+				update = true;
+				self.awake = true;
+			}
+		}
 
-			}).then((constructed) => {
-				if (constructed) {
-					console.log('constructing');
-					update = true;
-					awake = true;
-				}
+		if (!hasActed && self.attack != 0 && self.range != 0) {
+			let hasActed = await attackAI.simulate(self,map);
+			if (hasActed) {
+				console.log('attacking');
+				update = true;
+				self.awake = true;
+			}
+		}
 
-				//special one-off AI
-				//mines should always be awake
-				if (self.type === 'mine' && !self.ghosting) {
-					self.awake = true;
-					//return mineAI.simulate(self,map);
-				}
+		if (!hasActed && self.construction) {
+			hasActed = await constructionAI.simulate(self,map);
+			if (hasActed) {
+				console.log('constructing');
+				update = true;
+				awake = true;
+			}
+		}
 
-				if (!update && !self.awake) {
-					//if there is no update but the unit will no longer be awake, update to sleep it
-					update = true;
-				}
-				return update;
-			});
-		});
+
+		if (!update && !self.awake) {
+			//if there is no update but the unit will no longer be awake, update to sleep it
+			update = true;
+		}
+		return update;
+
 	}
 
 	async update(patch) {
