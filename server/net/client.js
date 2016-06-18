@@ -120,7 +120,7 @@ class Client {
 						this.send('units',{units:[newUnit]});
 					}
 				} else {
-					//console.log('brand new unit');
+					console.log('brand new unit');
 					this.send('units',{units:[newUnit]});
 				}
 

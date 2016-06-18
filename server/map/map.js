@@ -98,6 +98,12 @@ class Map {
 
 		return new PlanetLoc(this,chunk, real_x, real_y);
 	}
+	async factoryMakeUnit(unitType,owner,x,y) {
+		let newUnit = new Unit(unitType, this, x, y);
+		newUnit.owner = owner;
+		await this.spawnUnit(newUnit);
+		return newUnit;
+	}
 
 	async spawnUnit(newUnit) {
 		//console.log('spawning unit: ' + newUnit.type);
