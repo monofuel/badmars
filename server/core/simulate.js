@@ -29,6 +29,7 @@ async function tryNewTick(name) {
 	let map = await db.map.getMap(name);
 
 	//TODO if map.lastTickTimestamp is in the future, this whole thing is fubared. fix this.
+	//TODO should do this check atomically when updating with rethinkdb branch
 	if (map.lastTick !== 0 && (new Date()).getTime() - map.lastTickTimestamp < 1000 / env.ticksPerSec) {
 		return;
 	}

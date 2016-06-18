@@ -163,6 +163,7 @@ class DBUnit {
 	}
 
 	getUnprocessedPath() {
+		//TODO: should branch during the update making sure that isPathing is false in an atomic fashion
 		return this.table.filter(r.row.hasFields('destination'))
 		  .filter(r.row('isPathing').eq(false))
 		  .filter(r.row('path').eq([]))
