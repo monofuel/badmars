@@ -143,7 +143,8 @@ class DBUnit {
 	addFactoryOrder(uuid, order) {
 		return this.table.get(uuid).update(
 			{
-				factoryQueue: r.row('factoryQueue').append(order)
+				factoryQueue: r.row('factoryQueue').append(order),
+				awake: true
 			}
 		).run(this.conn);
 	}
@@ -222,6 +223,14 @@ class DBUnit {
 		});
 	};
 
+
+	//these should never get used.
+	getTable() {
+		return this.table;
+	}
+	getConn() {
+		return this.conn;
+	}
 }
 
 

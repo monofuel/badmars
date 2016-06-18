@@ -8,21 +8,20 @@
 var db = require('../../db/db.js');
 var env = require('../../config/env.js');
 var logger = require('../../util/logger.js');
-
 var Unit = require('../../unit/unit.js');
 
 //pass in the unit to update
 //returns true if the unit was updated
 async function simulate(unit,map){
-	if (unit.ghosting) {
+	if (unit.ghosting || !unit.construction) {
 		return false;
 	}
 
 	switch (unit.movementType) {
 		case 'ground':
-			return simulateGround(unit);
+			return simulateGround(unit,map);
 		case 'building':
-			return simulateBuilding(unit);
+			return simulateBuilding(unit,map);
 		default:
 			console.info('unknown constructor', {name: unit.type});
 			return false;
@@ -33,30 +32,46 @@ exports.simulate = simulate;
 
 //TODO
 //not tested yet
-function simulateBuilding(unit,map) {
+async function simulateBuilding(unit,map) {
 
 	//no units left to build
-	if (!unit.factoryQueue || !unit.factoryQueue.length === 0) {
+	if (!unit.factoryQueue || unit.factoryQueue.length === 0) {
 		return false;
 	}
+	console.log('simulating factory');
+	console.log(unit.factoryQueue);
+	let newUnitType = unit.factoryQueue[0].type;
+	let unitInfo = unit.getTypeInfo(newUnitType);
+	console.log('building: ' + newUnitType);
 
 	if (unit.factoryQueue[0].cost > 0) {
-		if (map.pullIron(unit,unit.factoryQueue[0].cost)) {
+		if (await map.pullIron(unit,unit.factoryQueue[0].cost)) {
 			console.log('paying for unit');
 			unit.factoryQueue[0].cost = 0;
+
+			await unit.updateUnit({
+				factoryQueue: unit.factoryQueue
+				});
 		}
 	}
 	if (unit.factoryQueue[0].cost === 0) {
 		if (unit.factoryQueue[0].remaining > 0) {
-			unit.factoryQueue[0].remaining--;
+			//unit.factoryQueue[0].remaining--;
+			unit.factoryQueue[0].remaining = 0;
+			await unit.updateUnit({
+				factoryQueue: unit.factoryQueue
+				});
 		} else {
-			var newUnitData = unit.factoryQueue.shift();
-			var newTile = map.getNearestFreeTile(unit.tile);
+			let newUnitData = await unit.popFactoryOrder();
+			let tile = await map.getLoc(unit.x,unit.y);
+			console.log()
+			let newTile = await map.getNearestFreeTile(tile,unit);
 
 			console.log('units left: ', unit.factoryQueue.length);
-
-			var unit = new Unit(newUnitData.type, map, newTile.x, newTile.y);
-			map.spawnUnit(unit);
+			console.log(Unit);
+			let newUnit = new Unit(newUnitType, map, newTile.x, newTile.y);
+			newUnit.owner = unit.owner;
+			map.spawnUnit(newUnit);
 			console.log('factory creating unit');
 		}
 	}
@@ -106,8 +121,36 @@ function simulateBuilding(unit,map) {
 
 //TODO
 //not tested yet
-function simulateGround(unit,map) {
-	//TODO
+async function simulateGround(unit,map) {
+	console.log('simulating constructor');
+	let nearestGhost = null;
+	let units = await map.getNearbyUnitsFromChunk(unit.chunkHash[0],2);
+	map.sortByNearestUnit(units,unit);
+
+	for (let nearbyUnit of units) {
+		if (!nearbyUnit.ghosting) {
+			continue;
+		}
+
+		//1.01 is 1 for the unit, + 0.01 for float fudge factor (ffffffffffff)
+		if (nearbyUnit.distance(unit) < nearbyUnit.size + 1.05) {
+			nearestGhost = nearbyUnit;
+			break;
+		}
+	}
+
+	if (!nearestGhost) {
+		return;
+	}
+
+	if (await map.pullIron(unit,nearestGhost.cost)) {
+		console.log('paying for building');
+		//TODO builder should halt and spend time building
+		//should also make sure the area is clear
+		console.log(nearestGhost);
+		let result = await nearestGhost.updateUnit({ghosting: false});
+		console.log(result);
+	}
 
 	/* //old code
 	if (unit.type == 'builder')

@@ -146,10 +146,13 @@ class Unit {
 			if (hasActed) {
 				console.log('constructing');
 				update = true;
-				awake = true;
+				self.awake = true;
 			}
 		}
 
+		if (self.factoryQueue && self.factoryQueue.length > 0) {
+			self.awake = true;
+		}
 
 		if (!update && !self.awake) {
 			//if there is no update but the unit will no longer be awake, update to sleep it
@@ -160,8 +163,50 @@ class Unit {
 	}
 
 	async update(patch) {
-		return db.units[this.map].updateUnit(this.uuid,patch);
+		return await db.units[this.map].updateUnit(this.uuid,patch);
 	}
+
+	async takeIron(amount) {
+		let table = db.units[this.map].getTable();
+		let conn =  db.units[this.map].getConn();
+		let result = await table.get(this.uuid).update((self) => {
+		  return r.branch(
+		    self('iron').ge(amount),
+		    {iron: self('iron').sub(amount)},
+		    {}
+		  )
+		}, {returnChanges: true}).run(conn);
+
+		if (result.replaced === 0) {
+			return false;
+		} else {
+			this.iron -= amount;
+			return true;
+		}
+	}
+
+	async takeFuel(amount) {
+		let table = db.units[this.map].getTable();
+		let conn =  db.units[this.map].getConn();
+		let result = await table.get(this.uuid).update((self) => {
+		  return r.branch(
+		    self('fuel').ge(amount),
+		    {fuel: self('fuel').sub(amount)},
+		    {}
+		  )
+		}, {returnChanges: true}).run(conn);
+
+		if (result.replaced === 0) {
+			return false;
+		} else {
+			this.fuel -= amount;
+			return true;
+		}
+	}
+
+
+	//TODO: some of the functionality of addiron should be dumped into db/units.js
+	//we shouldn't be requiring rethink in this file
 
 	//returns the amount that actually could be deposited
 	async addIron(amount) {
@@ -184,6 +229,7 @@ class Unit {
 		}
 	}
 
+	//returns the amount that actually could be deposited
 	async addFuel(amount) {
 		if (!this.maxStorage) {
 			return 0;
@@ -225,8 +271,15 @@ class Unit {
 			cost: stats.cost
 		}
 		console.log('pushing onto queue:',order);
-		return db.units[this.map].addFactoryOrder(this.uuid,order);
+		return await db.units[this.map].addFactoryOrder(this.uuid,order);
 
+	}
+
+	async popFactoryOrder() {
+		let order = this.factoryQueue.shift();
+		await db.units[this.map].updateUnit(this.uuid,{factoryQueue: this.factoryQueue});
+
+		return order;
 	}
 
 	async setDestination(x,y) {
@@ -243,6 +296,10 @@ class Unit {
 
 	async clearDestination() {
 		return db.units[this.map].updateUnit(this.uuid,{destination: null, isPathing: false, path: []});
+	}
+
+	async updateUnit(patch) {
+		return db.units[this.map].updateUnit(this.uuid,patch);
 	}
 
 	async tickMovement() {
@@ -308,6 +365,10 @@ class Unit {
 		for (let key in stats) {
 			this[key] = stats[key];
 		}
+	}
+
+	getTypeInfo(type) {
+		return unitStats[type];
 	}
 
 }

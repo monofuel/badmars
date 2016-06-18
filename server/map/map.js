@@ -335,54 +335,123 @@ class Map {
 		});
 	}
 
-	pullIron(unit, amount) {
+	async pullIron(taker, amount) {
+		console.log('pulling iron');
+		//TODO 3 is a magic number- should calculate based on transfer range
+		let units = await this.getNearbyUnitsFromChunk(taker.chunkHash[0],2);
+		//TODO should sort buildings over units
+		this.sortByNearestUnit(units,taker);
+
+		//first check if we can pull enough
+		let amountCanPull = 0;
+		for (let unit of units) {
+			if (unit.ghosting) {
+				continue;
+			}
+			amountCanPull += unit.iron;
+			if (amountCanPull > amount) {
+				break;
+			}
+		}
+		if (amountCanPull < amount) {
+			return false;
+		}
+
+		let pulledMap = {};
+		//actually pull iron
+		for (let unit of units) {
+			if (unit.ghosting) {
+				continue;
+			}
+			let pulled = Math.min(unit.iron,amount);
+			if (pulled === 0) {
+				continue;
+			}
+			console.log('pulling: ' + pulled);
+			let success = await unit.takeIron(pulled);
+			console.log('success: ' + success + ' : ' + pulled);
+			if (success) {
+				pulledMap[unit.uuid] = pulled;
+				console.log('pulled :' + pulled);
+				amount = amount - pulled;
+				if (amount <= 0) {
+					break;
+				}
+			}
+		}
+
+		//if amount is still greater than 0
+		//that means the amount of iron changed after checking,
+		//and we should put iron back
+		if (amount > 0 && Object.keys(pulledMap).length > 0) {
+			console.log('failed, restoring iron:');
+			console.log(pulledMap);
+			for (let unit of units) {
+				if (pulledMap[unit.uuid]) {
+					await unit.addIron(pulledMap[unit.uuid]);
+				}
+			}
+			return false;
+		}
+
+		console.log('pulled iron');
 		return true;
-		/* //old code
-		tile = builder.tile
-	    units = this.getPlayersUnitsSync(builder.owner)
-	    nearest = []
-	    for unit in units
-	      unitInfo = Units.get(unit.type)
-	      if (!unitInfo)
-	        continue
-	      if (unit._id == builder._id)
-	        continue;
-	      if (unit.ghosting)
-	        continue
-	      delta = builder.tile.distance(unit.tile)
-	      #console.log("nearby unit type " + unit.type + " with iron: " + unit.iron + " and oil " + unit.oil)
-	      if (delta < unitInfo.transferRange && unit.iron > 0)
-	        nearest.push(unit)
-
-	    nearest.sort((a,b) ->
-	      return a.tile.distance(builder.tile) - b.tile.distance(builder.tile)
-	    )
-
-	    #see if there are enough resources nearby
-	    ironTotal = 0
-	    for unit in nearest
-
-	      ironTotal += unit.iron
-	    #console.log("total iron nearby: " + ironTotal)
-
-	    if (ironTotal < amount)
-	      return false
-
-	    for unit in nearest
-	      if (unit.iron < amount)
-	        amount -= unit.iron
-	        unit.iron = 0
-	      else
-	        unit.iron -= amount
-	        amount = 0
-	        break
-	    return true
-		*/
 	}
 
-	pullOil(unit, amount) {
+	async pullFuel(taker, amount) {
+		console.log('pulling iron');
+		//TODO 3 is a magic number- should calculate based on transfer range
+		let units = await this.getNearbyUnitsFromChunk(taker.chunkHash[0],2);
+		//TODO should sort buildings over units
+		this.sortByNearestUnit(units,taker);
+
+		//first check if we can pull enough
+		let amountCanPull = 0;
+		for (let unit of units) {
+			if (unit.ghosting) {
+				continue;
+			}
+			amountCanPull += unit.fuel;
+			if (amountCanPull > amount) {
+				break;
+			}
+		}
+		if (amountCanPull < amount) {
+			return false;
+		}
+
+		let pulledMap = {};
+		//actually pull iron
+		for (let unit of units) {
+			if (unit.ghosting) {
+				continue;
+			}
+			let pulled = Math.min(unit.iron,amount);
+			if (pulled === 0) {
+				continue;
+			}
+			let success = await unit.takeFuel(pulled);
+			if (success) {
+				pulledMap[unit.uuid] = pulled;
+				console.log('pulled :' + pulled);
+				amount = amount - pulled;
+				if (amount <= 0) {
+					break;
+				}
+			}
+		}
+
+		//if amount is still greater than 0
+		//that means the amount of iron changed after checking,
+		//and we should put iron back
+		for (let unit of Object.keys(pulledMap)) {
+			console.log('failed, restoring fuel:');
+			await unit.addFuel(pulledMap[unit.uuid]);
+			return false;
+		}
+
+		console.log('pulled fuel');
 		return true;
-		//TODO same as iron but for oil
 	}
 
 	async produceIron(mine, amount) {
@@ -398,20 +467,32 @@ class Map {
 			if (unit.movementType !== 'building') {
 				continue;
 			}
-			let deposited =  await(unit.addIron(amount));
-			console.log('deposited :' + deposited);
+			let deposited = await unit.addIron(amount);
 			amount = amount - deposited;
 			if (amount <= 0) {
 				break;
 			}
 		}
-		console.log('producted iron');
 	}
 
-	produceFuel(unit, amount) {
-		//console.log('producing fuel');
+	async produceFuel(mine, amount) {
+		//TODO 3 is a magic number- should calculate based on transfer range
+		let units = await this.getNearbyUnitsFromChunk(mine.chunkHash[0],2);
+		this.sortByNearestUnit(units,mine);
 
-		//same as iron, but with oil
+		for (let unit of units) {
+			if (unit.ghosting) {
+				continue;
+			}
+			if (unit.movementType !== 'building') {
+				continue;
+			}
+			let deposited = await unit.addFuel(amount);
+			amount = amount - deposited;
+			if (amount <= 0) {
+				break;
+			}
+		}
 
 	}
 
@@ -427,7 +508,7 @@ class Map {
 	//unit is an optional unit to ignore
 	//includeGhosts decide if we should consider ghosts as units
 	async getNearestFreeTile(center,unit,includeGhosts) {
-		let unitsOnTile = await this.unitsOnTile(center,includeGhosts);
+		let unitsOnTile = await this.unitsTileCheck(center,includeGhosts);
 
 		//check if the tile we are checking is already free
 		if (unitsOnTile.length == 0 && center.tileType == Tiletypes.LAND) {
