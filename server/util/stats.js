@@ -70,7 +70,7 @@ function reportStats() {
 			avg += i;
 		}
 		avg /= array.length;
-		stats['avg:' + key] = avg;
+		stats['avg-' + key] = avg;
 	}
 	avgStats = {};
 	for (let key of Object.keys(sumStats)) {
@@ -79,12 +79,12 @@ function reportStats() {
 		for (let i of array) {
 			avg += i;
 		}
-		stats['sum:' + key] = avg;
+		stats['sum-' + key] = avg;
 	}
 	sumStats = {};
 
 	for (let key of Object.keys(profileCount)) {
-		stats['executions:' + key] = profileCount[key];
+		stats['executions-' + key] = profileCount[key];
 	}
 
 	logger.info('stats',stats,false); //set to true after testing

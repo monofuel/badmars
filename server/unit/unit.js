@@ -9,6 +9,8 @@ var r = require('rethinkdb');
 var db = require('../db/db.js');
 var fs = require('fs');
 
+var env = require('../config/env.js');
+
 var simplePath = require('../nav/simplepath.js');
 var astarpath = require('../nav/astarpath.js');
 
@@ -288,6 +290,18 @@ class Unit {
 		await db.units[this.map].updateUnit(this.uuid,{factoryQueue: this.factoryQueue});
 
 		return order;
+	}
+
+	async addPathAttempt() {
+		this.pathAttempts++;
+
+		if (this.pathAttempts > env.movementAttemptLimit) {
+			await db.units[this.map].updateUnit(this.uuid,{pathAttempts: this.pathAttempts});
+		} else {
+			//blank out the path but leave the destination so that we will re-path
+			await db.units[this.map].updateUnit(this.uuid,{pathAttempts: 0, isPathing: false, awake: true, path: []});
+		}
+
 	}
 
 	async setDestination(x,y) {

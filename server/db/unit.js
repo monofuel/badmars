@@ -172,26 +172,34 @@ class DBUnit {
 			})
 	}
 
-	getUnprocessedPath() {
-		//TODO: should branch during the update making sure that isPathing is false in an atomic fashion
-		return this.table.filter(r.row.hasFields('destination'))
-			.filter(r.row('isPathing').eq(false))
-			.filter(r.row('path').eq([]))
-			.limit(env.pathChunks)
-			.update({
-				isPathing: true,
-				pathUpdate: (new Date()).getTime()
-			}, {
-				durability: 'hard',
-				returnChanges: true
-			}).run(this.conn);
+	async getUnprocessedPath() {
+
+			let result = await this.table.filter(r.row.hasFields('destination'))
+				.filter(r.row('isPathing').eq(false))
+				.filter(r.row('path').eq([]))
+				.limit(env.pathChunks)
+				.update((unit) => {
+					return r.branch(
+						unit('isPathing').eq(false),
+						{isPathing: true,pathUpdate: Date.now()},
+						{}
+					)
+				}, {
+					durability: 'hard',
+					returnChanges: true
+				}).run(this.conn);
+			return result;
 	}
 
 	getUnprocessedUnits(tick) {
 		return this.table.getAll(true, {
 			index: 'awake'
-		}).filter(r.row('lastTick').lt(tick)).limit(env.unitProcessChunks).update({
-			lastTick: tick
+		}).filter(r.row('lastTick').lt(tick)).limit(env.unitProcessChunks).update((unit) => {
+			return r.branch(
+				unit('lastTick').ne(tick),
+				{lastTick: tick},
+				{}
+			)
 		}, {
 			returnChanges: true
 		}).run(this.conn).then((delta) => {

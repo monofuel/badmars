@@ -12,17 +12,6 @@ var logger = require('../util/logger.js');
 var TILETYPE = require('../map/tiletypes.js');
 var DIRECTION = require('../map/directions.js');
 
-/*
-.__
-__  _  _______ _______  ____ |__| ____    ____
-\ \/ \/ /\__  \\_  __ \/    \|  |/    \  / ___\
-\     /  / __ \|  | \/   |  \  |   |  \/ /_/  >
-\/\_/  (____  /__|  |___|  /__|___|  /\___  /
-\/           \/        \//_____/
-This code has not really been tested since re-writing. there are probably bugs in it.
-/oldServer/nav.coffee is the code that was used for the old server that worked.
-*/
-
 class AStarPath {
   constructor(start,end,unit) {
     this.start = start;
@@ -83,7 +72,7 @@ class AStarPath {
 		this.current = this.open.shift();
 		this.closed.push(this.current);
 
-    if (this.cost > 50) {
+    if (this.cost > env.pathComplexityLimit) {
 			console.log(this.cost);
       console.log("path complexity exceeded");
 

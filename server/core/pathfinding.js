@@ -62,7 +62,9 @@ async function process(mapName) {
 	//doesn't work properly with multiple pathfinding services.
 	let results = await db.units[mapName].getUnprocessedPath();
 	//console.log(results);
-	if (results.replaced == 0) {
+
+	//TODO this logic should probably be in db/units.js
+	if (results.replaced === 0) {
 		return false;
 	}
 

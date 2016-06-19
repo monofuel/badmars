@@ -39,8 +39,8 @@ async function simulate(unit,map) {
 		console.log('updating path');
 		await unit.setPath(unit.path);
 	} else {
+		unit.addPathAttempt();
 		console.log('move halted');
-		return false;
 	}
 
 	return true;
