@@ -33,6 +33,9 @@ import {
 	Tank
 } from '../units/tank.js';
 import {
+	GroundUnit
+} from '../units/groundUnit.js';
+import {
 	Storage
 } from '../units/storage.js'; //oh god so many units so many files dear god why
 import {
@@ -62,10 +65,17 @@ import {
 	registerListener,
 	deleteListener
 } from '../net.js';
+import {
+	registerBusListener,
+	deleteBusListener,
+	fireBusEvent
+} from '../eventBus.js';
+
+//TODO chunk should be a type
 
 export class Map {
 	settings: Settings;
-	chunkMap;
+	chunkMap: Object;
 	landMeshes: Array < THREE.Object3D > ;
 	waterMeshes: Array < THREE.Object3D > ;
 	units: Array < Entity > ;
@@ -74,6 +84,13 @@ export class Map {
 	attackListener: Function;
 	killListener: Function;
 	ghostUnitListener: Function;
+	chunkListener: Function;
+	updateUnitsListener: Function;
+	chunkCache: Object;
+	viewRange: number;
+	unloadRange: number;
+
+	chunkInterval: number;
 
 	constructor(planet: ? Object) {
 		console.log('loading map');
@@ -98,7 +115,7 @@ export class Map {
 
 		window.debug.loadChunks = () => {
 			self.loadChunksNearCamera();
-		}
+		};
 
 		this.chunkInterval = setInterval(() => {
 			self.loadChunksNearCamera();
@@ -131,7 +148,7 @@ export class Map {
 					data: data
 				});
 			}
-			if (attackingUnit && attackingUnit.fire) {
+			if (attackingUnit && attackingUnit instanceof GroundUnit) {
 				console.log("unit taking damage");
 				attackingUnit.fire(unit);
 			}
@@ -159,8 +176,8 @@ export class Map {
 		registerListener('createGhost',this.ghostUnitListener);
 
 		this.updateUnitsListener = (data) => {
-			for (var updated of data.units) {
-				var unit = window.getUnit(updated.uuid);
+			for (let updated of data.units) {
+				let unit = window.getUnit(updated.uuid);
 				if (unit) {
 						window.debug.updateUnit = unit;
 						if (unit.updateUnitData) {
@@ -171,6 +188,7 @@ export class Map {
 					console.log(updated);
 					window.addUnit(updated);
 				}
+				fireBusEvent('unit',updated);
 			}
 		}
 
@@ -193,13 +211,13 @@ export class Map {
 					for (let key of Object.keys(unit)) {
 						oldUnit[key] = unit[key];
 						let skipChunk = playerInfo && unit.owner !== playerInfo.id
-						let tile = new PlanetLoc(self,unit.x,unit.y,unit.owner !== playerInfo.id);
+						let tile = new PlanetLoc(self,unit.x,unit.y,(playerInfo && unit && unit.owner !== playerInfo.id));
 
 						if (oldUnit.updateNextMove && !oldUnit.location.equals(tile)) {
 							oldUnit.updateNextMove(tile,oldUnit.speed);
 						}
 					}
-					console.log('updating unit');
+					//console.log('updating unit');
 					return;
 				}
 			}
@@ -212,11 +230,12 @@ export class Map {
 			}
 
 			//console.log(unit);
-			if (unit.ghosting && !playerInfo) {
+			if (!playerInfo || !unit) {
 				return;
 			}
 
 			if (unit.ghosting && unit.owner != playerInfo.id) {
+				console.log('can see other players ghost: INVALID');
 				return;
 			}
 
@@ -292,11 +311,13 @@ export class Map {
 		deleteListener(this.killListener);
 		deleteListener(this.ghostUnitListener);
 		deleteListener(this.chunkListener);
-		for (var mesh of this.landMeshes) {
-			Display.removeMesh(mesh);
-		}
-		for (var mesh of this.waterMeshes) {
-			Display.removeMesh(mesh);
+		if (display) {
+			for (var mesh of this.landMeshes) {
+				display.removeMesh(mesh);
+			}
+			for (var mesh of this.waterMeshes) {
+				display.removeMesh(mesh);
+			}
 		}
 		var unitListCopy = this.units.slice();
 		for (var unit of unitListCopy) {
@@ -307,20 +328,7 @@ export class Map {
 		}
 	}
 
-	generateMesh() {
-		throw new Error('depriciated');
-		var chunkCount = (this.worldSettings.size - 2) / this.worldSettings.chunkSize;
-
-		console.log("chunk count: " + chunkCount);
-		for (var y = 0; y < chunkCount; y++) {
-			for (var x = 0; x < chunkCount; x++) {
-				this.generateChunk(x, y);
-			}
-		}
-		console.log("generated all chunks");
-	}
-
-	generateChunk(chunkX: number, chunkY: number, chunk) {
+	generateChunk(chunkX: number, chunkY: number, chunk: Object) {
 		var chunkArray = chunk.grid;
 		var navGrid = chunk.navGrid;
 		var gridGeom = new THREE.Geometry();
@@ -434,9 +442,10 @@ export class Map {
 		this.chunkMap[chunk.hash].landMesh = gridMesh;
 		this.chunkMap[chunk.hash].waterMesh = waterMesh;
 
-
-		display.addMesh(gridMesh);
-		display.addMesh(waterMesh);
+		if (display) {
+			display.addMesh(gridMesh);
+			display.addMesh(waterMesh);
+		}
 
 		//console.log("Generated Geometry");
 
@@ -448,21 +457,6 @@ export class Map {
 				unit.updateLoc();
 			}
 		}
-	}
-
-	addToRender() {
-		throw new Error("depriciated");
-		if (!display) {
-			console.log('error: display not initialized when adding map!');
-			return;
-		}
-		for (var mesh of this.landMeshes) {
-			display.addMesh(mesh);
-		}
-		for (var mesh of this.waterMeshes) {
-			display.addMesh(mesh);
-		}
-		console.log('added map to scene');
 	}
 
 	/**
@@ -479,12 +473,12 @@ export class Map {
 		return null;
 	}
 
-	nearestStorage(tile: PlanetLoc): Storage | null {
+	nearestStorage(tile: PlanetLoc): ?Storage {
 		var storages = [];
 		if (!playerInfo || !tile)
 			return;
 		for (var unit of this.units) {
-			if (unit.type == 'storage' && unit.playerId == playerInfo.id) {
+			if (unit instanceof Storage && unit.playerId == playerInfo.id) {
 				storages.push(unit);
 			}
 		}
@@ -499,9 +493,11 @@ export class Map {
 
 
 	updateUnitDestination(unitId: string, newLocation: Array < number > , time: number) {
-		var unit = this.getUnitById(unitId);
+		const unit = this.getUnitById(unitId);
+		const x = newLocation[0];
+		const y = newLocation[1];
 		if (unit && unit.updateNextMove) {
-			var tile = new PlanetLoc(unit.location.planet, newx, newy);
+			var tile = new PlanetLoc(unit.location.planet, x, y);
 			return unit.updateNextMove(tile, time);
 		}
 		if (!unit) {
@@ -555,7 +551,7 @@ export class Map {
 
 	getSelectedUnits(mouseStart: THREE.Vector2, mouseEnd: THREE.Vector2): Array<Entity> {
 		if (!display) {
-			return null;
+			return [];
 		}
 		var maxX = Math.max(mouseStart.x,mouseEnd.x);
 		var minX = Math.min(mouseStart.x,mouseEnd.x);
@@ -572,16 +568,18 @@ export class Map {
 		return unitList;
 	}
 
-	toScreenPosition(obj){
-    var vector = new THREE.Vector3();
+	toScreenPosition(obj: THREE.Mesh): THREE.Vector3{
+	    var vector = new THREE.Vector3();
 
-    obj.updateMatrixWorld();
-    vector.setFromMatrixPosition(obj.matrixWorld);
-    vector.project(display.camera);
+	    obj.updateMatrixWorld();
+	    vector.setFromMatrixPosition(obj.matrixWorld);
+		if (display) {
+		    vector.project(display.camera);
+		}
 
-    return vector;
+	    return vector;
 
-};
+	};
 
 	/*
 	//get units between 2 squares
@@ -605,9 +603,9 @@ export class Map {
 	}
 	*/
 
-	getSelectedUnitsInView() {
-		if (!display) {
-			return null;
+	getSelectedUnitsInView(): Array<Entity> {
+		if (!display || !playerInfo) {
+			return [];
 		}
 		display.camera.updateMatrix(); // make sure camera's local matrix is updated
 		display.camera.updateMatrixWorld(); // make sure camera's world matrix is updated
@@ -619,7 +617,7 @@ export class Map {
 
 		frustum.setFromMatrix( new THREE.Matrix4().multiplyMatrices( display.camera.projectionMatrix, display.camera.matrixWorldInverse ) );
 
-		var unitList = [];
+		var unitList: Array<Entity> = [];
 		for (var unit of this.units)  {
 			if (frustum.containsPoint(unit.location.getVec()) && unit.playerId == playerInfo.id) {
 				unitList.push(unit);
@@ -634,13 +632,13 @@ export class Map {
 		}
 	}
 
-	getChunksAroundTile(tile) {
-		var chunks = [];
+	getChunksAroundTile(tile: PlanetLoc): Array<string> {
+		var chunks:Array<string> = [];
 		for (var i = -this.viewRange; i < this.viewRange; i++) {
 			for (var j = -this.viewRange; j < this.viewRange; j++) {
 				if (Math.sqrt(i * i + j * j) < this.viewRange) {
-					var chunkX = tile.chunkX + i;
-					var chunkY = tile.chunkY + j;
+					let chunkX = tile.chunkX + i;
+					let chunkY = tile.chunkY + j;
 					chunks.push(chunkX + ":" + chunkY);
 				}
 			}
@@ -648,8 +646,8 @@ export class Map {
 		return chunks;
 	}
 
-	getUnloadedChunks(chunks) {
-		var notLoaded = [];
+	getUnloadedChunks(chunks: Array<string>) {
+		var notLoaded: Array<string> = [];
 		for (var chunk of chunks) {
 			if (!this.chunkMap[chunk]) {
 				notLoaded.push(chunk);
@@ -658,12 +656,12 @@ export class Map {
 		return notLoaded;
 	}
 
-	loadChunksNearTile(tile) {
+	loadChunksNearTile(tile: PlanetLoc):void {
 		var chunks = this.getUnloadedChunks(this.getChunksAroundTile(tile));
-		for (var chunk of chunks) {
-			var x = chunk.split(":")[0];
-			var y = chunk.split(":")[1];
-			var cacheChunk = this.chunkCache[chunk];
+		for (let chunk of chunks) {
+			let x = parseInt(chunk.split(":")[0]);
+			let y = parseInt(chunk.split(":")[1]);
+			let cacheChunk = this.chunkCache[chunk];
 			if (cacheChunk) {
 				this.chunkMap[chunk] = cacheChunk;
 				this.generateChunk(x,y,cacheChunk);
@@ -673,8 +671,8 @@ export class Map {
 		}
 	}
 
-	getUnitsOnChunk(chunkHash) {
-		let unitsOnChunk = [];
+	getUnitsOnChunk(chunkHash: string): Array<Entity> {
+		let unitsOnChunk: Array<Entity> = [];
 		for (let unit of this.units) {
 			let unitChunkHash = unit.location.chunkX + ":" + unit.location.chunkY;
 			if (chunkHash === unitChunkHash) {
@@ -684,10 +682,10 @@ export class Map {
 		return unitsOnChunk;
 	}
 
-	unloadChunksNearTile(tile) {
-		for (var hash in this.chunkMap) {
-			var x = hash.split(":")[0];
-			var y = hash.split(":")[1];
+	unloadChunksNearTile(tile: PlanetLoc): void {
+		for (let hash in this.chunkMap) {
+			let x = parseInt(hash.split(":")[0]);
+			let y = parseInt(hash.split(":")[1]);
 			var xdist = Math.abs(tile.chunkX - x);
 			var ydist = Math.abs(tile.chunkY - y);
 			if (Math.sqrt(xdist * xdist + ydist * ydist) > this.unloadRange) {
@@ -707,8 +705,10 @@ export class Map {
 				if (index != -1){
 					this.waterMeshes.splice(index,1);
 				}
-				display.removeMesh(chunk.landMesh);
-				display.removeMesh(chunk.waterMesh);
+				if (display) {
+					display.removeMesh(chunk.landMesh);
+					display.removeMesh(chunk.waterMesh);
+				}
 				chunk.landMesh = null;
 				chunk.waterMesh = null;
 				delete this.chunkMap[hash];

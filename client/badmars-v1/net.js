@@ -215,7 +215,7 @@ export class Net {
 							type: "spawn"
 						}));
 					} else if (data.type === 'units' || data.type === 'getUnits') {
-						console.log('got units');
+						//console.log('got units');
 						if (window.addUnit) {
 							if (!data.units) {
 								console.error('invalid unit payload');

@@ -9,6 +9,7 @@ var r = require('rethinkdb');
 var Unit = require('../unit/unit.js');
 var db = require("./db.js");
 var env = require('../config/env.js');
+var logger = require('../util/logger.js');
 
 class DBUnit {
 
@@ -30,10 +31,14 @@ class DBUnit {
 						primaryKey: 'uuid'
 					}).run(self.conn).then(() => {
 						console.log("adding tile hash index");
-						return r.table(tableName).indexCreate("tileHash", {multi: true}).run(self.conn);
+						return r.table(tableName).indexCreate("tileHash", {
+							multi: true
+						}).run(self.conn);
 					}).then(() => {
 						console.log("adding chunk hash index");
-						return r.table(tableName).indexCreate("chunkHash", {multi: true}).run(self.conn);
+						return r.table(tableName).indexCreate("chunkHash", {
+							multi: true
+						}).run(self.conn);
 					}).then(() => {
 						console.log("adding lastTick index");
 						return r.table(tableName).indexCreate("lastTick").run(self.conn);
@@ -48,34 +53,41 @@ class DBUnit {
 	}
 
 	listUnits() {
-		return this.table.run(this.conn).then((cursor) => {
-			return cursor.toArray();
+		let profile = logger.startProfile('listUnits');
+		return this.table.run(this.conn).coerceTo('array').then((array) => {
+			logger.endProfile(profile);
+			return array;
 		});
 	}
 
-	listPlayersUnits(owner) {
-		return this.table.filter(r.row('owner').eq(owner)).run(this.conn).then((cursor) => {
-			return cursor.toArray();
-		});
+	async listPlayersUnits(owner) {
+		let profile = logger.startProfile('listPlayersUnits');
+		let array = await this.table.filter(r.row('owner').eq(owner)).coerceTo('array').run(this.conn);
+		logger.endProfile(profile);
+		return array;
 	}
 
-	addUnit(unit) {
-		return this.table.insert(unit, {
+	async addUnit(unit) {
+		let profile = logger.startProfile('addUnit');
+		let delta = await this.table.insert(unit, {
 			returnChanges: true
-		}).run(this.conn).then((delta) => {
-			return delta.changes[0].new_val;
-		});
+		}).run(this.conn);
+		logger.endProfile(profile);
+		return delta.changes[0].new_val;
 	}
 
-	getUnit(uuid) {
-		var self = this;
-		return this.table.get(uuid).run(this.conn).then((doc) => {
-			return self.loadUnit(doc);
-		});
+	async getUnit(uuid) {
+		let profile = logger.startProfile('getUnit');
+		let doc = await this.table.get(uuid).run(this.conn);
+		logger.endProfile(profile);
+		return this.loadUnit(doc);
 	}
 
-	updateUnit(uuid, patch) {
-		return this.table.get(uuid).update(patch).run(this.conn);
+	async updateUnit(uuid, patch) {
+		let profile = logger.startProfile('updateUnit');
+		let result = await this.table.get(uuid).update(patch).run(this.conn);
+		logger.endProfile(profile);
+		return result;
 	}
 
 	saveUnit(unit) {
@@ -141,12 +153,10 @@ class DBUnit {
 	}
 
 	addFactoryOrder(uuid, order) {
-		return this.table.get(uuid).update(
-			{
-				factoryQueue: r.row('factoryQueue').append(order),
-				awake: true
-			}
-		).run(this.conn);
+		return this.table.get(uuid).update({
+			factoryQueue: r.row('factoryQueue').append(order),
+			awake: true
+		}).run(this.conn);
 	}
 
 	//would be nice if i could combine
@@ -155,8 +165,8 @@ class DBUnit {
 	//and unprocessed atomicly picks off a unit
 	registerPathListener(func) {
 		return this.table.filter(r.row.hasFields('destination'))
-		  .filter(r.row('isPathing').eq(false))
-		  .filter(r.row('path').eq([]))
+			.filter(r.row('isPathing').eq(false))
+			.filter(r.row('path').eq([]))
 			.changes().run(this.conn).then((cursor) => {
 				cursor.each(func);
 			})
@@ -165,13 +175,16 @@ class DBUnit {
 	getUnprocessedPath() {
 		//TODO: should branch during the update making sure that isPathing is false in an atomic fashion
 		return this.table.filter(r.row.hasFields('destination'))
-		  .filter(r.row('isPathing').eq(false))
-		  .filter(r.row('path').eq([]))
+			.filter(r.row('isPathing').eq(false))
+			.filter(r.row('path').eq([]))
 			.limit(env.pathChunks)
 			.update({
 				isPathing: true,
 				pathUpdate: (new Date()).getTime()
-			},{durability: 'hard', returnChanges: true}).run(this.conn);
+			}, {
+				durability: 'hard',
+				returnChanges: true
+			}).run(this.conn);
 	}
 
 	getUnprocessedUnits(tick) {

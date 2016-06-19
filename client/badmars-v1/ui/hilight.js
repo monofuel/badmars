@@ -46,7 +46,7 @@ export class Hilight {
 		this.color = 0xDC1403;
 	}
 
-	setDeconstruct(bool) {
+	setDeconstruct(bool: boolean) {
 		this.deconstruct = bool;
 	}
 
@@ -60,7 +60,11 @@ export class Hilight {
 			var thisHilight = this;
 
 			setMouseActions(null, (event) => {
-				var mouse = new THREE.Vector2();
+				if (!display || !display.renderer || !map) {
+					return;
+				}
+
+				let mouse = new THREE.Vector2();
 				mouse.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1
 				mouse.y = -(event.clientY / display.renderer.domElement.clientHeight) * 2 + 1
 				var selectedTile = map.getTileAtRay(mouse);
@@ -120,7 +124,7 @@ export class Hilight {
 		}
 
 		if (!this.enabled) {
-			if (this.hilightPlane) {
+			if (this.hilightPlane && display) {
 				display.removeMesh(this.hilightPlane);
 				this.hilightPlane = null;
 			}

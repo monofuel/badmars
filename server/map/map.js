@@ -101,27 +101,24 @@ class Map {
 	async factoryMakeUnit(unitType,owner,x,y) {
 		let newUnit = new Unit(unitType, this, x, y);
 		newUnit.owner = owner;
-		await this.spawnUnit(newUnit);
-		return newUnit;
+		newUnit.ghosting = false;
+		return await this.spawnUnit(newUnit);
 	}
 
 	async spawnUnit(newUnit) {
-		//console.log('spawning unit: ' + newUnit.type);
-		//console.log('unit tiles: ' + newUnit.tileHash.length);
+		console.log('spawning unit: ' + newUnit.type);
+		console.log('unit tiles: ' + newUnit.tileHash.length);
 		for (let tileHash of newUnit.tileHash) {
 			if (!await this.checkValidForUnit( await this.getLocFromHash(tileHash),newUnit)) {
-				//console.log('attempted to spawn unit where unit exists');
 				return false;
 			} else {
 				//console.log('valid tile for unit: ' + tileHash);
 			}
 		}
-		await db.units[this.name].addUnit(newUnit);
-		return true;
+		return await db.units[this.name].addUnit(newUnit);
 	}
 
 	async checkValidForUnit(tile, unit) {
-
 		//TODO handle air and water units
 		if (tile.tileType !== Tiletypes.LAND) {
 			return false;
@@ -166,8 +163,6 @@ class Map {
 		if (units.length === 0) {
 			return true;
 		}
-
-
 		return units.length === 1 && unit.uuid === units[0].uuid;
 	}
 
@@ -521,9 +516,11 @@ class Map {
 			return center;
 		} else {
 			//check if the unit is already on this tile
-			for (let unit2 of unitsOnTile) {
-				if (unit.uuid === unit2.uuid) {
-					return center;
+			if (unit) {
+				for (let unit2 of unitsOnTile) {
+					if (unit.uuid === unit2.uuid) {
+						return center;
+					}
 				}
 			}
 		}
@@ -538,23 +535,34 @@ class Map {
 		for (let tile of open) {
 			tile.cost = tile.distance(center);
 		}
-
+		let closed = [];
+		let newOpened = [];
 		while (true) {
+			for (let newOpen of newOpened) {
+				open.push(newOpen);
+			}
+			newOpened = [];
+
 			open.sort((a,b) => {
 				return a.cost - b.cost;
 			});
-
+			console.log('OPEN TILES',open.length);
 			for (let openTile of open) {
-				let unitsOnTile = await this.unitsOnTile(openTile,includeGhosts);
+				if (containsTile(closed,openTile)) {
+					continue;
+				}
+				let unitsOnTile = await this.unitsTileCheck(openTile,includeGhosts);
 				if (unitsOnTile.length !== 0) {
+					closed.push(openTile);
 					continue;
 				}
 				if (openTile.tileType !== Tiletypes.LAND) {
+					closed.push(openTile);
 					continue;
 				}
 				return openTile;
 			}
-
+			console.log('ADDING NEW OPEN TILES');
 			for (let tile of open) {
 				let neighbors = [
 					await tile.N(),
@@ -567,7 +575,7 @@ class Map {
 						continue;
 					}
 					neighbor.cost = neighbor.distance(center);
-					open.push(neighbor);
+					newOpened.push(neighbor);
 				}
 			}
 		}

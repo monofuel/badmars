@@ -41,6 +41,9 @@ export function getSound(name: string): ? SoundInfo {
 export function loadAllSounds() {
   console.log("loading sounds");
   var listener = new THREE.AudioListener();
+  if (!display) {
+	  return;
+  }
   display.camera.add(listener);
 	for (var unitInfo of soundMap) {
     unitInfo.sound = new THREE.PositionalAudio(listener);

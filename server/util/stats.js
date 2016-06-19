@@ -11,16 +11,47 @@ var logger = require('./logger.js');
 var avgStats = {};
 var sumStats = {};
 
+var runningProfiles = {};
+var profileCount = {};
+
 exports.init = () => {
 	setInterval(reportStats, env.statReportRate * 60 * 1000);
 };
 
-exports.addAverageStat = (key, value) => {
+exports.startProfile = (name) => {
+	let key = name + Math.random();
+	runningProfiles[key] = {
+		name: name,
+		key: key,
+		startTime: (new Date()).getTime()
+	};
+
+	return key;
+}
+exports.endProfile = (key) => {
+
+	let profileRun = runningProfiles[key];
+	let name = profileRun.name;
+	profileRun.endTime = (new Date()).getTime();
+	profileRun.delta = profileRun.endTime - profileRun.startTime;
+	addAverageStat(profileRun.name,profileRun.delta);
+
+	if (!profileCount[name]) {
+		profileCount[name] = 1;
+	} else {
+		profileCount[name]++;
+	}
+}
+
+function addAverageStat(key, value) {
 	if (!avgStats[key]) {
 		avgStats[key] = [];
 	}
 	avgStats[key].push(value);
 };
+
+
+exports.addAverageStat = addAverageStat;
 
 exports.addSumStat = (key, value) => {
 	if (!sumStats[key]) {
@@ -39,7 +70,7 @@ function reportStats() {
 			avg += i;
 		}
 		avg /= array.length;
-		stats[key] = avg;
+		stats['avg:' + key] = avg;
 	}
 	avgStats = {};
 	for (let key of Object.keys(sumStats)) {
@@ -48,8 +79,13 @@ function reportStats() {
 		for (let i of array) {
 			avg += i;
 		}
-		stats[key] = avg;
+		stats['sum:' + key] = avg;
 	}
 	sumStats = {};
+
+	for (let key of Object.keys(profileCount)) {
+		stats['executions:' + key] = profileCount[key];
+	}
+
 	logger.info('stats',stats,false); //set to true after testing
 };

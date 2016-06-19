@@ -7,6 +7,8 @@
 //map of keys to an array of functions to call
 var listeners = {};
 
+//TODO flow type event types and their objects
+
 
 export function registerBusListener(eventType: string, listener: Function) {
 	console.log("registering " + eventType + " bus listener");

@@ -37,6 +37,8 @@ function unhandled(err) {
 
 exports.addAverageStat = stats.addAverageStat;
 exports.addSumStat = stats.addSumStat;
+exports.startProfile = stats.startProfile;
+exports.endProfile = stats.endProfile;
 
 //==================================================================
 // logging methods

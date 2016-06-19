@@ -29,7 +29,6 @@ async function createGhost(client,data) {
 		let unit = new Unit(data.unitType,map,data.location[0],data.location[1]);
 		unit.ghosting = true;
 		unit.owner = client.user.uuid;
-		console.log(unit);
 		let success = await map.spawnUnit(unit);
 
 		if (success) {

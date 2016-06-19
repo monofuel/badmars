@@ -28,14 +28,16 @@ export class PlanetLoc {
 	real_z: number;
 	tileType: Symbol;
 	corners: Array<number>;
-	chunk;
+	chunk: Object;
+	chunkX: number;
+	chunkY: number;
 
 	/**
 	 * @param  {Map}     The map this location is on
 	 * @param  {Number}  The X coordinate
 	 * @param  {Number}  The Y coordinate
 	 */
-	constructor(planet: Map, x: number, y: number, skipChunk: boolean) {
+	constructor(planet: Map, x: number, y: number, skipChunk: ?boolean) {
 			this.planet = planet;
 
 			//TODO should refer to the local x as local_x and real_x as just regular x
@@ -43,24 +45,22 @@ export class PlanetLoc {
 			this.real_x = Math.floor(x);
 			this.real_y = Math.floor(y);
 
-			var chunkX = Math.floor(this.real_x / this.planet.worldSettings.chunkSize);
-			var chunkY = Math.floor(this.real_y / this.planet.worldSettings.chunkSize);
-			this.x = this.real_x - (chunkX * this.planet.worldSettings.chunkSize);
-			this.y = this.real_y - (chunkY * this.planet.worldSettings.chunkSize);
+			this.chunkX = Math.floor(this.real_x / this.planet.worldSettings.chunkSize);
+			this.chunkY = Math.floor(this.real_y / this.planet.worldSettings.chunkSize);
+			this.x = this.real_x - (this.chunkX * this.planet.worldSettings.chunkSize);
+			this.y = this.real_y - (this.chunkY * this.planet.worldSettings.chunkSize);
 
 			if (this.x < 0) {
 				this.x = this.x + this.planet.worldSettings.chunkSize;
-				chunkX--;
+				this.chunkX--;
 			}
 
 			if (this.y < 0) {
 				this.y = this.y + this.planet.worldSettings.chunkSize;
-				chunkY--;
+				this.chunkY--;
 			}
-			this.chunkX = chunkX;
-			this.chunkY = chunkY;
 
-			this.chunk = this.planet.chunkMap[chunkX + ":" + chunkY];
+			this.chunk = this.planet.chunkMap[this.chunkX + ":" + this.chunkY];
 
 			if (!planet || !planet.chunkMap) {
 				console.log('invalid call to PlanetLoc');
@@ -71,10 +71,10 @@ export class PlanetLoc {
 			}
 			if (!this.chunk) {
 				console.log("tile on not loaded chunk: " + this.real_x + "," + this.real_y);
-				console.log('chunk hash: ' + chunkX + ":" + chunkY);
+				console.log('chunk hash: ' + this.chunkX + ":" + this.chunkY);
 				if (!skipChunk) {
 					console.log('requesting');
-					window.sendMessage({type:"getChunk",x:chunkX,y:chunkY});
+					window.sendMessage({type:"getChunk",x:this.chunkX,y:this.chunkY});
 				}
 				return;
 			}
@@ -83,7 +83,7 @@ export class PlanetLoc {
 			this.y < 0 || this.y > this.planet.worldSettings.chunkSize) {
 				console.log("invalid tile: " + this.real_x + "," + this.real_y);
 				console.log("local coords: " + this.x + "," + this.y);
-				console.log('chunk hash: ' + chunkX + ":" + chunkY);
+				console.log('chunk hash: ' + this.chunkX + ":" + this.chunkY);
 			}
 
 			window.debug.chunk = this.chunk;
@@ -127,7 +127,7 @@ export class PlanetLoc {
 
 		}
 
-	distance(tile){
+	distance(tile: PlanetLoc): number{
 		var deltaX = Math.abs(this.real_x - tile.real_x);
 		var deltaY = Math.abs(this.real_y - tile.real_y);
 

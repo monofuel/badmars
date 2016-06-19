@@ -169,7 +169,7 @@ class Unit {
 	async takeIron(amount) {
 		let table = db.units[this.map].getTable();
 		let conn =  db.units[this.map].getConn();
-		let result = await table.get(this.uuid).update((self) => {
+		let delta = await table.get(this.uuid).update((self) => {
 		  return r.branch(
 		    self('iron').ge(amount),
 		    {iron: self('iron').sub(amount)},
@@ -177,10 +177,14 @@ class Unit {
 		  )
 		}, {returnChanges: true}).run(conn);
 
-		if (result.replaced === 0) {
+		if (delta.replaced === 0) {
 			return false;
 		} else {
 			this.iron -= amount;
+			if (this.iron != delta.changes[0].new_val.iron) {
+				console.log('IRON UPDATE FAIL');
+				console.log(delta.changes[0].new_val)
+			}
 			return true;
 		}
 	}
@@ -188,7 +192,7 @@ class Unit {
 	async takeFuel(amount) {
 		let table = db.units[this.map].getTable();
 		let conn =  db.units[this.map].getConn();
-		let result = await table.get(this.uuid).update((self) => {
+		let delta = await table.get(this.uuid).update((self) => {
 		  return r.branch(
 		    self('fuel').ge(amount),
 		    {fuel: self('fuel').sub(amount)},
@@ -196,10 +200,14 @@ class Unit {
 		  )
 		}, {returnChanges: true}).run(conn);
 
-		if (result.replaced === 0) {
+		if (delta.replaced === 0) {
 			return false;
 		} else {
 			this.fuel -= amount;
+			if (this.fuel != delta.changes[0].new_val.fuel) {
+				console.log('FUEL UPDATE FAIL');
+				console.log(delta.changes[0].new_val)
+			}
 			return true;
 		}
 	}

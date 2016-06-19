@@ -39,12 +39,9 @@ async function simulateBuilding(unit,map) {
 		return false;
 	}
 	console.log('simulating factory');
-	console.log(unit.factoryQueue);
 	let newUnitType = unit.factoryQueue[0].type;
 	let unitInfo = unit.getTypeInfo(newUnitType);
 	console.log('building: ' + newUnitType);
-
-	unit.factoryQueue[0].cost = 0;
 
 	if (unit.factoryQueue[0].cost > 0) {
 		if (await map.pullIron(unit,unit.factoryQueue[0].cost)) {
@@ -58,22 +55,23 @@ async function simulateBuilding(unit,map) {
 	}
 	if (unit.factoryQueue[0].cost === 0) {
 		if (unit.factoryQueue[0].remaining > 0) {
-			//unit.factoryQueue[0].remaining--;
-			unit.factoryQueue[0].remaining = 0;
+			unit.factoryQueue[0].remaining--;
 			await unit.updateUnit({
 				factoryQueue: unit.factoryQueue
 				});
 		} else {
 			let newUnitData = await unit.popFactoryOrder();
+			console.log(newUnitData);
 			let tile = await map.getLoc(unit.x,unit.y);
-			console.log()
-			let newTile = await map.getNearestFreeTile(tile,unit);
-			console.log(newTile.x,',',newTile.y);
+			let newTile = await map.getNearestFreeTile(tile);
 
-			console.log('units left: ', unit.factoryQueue.length);
+			//if spawn fails, should re-try with a new location
 			let result = await map.factoryMakeUnit(newUnitType,unit.owner,newTile.x,newTile.y);
-			console.log(result);
-			console.log('factory creating unit');
+			if (result) {
+				console.log('factory created ',newUnitType);
+			} else {
+				console.log('factory failed to create ',newUnitType);
+			}
 		}
 	}
 

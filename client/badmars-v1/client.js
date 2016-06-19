@@ -31,13 +31,7 @@ import {
 import {
 	loadAllSounds
 } from "./audio/sound.js";
-
-import {
-	LoginModal
-} from "./ui/login.js";
-import {
-	HUD
-} from "./ui/hud.js";
+import HUD from "./ui/hud.jsx";
 
 import {
 	registerBusListener,
@@ -81,12 +75,12 @@ var mouseClick: ? Function;
 var mouseMove: ? Function;
 var keysDown = [];
 var isMouseDown = false;
-var dragStart = [];
-var dragEnd = [];
-var dragCurrent = [];
+var dragStart = {x: 0, y: 0};
+var dragEnd = {x: 0, y: 0};
+var dragCurrent = {x: 0, y: 0};
 var ctrlKey = false;
 export var selectedUnit: ? Entity;
-export var selectedUnits = [];
+export var selectedUnits: ?Array<Entity> = [];
 export var transferUnit: ? Entity;
 var selectedTile: ? PlanetLoc;
 var statsMonitor: StatsMonitor;
@@ -94,10 +88,9 @@ export var username;
 export var playerInfo: ? Object;
 export var firstLoad = true;
 export var apiKey: String;
-var loginModal;
-var hud;
-var hudPanel;
-var hudContext;
+var hud: HUD;
+var hudPanel: HTMLCanvasElement;
+var hudContext: any; //flow sucks at getContext()
 export var hilight;
 
 export var hudClick = false;
@@ -152,10 +145,26 @@ window.onload = function () {
 	net = new Net();
 	hilight = new Hilight();
 	window.debug.fireBusEvent = fireBusEvent;
-	hudPanel = document.getElementById('HUDPanel');
-	hudPanel.width = display.renderer.domElement.clientWidth;
-	hudPanel.height = display.renderer.domElement.clientHeight;
-	hudContext = hudPanel.getContext("2d");
+	let panelElement = document.getElementById('HUDPanel');
+	if (panelElement instanceof HTMLCanvasElement) {
+		hudPanel = panelElement;
+		hudPanel.width = display.renderer.domElement.clientWidth;
+		hudPanel.height = display.renderer.domElement.clientHeight;
+		hudContext = hudPanel.getContext("2d");
+	} else {
+		//TODO should probably log this to analytics
+		console.error('failed to get canvas');
+		return;
+	}
+
+	console.log("rendering HUD");
+	let hudComponent = ReactDOM.render(<HUD/>,document.getElementById("content"));
+	if (hudComponent instanceof HUD) {
+		hud = hudComponent;
+	}
+
+	registerListener('error',errorListener);
+
 	loadAllSounds(); //TODO should be done async probably
 	loadAllModelsAsync()
 		.then(() => {
@@ -208,8 +217,7 @@ window.onload = function () {
 	window.onresize = () => {
 		display.resize();
 	};
-
-	document.body.addEventListener('keydown', (key: any) => {
+	let keyDownHandler: EventHandler = (key: any): void => {
 		if (checkMenuFocus()) {
 			return;
 		}
@@ -239,9 +247,11 @@ window.onload = function () {
 					break;
 			}
 		}
-	});
+	};
 
-	document.body.addEventListener('keyup', (key: any) => {
+	document.body.addEventListener('keydown',keyDownHandler);
+
+	 let keyUpHandler: EventHandler = (key: any): void => {
 		if (checkMenuFocus()) {
 			return;
 		}
@@ -250,15 +260,18 @@ window.onload = function () {
 		if (index != -1) {
 			keysDown.splice(index, 1);
 		}
-	});
+	};
+
+	document.body.addEventListener('keyup',keyUpHandler);
 
 	//block right click menu
-	document.body.addEventListener('contextmenu', (event: any) => {
+	let contextMenuHandler: EventHandler = (event: any): boolean => {
 		event.preventDefault();
 		return false;
-	});
+	};
+	document.body.addEventListener('contextmenu',contextMenuHandler);
 
-	document.body.addEventListener('mousemove', (event: any) => {
+	let mouseMoveHandler: EventHandler = (event: any): void => {
 		if (isMouseDown) {
 			//event.preventDefault();
 			dragCurrent = new THREE.Vector2();
@@ -272,9 +285,10 @@ window.onload = function () {
 					mouseMove(event);
 				return;
 		}
-	});
+	};
+	document.body.addEventListener('mousemove',mouseMoveHandler);
 
-	document.body.addEventListener('mousedown', (event: any) => {
+	let mouseDownHandler: EventHandler = (event: any) => {
 		unsetHudClick();
 		switch (event.button) {
 			case LEFT_MOUSE:
@@ -285,9 +299,11 @@ window.onload = function () {
 				dragCurrent = dragStart;
 				break;
 		}
-	});
+	};
 
-	document.body.addEventListener('mouseup', (event: any) => {
+	document.body.addEventListener('mousedown',mouseDownHandler);
+
+	let mouseUpHandler: EventHandler = (event: any) => {
 		//event.preventDefault();
 		setTimeout(() => { //hacky fix to make sure this always runs after hud onmouseup
 
@@ -311,7 +327,10 @@ window.onload = function () {
 							buttonMode = MODE_MOVE;
 							mouseClick = function (tile) {
 								console.log(tile);
-								for (var unit of selectedUnits) {
+								if (!selectedUnits) {
+									return;
+								}
+								for (let unit of selectedUnits) {
 									net.send({
 										type: "setDestination",
 										unitId: unit.uuid,
@@ -332,11 +351,10 @@ window.onload = function () {
 				case LEFT_MOUSE:
 					if (buttonMode == MODE_FOCUS) {
 						selectedTile = map.getTileAtRay(mouse);
-						if (selectedTile && mouseClick)
+						if (selectedTile && mouseClick) {
 							 mouseClick(selectedTile);
-						break;
-						buttonMode = MODE_MOVE;
-				 }
+						 }
+				 	}
 
 					var unit = map.getSelectedUnit(mouse);
 					if (unit) {
@@ -370,10 +388,10 @@ window.onload = function () {
 					if (buttonMode == MODE_MOVE) {
 						selectedTile = map.getTileAtRay(mouse);
 						var unit = map.getSelectedUnit(mouse);
-						if (unit && unit.playerId == playerInfo.id) {
+						if (unit && playerInfo && unit.playerId == playerInfo.id) {
 							console.log('right clicked players own unit');
 							transferUnit = unit;
-							hud.updateTransferUnit(transferUnit);
+							//hud.updateTransferUnit(transferUnit);
 						}
 						if (selectedTile && mouseClick) {
 							mouseClick(selectedTile);
@@ -384,7 +402,8 @@ window.onload = function () {
 					break;
 			}
 		},0);
-	},false);
+	};
+	document.body.addEventListener('mouseup', mouseUpHandler,false);
 };
 
 function logicLoop() {
@@ -420,6 +439,9 @@ function handleInput() {
 					window.debug.selectedUnits = selectedUnits;
 					buttonMode = MODE_MOVE;
 					mouseClick = function (tile) {
+						if (!selectedUnits) {
+							return;
+						}
 						for (var unit of selectedUnits) {
 							net.send({
 								type: "setDestination",
@@ -516,11 +538,9 @@ function zoomToNextUnit() {
 
 function promptLogin() {
 	console.log('prompting for login');
-	loginModal = ReactDOM.render(<LoginModal/>,document.getElementById("content"));
+	hud.setLoginState(true);
 	//TODO get a list of planets to select from
-	$('#colorField')
-		.val((Math.round(Math.random() * 0xffffff))
-			.toString(16));
+
 	//login window takes focus from the game
 	buttonMode = MODE_FOCUS;
 }
@@ -531,7 +551,8 @@ var moveListener = (data) => {
 	}
 }
 
-var errorListener = (msg) => {
+function errorListener(msg: string) {
+	console.log('displaying error: ',msg);
   hud.updateErrorMessage(msg);
 }
 
@@ -559,12 +580,40 @@ var loginListener = (data) => {
 	}
 };
 
-window.login = function () {
-	username = $("#usernameField")
-		.val();
+export function construct(unitType: string) {
+	console.log('adding mouse click function for ' + unitType);
+	setMouseActions((selectedTile) => {
+		var type = unitType;
+		if (hilight) {
+			if (type != 'cancel') {
+				console.log('building ' + unitType);
+				hilight.setDeconstruct(false);
+			} else {
+				hilight.setDeconstruct(true);
+			}
+		}
+
+		var newLoc = [
+			Math.floor(selectedTile.real_x),
+			Math.floor(selectedTile.real_y)
+		];
+		let createGhost = {type: 'createGhost', unitType: unitType, location: newLoc};
+		console.log(createGhost);
+		window.sendMessage(createGhost);
+	});
+}
+
+export function factoryOrder(unitType: string) {
+	console.log('factoryOrder ' + unitType);
+	if (selectedUnit) {
+		window.sendMessage({type: 'factoryOrder', factory: selectedUnit.uuid, unitType: unitType});
+	}
+}
+
+export function login(name: string,color: string) {
+	//TODO get rid of username global
+	username = name;
 	console.log("username: ", username);
-	var color = $("#colorField")
-		.val();
 	console.log("color: ", color);
 	//when successful
 
@@ -604,20 +653,10 @@ window.onerror = (msg, url, line, col, error) => {
 
 export function loginSuccess() {
 	console.log("login success");
-	if (loginModal){
-		loginModal.close();
-	}
+	hud.setLoginState(false);
 	deleteListener(loginListener);
 
-	console.log("rendering HUD");
-	hud = ReactDOM.render(<HUD/>,document.getElementById("content"));
-	registerBusListener('error',errorListener);
 	buttonMode = MODE_SELECT;
-
-	var selectedUnitListener = (unit) => {
-	  hud.updateSelectedUnit(unit);
-	}
-	registerBusListener('selectedUnit',selectedUnitListener);
 }
 
 /**
@@ -625,7 +664,7 @@ export function loginSuccess() {
  * @param	{Function}	optional click action
  * @param	{Function}	optional move action
  */
-export function setMouseActions(click: Function, move: Function) {
+export function setMouseActions(click: ?Function, move: ?Function): void {
 	buttonMode = MODE_FOCUS;
 	console.log('setting mouse focus mode');
 	if (click)

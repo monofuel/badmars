@@ -32,6 +32,7 @@ export class GroundUnit extends Entity {
 	fireSound: THREE.PositionalAudio;
 
 	destHilightPlane: THREE.Mesh;
+	hilightPlaneLocation: string;
 
 	constructor(location: PlanetLoc, mesh: THREE.Object3D) {
 		super(location, mesh);
@@ -42,7 +43,7 @@ export class GroundUnit extends Entity {
 
 	}
 
-	fire(enemy) {
+	fire(enemy: any) {
 		if (this.fireSound) {
 			console.log("firing");
 			if (this.fireSound.isPlaying) {
@@ -62,7 +63,7 @@ export class GroundUnit extends Entity {
 	}
 
 	//TODO should be refactored with updateUnitData
-	updateHealth(amount) {
+	updateHealth(amount: number) {
 		this.health = amount;
 	}
 
@@ -117,10 +118,12 @@ export class GroundUnit extends Entity {
 	}
 
 	hilightDestination() {
-		if (this.destination) {
-			let x = this.destination.split(":")[0];
-			let y = this.destination.split(":")[1];
+		if (this.destination && !this.destHilightPlane && this.hilightPlaneLocation !== this.destination) {
+			let destSplit = this.destination.split(":");
+			let x = parseInt(destSplit[0]);
+			let y = parseInt(destSplit[1]);
 			let tile = new PlanetLoc(this.location.planet, x,y);
+			this.hilightPlaneLocation = this.destination;
 
 			var waterHeight = tile.planet.worldSettings.waterHeight + 0.1;
 			var geometry = new THREE.Geometry();
@@ -143,7 +146,7 @@ export class GroundUnit extends Entity {
 				color: 0xB2C248,
 				side: THREE.DoubleSide
 			});
-			if (this.destHilightPlane) {
+			if (this.destHilightPlane && display) {
 				display.removeMesh(this.destHilightPlane);
 			}
 			this.destHilightPlane = new THREE.Mesh(geometry, material);
@@ -151,11 +154,16 @@ export class GroundUnit extends Entity {
 			this.destHilightPlane.position.z = - y;
 			this.destHilightPlane.position.y = 0.2;
 			this.destHilightPlane.rotation.x = -Math.PI / 2;
-			display.addMesh(this.destHilightPlane);
+			if (display) {
+				display.addMesh(this.destHilightPlane);
+			}
 
 		} else {
-			if (this.destHilightPlane) {
-				display.removeMesh(this.destHilightPlane);
+			if (!this.destination && this.destHilightPlane) {
+				if (display) {
+					display.removeMesh(this.destHilightPlane);
+					this.destHilightPlane = null;
+				}
 			}
 		}
 	}

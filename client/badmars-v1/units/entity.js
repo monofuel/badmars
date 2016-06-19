@@ -40,11 +40,12 @@ export class Entity {
 	location: PlanetLoc;
 	mesh: THREE.OBject3D;
 	health: number;
-	selectionCircle: THREE.Object3D | null;
-	transferCircle: THREE.Object3D | null;
-	damageSphere: THREE.Object3D | null;
+	selectionCircle: THREE.Object3D;
+	transferCircle: THREE.Object3D;
+	damageSphere: THREE.Object3D;
 	ghosting: boolean;
 	selectionSize: number;
+	takingDamage: number;
 
 	maxStorage: number;
 	storage: Object;
@@ -136,7 +137,7 @@ export class Entity {
 		}
 	}
 
-	updateUnitData(unit) {
+	updateUnitData(unit: Object) {
 		updateUnit(this);
 		this.health = unit.health;
 		this.storage.iron = unit.iron;
@@ -144,9 +145,11 @@ export class Entity {
 		this.ghosting = unit.ghosting;
 	}
 
-	takeDamage(source) {
+	takeDamage(source: any) {
 		console.log('taking damage');
-		display.removeMesh(this.damageSphere); //TODO ugly hack, restarts animation.
+		if (display) {
+			display.removeMesh(this.damageSphere); //TODO ugly hack, restarts animation
+		}
 		this.takingDamage = 1;
 		this.animateSmoke();
 	}
@@ -159,7 +162,9 @@ export class Entity {
 			this.takingDamage++;
 
 			if (this.takingDamage > 20) {
-				display.removeMesh(this.damageSphere);
+				if (display) {
+					display.removeMesh(this.damageSphere);
+				}
 				this.takingDamage = 0;
 				this.damageSphere = null;
 			}
@@ -213,12 +218,12 @@ export class Entity {
 		console.log('removing ', this.type);
 		if (display) {
 			display.removeMesh(this.mesh);
-		}
-		if (this.selectionCircle) {
-			display.removeMesh(this.selectionCircle);
-		}
-		if (this.damageSphere) {
-			display.removeMesh(this.damageSphere);
+			if (this.selectionCircle) {
+				display.removeMesh(this.selectionCircle);
+			}
+			if (this.damageSphere) {
+				display.removeMesh(this.damageSphere);
+			}
 		}
 		if (this.location) {
 			this.location.planet.removeUnit(this);

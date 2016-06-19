@@ -68,7 +68,7 @@ class Client {
     handleLogOut() {
         logger.info('client closed connection');
         if (this.username) {
-            logger.info(this.username + ' logged out');
+            logger.info('logout',{player: this.username});
         }
         clearInterval(this.keepAlive);
         this.ws = null;
