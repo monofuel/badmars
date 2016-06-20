@@ -8,6 +8,7 @@
 var Map = require('../map/map.js');
 
 var r = require('rethinkdb');
+var logger = require('../util/logger.js');
 
 
 var conn;
@@ -33,18 +34,19 @@ exports.listNames = () => {
 	});
 };
 
-exports.getMap = (name) => {
+exports.getMap = async function getMap(name) {
+	let profile = logger.startProfile('getMap');
 	if (!name) {
 		throw new Error('invalid map get');
 	}
-	return table.get(name).run(conn).then((doc) => {
-		if (!doc) {
-			return null;
-		}
-		var map = new Map();
-		map.clone(doc);
-		return map;
-	});
+	let doc = await table.get(name).run(conn);
+	if (!doc) {
+		return null;
+	}
+	var map = new Map();
+	map.clone(doc);
+	logger.endProfile(profile);
+	return map;
 };
 
 exports.registerListener = (name,func) => {

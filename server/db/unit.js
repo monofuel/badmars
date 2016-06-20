@@ -90,15 +90,19 @@ class DBUnit {
 		return result;
 	}
 
-	saveUnit(unit) {
-		return this.table.get(unit.uuid).update(unit).run(this.conn);
+	async saveUnit(unit) {
+		let profile = logger.startProfile('saveUnit');
+		let result = await this.table.get(unit.uuid).update(unit).run(this.conn);
+		logger.endProfile(profile);
+		return result;
+
 	};
 
 	getUnitAtTile(hash) {
 
 		//TODO find all uses of this function and remove it
-		//console.log('depreciated');
-		//console.log((new Error()).stack);
+		console.log('depreciated');
+		console.log((new Error()).stack);
 
 		var self = this;
 		return this.table.getAll(hash, {
@@ -116,20 +120,22 @@ class DBUnit {
 		});
 	}
 
-	getUnitsAtTile(hash) {
-		var self = this;
-		return this.table.getAll(hash, {
+	async getUnitsAtTile(hash) {
+		let profile = logger.startProfile('getUnitsAtTile');
+		let docs = await this.table.getAll(hash, {
 			index: "tileHash"
-		}).coerceTo('array').run(this.conn).then((docs) => {
-			var unitPromises = [];
-			for (let doc of docs) {
-				unitPromises.push(self.loadUnit(doc));
-			}
-			return Promise.all(unitPromises);
-		});
+		}).coerceTo('array').run(this.conn);
+
+		let units = [];
+		for (let doc of docs) {
+			units.push(await this.loadUnit(doc));
+		}
+		logger.endProfile(profile);
+		return units;
 	}
 
 	async getUnitsAtChunk(x, y) {
+		let profile = logger.startProfile('getUnitsAtChunk');
 		var hash = x + ":" + y;
 		var unitDocs = await this.table.getAll(hash, {
 			index: "chunkHash"
@@ -139,17 +145,18 @@ class DBUnit {
 		for (let doc of unitDocs) {
 			units.push(await this.loadUnit(doc));
 		}
-
+		logger.endProfile(profile);
 		return units;
 
 	}
 
-	loadUnit(doc) {
-		return db.map.getMap(doc.map).then((map) => {
-			var unit = new Unit(doc.type, map, doc.x, doc.y);
-			unit.clone(doc);
-			return unit;
-		});
+	async loadUnit(doc) {
+		let profile = logger.startProfile('loadUnit');
+		let map = await db.map.getMap(doc.map);
+		let unit = new Unit(doc.type, map, doc.x, doc.y);
+		unit.clone(doc);
+		logger.endProfile(profile);
+		return unit;
 	}
 
 	addFactoryOrder(uuid, order) {

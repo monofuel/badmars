@@ -6,6 +6,7 @@
 'use strict';
 
 var db = require('../db/db.js');
+var logger = require('../util/logger.js');
 var Chunk = require("../map/chunk.js");
 var PlanetLoc = require("./planetloc.js");
 
@@ -49,22 +50,23 @@ class Map {
 		this.seed = Math.random();
 	}
 
-	getChunk(x, y) {
-		var self = this;
+	async getChunk(x, y) {
 		var hash = x + ":" + y;
 		if (chunkCache[this.name][hash]) {
-			return new Promise.resolve(chunkCache[this.name][hash]);
+			logger.addSumStat('chunkCacheHit',1);
+			return chunkCache[this.name][hash];
+		} else {
+			logger.addSumStat('chunkCacheMiss',1);
 		}
-		return db.chunks[this.name].getChunk(x, y).then((chunk) => {
-			if (!chunk || !chunk.isValid()) {
-				chunk = new Chunk(x, y, self.name);
-				return chunk.save().then(() => {
-					return chunk;
-				});
-			} else {
-				return chunk;
-			}
-		});
+		let chunk = await db.chunks[this.name].getChunk(x, y);
+
+		if (!chunk || !chunk.isValid()) {
+			logger.addSumStat('generatingChunk',1);
+			chunk = new Chunk(x, y, this.name);
+			await chunk.save();
+		}
+		chunkCache[this.name][hash] = chunk;
+		return chunk;
 	}
 
 
