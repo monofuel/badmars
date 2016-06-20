@@ -89,6 +89,7 @@ export class Map {
 	chunkCache: Object;
 	viewRange: number;
 	unloadRange: number;
+	requestedChunks: Object;
 
 	chunkInterval: number;
 
@@ -100,6 +101,7 @@ export class Map {
 		this.planetData = {};
 		this.chunkMap = {};
 		this.chunkCache = {};
+		this.requestedChunks = {};
 		this.viewRange = 5;
 		this.unloadRange = this.viewRange + 3;
 		var self = this;
@@ -124,6 +126,10 @@ export class Map {
 		this.chunkListener = (data) => {
 			//console.log('loading chunk');
 			var chunk = data.chunk;
+			if (self.chunkMap[data.chunk.hash]) {
+				//console.log('CHUNK ALREADY LOADED');
+				return;
+			}
 			self.chunkMap[data.chunk.hash] = chunk;
 			self.generateChunk(chunk.x,chunk.y,chunk);
 
@@ -632,6 +638,21 @@ export class Map {
 		}
 	}
 
+	requestChunk(x: number, y: number): void {
+		let chunkHash = x + ":" + y;
+		if (this.requestedChunks[chunkHash] &&
+				Date.now() - this.requestedChunks[chunkHash] < 5000) {
+			//console.log('HALTING DUPLICATE CHUNK REQUEST');
+			return;
+		}
+
+		if (!this.requestedChunks[chunkHash]) {
+			this.requestedChunks[chunkHash] = Date.now();
+		}
+		//console.log('FETCHING CHUNK');
+		window.sendMessage({type:"getChunk",x:x,y:y});
+	}
+
 	getChunksAroundTile(tile: PlanetLoc): Array<string> {
 		var chunks:Array<string> = [];
 		for (var i = -this.viewRange; i < this.viewRange; i++) {
@@ -665,6 +686,7 @@ export class Map {
 			if (cacheChunk) {
 				this.chunkMap[chunk] = cacheChunk;
 				this.generateChunk(x,y,cacheChunk);
+				window.sendMessage({type:"getChunk",x:x,y:y,unitsOnly: true});
 			} else {
 				window.sendMessage({type:"getChunk",x:x,y:y});
 			}

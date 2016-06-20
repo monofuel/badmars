@@ -22,7 +22,7 @@ async function simulate(unit,map) {
 		return true;
 	}
 
-	if (!unit.path || unit.path.length === 0) {
+	if (!unit.path || unit.path.length === 0 || !unit.destination) {
 		return false;
 	}
 

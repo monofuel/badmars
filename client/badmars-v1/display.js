@@ -172,7 +172,6 @@ export class Display {
 
 
 	addMesh(mesh: THREE.Object3D) {
-
 		this.scene.add(mesh);
 	}
 

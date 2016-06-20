@@ -30,9 +30,10 @@ export class GroundUnit extends Entity {
 	health: number;
 	maxHealth: number;
 	fireSound: THREE.PositionalAudio;
+	destination: string;
+	hilightDestinationLocation: string;
 
 	destHilightPlane: THREE.Mesh;
-	hilightPlaneLocation: string;
 
 	constructor(location: PlanetLoc, mesh: THREE.Object3D) {
 		super(location, mesh);
@@ -118,12 +119,12 @@ export class GroundUnit extends Entity {
 	}
 
 	hilightDestination() {
-		if (this.destination && !this.destHilightPlane && this.hilightPlaneLocation !== this.destination) {
+		if (this.destination && !this.destHilightPlane && this.hilightDestinationLocation !== this.destination) {
 			let destSplit = this.destination.split(":");
 			let x = parseInt(destSplit[0]);
 			let y = parseInt(destSplit[1]);
 			let tile = new PlanetLoc(this.location.planet, x,y);
-			this.hilightPlaneLocation = this.destination;
+			this.hilightDestinationLocation = this.destination;
 
 			var waterHeight = tile.planet.worldSettings.waterHeight + 0.1;
 			var geometry = new THREE.Geometry();

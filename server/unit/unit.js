@@ -90,6 +90,7 @@ class Unit {
 		//TODO pathing stuff should probably be stored in it's own table
 		this.path = [];
 		this.pathAttempts = 0;
+		this.pathAttemptAttempts = 0;
 		this.isPathing = false;
 		this.pathUpdate = 0;
 
@@ -297,9 +298,19 @@ class Unit {
 
 		if (this.pathAttempts > env.movementAttemptLimit) {
 			await db.units[this.map].updateUnit(this.uuid,{pathAttempts: this.pathAttempts});
+		} else if (this.pathAttemptAttempts > 2) {
+			//totally give up on pathing
+			await this.clearDestination();
 		} else {
 			//blank out the path but leave the destination so that we will re-path
-			await db.units[this.map].updateUnit(this.uuid,{pathAttempts: 0, isPathing: false, awake: true, path: []});
+			this.pathAttemptAttempts++;
+			await db.units[this.map].updateUnit(this.uuid,{
+				pathAttempts: 0,
+				isPathing: false,
+				awake: true,
+				path: [],
+				pathAttemptAttempts: this.pathAttemptAttempts
+			});
 		}
 
 	}
@@ -317,7 +328,7 @@ class Unit {
 	}
 
 	async clearDestination() {
-		return db.units[this.map].updateUnit(this.uuid,{destination: null, isPathing: false, path: []});
+		return db.units[this.map].updateUnit(this.uuid,{destination: null, isPathing: false, path: [], pathAttemptAttempts: 0});
 	}
 
 	async updateUnit(patch) {

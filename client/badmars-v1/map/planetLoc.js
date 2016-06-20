@@ -70,11 +70,11 @@ export class PlanetLoc {
 				return;
 			}
 			if (!this.chunk) {
-				console.log("tile on not loaded chunk: " + this.real_x + "," + this.real_y);
-				console.log('chunk hash: ' + this.chunkX + ":" + this.chunkY);
+				//console.log("tile on not loaded chunk: " + this.real_x + "," + this.real_y);
+				//console.log('chunk hash: ' + this.chunkX + ":" + this.chunkY);
 				if (!skipChunk) {
-					console.log('requesting');
-					window.sendMessage({type:"getChunk",x:this.chunkX,y:this.chunkY});
+					//console.log('requesting');
+					planet.requestChunk(this.chunkX,this.chunkY);
 				}
 				return;
 			}

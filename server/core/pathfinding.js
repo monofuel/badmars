@@ -91,7 +91,13 @@ async function processUnit(unitDoc) {
 	}
 	let destinationX = unit.destination.split(":")[0];
 	let destinationY = unit.destination.split(":")[1];
-	let end = await map.getLoc(destinationX,destinationY);
+	let dest = await map.getLoc(destinationX,destinationY);
+
+	//if the destination is covered, get the nearest valid point.
+	let end = await map.getNearestFreeTile(dest,unit,false);
+	if (!dest.equals(end)) {
+		console.log('tweaking destination');
+	}
 
 	if (start.equals(end)) {
 		await unit.clearDestination();
@@ -117,5 +123,6 @@ async function processUnit(unitDoc) {
 		}
 	} while (true);
 
-	unit.setPath(path);
+	await unit.setPath(path);
+	await unit.updateUnit({destination: end.x + ":" + end.y});
 }

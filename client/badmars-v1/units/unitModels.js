@@ -47,9 +47,9 @@ export function loadAllModelsAsync() : Promise {
 	total = modelMap.length;
 
 	var manager = new THREE.LoadingManager();
-	manager.onProgress = function (item: string, loaded: boolean, total: number) {
-		console.log(item, loaded, total);
-	}
+	//manager.onProgress = function (item: string, loaded: boolean, total: number) {
+		//console.log(item, loaded, total);
+	//}
 	var loader = new THREE.OBJLoader(manager);
 	var allPromises = [];
 	for (var tmp of modelMap) {
@@ -57,7 +57,7 @@ export function loadAllModelsAsync() : Promise {
 			var unitInfo = tmp; //passing variable into promise finnickery
 			loader.load('models/' + unitInfo.fileName,
 				function (model: THREE.Mesh3D) {
-					console.log('loaded model for ', unitInfo.name);
+					//console.log('loaded model for ', unitInfo.name);
 					loaded++;
 					unitInfo.model = model;
 

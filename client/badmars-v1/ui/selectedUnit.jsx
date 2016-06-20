@@ -59,9 +59,9 @@ export default class SelectedUnitWell extends React.Component {
 						<ListGroupItem>Unit: {type}</ListGroupItem>
 						<ListGroupItem>Storage: {iron + fuel} / {maxStorage}</ListGroupItem>
 						<ListGroupItem>Owner: {playerName}</ListGroupItem>
-						<ListGroupItem>Iron: <ProgressBar now={iron} max={iron + freeStorage} label="%(now)s"/></ListGroupItem>
-						<ListGroupItem>Fuel: <ProgressBar now={fuel} max={fuel + freeStorage} label="%(now)s"/></ListGroupItem>
-						<ListGroupItem>Health: <ProgressBar now={health} max={maxHealth} label="%(now)s"/></ListGroupItem>
+						<ListGroupItem>Iron: <ProgressBar now={iron} max={iron + freeStorage} label="%(now)%"/></ListGroupItem>
+						<ListGroupItem>Fuel: <ProgressBar now={fuel} max={fuel + freeStorage} label="%(now)%"/></ListGroupItem>
+						<ListGroupItem>Health: <ProgressBar now={health} max={maxHealth} label="%(now)%"/></ListGroupItem>
 					  </ListGroup>
 					</Well>
 				</div>

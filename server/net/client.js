@@ -11,6 +11,8 @@ var logger = require('../util/logger.js');
 var authHandler = require('../net/handler/auth.js');
 var _ = require('underscore');
 
+var filter = require('../util/socketFilter.js');
+
 var KEEP_ALIVE = 5000;
 
 class Client {
@@ -108,10 +110,10 @@ class Client {
 				//TODO like seriously
 				//TODO this is awful
 
-				let newUnit = sanitizeUnit(delta.new_val);
+				let newUnit = filter.sanitizeUnit(delta.new_val);
 				if (delta.old_val) {
 					//console.log('unit change');
-					let oldUnit = sanitizeUnit(delta.old_val);
+					let oldUnit = filter.sanitizeUnit(delta.old_val);
 					if (! _.isEqual(newUnit,oldUnit)) {
 						//console.log('sending unit update');
 						//if (newUnit.iron != oldUnit.iron) {
@@ -129,35 +131,3 @@ class Client {
 		}
 }
 module.exports = Client;
-
-const unitKeyWhitelist = [
-	'x',
-	'y',
-	'chunkX',
-	'chunkY',
-	'uuid',
-	'type',
-	'map',
-	'iron',
-	'fuel',
-	'health',
-	'tileHash',
-	'chunkHash',
-	'factoryQueue',
-	'destination',
-	'ghosting',
-	'owner',
-	'speed' //unit stats was being finnicky on the client TODO fix this
-]
-
-//TODO should break this off into a helper file
-function sanitizeUnit(unit) {
-
-	//whitelist
-	let sanitized = {}
-	for (let key of unitKeyWhitelist) {
-		sanitized[key] = unit[key];
-	}
-	return sanitized;
-
-}
