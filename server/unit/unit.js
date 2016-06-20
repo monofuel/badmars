@@ -363,14 +363,20 @@ class Unit {
 
 			this.x = tile.x;
 			this.y = tile.y;
+			this.chunkX = tile.chunk.x;
+			this.chunkY = tile.chunk.y;
 			this.tileHash = [tile.hash];
+			this.chunkHash = [tile.chunk.hash];
 			this.movementCooldown = this.speed;
 			//TODO update chunk hash
 			await db.units[this.map].updateUnit(this.uuid,
 				{
 					x: this.x,
 					y: this.y,
+					chunkX: this.chunkX,
+					chunkY: this.chunkY,
 					tileHash: this.tileHash,
+					chunkHash: this.chunkHash,
 					movementCooldown: this.movementCooldown
 				}
 			);

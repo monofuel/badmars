@@ -79,7 +79,12 @@ function processUnit(unit) {
 	logger.addSumStat('unit_AI',1);
 	return unit.simulate().then((update) => {
 		if (update) {
-			unit.save();
+			if (!unit.awake) {
+				console.log('SLEEPING UNIT');
+			}
+			unit.updateUnit({
+				awake: unit.awake
+			});
 		}
 	});
 }

@@ -37,10 +37,8 @@ async function createGhost(client,data) {
 
 			//wake up nearby ghost builders
 			let units = await map.getNearbyUnitsFromChunk(unit.chunkHash[0],2);
-			console.log(unit.chunkHash[0],units.length);
 			for (let nearby of units) {
-				if (unit.type === 'builder') {
-					console.log('waking up builder');
+				if (nearby.type === 'builder') {
 					nearby.updateUnit({awake: true});
 				}
 			}
