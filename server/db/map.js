@@ -10,6 +10,7 @@ var Map = require('../map/map.js');
 var r = require('rethinkdb');
 var logger = require('../util/logger.js');
 
+let mapCache = {};
 
 var conn;
 var table;
@@ -39,12 +40,25 @@ exports.getMap = async function getMap(name) {
 	if (!name) {
 		throw new Error('invalid map get');
 	}
+	if (mapCache[name] && Date.now() - mapCache[name].lastUpdate < 5000) {
+		logger.addSumStat('mapCacheHit',1);
+		logger.endProfile(profile);
+		return mapCache[name].map;
+	} else {
+		logger.addSumStat('mapCacheMissOrRefresh',1);
+	}
+
 	let doc = await table.get(name).run(conn);
 	if (!doc) {
 		return null;
 	}
 	var map = new Map();
 	map.clone(doc);
+	mapCache[name] = {
+		lastUpdate: Date.now(),
+		map: map
+	};
+
 	logger.endProfile(profile);
 	return map;
 };

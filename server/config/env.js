@@ -16,7 +16,7 @@ vars.unitProcessChunks = process.env.UNIT_PROCESS_CHUNKS || 5;
 vars.pathChunks = process.env.PATH_CHUNKS || 3;
 
 vars.movementAttemptLimit = process.env.MOVEMENT_ATTEMPT_LIMIT || 3;
-vars.pathComplexityLimit = process.env.PATH_COMPLEXITY_LIMIT || 100;
+vars.pathComplexityLimit = process.env.PATH_COMPLEXITY_LIMIT || 50;
 
 
 vars.dbHost = process.env.BADMARS_DB || 'localhost';

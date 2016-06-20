@@ -234,7 +234,7 @@ class DBUnit {
 
 		return await this.table.getAll(true, {
 			index: 'awake'
-		}).filter(r.row('lastTick').lt(tick).and(r.row('lastTick').gt(0))).count().run(this.conn);
+		}).filter(r.row('lastTick').lt(tick - 1).and(r.row('lastTick').gt(0))).count().run(this.conn);
 	}
 
 	countAllUnits() {

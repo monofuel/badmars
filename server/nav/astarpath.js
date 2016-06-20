@@ -73,8 +73,8 @@ class AStarPath {
 		this.closed.push(this.current);
 
     if (this.cost > env.pathComplexityLimit) {
-			console.log(this.cost);
-      console.log("path complexity exceeded");
+			//console.log(this.cost);
+      //console.log("path complexity exceeded");
 
 			//save out what we have so far.
 			this.path.push(this.current);
@@ -82,7 +82,7 @@ class AStarPath {
         this.current = this.current.prev;
         this.path.push(this.current);
       }
-      console.log("complete path calculated: " + this.path.length);
+      //console.log("complete path calculated: " + this.path.length);
 
       return 'complete';
     }
@@ -94,12 +94,12 @@ class AStarPath {
         this.current = this.current.prev;
         this.path.push(this.current);
       }
-      console.log("complete path calculated: " + this.path.length);
+      //console.log("complete path calculated: " + this.path.length);
       return 'complete';
     }
 
     //check if the tile is open and passable
-	  let isValid = await this.map.checkValidForUnit(this.current, this.unit);
+	  let isValid = await this.map.checkValidForUnit(this.current, this.unit,true);
 		if (!isValid) {
 			//console.log('not passible for unit');
 			return 'continue';
@@ -156,7 +156,7 @@ class AStarPath {
 		if ((await tile.S()).equals(nextTile))
 			return DIRECTION.S;
 
-		console.log('invalid next tile');
+		//console.log('invalid next tile');
 		return DIRECTION.C;
 	}
 }

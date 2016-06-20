@@ -120,7 +120,7 @@ class Map {
 		return await db.units[this.name].addUnit(newUnit);
 	}
 
-	async checkValidForUnit(tile, unit) {
+	async checkValidForUnit(tile, unit,ignoreAwake) {
 		//TODO handle air and water units
 		if (tile.tileType !== Tiletypes.LAND) {
 			return false;
@@ -165,7 +165,21 @@ class Map {
 		if (units.length === 0) {
 			return true;
 		}
-		return units.length === 1 && unit.uuid === units[0].uuid;
+
+		if (units.length === 1 && unit.uuid === units[0].uuid) {
+			return true;
+		}
+
+		if (ignoreAwake) {
+			for (let unit of units) {
+				if (!unit.awake) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		return false;
 	}
 
 	async checkOpen(tile) {
