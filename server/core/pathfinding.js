@@ -81,6 +81,10 @@ async function processUnit(unitDoc) {
 	let unit = await new Unit();
 	unit.clone(unitDoc);
 
+	if (unit.movementType !== 'ground') {
+		return;
+	}
+
 	console.log('pathing for unit ' + unit.type);
 	//console.log(unit);
 	let map = await db.map.getMap(unit.map);

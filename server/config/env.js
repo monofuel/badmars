@@ -9,10 +9,10 @@ var vars = {};
 
 vars.envType = process.env.NODE_ENV || 'dev';
 
-vars.ticksPerSec = process.env.TICKS_PER_SEC || 1;
+vars.ticksPerSec = process.env.TICKS_PER_SEC || 2;
 vars.stressTest = process.env.STRESS_TEST || false;
 vars.statReportRate = process.env.STAT_REPORT_RATE || 1; //in minutes
-vars.unitProcessChunks = process.env.UNIT_PROCESS_CHUNKS || 5;
+vars.unitProcessChunks = process.env.UNIT_PROCESS_CHUNKS || 20;
 vars.pathChunks = process.env.PATH_CHUNKS || 3;
 
 vars.movementAttemptLimit = process.env.MOVEMENT_ATTEMPT_LIMIT || 3;

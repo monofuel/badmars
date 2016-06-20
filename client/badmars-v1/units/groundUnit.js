@@ -118,7 +118,7 @@ export class GroundUnit extends Entity {
 	}
 
 	hilightDestination() {
-		if (this.destination && !this.destHilightPlane && this.hilightDestinationLocation !== this.destination) {
+		if (this.destination && (!this.destHilightPlane || this.hilightDestinationLocation !== this.destination)) {
 			let destSplit = this.destination.split(":");
 			let x = parseInt(destSplit[0]);
 			let y = parseInt(destSplit[1]);

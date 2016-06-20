@@ -43,7 +43,7 @@ async function tryNewTick(name) {
 	logger.addAverageStat('totalUnitCount', allCount);
 	logger.addAverageStat('totalAwakeCount', awakeCount);
 
-	if (uCount > 0) {
+	if (uCount > allCount / 4) {
 		console.info('skipping tick');
 		return;
 	}

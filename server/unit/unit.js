@@ -136,7 +136,7 @@ class Unit {
 			}
 
 			if (hasActed) {
-				//console.log('moved');
+				console.log('moved');
 				update = true;
 				self.awake = true;
 			}

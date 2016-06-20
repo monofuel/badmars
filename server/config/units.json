@@ -96,8 +96,8 @@
     "maxHealth": 200,
     "movementType": "building",
     "maxStorage": 100,
-		"ironStorage": 500,
-		"fuelStorage": 500,
+		"ironStorage": 100,
+		"fuelStorage": 100,
     "buildTime": 20,
 		"size":1,
 		"model":"mine.obj"

@@ -31,7 +31,7 @@ class Map {
 			chunkCache[name] = {};
 		}
 		this.settings = {
-			chunkSize: 16,
+			chunkSize: 32,
 			waterHeight: 6.4,
 			cliffDelta: 0.3,
 			water: true,
@@ -172,7 +172,7 @@ class Map {
 
 		if (ignoreAwake) {
 			for (let unit of units) {
-				if (!unit.awake) {
+				if (!unit.awake && unit.movementType === 'groundUnit') {
 					return true;
 				}
 			}
@@ -627,7 +627,7 @@ class Map {
 			this[key] = object[key];
 		}
 		this.settings = {
-			chunkSize: 16,
+			chunkSize: 8,
 			waterHeight: 0,
 			cliffDelta: 0.4,
 			water: true,
@@ -637,8 +637,8 @@ class Map {
 			bigNoiseScale: 15,
 			medNoiseScale: 3,
 			smallNoiseScale: 1,
-			ironChance: 0.003,
-			oilChance: 0.002
+			ironChance: 0.002,
+			oilChance: 0.0015
 		};
 	}
 }
