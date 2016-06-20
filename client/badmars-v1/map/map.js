@@ -102,7 +102,7 @@ export class Map {
 		this.chunkMap = {};
 		this.chunkCache = {};
 		this.requestedChunks = {};
-		this.viewRange = 5;
+		this.viewRange = 7;
 		this.unloadRange = this.viewRange + 3;
 		var self = this;
 		if (planet) {
