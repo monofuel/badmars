@@ -43,10 +43,10 @@ async function tryNewTick(name) {
 	logger.addAverageStat('totalUnitCount', allCount);
 	logger.addAverageStat('totalAwakeCount', awakeCount);
 
-	if (uCount > 0) {
+	/*if (uCount > 0) {
 		console.info('skipping tick');
 		return;
-	}
+	}*/
 
 	map.lastTickTimestamp = (new Date()).getTime();
 	map.lastTick++;

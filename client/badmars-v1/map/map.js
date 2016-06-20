@@ -189,12 +189,10 @@ export class Map {
 						if (unit.updateUnitData) {
 							unit.updateUnitData(updated);
 						}
+						fireBusEvent('unit',unit);
 				} else {
-					console.log('new unit found');
-					console.log(updated);
 					window.addUnit(updated);
 				}
-				fireBusEvent('unit',updated);
 			}
 		}
 
@@ -206,7 +204,7 @@ export class Map {
 			}
 		}
 
-		registerListener('updateUnits',this.updateUnitsListener);
+		registerListener('units',this.updateUnitsListener);
 
 		window.addUnit = (unit: Object) => {
 			for (var oldUnit of self.units) {
@@ -306,6 +304,8 @@ export class Map {
 			}
 			newUnit.health = unit.health;
 			self.units.push(newUnit);
+
+			fireBusEvent('unit',newUnit);
 		}
 	}
 

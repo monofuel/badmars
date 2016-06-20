@@ -51,6 +51,8 @@ async function simulateBuilding(unit,map) {
 			await unit.updateUnit({
 				factoryQueue: unit.factoryQueue
 				});
+		} else {
+			console.log('not enough resources');
 		}
 	}
 	if (unit.factoryQueue[0].cost === 0) {
@@ -100,7 +102,20 @@ async function simulateGround(unit,map) {
 	}
 
 	if (!nearestGhost) {
-		return;
+		//if there is no ghost next to this unit, find one.
+		for (let nearbyUnit of units) {
+			if (!nearbyUnit.ghosting) {
+				continue;
+			}
+			let center = await map.getLoc(nearbyUnit.x,nearbyUnit.y);
+			let tile = await map.getNearestFreeTile(center,unit,true);
+			unit.setDestination(tile.x,tile.y);
+			console.log('builder pathing to ghost');
+
+			return true;
+		}
+
+		return false;
 	}
 
 	if (await map.pullIron(unit,nearestGhost.cost)) {
@@ -110,5 +125,6 @@ async function simulateGround(unit,map) {
 		console.log(nearestGhost);
 		let result = await nearestGhost.updateUnit({ghosting: false});
 		console.log(result);
+		return true;
 	}
 }

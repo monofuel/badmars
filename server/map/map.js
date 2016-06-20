@@ -508,6 +508,9 @@ class Map {
 	//tile is the tile to check
 	//unit is an optional unit to ignore
 	//includeGhosts decide if we should consider ghosts as units
+
+	//TODO should have an option to find the tile that is nearest to the unit
+	//rather than to center (which it does now)
 	async getNearestFreeTile(center,unit,includeGhosts) {
 		let unitsOnTile = await this.unitsTileCheck(center,includeGhosts);
 
@@ -546,7 +549,6 @@ class Map {
 			open.sort((a,b) => {
 				return a.cost - b.cost;
 			});
-			console.log('OPEN TILES',open.length);
 			for (let openTile of open) {
 				if (containsTile(closed,openTile)) {
 					continue;
@@ -562,7 +564,6 @@ class Map {
 				}
 				return openTile;
 			}
-			console.log('ADDING NEW OPEN TILES');
 			for (let tile of open) {
 				let neighbors = [
 					await tile.N(),

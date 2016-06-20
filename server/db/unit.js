@@ -221,12 +221,13 @@ class DBUnit {
 		});
 	}
 
-	countUnprocessedUnits(tick) {
+	async countUnprocessedUnits(tick) {
 		//new units will have lastTick set to 0. we do not want this in the 'unprocessed' count
 		//however we still want to process them next tick.
-		return this.table.getAll(true, {
+
+		return await this.table.getAll(true, {
 			index: 'awake'
-		}).filter(r.row('lastTick').lt(tick).gt(0)).count().run(this.conn);
+		}).filter(r.row('lastTick').lt(tick).and(r.row('lastTick').gt(0))).count().run(this.conn);
 	}
 
 	countAllUnits() {

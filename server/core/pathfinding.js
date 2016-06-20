@@ -53,7 +53,7 @@ function pathfind(err,delta) {
 		return;
 	}
 
-  console.log('unit updated');
+  //console.log('unit updated');
 	process(delta.new_val.map);
 }
 

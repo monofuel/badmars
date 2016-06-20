@@ -36,13 +36,13 @@ export default class SelectedUnitWell extends React.Component {
 
 		let type = selectedUnit.type;
 		let maxStorage = selectedUnit.maxStorage;
+		let ironStorage = (selectedUnit.ironStorage ? selectedUnit.ironStorage : 0)
+		let fuelStorage = (selectedUnit.fuelStorage ? selectedUnit.fuelStorage : 0);
 		let freeStorage = maxStorage - (iron + fuel);
-		let health = selectedUnit.health;
+		let health = (selectedUnit.health ? selectedUnit.health : 0);;
 		let player = getPlayerById(selectedUnit.playerId);
-		let playerName = "";
-		if (player) {
-			playerName = player.username;
-		}
+		let playerName = (player ? player.username : "");
+
 		if (selectedUnit.type === 'iron' || selectedUnit.type === 'oil') {
 			return (
 				<div id="SelectedUnitWell">
@@ -57,11 +57,18 @@ export default class SelectedUnitWell extends React.Component {
 					<Well bsSize="small" style={infoStyle}>
 					  <ListGroup>
 						<ListGroupItem>Unit: {type}</ListGroupItem>
-						<ListGroupItem>Storage: {iron + fuel} / {maxStorage}</ListGroupItem>
 						<ListGroupItem>Owner: {playerName}</ListGroupItem>
-						<ListGroupItem>Iron: <ProgressBar now={iron} max={iron + freeStorage} label="%(now)%"/></ListGroupItem>
-						<ListGroupItem>Fuel: <ProgressBar now={fuel} max={fuel + freeStorage} label="%(now)%"/></ListGroupItem>
-						<ListGroupItem>Health: <ProgressBar now={health} max={maxHealth} label="%(now)%"/></ListGroupItem>
+						{ ironStorage !== 0 ?
+							<ListGroupItem>Iron: <ProgressBar now={iron} max={ironStorage} label={iron}/></ListGroupItem>
+							:
+							null
+						}
+						{ fuelStorage !== 0 ?
+							<ListGroupItem>Fuel: <ProgressBar now={fuel} max={fuelStorage} label={fuel}/></ListGroupItem>
+							:
+							null
+						}
+						<ListGroupItem>Health: <ProgressBar now={health} max={maxHealth} label={health}/></ListGroupItem>
 					  </ListGroup>
 					</Well>
 				</div>

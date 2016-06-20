@@ -19,6 +19,9 @@ import {
 import {
 	getPlayerById
 } from '../net.js';
+import {
+	updateUnit
+} from './unitBalance.js';
 
 
 export class Tank extends GroundUnit {
@@ -50,5 +53,6 @@ export class Tank extends GroundUnit {
 		this.type = 'tank';
 		this.uuid = uuid;
 		this.playerId = playerId;
+		updateUnit(this);
 	}
 }

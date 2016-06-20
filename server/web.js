@@ -20,7 +20,6 @@ var figlet = require('figlet');
 logger.setModule('web');
 
 function init() {
-	logger.setModule('simulate');
 	logger.info("start begin");
 
 	startupHeader();

@@ -36,7 +36,7 @@ export function deleteBusListener(listener: Function) {
 }
 
 export function fireBusEvent(eventType: string, data: any) {
-  console.log('firing event ' + eventType);
+  //console.log('firing event ' + eventType);
 	if (listeners[eventType]) {
 		for (var listener of listeners[eventType]) {
 			listener(data);

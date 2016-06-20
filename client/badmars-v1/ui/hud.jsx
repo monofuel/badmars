@@ -64,7 +64,7 @@ export default class HUD extends React.Component {
 		registerBusListener('selectedUnit',(unit: Entity) => {
 			self.selectedUnitHandler(unit);
 		});
-		registerBusListener('unitUpdate',(unit: Entity) => {
+		registerBusListener('unit',(unit: Entity) => {
 			self.updateUnitsHandler(unit);
 		});
 

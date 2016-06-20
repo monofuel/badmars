@@ -18,7 +18,7 @@ var AI = require('./core/AI.js');
 var figlet = require('figlet');
 
 function init() {
-	logger.setModule('simulate');
+	logger.setModule('ai');
 	logger.info("start begin");
 
 	startupHeader();

@@ -163,7 +163,7 @@ window.onload = function () {
 		hud = hudComponent;
 	}
 
-	registerListener('error',errorListener);
+	registerBusListener('error',errorListener);
 
 	loadAllSounds(); //TODO should be done async probably
 	loadAllModelsAsync()
@@ -354,6 +354,7 @@ window.onload = function () {
 						if (selectedTile && mouseClick) {
 							 mouseClick(selectedTile);
 						 }
+						 break;
 				 	}
 
 					var unit = map.getSelectedUnit(mouse);

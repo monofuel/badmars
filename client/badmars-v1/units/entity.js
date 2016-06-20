@@ -46,6 +46,12 @@ export class Entity {
 	ghosting: boolean;
 	selectionSize: number;
 	takingDamage: number;
+	ironStorage: number;
+	fuelStorage: number;
+	factoryQueue: Array<Object>;
+	destination: string;
+	fuel: number;
+	iron: number;
 
 	maxStorage: number;
 	storage: Object;
@@ -80,7 +86,6 @@ export class Entity {
 			display.addMesh(this.mesh);
 		}
 		this.updateLoc();
-
 	}
 
 	updateLoc() {
@@ -139,10 +144,14 @@ export class Entity {
 
 	updateUnitData(unit: Object) {
 		updateUnit(this);
-		this.health = unit.health;
-		this.storage.iron = unit.iron;
-		this.storage.oil = unit.oil;
+
+		//UNIT UPDATE WHITELIST
+		this.iron = unit.iron;
+		this.fuel = unit.fuel;
+		this.destination = unit.destination;
 		this.ghosting = unit.ghosting;
+		this.factoryQueue = unit.factoryQueue;
+		this.health = unit.health;
 	}
 
 	takeDamage(source: any) {

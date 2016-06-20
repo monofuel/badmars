@@ -30,7 +30,6 @@ export class GroundUnit extends Entity {
 	health: number;
 	maxHealth: number;
 	fireSound: THREE.PositionalAudio;
-	destination: string;
 	hilightDestinationLocation: string;
 
 	destHilightPlane: THREE.Mesh;

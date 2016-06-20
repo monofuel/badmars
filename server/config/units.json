@@ -11,8 +11,11 @@
     "firePower": 15,
     "movementType": "ground",
     "maxStorage": 200,
+		"ironStorage": 0,
+		"fuelStorage": 50,
     "buildTime": 20,
-		"size":1
+		"size":1,
+		"model":"tank_mockup.obj"
   },
   "scout":{
     "range": 5.0,
@@ -25,8 +28,11 @@
     "cost": 100,
     "movementType": "ground",
     "maxStorage": 50,
+		"ironStorage": 0,
+		"fuelStorage": 30,
     "buildTime": 100,
-		"size":1
+		"size":1,
+		"model":"tank_mockup.obj"
   },
   "builder":{
     "range": 1.0,
@@ -38,8 +44,11 @@
     "movementType": "ground",
 		"construction": true,
     "maxStorage": 50,
+		"ironStorage": 0,
+		"fuelStorage": 50,
     "buildTime": 20,
-		"size":1
+		"size":1,
+		"model":"builder.obj"
   },
   "transport":{
     "range": 1.0,
@@ -50,8 +59,11 @@
     "cost": 200,
     "movementType": "ground",
     "maxStorage": 1200,
+		"ironStorage": 1000,
+		"fuelStorage": 500,
     "buildTime": 20,
-		"size":1
+		"size":1,
+		"model":"transport.obj"
   },
   "factory":{
     "transferRange":0,
@@ -59,9 +71,12 @@
     "maxHealth": 500,
     "movementType": "building",
     "maxStorage": 1000,
+		"ironStorage": 0,
+		"fuelStorage": 0,
     "buildTime": 50,
 		"size":3,
-		"construction":true
+		"construction":true,
+		"model":"factory.obj"
   },
   "storage":{
     "transferRange":20,
@@ -69,8 +84,11 @@
     "maxHealth": 500,
     "movementType": "building",
     "maxStorage": 4000,
+		"ironStorage": 2000,
+		"fuelStorage": 2000,
     "buildTime": 40,
-		"size":3
+		"size":3,
+		"model":"storage.obj"
   },
   "mine":{
     "transferRange":10,
@@ -78,8 +96,11 @@
     "maxHealth": 200,
     "movementType": "building",
     "maxStorage": 100,
+		"ironStorage": 500,
+		"fuelStorage": 500,
     "buildTime": 20,
-		"size":1
+		"size":1,
+		"model":"mine.obj"
   },
   "wall":{
     "transferRange":0,
@@ -87,6 +108,8 @@
     "maxHealth": 1000,
     "movementType": "building",
     "maxStorage": 0,
+		"ironStorage": 0,
+		"fuelStorage": 0,
     "buildTime": 20,
 		"size":1
   }

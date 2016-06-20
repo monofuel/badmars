@@ -19,6 +19,9 @@ import {
 import {
 	getPlayerById
 } from '../net.js';
+import {
+	updateUnit
+} from './unitBalance.js';
 
 
 export class Transport extends GroundUnit {
@@ -49,5 +52,6 @@ export class Transport extends GroundUnit {
 		this.type = 'transport';
 		this.uuid = uuid;
 		this.playerId = playerId;
+		updateUnit(this);
 	}
 }

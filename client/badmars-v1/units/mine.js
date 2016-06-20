@@ -23,6 +23,9 @@ import {
 import {
 	getPlayerById
 } from '../net.js';
+import {
+	updateUnit
+} from './unitBalance.js';
 
 export class Mine extends Entity {
 	maxStorage: number;
@@ -52,6 +55,7 @@ export class Mine extends Entity {
 		}
 		this.type = 'mine';
 		this.uuid = uuid;
-			this.playerId = playerId
+		this.playerId = playerId;
+		updateUnit(this);
 	}
 }

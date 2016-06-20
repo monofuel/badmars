@@ -26,6 +26,9 @@ import {
 import {
 	getPlayerById
 } from '../net.js';
+import {
+	updateUnit
+} from './unitBalance.js';
 
 export class Builder extends GroundUnit {
 	constructor(location: PlanetLoc, playerId: string, uuid: string) {
@@ -53,6 +56,7 @@ export class Builder extends GroundUnit {
 		}
 		this.type = 'builder';
 		this.uuid = uuid;
-		this.playerId = playerId
+		this.playerId = playerId;
+		updateUnit(this);
 	}
 }

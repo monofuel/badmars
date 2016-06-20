@@ -19,11 +19,18 @@ var attackAI = require('./ai/attack.js');
 var constructionAI = require('./ai/construction.js');
 var mineAI = require('./ai/mine.js');
 
+try {
 var unitStats = JSON.parse(fs.readFileSync('config/units.json'));
+} catch (err) {
+	console.log(err);
+}
 
 fs.watchFile("config/units.json", () => {
 	console.log('units.json updated, reloading');
 	fs.readFile('config/units.json', (err,data) => {
+		if (err) {
+			return console.log(err);
+		}
 		unitStats = JSON.parse(data);
 	});
 });
@@ -129,7 +136,7 @@ class Unit {
 			}
 
 			if (hasActed) {
-				console.log('moved');
+				//console.log('moved');
 				update = true;
 				self.awake = true;
 			}
@@ -138,7 +145,7 @@ class Unit {
 		if (!hasActed && self.attack != 0 && self.range != 0) {
 			let hasActed = await attackAI.simulate(self,map);
 			if (hasActed) {
-				console.log('attacking');
+				//console.log('attacking');
 				update = true;
 				self.awake = true;
 			}
@@ -147,7 +154,7 @@ class Unit {
 		if (!hasActed && self.construction) {
 			hasActed = await constructionAI.simulate(self,map);
 			if (hasActed) {
-				console.log('constructing');
+				//console.log('constructing');
 				update = true;
 				self.awake = true;
 			}
@@ -221,11 +228,10 @@ class Unit {
 
 	//returns the amount that actually could be deposited
 	async addIron(amount) {
-		if (!this.maxStorage) {
-			return 0;
-		}
-		let max = (this.maxStorage / 2) - this.iron;
-		if (max === 0) {
+
+		let max = this.ironStorage - this.iron;
+
+		if (max <= 0) {
 			return 0;
 		}
 		if (amount > max) {
@@ -242,10 +248,8 @@ class Unit {
 
 	//returns the amount that actually could be deposited
 	async addFuel(amount) {
-		if (!this.maxStorage) {
-			return 0;
-		}
-		let max = (this.maxStorage / 2) - this.fuel;
+
+		let max = this.fuelStorage - this.fuel;
 		if (max === 0) {
 			return 0;
 		}
@@ -322,7 +326,7 @@ class Unit {
 	}
 
 	async setPath(path) {
-		console.log('setting path: ', path);
+		//console.log('setting path: ', path);
 		this.path = path;
 		return db.units[this.map].updateUnit(this.uuid,{path: path, isPathing: false, awake: true});
 	}
@@ -352,7 +356,7 @@ class Unit {
 		//this will need some sort of work-around as rethink doesn't do transactions.
 		let validMove = await tile.map.checkValidForUnit(tile,this);
 		//let validMove = true;
-		console.log('validMove: ' + validMove);
+		//console.log('validMove: ' + validMove);
 		if (!validMove) {
 			return false;
 		} else {
@@ -370,7 +374,7 @@ class Unit {
 					movementCooldown: this.movementCooldown
 				}
 			);
-			console.log('moved');
+			//console.log('moved');
 		}
 
 		return true;

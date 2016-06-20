@@ -14,7 +14,6 @@ const unitKeyWhitelist = [
 	'chunkY',
 	'uuid',
 	'type',
-	'map',
 	'iron',
 	'fuel',
 	'health',
@@ -23,8 +22,7 @@ const unitKeyWhitelist = [
 	'factoryQueue',
 	'destination',
 	'ghosting',
-	'owner',
-	'speed' //unit stats was being finnicky on the client TODO fix this
+	'owner'
 ]
 
 //TODO should break this off into a helper file

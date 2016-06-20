@@ -34,6 +34,17 @@ async function createGhost(client,data) {
 		if (success) {
 			console.log('new ghost unit');
 			client.send('createGhost');
+
+			//wake up nearby ghost builders
+			let units = await map.getNearbyUnitsFromChunk(unit.chunkHash[0],2);
+			console.log(unit.chunkHash[0],units.length);
+			for (let nearby of units) {
+				if (unit.type === 'builder') {
+					console.log('waking up builder');
+					nearby.updateUnit({awake: true});
+				}
+			}
+
 		} else {
 			client.sendError('createGhost', 'invalid order');
 		}

@@ -72,6 +72,9 @@ class Client {
         if (this.username) {
             logger.info('logout',{player: this.username});
         }
+				if (this.unitStatWatcher) {
+					this.unitStatWatcher.close();
+				}
         clearInterval(this.keepAlive);
         this.ws = null;
     }

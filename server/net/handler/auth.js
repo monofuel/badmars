@@ -19,6 +19,7 @@ function mountUserHandlers(client) {
 	client.handlers['setDestination'] = require('./setDestination.js');
 	client.handlers['unitStats'] = require('./unitStats.js');
 	client.handlers['factoryOrder'] = require('./factoryOrder.js');
+	client.handlers['transferResource'] = require('./transferResource.js');
 
 	client.registerUnitListener();
 

@@ -18,7 +18,7 @@ var DIRECTION = require('../../map/directions.js');
 async function simulate(unit,map) {
 
 	if (await unit.tickMovement()) {
-		console.log('movement cooldown: ' + unit.movementCooldown);
+		//console.log('movement cooldown: ' + unit.movementCooldown);
 		return true;
 	}
 
@@ -36,11 +36,11 @@ async function simulate(unit,map) {
 	//console.log(start.toString());
 	//console.log(nextTile.toString());
 	if (await unit.moveToTile(nextTile)) {
-		console.log('updating path');
+		//console.log('updating path');
 		await unit.setPath(unit.path);
 	} else {
 		unit.addPathAttempt();
-		console.log('move halted');
+		//console.log('move halted');
 	}
 
 	return true;

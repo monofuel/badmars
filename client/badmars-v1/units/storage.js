@@ -23,6 +23,9 @@ import {
 import {
 	getPlayerById
 } from '../net.js';
+import {
+	updateUnit
+} from './unitBalance.js';
 
 export class Storage extends Entity {
 	constructor(location: PlanetLoc, playerId: string, uuid: string) {
@@ -51,5 +54,6 @@ export class Storage extends Entity {
 		this.uuid = uuid;
 		this.playerId = playerId;
 		this.selectionSize = 2;
+		updateUnit(this);
 	}
 }

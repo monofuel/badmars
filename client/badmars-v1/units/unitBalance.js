@@ -36,7 +36,7 @@ export function updateUnit(unit: any) {
 		if (unit.maxHealth && !unit.health) {
 			unit.health = unit.maxHealth;
 		}
-	} else {
+	} else if (unit.type !== 'iron' && unit.type !== 'oil'){
 		console.log('MISSING UNIT DATA FOR ' + unit.type);
 	}
 }
