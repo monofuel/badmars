@@ -1,13 +1,24 @@
-webGL mmorts game in development
+awesome webGL MMORTS with an infinite procedurally generated map.
+
+tech stack:
+	backend:
+		nodejs
+		rethinkdb
+
+	frontend:
+		react
+		threejs
 
 current task:
-	finish up all the current TODOs in the server rewrite
-	unit resource transferring (client and server)
+	combat
+	polishing and bug fixing for v1.0
+	chat
+	cancel ghost feature
 
 TODO:
 	dummy DB interface to allow testing modules in production without actually writing changes
 	properly flowtype the entire codebase
-	make sure that .save() is rarely used, and make sure that all writes do not clobber
+	make sure that all writes do not clobber
 	maybe a distributed locking system for unit movement?
 	web console would be cool
 	admin page would be cool
@@ -21,7 +32,6 @@ TODO:
 	lines between units showing how resources are being automatically delivered. (client)
 	cancel ghost feature (server)
 	trade routes (both client and server)
-	rename 'oil' to 'fuel' (except for deposit)
 	have units actually use fuel
 	time left for fuel usage on units
-	music
+	music (epic guitar stuffs of course)
