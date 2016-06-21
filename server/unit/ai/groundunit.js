@@ -27,6 +27,16 @@ async function simulate(unit,map) {
 		//check if they are trying to transfer resources.
 		//if they are, do it.
 		if (!unit.transferGoal || !unit.transferGoal.uuid) {
+			if (unit.type === 'transport') {
+				//wake up nearby ghost builders
+				let units = await map.getNearbyUnitsFromChunk(unit.chunkHash[0]);
+				for (let nearby of units) {
+					if (nearby.type === 'builder') {
+						nearby.updateUnit({awake: true});
+					}
+				}
+			}
+
 			return false;
 		}
 		let transferUnit = await db.units[map.name].getUnit(unit.transferGoal.uuid);
