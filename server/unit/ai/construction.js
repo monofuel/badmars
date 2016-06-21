@@ -137,7 +137,7 @@ async function simulateGround(unit,map) {
 		console.log('paying for building');
 		//TODO builder should halt and spend time building
 		//should also make sure the area is clear
-		let result = await nearestGhost.updateUnit({ghosting: false});
+		let result = await nearestGhost.updateUnit({ghosting: false, awake: true});
 		return true;
 	}
 }

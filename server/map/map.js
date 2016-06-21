@@ -499,6 +499,9 @@ class Map {
 			if (unit.ghosting) {
 				continue;
 			}
+			if (mine.uuid === unit.uuid) {
+				continue;
+			}
 			if (unit.movementType !== 'building') {
 				continue;
 			}
@@ -525,6 +528,9 @@ class Map {
 
 		for (let unit of units) {
 			if (unit.ghosting) {
+				continue;
+			}
+			if (mine.uuid === unit.uuid) {
 				continue;
 			}
 			if (unit.movementType !== 'building') {
