@@ -114,6 +114,7 @@ class Client {
 				//TODO this is awful
 
 				let newUnit = filter.sanitizeUnit(delta.new_val);
+
 				if (delta.old_val) {
 					//console.log('unit change');
 					let oldUnit = filter.sanitizeUnit(delta.old_val);

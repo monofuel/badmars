@@ -14,9 +14,10 @@ vars.stressTest = process.env.STRESS_TEST || false;
 vars.statReportRate = process.env.STAT_REPORT_RATE || 1; //in minutes
 vars.unitProcessChunks = process.env.UNIT_PROCESS_CHUNKS || 20;
 vars.pathChunks = process.env.PATH_CHUNKS || 3;
+vars.chunkExamineRange = process.env.EXAMINE_RANGE || 4;
 
 vars.movementAttemptLimit = process.env.MOVEMENT_ATTEMPT_LIMIT || 3;
-vars.pathComplexityLimit = process.env.PATH_COMPLEXITY_LIMIT || 50;
+vars.pathComplexityLimit = process.env.PATH_COMPLEXITY_LIMIT || 100;
 
 
 vars.dbHost = process.env.BADMARS_DB || 'localhost';

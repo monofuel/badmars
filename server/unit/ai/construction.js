@@ -86,7 +86,7 @@ async function simulateBuilding(unit,map) {
 async function simulateGround(unit,map) {
 	console.log('simulating constructor');
 	let nearestGhost = null;
-	let units = await map.getNearbyUnitsFromChunk(unit.chunkHash[0],2);
+	let units = await map.getNearbyUnitsFromChunk(unit.chunkHash[0]);
 	map.sortByNearestUnit(units,unit);
 
 	for (let nearbyUnit of units) {
@@ -109,10 +109,25 @@ async function simulateGround(unit,map) {
 			}
 			let center = await map.getLoc(nearbyUnit.x,nearbyUnit.y);
 			let tile = await map.getNearestFreeTile(center,unit,true);
-			unit.setDestination(tile.x,tile.y);
-			console.log('builder pathing to ghost');
 
-			return true;
+			//check if there are resources within range
+			let iron_available = 0;
+			for (let nearbyUnit2 of units) {
+				let distance = nearbyUnit2.distance(center);
+				if (distance > unit.transferRange && distance > nearbyUnit2.transferRange) {
+					continue;
+				}
+				iron_available += nearbyUnit2.iron;
+			}
+			if (iron_available > nearbyUnit.cost) {
+				console.log('iron available',iron_available);
+				console.log('unit cost',nearbyUnit.cost);
+				unit.setDestination(tile.x,tile.y);
+				console.log('builder pathing to ghost');
+				return true;
+			} else {
+				console.log('not enough resources near ghost');
+			}
 		}
 
 		return false;

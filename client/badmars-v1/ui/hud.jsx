@@ -10,11 +10,13 @@ import ErrorAlert from './errorAlert.jsx';
 import MenuButtons from './menuButtons.jsx';
 import AboutModal from './about.jsx';
 import SelectedUnitWell from './selectedUnit.jsx';
+import Transfer from './transfer.jsx';
 
 import {
 	setHudClick,
 	construct,
 	factoryOrder,
+	performTransfer
 } from '../client.js';
 import {Entity} from '../units/entity.js';
 import {
@@ -44,8 +46,10 @@ type Props = {}
 type State = {
 	login: boolean,
 	selectedUnit: ?Entity,
+	transferUnit: ?Entity,
 	errorMessage: ?string,
-	aboutOpen: boolean
+	aboutOpen: boolean,
+	transfering: boolean
 }
 
 export default class HUD extends React.Component {
@@ -57,8 +61,10 @@ export default class HUD extends React.Component {
 		this.state = {
 			login: false,
 			selectedUnit: null,
+			transferUnit: null,
 			errorMessage: null,
-			aboutOpen: false
+			aboutOpen: false,
+			transfering: false
 		};
 		let self = this;
 		registerBusListener('selectedUnit',(unit: Entity) => {
@@ -67,11 +73,14 @@ export default class HUD extends React.Component {
 		registerBusListener('unit',(unit: Entity) => {
 			self.updateUnitsHandler(unit);
 		});
+		registerBusListener('transfer',(unit: Entity) => {
+			self.unitTransferHandler(unit);
+		})
 
 	}
 
 	render() {
-		const {login,selectedUnit,errorMessage,aboutOpen} = this.state;
+		const {login,selectedUnit,transferUnit,errorMessage,aboutOpen,transfering} = this.state;
 
 		if (login) {
 			return (<LoginModal/>)
@@ -100,6 +109,20 @@ export default class HUD extends React.Component {
 						null
 					}
 					{
+						transfering && selectedUnit && transferUnit ?
+						<Transfer
+							onMouseUpCapture={this.handleMenuClick}
+							selectedUnit={selectedUnit}
+							transferUnit={transferUnit}
+							onClose={() => {
+								this.setState({transfering: false});
+							}}
+							onTransfer={performTransfer}
+						/>
+						:
+						null
+					}
+					{
 						selectedUnit ?
 						<SelectedUnitWell selectedUnit={selectedUnit}/>
 						:
@@ -123,6 +146,15 @@ export default class HUD extends React.Component {
 		if (this.state.selectedUnit && this.state.selectedUnit.uuid === unit.uuid) {
 			this.forceUpdate();
 		}
+	}
+
+	unitTransferHandler(transferUnit: Entity) {
+		console.log('unit transfering');
+		console.log(transferUnit);
+		this.setState({
+			transfering: true,
+			transferUnit: transferUnit
+		});
 	}
 
 	updateErrorMessage(msg: string, vanish: ?boolean) : void {

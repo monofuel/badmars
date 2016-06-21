@@ -123,6 +123,9 @@ export class GroundUnit extends Entity {
 			let x = parseInt(destSplit[0]);
 			let y = parseInt(destSplit[1]);
 			let tile = new PlanetLoc(this.location.planet, x,y);
+			if (!tile.corners) {
+				return;
+			}
 			this.hilightDestinationLocation = this.destination;
 
 			var waterHeight = tile.planet.worldSettings.waterHeight + 0.1;

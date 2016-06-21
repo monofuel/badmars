@@ -207,6 +207,9 @@ export class Map {
 		registerListener('units',this.updateUnitsListener);
 
 		window.addUnit = (unit: Object) => {
+			if (unit.type === 'mine') {
+				console.log(unit);
+			}
 			for (var oldUnit of self.units) {
 				if (oldUnit.uuid === unit.uuid) {
 

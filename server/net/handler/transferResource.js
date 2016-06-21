@@ -10,7 +10,7 @@ var env = require('../../config/env.js');
 var logger = require('../../util/logger.js');
 
 async function transferResource(client,data) {
-
+	console.log(data);
 	if (!data.source) {
 		return client.sendError('transferResource','missing source');
 	}
@@ -31,6 +31,15 @@ async function transferResource(client,data) {
 			return client.sendError('transferResource','dest unit is not yours');
 	}
 
+	let map = client.map;
+
+	let tile = await map.getLoc(destUnit.x,destUnit.y);
+	let newTile = await map.getNearestFreeTile(tile);
+
+	sourceUnit.setDestination(newTile.x,newTile.y);
+	sourceUnit.setTransferGoal(destUnit.uuid,data.iron || 0,data.fuel || 0);
+
+	client.send('transferResource');
 
 
 }

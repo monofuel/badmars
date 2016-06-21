@@ -57,7 +57,7 @@ function mapUpdate(err,delta) {
 	process(delta.new_val.name,delta.new_val.lastTick);
 }
 
-function process(mapName, lastTick) {
+async function process(mapName, lastTick) {
 	return db.units[mapName].getUnprocessedUnits(lastTick)
 	.then((units) => {
 		if (units.length > 0) {
@@ -70,7 +70,15 @@ function process(mapName, lastTick) {
 				return process(mapName, lastTick);
 			});
 		} else {
-			console.log('all units processed for tick');
+			//console.log('all units processed for tick');
+			setTimeout(() => {
+				db.map.getMap(mapName).then((map) => {
+					if (map.lastTick === lastTick) {
+						return process(mapName,lastTick);
+					} else {
+					}
+				});
+			},100);
 		}
 	});
 }

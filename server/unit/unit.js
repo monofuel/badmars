@@ -104,6 +104,8 @@ class Unit {
 		this.factoryQueue = [];
 		this.resourceCooldown = 0;
 
+		this.transferGoal = {};
+
 		this.awake = true;
 
 	}
@@ -317,6 +319,19 @@ class Unit {
 			});
 		}
 
+	}
+	async setTransferGoal(uuid,iron,fuel) {
+		this.transferGoal = {
+			uuid: uuid,
+			iron: iron,
+			fuel: fuel
+		}
+		return await this.updateUnit({transferGoal: this.transferGoal});
+	}
+
+	async clearTransferGoal() {
+		this.transferGoal = null;
+		return await this.updateUnit({transferGoal: this.transferGoal});
 	}
 
 	async setDestination(x,y) {

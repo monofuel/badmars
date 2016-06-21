@@ -7,6 +7,7 @@
 
 var db = require('../db/db.js');
 var logger = require('../util/logger.js');
+var env = require('../config/env.js');
 var Chunk = require("../map/chunk.js");
 var PlanetLoc = require("./planetloc.js");
 
@@ -282,7 +283,15 @@ class Map {
 		}
 	}
 
+	async getNearbyUnitsFromChunkWithTileRange(chunkHash,tileRange) {
+		let chunkRange = tileRange / this.chunkSize;
+		return await getNearbyUnitsFromChunk(chunkHash,chunkRange);
+	}
+
 	async getNearbyUnitsFromChunk(chunkHash,chunkRange) {
+		if (!chunkRange) {
+			chunkRange = env.chunkExamineRange;
+		}
 		let chunkHashes = await this.getNearbyChunkHashes(chunkHash,chunkRange);
 		return await this.getUnitsAtChunks(chunkHashes);
 	}
@@ -355,7 +364,7 @@ class Map {
 	async pullIron(taker, amount) {
 		console.log('pulling iron');
 		//TODO 3 is a magic number- should calculate based on transfer range
-		let units = await this.getNearbyUnitsFromChunk(taker.chunkHash[0],2);
+		let units = await this.getNearbyUnitsFromChunk(taker.chunkHash[0]);
 		//TODO should sort buildings over units
 		this.sortByNearestUnit(units,taker);
 
@@ -365,6 +374,11 @@ class Map {
 			if (unit.ghosting) {
 				continue;
 			}
+			let distance = unit.distance(taker);
+			if (distance > unit.transferRange && distance > taker.transferRange) {
+				continue;
+			}
+
 			amountCanPull += unit.iron;
 			if (amountCanPull > amount) {
 				break;
@@ -418,7 +432,7 @@ class Map {
 	async pullFuel(taker, amount) {
 		console.log('pulling iron');
 		//TODO 3 is a magic number- should calculate based on transfer range
-		let units = await this.getNearbyUnitsFromChunk(taker.chunkHash[0],2);
+		let units = await this.getNearbyUnitsFromChunk(taker.chunkHash[0]);
 		//TODO should sort buildings over units
 		this.sortByNearestUnit(units,taker);
 
@@ -426,6 +440,10 @@ class Map {
 		let amountCanPull = 0;
 		for (let unit of units) {
 			if (unit.ghosting) {
+				continue;
+			}
+			let distance = unit.distance(taker);
+			if (distance > unit.transferRange && distance > taker.transferRange) {
 				continue;
 			}
 			amountCanPull += unit.fuel;
@@ -474,7 +492,7 @@ class Map {
 	async produceIron(mine, amount) {
 
 		//TODO 3 is a magic number- should calculate based on transfer range
-		let units = await this.getNearbyUnitsFromChunk(mine.chunkHash[0],2);
+		let units = await this.getNearbyUnitsFromChunk(mine.chunkHash[0]);
 		this.sortByNearestUnit(units,mine);
 
 		for (let unit of units) {
@@ -482,6 +500,10 @@ class Map {
 				continue;
 			}
 			if (unit.movementType !== 'building') {
+				continue;
+			}
+			let distance = unit.distance(mine);
+			if (distance > unit.transferRange && distance > mine.transferRange) {
 				continue;
 			}
 			let deposited = await unit.addIron(amount);
@@ -490,11 +512,15 @@ class Map {
 				break;
 			}
 		}
+		if (amount > 0) {
+			console.log('depositing iron into mine',amount);
+			await mine.addIron(amount);
+		}
 	}
 
 	async produceFuel(mine, amount) {
 		//TODO 3 is a magic number- should calculate based on transfer range
-		let units = await this.getNearbyUnitsFromChunk(mine.chunkHash[0],2);
+		let units = await this.getNearbyUnitsFromChunk(mine.chunkHash[0]);
 		this.sortByNearestUnit(units,mine);
 
 		for (let unit of units) {
@@ -504,10 +530,17 @@ class Map {
 			if (unit.movementType !== 'building') {
 				continue;
 			}
+			let distance = unit.distance(mine);
+			if (distance > unit.transferRange && distance > mine.transferRange) {
+				continue;
+			}
 			let deposited = await unit.addFuel(amount);
 			amount = amount - deposited;
 			if (amount <= 0) {
 				break;
+			}
+			if (amount > 0) {
+				await mine.addFuel(amount);
 			}
 		}
 

@@ -63,7 +63,7 @@ const MIDDLE_MOUSE = 1;
 // ---------------------------------------------------------------------
 // globals
 
-export var version = 5;
+export var version = 6;
 
 export var display: Display;
 export var map: Map;
@@ -392,7 +392,7 @@ window.onload = function () {
 						if (unit && playerInfo && unit.playerId == playerInfo.id) {
 							console.log('right clicked players own unit');
 							transferUnit = unit;
-							//hud.updateTransferUnit(transferUnit);
+							fireBusEvent('transfer',transferUnit);
 						}
 						if (selectedTile && mouseClick) {
 							mouseClick(selectedTile);
@@ -423,6 +423,7 @@ function logicLoop() {
 		drawSelectionBox();
 	} catch (error) {
 		console.log(error);
+		console.log(error.stack);
 		window.track("error", error)
 	}
 	statsMonitor.end();
@@ -609,6 +610,16 @@ export function factoryOrder(unitType: string) {
 	if (selectedUnit) {
 		window.sendMessage({type: 'factoryOrder', factory: selectedUnit.uuid, unitType: unitType});
 	}
+}
+
+export function performTransfer(selectedUnit: Entity,transferUnit: Entity,iron: number,fuel: number) {
+	window.sendMessage({
+		type: 'transferResource',
+		source: selectedUnit.uuid,
+		dest: transferUnit.uuid,
+		iron: iron,
+		fuel: fuel
+	});
 }
 
 export function login(name: string,color: string) {

@@ -10,7 +10,7 @@ var env = require('../config/env.js');
 var logger = require('../util/logger.js');
 
 exports.init = () => {
-	setInterval(mapTick, 1000 / (env.ticksPerSec * 4));
+	setInterval(mapTick, 1000 / (env.ticksPerSec));
 };
 
 async function mapTick() {
@@ -43,7 +43,7 @@ async function tryNewTick(name) {
 	logger.addAverageStat('totalUnitCount', allCount);
 	logger.addAverageStat('totalAwakeCount', awakeCount);
 
-	if (uCount > allCount / 4) {
+	if (uCount === awakeCount) {
 		console.info('skipping tick');
 		return;
 	}
