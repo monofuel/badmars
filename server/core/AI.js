@@ -81,6 +81,7 @@ async function process(mapName) {
 			}
 		},100);
 		mapProcessMap[mapName] = timeout;
+		return;
 	}
 
 
