@@ -29,6 +29,7 @@ async function simulate(unit,map) {
 		if (!unit.transferGoal || !unit.transferGoal.uuid) {
 			if (unit.type === 'transport') {
 				//wake up nearby ghost builders
+				console.log('waking builders');
 				let units = await map.getNearbyUnitsFromChunk(unit.chunkHash[0]);
 				for (let nearby of units) {
 					if (nearby.type === 'builder') {

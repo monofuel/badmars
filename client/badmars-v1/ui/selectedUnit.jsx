@@ -36,8 +36,10 @@ export default class SelectedUnitWell extends React.Component {
 
 		let type = selectedUnit.type;
 		let maxStorage = selectedUnit.maxStorage;
-		let ironStorage = (selectedUnit.ironStorage ? selectedUnit.ironStorage : 0)
+		let ironStorage = (selectedUnit.ironStorage ? selectedUnit.ironStorage : 0);
+		ironStorage = Math.max(iron,ironStorage);
 		let fuelStorage = (selectedUnit.fuelStorage ? selectedUnit.fuelStorage : 0);
+		fuelStorage = Math.max(fuel,fuelStorage);
 		let freeStorage = maxStorage - (iron + fuel);
 		let health = (selectedUnit.health ? selectedUnit.health : 0);;
 		let player = getPlayerById(selectedUnit.playerId);

@@ -11,6 +11,12 @@ var logger = require('../util/logger.js');
 
 var registeredMaps = [];
 
+let mapTicks = {};
+
+let mapProcessing = {};
+
+let mapProcessMap = {};
+
 exports.init = () => {
 	setInterval(registerListeners,1000);
 
@@ -25,7 +31,8 @@ exports.init = () => {
 		return Promise.all(mapPromises);
 	}).then((maps) => {
 		for (let map of maps) {
-			process(map.name, map.lastTick);
+			mapTicks[map.name] = map.lastTick;
+			process(map.name);
 		}
 	});
 
@@ -53,29 +60,55 @@ function mapUpdate(err,delta) {
 		//TODO remove listener
 		return;
 	}
+	mapTicks[delta.new_val.name] = delta.new_val.lastTick;
 
-	process(delta.new_val.name,delta.new_val.lastTick);
+	process(delta.new_val.name);
 }
 
-async function process(mapName, lastTick) {
+async function process(mapName) {
+	if (mapProcessing[mapName]) {
+		console.log('map already being processed');
+		if (mapProcessMap[mapName]) {
+			console.log('clearing last timeout');
+			clearTimeout(mapProcessMap[mapName]);
+			mapProcessMap[mapName] = null;
+		}
+		let timeout = setTimeout(() => {
+			process(mapName);
+			if (mapProcessMap[mapName] === timeout) {
+				console.log('map processed, clearing timeout');
+				mapProcessMap[mapName] = null;
+			}
+		},100);
+		mapProcessMap[mapName] = timeout;
+	}
+
+
+	let lastTick = mapTicks[mapName];
 	return db.units[mapName].getUnprocessedUnits(lastTick)
 	.then((units) => {
 		if (units.length > 0) {
+
+			mapProcessing[mapName] = true;
 			var processPromises = [];
 			for (let unit of units) {
 				processPromises.push(processUnit(unit));
 			}
 			return Promise.all(processPromises).then(() => {
+				mapProcessing[mapName] = false;
 				console.log('processed units: ' + units.length);
 				return process(mapName, lastTick);
 			});
 		} else {
 			//console.log('all units processed for tick');
+
 			setTimeout(() => {
 				db.map.getMap(mapName).then((map) => {
 					if (map.lastTick === lastTick) {
-						return process(mapName,lastTick);
+						console.log('still last tick');
+						return process(mapName);
 					} else {
+						console.log('tick progressed');
 					}
 				});
 			},100);
