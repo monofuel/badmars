@@ -330,8 +330,17 @@ class Map {
 
 
 	//TODO this function could use some love to be a bit more sane about spawning
-	validChunkForSpawn(chunk) {
+	async validChunkForSpawn(chunk) {
 		var self = this;
+
+		let nearbyUnits = await getNearbyUnitsFromChunk(chunk.hash,3);
+		for (let unit of nearbyUnits) {
+			if (unit.owner !== "") {
+				return false;
+			}
+		}
+
+
 		return chunk.getTiles().then((tiles) => {
 			console.log('checking tile types');
 			var landTiles = 0;
@@ -372,6 +381,9 @@ class Map {
 		let amountCanPull = 0;
 		for (let unit of units) {
 			if (unit.ghosting) {
+				continue;
+			}
+			if (unit.owner !== taker.owner) {
 				continue;
 			}
 			let distance = unit.distance(taker);
@@ -442,6 +454,9 @@ class Map {
 			if (unit.ghosting) {
 				continue;
 			}
+			if (unit.owner !== taker.owner) {
+				continue;
+			}
 			let distance = unit.distance(taker);
 			if (distance > unit.transferRange && distance > taker.transferRange) {
 				continue;
@@ -499,6 +514,9 @@ class Map {
 			if (unit.ghosting) {
 				continue;
 			}
+			if (unit.owner !== mine.owner) {
+				continue;
+			}
 			if (mine.uuid === unit.uuid) {
 				continue;
 			}
@@ -528,6 +546,9 @@ class Map {
 
 		for (let unit of units) {
 			if (unit.ghosting) {
+				continue;
+			}
+			if (unit.owner !== mine.owner) {
 				continue;
 			}
 			if (mine.uuid === unit.uuid) {

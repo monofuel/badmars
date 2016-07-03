@@ -107,6 +107,10 @@ async function simulateGround(unit,map) {
 			if (!nearbyUnit.ghosting) {
 				continue;
 			}
+			if (nearbyUnit.owner !== unit.owner) {
+				continue;
+			}
+
 			let center = await map.getLoc(nearbyUnit.x,nearbyUnit.y);
 			let tile = await map.getNearestFreeTile(center,unit,true);
 
