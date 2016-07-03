@@ -285,7 +285,7 @@ class Map {
 
 	async getNearbyUnitsFromChunkWithTileRange(chunkHash,tileRange) {
 		let chunkRange = tileRange / this.chunkSize;
-		return await getNearbyUnitsFromChunk(chunkHash,chunkRange);
+		return await this.getNearbyUnitsFromChunk(chunkHash,chunkRange);
 	}
 
 	async getNearbyUnitsFromChunk(chunkHash,chunkRange) {
@@ -333,7 +333,7 @@ class Map {
 	async validChunkForSpawn(chunk) {
 		var self = this;
 
-		let nearbyUnits = await getNearbyUnitsFromChunk(chunk.hash,3);
+		let nearbyUnits = await this.getNearbyUnitsFromChunkWithTileRange(chunk.hash,128);
 		for (let unit of nearbyUnits) {
 			if (unit.owner !== "") {
 				return false;
