@@ -14,7 +14,7 @@ spec:
         name: badmars-web
     spec:
       containers:
-      - image: badmars/web
+      - image: badmars/nodejs
         name: badmars-web
         command:
          - node web.js

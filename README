@@ -10,6 +10,8 @@ tech stack:
 		threejs
 
 current task:
+	trying out kubernetes and becoming more microservice-y
+	might be reasonable to do something about how mongo is half-assed setup for google oauth with japura.net
 	combat
 	polishing and bug fixing for v1.0
 	chat

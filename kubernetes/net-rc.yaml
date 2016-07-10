@@ -22,3 +22,10 @@ spec:
         ports:
         - containerPort: 7005
           name: websocker
+        volumeMounts:
+          - name: nfs
+            mountPath: "/mnt"
+      volumes:
+      - name: nfs
+        persistentVolumeClaim:
+          claimName: nfs
