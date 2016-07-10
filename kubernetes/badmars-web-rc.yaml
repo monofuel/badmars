@@ -17,7 +17,9 @@ spec:
       - image: badmars/nodejs
         name: badmars-web
         command:
-         - node web.js
+         - node
+        args:
+         - web.js
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3002

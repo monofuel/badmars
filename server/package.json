@@ -20,7 +20,7 @@
     "rethinkdb"
   ],
   "author": "monofuel",
-  "license": "BSD",
+  "license": "SEE LICENSE IN ../LICENSE.txt",
   "bugs": {
     "url": "https://github.com/monofuel/badMars-JS/issues"
   },
@@ -52,6 +52,6 @@
     "ws": "^1.1.0"
   },
   "devDependencies": {
-    "flow-bin": "^0.26.0"
+    "flow-bin": "^0.28.0"
   }
 }

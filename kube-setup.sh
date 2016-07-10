@@ -7,35 +7,43 @@
 #in-progress
 #this script will be an easy one-stop shop to set up badmars on kubernetes
 #should automagically set everything up
+#badmars/nodejs is for 'production' nodejs modules
+#badmars/nodejs-dev is for mounting an NFS share for hot-reloading code
 
 #needs some extra magic for rethinkdb persistent storage
 
-cd client
-npm install
-cd ..
-cd server
-npm install
-cd ..
+echo skipping install step for now
+#echo running install
+#cd client
+#npm install
+#cd ..
+#cd server
+#npm install
+#cd ..
 
-#host our own docker repo when using minikube
-#for GCP, more docker magic is neccessary
-DOCKER_REGISTRY=`docker ps | grep registry | wc -l`
-if [ $DOCKER_REGISTRY -eq "1" ]; then
-	echo "docker registry already running"
-else
-	echo "starting docker registry"
-	docker run -d -p 5000:5000 --restart=always --name registry registry:2
-fi
+#use minikube's docker host
+#if we're using GKE, other magic would have to go here
+echo evaluating minikube docker env
+eval $(minikube docker-env)
 
+echo building production image
 #build the images needed
 docker build -t badmars/nodejs .
 
-#deploy image
-docker push localhost:5000/badmars/nodejs
+echo building development image
+docker build -f Dockerfile-dev -t badmars/nodejs-dev .
 
-#apply kubernetes configs
+#if we used GKE, we'd deploy it there
+
+echo deploying production replicas and services
+#create kubernetes configs
 for yamlFile in kubernetes/*.yaml; do
-	kubectl apply -f kubernetes/$yamlfile
+	kubectl create -f kubernetes/$yamlfile
+done
+
+echo deploying development replicas
+for yamlFile in kubernetes-dev/*.yaml; do
+	kubectl create -f kubernetes/$yamlfile
 done
 
 kubectl get rc

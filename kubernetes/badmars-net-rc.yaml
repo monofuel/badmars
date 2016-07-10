@@ -17,7 +17,9 @@ spec:
       - image: badmars/nodejs
         name: badmars-net
         command:
-         - node net.js
+         - node
+        args:
+         - net.js
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 7005

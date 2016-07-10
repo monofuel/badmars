@@ -2,8 +2,8 @@ apiVersion: v1
 kind: ReplicationController
 metadata:
   labels:
-    name: badmars-net
-  name: badmars-net
+    name: badmars-net-dev
+  name: badmars-net-dev
 spec:
   replicas: 1
   selector:
@@ -17,7 +17,9 @@ spec:
       - image: badmars/nodejs-dev
         name: badmars-net
         command:
-         - node net.js
+         - node
+        args:
+         - net.js
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 7005

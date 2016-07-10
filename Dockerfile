@@ -1,16 +1,15 @@
 FROM node:argon
 
-#RUN npm install -g gulp browserify
+RUN npm install -g gulp
 
-RUN mkdir -p /badmars
-WORKDIR /badmars
-COPY . /badmars
-#WORKDIR /badmars/server
-#RUN npm install
-#WORKDIR /badmars/client
-#RUN npm install
-#RUN make copy
-#RUN gulp transpile
+RUN git clone https://github.com/monofuel/badMars-JS /badmars
+
+WORKDIR /badmars/server
+RUN npm install
+WORKDIR /badmars/client
+RUN npm install
+RUN make copy
+RUN gulp transpile
 WORKDIR /badmars/server
 EXPOSE 3002
 

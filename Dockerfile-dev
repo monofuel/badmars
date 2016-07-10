@@ -1,0 +1,16 @@
+FROM node:argon
+
+#RUN npm install -g gulp browserify
+
+#TODO setup to run off NFS
+
+RUN mkdir -p /badmars
+WORKDIR /badmars
+COPY . /badmars
+WORKDIR /badmars/server
+
+EXPOSE 3002
+
+
+ENV BADMARS_DB rethinkdb-driver
+ENV BADMARS_AUTH_SERVER mongo
