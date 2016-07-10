@@ -2,23 +2,23 @@ apiVersion: v1
 kind: ReplicationController
 metadata:
   labels:
-    name: badmars-web
-  name: badmars-web
+    name: badmars-net
+  name: badmars-net
 spec:
   replicas: 1
   selector:
-    name: badmars-web
+    name: badmars-net
   template:
     metadata:
       labels:
-        name: badmars-web
+        name: badmars-net
     spec:
       containers:
       - image: badmars/nodejs
-        name: badmars-web
+        name: badmars-net
         command:
-         - node web.js
+         - node net.js
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 3002
-          name: http-server
+        - containerPort: 7005
+          name: websocker

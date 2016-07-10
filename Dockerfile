@@ -1,15 +1,16 @@
 FROM node:argon
 
+#RUN npm install -g gulp browserify
+
 RUN mkdir -p /badmars
 WORKDIR /badmars
 COPY . /badmars
-RUN npm install -g gulp browserify
-WORKDIR /badmars/server
+#WORKDIR /badmars/server
 #RUN npm install
-WORKDIR /badmars/client
+#WORKDIR /badmars/client
 #RUN npm install
-RUN make copy
-RUN gulp transpile
+#RUN make copy
+#RUN gulp transpile
 WORKDIR /badmars/server
 EXPOSE 3002
 

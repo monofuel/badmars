@@ -17,7 +17,8 @@ cd server
 npm install
 cd ..
 
-#host our own docker repo
+#host our own docker repo when using minikube
+#for GCP, more docker magic is neccessary
 DOCKER_REGISTRY=`docker ps | grep registry | wc -l`
 if [ $DOCKER_REGISTRY -eq "1" ]; then
 	echo "docker registry already running"
