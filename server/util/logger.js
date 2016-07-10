@@ -113,7 +113,7 @@ function track(name, kargs) {
 	verifyTrack(name,kargs);
 
 	request({
-		url: 'http://' + env.trackingServer + ':' + env.trackingPort + '/track/event',
+		url: 'https://' + env.trackingServer + ':' + env.trackingPort + '/track/event',
 		method: 'POST',
 		body: JSON.stringify(kargs)
 	}, (error, response, body) => {
