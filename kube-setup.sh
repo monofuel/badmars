@@ -35,6 +35,10 @@ docker build -f Dockerfile-dev -t badmars/nodejs-dev .
 
 #if we used GKE, we'd deploy it there
 
+
+#euuurggh this whole create bit is a mess.
+#needs some fancy logic to 'create or update if exists' or something
+
 echo deploying production replicas and services
 #create kubernetes configs
 for yamlFile in kubernetes/*.yaml; do
@@ -43,7 +47,7 @@ done
 
 echo deploying development replicas
 for yamlFile in kubernetes-dev/*.yaml; do
-	kubectl create -f kubernetes/$yamlfile
+	kubectl create -f kubernetes-dev/$yamlfile
 done
 
 kubectl get rc

@@ -8,6 +8,7 @@ spec:
   type: NodePort
   ports:
     - port: 3002
+      nodePort: 31082
       protocol: TCP
   selector:
     name: badmars-web

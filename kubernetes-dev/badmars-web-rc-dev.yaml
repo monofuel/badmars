@@ -7,15 +7,15 @@ metadata:
 spec:
   replicas: 1
   selector:
-    name: badmars-web
+    name: badmars-web-dev
   template:
     metadata:
       labels:
-        name: badmars-web
+        name: badmars-web-dev
     spec:
       containers:
       - image: badmars/nodejs-dev
-        name: badmars-web
+        name: badmars-web-dev
         command:
          - node
         args:
@@ -23,7 +23,7 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3002
-          name: http-server
+          name: badmars-web-dev
         volumeMounts:
           - name: nfs
             mountPath: "/mnt"
