@@ -164,7 +164,7 @@ class Client {
 		//console.log('recieving event');
 		//console.log(data.new_val);
 		let gameEvent = data.new_val;
-		if (gameEvent.name !== 'gameEvent') {
+		if (gameEvent.name !== 'server_gameEvent') {
 			return;
 		}
 

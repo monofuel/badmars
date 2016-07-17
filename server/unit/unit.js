@@ -390,7 +390,7 @@ class Unit {
 		if (this.health < 0) {
 			this.health = 0;
 		}
-		await (this.updateUnit({health: this.health}));
+		await (this.updateUnit({health: this.health, awake:true}));
 	}
 
 	async moveToTile(tile) {

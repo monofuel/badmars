@@ -155,7 +155,7 @@ export class Entity {
 		this.health = unit.health;
 	}
 
-	takeDamage(source: any) {
+	takeDamage() {
 		console.log('taking damage');
 		if (display) {
 			display.removeMesh(this.damageSphere); //TODO ugly hack, restarts animation
