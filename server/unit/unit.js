@@ -122,6 +122,10 @@ class Unit {
 
 		let hasActed = false;
 
+		if (self.type === 'oil' || self.type === 'iron') {
+			return false;
+		}
+
 		//special one-off AI
 		//mines should always be awake
 		if (self.type === 'mine' && !self.ghosting) {
@@ -144,10 +148,10 @@ class Unit {
 			}
 		}
 
-		if (!hasActed && self.attack != 0 && self.range != 0) {
+		if (!hasActed && self.attack && self.range) {
 			let hasActed = await attackAI.simulate(self,map);
 			if (hasActed) {
-				//console.log('attacking');
+				console.log('attacking');
 				update = true;
 				self.awake = true;
 			}

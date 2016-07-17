@@ -12,12 +12,11 @@ tech stack:
 current task:
 	trying out kubernetes and becoming more microservice-y
 	might be reasonable to do something about how mongo is half-assed setup for google oauth with japura.net
-	combat
 	polishing and bug fixing for v1.0
-	chat
 	cancel ghost feature
 
 TODO:
+	watch user table for changes and push updates
 	dummy DB interface to allow testing modules in production without actually writing changes
 	properly flowtype the entire codebase
 	make sure that all writes do not clobber

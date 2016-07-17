@@ -24,6 +24,7 @@ exports.simulate = async (unit,map) => {
 	//TODO allow attacking a specific enemy
 	let enemy = await map.getNearestEnemy(unit);
 	if (enemy && enemy.distance(unit) <= unit.range) {
+		console.log('found enemy within range');
 		await unit.armFireCooldown();
 		await enemy.takeDamage(unit.firePower);
 		if (enemy.health === 0) {
