@@ -376,6 +376,7 @@ class Map {
 		let units = await this.getNearbyUnitsFromChunk(taker.chunkHash[0]);
 		//TODO should sort buildings over units
 		this.sortByNearestUnit(units,taker);
+		this.sortBuildingsOverOther(units);
 
 		//first check if we can pull enough
 		let amountCanPull = 0;
@@ -447,6 +448,7 @@ class Map {
 		let units = await this.getNearbyUnitsFromChunk(taker.chunkHash[0]);
 		//TODO should sort buildings over units
 		this.sortByNearestUnit(units,taker);
+		this.sortBuildingsOverOther(units);
 
 		//first check if we can pull enough
 		let amountCanPull = 0;
@@ -509,6 +511,7 @@ class Map {
 		//TODO 3 is a magic number- should calculate based on transfer range
 		let units = await this.getNearbyUnitsFromChunk(mine.chunkHash[0]);
 		this.sortByNearestUnit(units,mine);
+		this.sortBuildingsOverOther(units);
 
 		for (let unit of units) {
 			if (unit.ghosting) {
@@ -543,6 +546,7 @@ class Map {
 		//TODO 3 is a magic number- should calculate based on transfer range
 		let units = await this.getNearbyUnitsFromChunk(mine.chunkHash[0]);
 		this.sortByNearestUnit(units,mine);
+		this.sortBuildingsOverOther(units);
 
 		for (let unit of units) {
 			if (unit.ghosting) {
@@ -579,6 +583,23 @@ class Map {
 		});
 	}
 
+	sortBuildingsOverOther(units) {
+		units.sort((a,b) => {
+			if (a.movementType === 'building' && b.movementType === 'building') {
+				return 0;
+			}
+			if (a.movementType === 'building' && b.movementType !== 'building') {
+				return -1;
+			}
+			if (a.movementType !== 'building' && b.movementType === 'building') {
+				return 1;
+			}
+			if (a.movementType !== 'building' && b.movementType !== 'building') {
+				return 0;
+			}
+		});
+	}
+
 	//doot doot
 
 	//tile is the tile to check
@@ -589,7 +610,10 @@ class Map {
 	//rather than to center (which it does now)
 	async getNearestFreeTile(center,unit,includeGhosts) {
 		let unitsOnTile = await this.unitsTileCheck(center,includeGhosts);
-		let unitTile = await this.getLoc(unit.x,unit.y);
+		let unitTile = center;
+		if (unit) {
+			unitTile = await this.getLoc(unit.x,unit.y);
+		}
 
 		//check if the tile we are checking is already free
 		if (unitsOnTile.length == 0 && center.tileType == Tiletypes.LAND) {
