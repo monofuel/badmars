@@ -44,6 +44,7 @@ async function simulate(unit,map) {
 		//1.01 is 1 for the unit, + 0.01 for float fudge factor (ffffffffffff)
 		if (transferUnit.distance(unit) > Math.max(unit.size,transferUnit.size) + 1.05) {
 			//if it is not nearby, keep pathing.
+			console.log('PATHFINDING CLOSER TO TRANSFER UNIT');
 			let center = await map.getLoc(transferUnit.x,transferUnit.y);
 			let tile = await map.getNearestFreeTile(center,unit,true);
 			unit.setDestination(tile.x,tile.y);
