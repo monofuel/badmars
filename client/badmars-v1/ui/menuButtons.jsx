@@ -7,9 +7,10 @@
 import React from 'react';
 
 import {Button, Well} from 'react-bootstrap';
+import {Entity} from '../units/entity.js';
 
 type Props = {
-	selectedUnitType: ?string,
+	selectedUnit: Entity,
 	openAboutClicked: () => void,
 	constructClicked: (type: string) => void,
 	factoryConstructClicked: (type: string) => void
@@ -41,10 +42,34 @@ const buildButtonStyle = {
 export default class MenuButtons extends React.Component{
 
 	render() {
-		const {selectedUnitType,openAboutClicked,constructClicked,factoryConstructClicked} = this.props;
+		const {selectedUnit,openAboutClicked,constructClicked,factoryConstructClicked} = this.props;
+		const selectedUnitType = selectedUnit ? selectedUnit.type : null
 
 		let buttons;
-		if (!selectedUnitType || selectedUnitType !== 'factory') {
+		let queuePane = <div>Nothing queued</div>;
+		if (selectedUnitType === 'factory' && selectedUnit && selectedUnit.factoryQueue.length > 0) {
+			let buildingUnit = selectedUnit.factoryQueue[0];
+			let remaining = buildingUnit.remaining;
+			let constructing = buildingUnit.cost === 0;
+			queuePane = (
+				<div style={{width: '110px'}}>
+					<div>
+					{constructing?
+						'remaining: ' + remaining + 's'
+						:
+						'need iron'
+					}
+					</div>
+					<ul style={{overflow: 'auto', maxHeight: '60%'}}>
+						{selectedUnit.factoryQueue.map((queueElement) => {
+							return <li>{queueElement.type}</li>;
+						})}
+					</ul>
+				</div>
+			);
+		}
+
+		if (selectedUnitType !== 'factory') {
 			buttons = (
 				<div>
 					<Button style={constructButtonStyle} onClick={() => constructClicked('storage')}>Storage</Button>
@@ -56,11 +81,14 @@ export default class MenuButtons extends React.Component{
 			);
 		} else {
 			buttons = (
-				<div>
-					<Button style={constructButtonStyle} onClick={() => factoryConstructClicked('tank')}>Tank</Button>
-					<Button style={constructButtonStyle} onClick={() => factoryConstructClicked('builder')}>Builder</Button>
-					<Button style={constructButtonStyle} onClick={() => factoryConstructClicked('transport')}>Transport</Button>
-					<Button style={constructButtonStyle} onClick={() => factoryConstructClicked('cancel')}>Cancel</Button>
+				<div style={{display: 'flex'}}>
+					{queuePane}
+					<div>
+						<Button style={constructButtonStyle} onClick={() => factoryConstructClicked('tank')}>Tank</Button>
+						<Button style={constructButtonStyle} onClick={() => factoryConstructClicked('builder')}>Builder</Button>
+						<Button style={constructButtonStyle} onClick={() => factoryConstructClicked('transport')}>Transport</Button>
+						<Button style={constructButtonStyle} onClick={() => factoryConstructClicked('cancel')}>Cancel</Button>
+					</div>
 				</div>
 			);
 		}

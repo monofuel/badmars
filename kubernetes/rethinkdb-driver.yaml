@@ -10,3 +10,4 @@ spec:
       targetPort: 28015
   selector:
     db: rethinkdb
+    role: proxy

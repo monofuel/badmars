@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bm-web-dev
+  labels:
+    name: bm-web-dev
+spec:
+  type: NodePort
+  ports:
+    - port: 3002
+      nodePort: 31083
+      protocol: TCP
+  selector:
+    name: bm-web-dev

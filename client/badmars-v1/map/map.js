@@ -143,17 +143,7 @@ export class Map {
 			console.log("handling attack");
 			var unit = self.getUnitById(data.enemyId);
 			var attackingUnit = self.getUnitById(data.unitId);
-			if (unit && unit.takeDamage) {
-				unit.takeDamage(attackingUnit);
-			}
-			if (unit && unit.updateHealth) {
-				unit.updateHealth(data.enemyHealth);
-			} else {
-				window.track("error", {
-					message: "tried to attack un-attackable unit",
-					data: data
-				});
-			}
+
 			if (attackingUnit && attackingUnit instanceof GroundUnit) {
 				console.log("unit taking damage");
 				attackingUnit.fire(unit);
@@ -163,7 +153,7 @@ export class Map {
 
 		this.killListener = (data) => {
 			console.log("handling kill");
-			var unit = self.getUnitById(data.enemyId);
+			var unit = self.getUnitById(data.unitId);
 			if (unit && unit.destroy) {
 				unit.destroy();
 			} else {

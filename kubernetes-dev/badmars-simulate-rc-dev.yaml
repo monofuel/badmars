@@ -2,28 +2,28 @@ apiVersion: v1
 kind: ReplicationController
 metadata:
   labels:
-    name: bm-net-dev
-  name: bm-net-dev
+    name: bm-simulate-dev
+  name: bm-simulate-dev
 spec:
   replicas: 1
   selector:
-    name: bm-net-dev
+    name: bm-simulate-dev
   template:
     metadata:
       labels:
-        name: bm-net-dev
+        name: bm-simulate-dev
     spec:
       containers:
       - image: badmars/nodejs-dev:v2
-        name: bm-net-dev
+        name: bm-simulate-dev
         command:
          - node
         args:
-         - /mnt/src/github.com/monofuel/badMars-JS/server/net.js
+         - /mnt/src/github.com/monofuel/badMars-JS/server/simulate.js
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 7005
-          name: bm-net-dev
+          name: bm-simulate-dev
         volumeMounts:
           - name: nfs
             mountPath: "/mnt"

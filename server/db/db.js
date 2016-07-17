@@ -7,6 +7,7 @@
 
 var env = require('../config/env.js');
 var logger = require('../util/logger.js');
+var helper = require('../util/helper.js');
 var r = require('rethinkdb');
 
 var DBChunk = require('./chunk.js');
@@ -14,6 +15,8 @@ var DBUnit = require('./unit.js');
 
 exports.map = require('./map.js');
 exports.user = require('./user.js');
+exports.chat = require('./chat.js');
+exports.event = require('./event.js');
 
 exports.chunks = {};
 exports.units = {};
@@ -48,6 +51,8 @@ exports.init = () => {
 		console.log('preparing tables');
 		var initPromises = [];
 		initPromises.push(exports.map.init(conn));
+		initPromises.push(exports.chat.init(conn));
+		initPromises.push(exports.event.init(conn));
 		initPromises.push(exports.user.init(conn));
 		return Promise.all(initPromises);
 	}).then(() => {
@@ -78,3 +83,19 @@ exports.init = () => {
 		});
 	});
 };
+
+exports.safeCreateTable = async (tableName) => {
+
+	//rethinkdb does not atomically create tables
+	await helper.sleep(5000 * Math.random());
+	let results = await r.tableList().contains(tableName)
+	.do((exists) => {
+		return r.branch(exists,
+		{ table_created: 0 },
+		r.tableCreate(tableName)
+		)
+	}).run(conn);
+	if (results.table_created) {
+		console.log('created table:' + tableName);
+	}
+}

@@ -67,6 +67,7 @@ export class Entity {
 		this.takingDamage = 0;
 		this.ghosting = false;
 		this.selectionSize = 1.1;
+		this.factoryQueue = [];
 
 		this.maxStorage = 0;
 		this.storage = {

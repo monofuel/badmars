@@ -23,7 +23,8 @@ import {
 import {
 	Net,
 	registerListener,
-	deleteListener
+	deleteListener,
+	getPlayerById
 } from "./net.js";
 import {
 	loadAllModelsAsync
@@ -93,15 +94,27 @@ var hudPanel: HTMLCanvasElement;
 var hudContext: any; //flow sucks at getContext()
 export var hilight;
 
-export var hudClick = false;
+export var hudFocus = false;
+export var chatFocus = false;
 
-export function setHudClick() {
-	hudClick = true;
-	console.log('hudClick set');
+export function setHudFocus() {
+	console.log('hud gained focus');
+	hudFocus = true;
 }
 
-export function unsetHudClick() {
-	hudClick = false;
+export function unsetHudFocus() {
+	console.log('hud lost focus');
+	hudFocus = false;
+}
+
+export function setChatFocus() {
+	console.log('chat gained focus');
+	chatFocus = true;
+}
+
+export function unsetChatFocus() {
+	console.log('chat lost focus');
+	chatFocus = false;
 }
 
 export function setButtonMode(mode: Symbol) {
@@ -189,6 +202,17 @@ window.onload = function () {
 	  }
 	});
 
+	registerListener('chat',(data) => {
+
+		const user = getPlayerById(data.uuid);
+		let username = data.uuid;
+		if (user) {
+			username = user.username;
+		}
+		//timestamp is time recieved, not server time
+		fireBusEvent('chat', {user: username,text: data.text,timestamp:Date.now()});
+	});
+
 	username = $.cookie("username");
 	apiKey = $.cookie("apiKey");
 
@@ -264,10 +288,14 @@ window.onload = function () {
 
 	document.body.addEventListener('keyup',keyUpHandler);
 
-	//block right click menu
+	//block right click menu in-game
+
 	let contextMenuHandler: EventHandler = (event: any): boolean => {
-		event.preventDefault();
-		return false;
+		if (!hudFocus && !chatFocus){
+			event.preventDefault();
+			return false;
+		}
+		return true;
 	};
 	document.body.addEventListener('contextmenu',contextMenuHandler);
 
@@ -289,7 +317,6 @@ window.onload = function () {
 	document.body.addEventListener('mousemove',mouseMoveHandler);
 
 	let mouseDownHandler: EventHandler = (event: any) => {
-		unsetHudClick();
 		switch (event.button) {
 			case LEFT_MOUSE:
 				isMouseDown = true;
@@ -343,7 +370,7 @@ window.onload = function () {
 						break;
 				}
 			}
-			if (hudClick) {
+			if (hudFocus) {
 				return;
 			}
 
@@ -430,6 +457,10 @@ function logicLoop() {
 }
 
 function handleInput() {
+	if (chatFocus) {
+		//TODO maybe some buttons should be handled regardless of chat focus
+		return;
+	}
 	for (var key of keysDown) {
 		switch (key) {
 			case 87: //w
@@ -650,6 +681,12 @@ export function login(name: string,color: string) {
 	}
 }
 
+export function sendChat(text: string) {
+	console.log('sending text: ' + text);
+	net.send({type: 'sendChat', text: text});
+
+}
+
 window.onerror = (msg, url, line, col, error) => {
 	var body = {
 		msg: msg,
@@ -691,6 +728,6 @@ export function setMouseActions(click: ?Function, move: ?Function): void {
  * @return	{boolean}
  */
 function checkMenuFocus(): boolean {
-
+	//TODO wtf is going on here
 	return false;
 }

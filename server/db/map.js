@@ -17,7 +17,6 @@ var table;
 
 exports.init = (connection) => {
 	conn = connection;
-
 	return r.tableList().run(conn)
 		.then((tableList) => {
 			if (tableList.indexOf('map') == -1) {

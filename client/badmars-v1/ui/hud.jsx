@@ -8,15 +8,18 @@ import React from 'react';
 import LoginModal from './login.jsx';
 import ErrorAlert from './errorAlert.jsx';
 import MenuButtons from './menuButtons.jsx';
+import Chat from './chat.jsx';
 import AboutModal from './about.jsx';
 import SelectedUnitWell from './selectedUnit.jsx';
 import Transfer from './transfer.jsx';
 
 import {
-	setHudClick,
+	setHudFocus,
+	unsetHudFocus,
 	construct,
 	factoryOrder,
-	performTransfer
+	performTransfer,
+	sendChat
 } from '../client.js';
 import {Entity} from '../units/entity.js';
 import {
@@ -49,7 +52,8 @@ type State = {
 	transferUnit: ?Entity,
 	errorMessage: ?string,
 	aboutOpen: boolean,
-	transfering: boolean
+	transfering: boolean,
+	chatLog: Object[]
 }
 
 export default class HUD extends React.Component {
@@ -64,7 +68,8 @@ export default class HUD extends React.Component {
 			transferUnit: null,
 			errorMessage: null,
 			aboutOpen: false,
-			transfering: false
+			transfering: false,
+			chatLog: []
 		};
 		let self = this;
 		registerBusListener('selectedUnit',(unit: Entity) => {
@@ -75,18 +80,25 @@ export default class HUD extends React.Component {
 		});
 		registerBusListener('transfer',(unit: Entity) => {
 			self.unitTransferHandler(unit);
-		})
+		});
+		registerBusListener('chat',(message: Object) => {
+			self._addChatMessage(message);
+		});
 
 	}
 
 	render() {
-		const {login,selectedUnit,transferUnit,errorMessage,aboutOpen,transfering} = this.state;
+		const {login,selectedUnit,transferUnit,errorMessage,aboutOpen,transfering,chatLog} = this.state;
 
 		if (login) {
 			return (<LoginModal/>)
 		} else {
 			return (
-				<div id="primaryHUD" onMouseUpCapture={this.handleMenuClick}>
+				<div
+				id="primaryHUD"
+				onFocus={setHudFocus}
+				onBlur={unsetHudFocus}
+				>
 					{
 						errorMessage ?
 						<ErrorAlert
@@ -111,7 +123,6 @@ export default class HUD extends React.Component {
 					{
 						transfering && selectedUnit && transferUnit ?
 						<Transfer
-							onMouseUpCapture={this.handleMenuClick}
 							selectedUnit={selectedUnit}
 							transferUnit={transferUnit}
 							onClose={() => {
@@ -128,8 +139,12 @@ export default class HUD extends React.Component {
 						:
 						null
 					}
+					<Chat
+						chatLog={chatLog}
+						sendChat={sendChat}
+					/>
 					<MenuButtons
-						selectedUnitType={selectedUnit ? selectedUnit.type : null}
+						selectedUnit={selectedUnit}
 						openAboutClicked={() => {this._openAboutClicked()}}
 						constructClicked={construct}
 						factoryConstructClicked={factoryOrder}
@@ -146,6 +161,12 @@ export default class HUD extends React.Component {
 		if (this.state.selectedUnit && this.state.selectedUnit.uuid === unit.uuid) {
 			this.forceUpdate();
 		}
+	}
+
+	_addChatMessage(message: Object) {
+		this.setState({
+			chatLog: [message].concat(this.state.chatLog.slice(0,199))
+		});
 	}
 
 	unitTransferHandler(transferUnit: Entity) {
@@ -177,13 +198,6 @@ export default class HUD extends React.Component {
 		this.setState({
 			login: bool
 		});
-	}
-
-	handleMenuClick(e: any): boolean {
-		console.log('hud blocking click');
-		setHudClick();
-
-		return false;
 	}
 
 	_openAboutClicked() {

@@ -10,53 +10,32 @@ var env = require('../../config/env.js');
 var logger = require('../../util/logger.js');
 
 //TODO not tested  yet
-exports.simulate = (unit,map) => {
+exports.simulate = async (unit,map) => {
 
+	if (unit.fireCooldown) {
+		await unit.tickFireCooldown();
+		return false;
+	}
+
+	if (unit.destination) {
+		return false;
+	}
+	console.log('tank is scanning');
+	//get nearest enemy
+	//TODO allow attacking a specific enemy
+	let enemy = await map.getNearestEnemy(unit);
+	if (enemy && enemy.distance(unit) <= unit.range) {
+		await unit.armFireCooldown();
+		await enemy.takeDamage(unit.firePower);
+		if (enemy.health === 0) {
+			logger.info('gameEvent',{type:'kill',unitId:enemy.uuid});
+		} else {
+			logger.info('gameEvent',{type:'attack',enemyId:enemy.uuid,unitId:unit.uuid});
+		}
+		return true;
+	} else if (enemy && enemy.distance(unit) < env.attackMoveRange){
+		//TODO move to attack them, then return to position
+		return false;
+	}
 	return false;
-	//TODO
-
-	/* // old code
-	#cooldown after firing
-	#TODO unitInfo is checked as some units dont' have unit info (maybe should so something about that)
-	if (unitInfo && unitInfo.firePower) #unitInfo.firePower is a little bit hacky of a way to see if a unit can shoot
-	  if (!unit.fireCooldown)
-		unit.fireCooldown = 0
-	  else if (unit.fireCooldown > 0)
-		update = true
-		unit.fireCooldown--
-	  else if (unit.fireCooldown < 0)
-		update = true
-		unit.fireCooldown = 0
-
-	if (unitInfo && unitInfo.firePower && unit.fireCooldown == 0 && !unit.moving)
-	  #check for an enemy to shoot
-	  enemy = planet.getNearestEnemy(unit)
-	  if (enemy && enemy.tile.distance(unit.tile) < unitInfo.range)
-		update = true;
-		#SHOOT THEM
-		unit.fireCooldown = unitInfo.fireRate
-		enemy.health -= unitInfo.firePower
-		Logger.serverInfo("auto_attack",{
-		  unit: unit
-		  enemy: enemy
-		  distance: enemy.tile.distance(unit.tile)
-		  })
-		if (enemy.health <= 0)
-		  planet.broadcastUpdate({
-			type: "kill"
-			unitId: unit.id
-			enemyId: enemy.id
-			});
-		  planet.killUnit(enemy)
-		else
-		  planet.broadcastUpdate({
-			type: "attack"
-			unitId: unit.id
-			enemyId: enemy.id
-			enemyHealth: enemy.health
-			});
-		  #TODO we are saving a unit other than the one currently being simulated. this is odd.
-		  enemy.save()
-
-	*/
 }

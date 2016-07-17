@@ -3,8 +3,8 @@
 
 var WebSocket = require('ws');
 
-const SERVER_URL = "ws://localhost";
-const SERVER_PORT = 7005;
+const SERVER_URL = "ws://192.168.11.161";
+const SERVER_PORT = 31085;
 
 var s = new WebSocket(SERVER_URL + ":" + SERVER_PORT);
 var players = [];

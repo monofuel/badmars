@@ -9,6 +9,7 @@ var request = require('request');
 var os = require('os');
 var env = require('../config/env.js');
 var stats = require('./stats.js');
+var db = require('../db/db.js');
 stats.init();
 
 var moduleName = 'monolith';
@@ -111,6 +112,8 @@ function track(name, kargs) {
 	kargs.hostname = os.hostname();
 	kargs.env = env.envType;
 	verifyTrack(name,kargs);
+
+	db.event.addEvent(kargs);
 
 	request({
 		url: 'https://' + env.trackingServer + ':' + env.trackingPort + '/track/event',

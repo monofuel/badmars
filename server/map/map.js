@@ -658,25 +658,22 @@ class Map {
 		}
 	}
 
-	getNearestEnemy(unit) {
-		/* //old code
-		#assume all users are enemies.
-	    #TODO faction or enemy/ally system thing
-	    distance = null
-	    nearestEnemy = null
-	    for otherUnit in @units
-	      if (otherUnit.owner != unit.owner && otherUnit.type != 'oil' && otherUnit.type != 'iron' && !otherUnit.ghosting)
-	        otherUnitDistance = unit.tile.distance(otherUnit.tile);
-	        if (!nearestEnemy || otherUnitDistance < distance)
-	          nearestEnemy = otherUnit
-	          distance = otherUnitDistance
+	async getNearestEnemy(unit) {
+		let units = await this.getNearbyUnitsFromChunk(unit.chunkHash[0]);
+		this.sortByNearestUnit(units,unit);
 
-	    return nearestEnemy
-		*/
+		for (let other of units) {
+			if (other.owner && unit.owner !== other.owner) {
+				return other;
+			}
+		}
+
+		return null;
 	}
 
 	getNearestGhost(unit) {
 		//similar to get nearest enemy
+		//TODO
 	}
 
 	save() {

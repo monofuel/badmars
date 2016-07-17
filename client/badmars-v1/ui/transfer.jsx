@@ -13,7 +13,6 @@ type Props = {
 	onTransfer: (selectedUnit: Entity,transferUnit: Entity,iron: number,fuel: number) => void,
 	selectedUnit: Entity,
 	transferUnit: Entity,
-	onMouseUpCapture: (e: any) => boolean
 }
 type State = {
 	iron: number,
@@ -28,12 +27,12 @@ export default class Transfer extends React.Component {
 	};
 
 	render() {
-		const {onClose,onTransfer,selectedUnit,transferUnit,onMouseUpCapture} = this.props;
+		const {onClose,onTransfer,selectedUnit,transferUnit} = this.props;
 		const {iron,fuel} = this.state;
 
 		return (
 			<div id="transfer">
-				<Modal show={true} backdrop='static' onMouseUpCapture={onMouseUpCapture}>
+				<Modal show={true} backdrop='static'>
 					<Modal.Header closeButton>
 						<Modal.Title>Resource Transfer</Modal.Title>
 					</Modal.Header>

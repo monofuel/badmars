@@ -86,7 +86,7 @@ export class Display {
 			console.log(tile.getLoc());
 			this.camera.position.copy(tile.getLoc());
 			this.camera.position.x -= 13;
-			this.camera.position.y += 25;
+			this.camera.position.y += 27;
 			this.camera.position.z -= 13;
 			this.camera.rotation.set(-1, -2.3708363267948984, 0);
 		}

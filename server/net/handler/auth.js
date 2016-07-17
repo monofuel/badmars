@@ -20,8 +20,11 @@ function mountUserHandlers(client) {
 	client.handlers['unitStats'] = require('./unitStats.js');
 	client.handlers['factoryOrder'] = require('./factoryOrder.js');
 	client.handlers['transferResource'] = require('./transferResource.js');
+	client.handlers['sendChat'] = require('./sendChat.js');
 
 	client.registerUnitListener();
+	client.registerEventHandler();
+	client.registerChatHandler();
 
 }
 

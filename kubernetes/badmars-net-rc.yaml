@@ -14,8 +14,15 @@ spec:
         name: badmars-net
     spec:
       containers:
-      - image: badmars/nodejs
+      - image: badmars/nodejs:v4
         name: badmars-net
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "256Mi"
+            cpu: "1000m"
         command:
          - node
         args:

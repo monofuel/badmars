@@ -364,6 +364,26 @@ class Unit {
 		}
 	}
 
+	async tickFireCooldown() {
+		if (this.fireCooldown > 0) {
+			this.fireCooldown--;
+			await this.updateUnit({fireCooldown: this.fireCooldown});
+		}
+	}
+
+	async armFireCooldown() {
+		this.fireCooldown = this.fireRate;
+		await this.updateUnit({fireCooldown: this.fireCooldown});
+	}
+
+	async takeDamage(dmg) {
+		this.health -= dmg;
+		if (this.health < 0) {
+			this.health = 0;
+		}
+		await (this.updateUnit({health: this.health}));
+	}
+
 	async moveToTile(tile) {
 
 

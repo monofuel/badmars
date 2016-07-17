@@ -2,20 +2,20 @@ apiVersion: v1
 kind: ReplicationController
 metadata:
   labels:
-    name: badmars-web
-  name: badmars-web
+    name: badmars-simulate
+  name: badmars-simulate
 spec:
   replicas: 1
   selector:
-    name: badmars-web
+    name: badmars-simulate
   template:
     metadata:
       labels:
-        name: badmars-web
+        name: badmars-simulate
     spec:
       containers:
       - image: badmars/nodejs:v4
-        name: badmars-web
+        name: badmars-simulate
         resources:
           requests:
             memory: "64Mi"
@@ -23,17 +23,11 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "1000m"
-        env:
-          - name: GOOGLE_OAUTH_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: oauthsecret
-                key: oauth
         command:
          - node
         args:
-         - web.js
+         - simulate.js
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 3002
-          name: http-server
+        - containerPort: 7005
+          name: websocker

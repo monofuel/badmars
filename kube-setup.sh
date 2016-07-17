@@ -12,7 +12,8 @@
 
 #needs some extra magic for rethinkdb persistent storage
 
-echo skipping install step for now
+
+echo "skipping install step for now"
 #echo running install
 #cd client
 #npm install
@@ -27,27 +28,53 @@ echo evaluating minikube docker env
 eval $(minikube docker-env)
 
 echo building production image
-#build the images needed
-docker build -t badmars/nodejs .
+
+#docker uploads the current working directory to the daemon
+#which is painfully slow. so build in a subfolder with the 2 files needed
+#for the production image. The production image pulls the latest
+#stable code from github
+cp server/package.json docker/server-package.json
+cp client/package.json docker/client-package.json
+cd docker
+docker build -f Dockerfile -t badmars/nodejs:v4 .
 
 echo building development image
-docker build -f Dockerfile-dev -t badmars/nodejs-dev .
-
+docker build -f Dockerfile-dev -t badmars/nodejs-dev:v2 .
+cd ..
 #if we used GKE, we'd deploy it there
 
-
-#euuurggh this whole create bit is a mess.
-#needs some fancy logic to 'create or update if exists' or something
+kubectl create secret generic oauthsecret --from-file=secrets/oauth.txt
 
 echo deploying production replicas and services
+
+kubectl create -f kubernetes/rethinkdb-replica.yaml
+
+sleep 30s
 #create kubernetes configs
-for yamlFile in kubernetes/*.yaml; do
-	kubectl create -f kubernetes/$yamlfile
+FILES=kubernetes/*.yaml
+for yamlFile in $FILES; do
+	kubectl apply -f kubernetes/$yamlfile
 done
 
+kubectl delete hpa badmars-web
+kubectl autoscale rc badmars-web --min 1 --max 4 --cpu-percent=80
+kubectl delete hpa badmars-ai
+kubectl autoscale rc badmars-ai --min 1 --max 8 --cpu-percent=80
+kubectl delete hpa badmars-simulate
+kubectl autoscale rc badmars-simulate --min 1 --max 2 --cpu-percent=80
+kubectl delete hpa badmars-pathfinder
+kubectl autoscale rc badmars-pathfinder --min 1 --max 4 --cpu-percent=80
+kubectl delete hpa badmars-net
+kubectl autoscale rc badmars-net --min 1 --max 8 --cpu-percent=80
+kubectl delete hpa rethinkdb-proxy
+kubectl autoscale rc rethinkdb-proxy --min 1 --max 5 --cpu-percent=80
+kubectl delete hpa rethinkdb-replica
+kubectl autoscale rc rethinkdb-replica --min 1 --max 8 --cpu-percent=80
+
 echo deploying development replicas
-for yamlFile in kubernetes-dev/*.yaml; do
-	kubectl create -f kubernetes-dev/$yamlfile
+FILES=kubernetes-dev/*.yaml
+for yamlFile in $FILES; do
+	kubectl apply -f kubernetes-dev/$yamlfile
 done
 
 kubectl get rc
