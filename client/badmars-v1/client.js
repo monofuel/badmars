@@ -319,6 +319,9 @@ window.onload = function () {
 	let mouseDownHandler: EventHandler = (event: any) => {
 		switch (event.button) {
 			case LEFT_MOUSE:
+				if (hudFocus) {
+					break;
+				}
 				isMouseDown = true;
 				dragStart = new THREE.Vector2();
 				dragStart.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1;
@@ -416,7 +419,7 @@ window.onload = function () {
 					if (buttonMode == MODE_MOVE) {
 						selectedTile = map.getTileAtRay(mouse);
 						var unit = map.getSelectedUnit(mouse);
-						if (unit && playerInfo && unit.playerId == playerInfo.id) {
+						if (unit && selectedUnit && playerInfo && unit.playerId == playerInfo.id && unit.uuid !== selectedUnit.uuid) {
 							console.log('right clicked players own unit');
 							transferUnit = unit;
 							fireBusEvent('transfer',transferUnit);

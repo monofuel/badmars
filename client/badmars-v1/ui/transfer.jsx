@@ -7,6 +7,10 @@
 import React from 'react';
 import { Button,Modal } from 'react-bootstrap';
 import {Entity} from '../units/entity.js';
+import {
+	setHudFocus,
+	unsetHudFocus
+} from '../client.js';
 
 type Props = {
 	onClose: () => void,
@@ -26,13 +30,23 @@ export default class Transfer extends React.Component {
 		fuel: 0
 	};
 
+	componentDidMount() {
+		setHudFocus();
+	}
+
+	componentWillUnmount() {
+		unsetHudFocus();
+	}
+
 	render() {
 		const {onClose,onTransfer,selectedUnit,transferUnit} = this.props;
 		const {iron,fuel} = this.state;
 
 		return (
 			<div id="transfer">
-				<Modal show={true} backdrop='static'>
+				<Modal
+					show={true}
+					backdrop='static'>
 					<Modal.Header closeButton>
 						<Modal.Title>Resource Transfer</Modal.Title>
 					</Modal.Header>

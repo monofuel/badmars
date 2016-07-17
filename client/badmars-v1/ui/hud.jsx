@@ -155,7 +155,7 @@ export default class HUD extends React.Component {
 	}
 
 	selectedUnitHandler(unit: Entity) {
-		this.setState({selectedUnit: unit});
+		this.setState({selectedUnit: unit,transferUnit: null});
 	}
 	updateUnitsHandler(unit: Entity) {
 		if (this.state.selectedUnit && this.state.selectedUnit.uuid === unit.uuid) {

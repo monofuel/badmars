@@ -60,11 +60,15 @@ class Client {
 
 	sendError(type, errMsg) {
 		console.log('client error: ' + type);
-		this.ws.send(JSON.stringify({
-			type: type,
-			success: false,
-			reason: errMsg
-		}));
+		try {
+			this.ws.send(JSON.stringify({
+				type: type,
+				success: false,
+				reason: errMsg
+			}));
+		} catch (err) {
+			this.handleLogOut();
+		}
 	}
 
 	handleLogOut() {

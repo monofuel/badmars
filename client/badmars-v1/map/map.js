@@ -143,7 +143,9 @@ export class Map {
 			console.log("handling attack");
 			var unit = self.getUnitById(data.enemyId);
 			var attackingUnit = self.getUnitById(data.unitId);
-			unit.takeDamage();
+			if (unit && unit.takeDamage) {
+				unit.takeDamage();
+			}
 
 			if (attackingUnit && attackingUnit instanceof GroundUnit) {
 				console.log("unit taking damage");
