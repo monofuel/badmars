@@ -656,7 +656,7 @@ class Map {
 				}
 				let unitsOnTile = await this.unitsTileCheck(openTile,includeGhosts);
 				for (let tileUnit of unitsOnTile) {
-					if (unit.uuid === tileUnit.uuid) {
+					if (unit && unit.uuid === tileUnit.uuid) {
 						return openTile; //unit is already on tile
 					}
 				}
