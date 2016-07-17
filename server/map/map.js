@@ -589,6 +589,7 @@ class Map {
 	//rather than to center (which it does now)
 	async getNearestFreeTile(center,unit,includeGhosts) {
 		let unitsOnTile = await this.unitsTileCheck(center,includeGhosts);
+		let unitTile = await this.getLoc(unit.x,unit.y);
 
 		//check if the tile we are checking is already free
 		if (unitsOnTile.length == 0 && center.tileType == Tiletypes.LAND) {
@@ -612,7 +613,7 @@ class Map {
 		];
 
 		for (let tile of open) {
-			tile.cost = tile.distance(center);
+			tile.cost = tile.distance(unitTile);
 		}
 		let closed = [];
 		let newOpened = [];
@@ -630,6 +631,11 @@ class Map {
 					continue;
 				}
 				let unitsOnTile = await this.unitsTileCheck(openTile,includeGhosts);
+				for (let tileUnit of unitsOnTile) {
+					if (unit.uuid === tileUnit.uuid) {
+						return openTile; //unit is already on tile
+					}
+				}
 				if (unitsOnTile.length !== 0) {
 					closed.push(openTile);
 					continue;
@@ -638,7 +644,11 @@ class Map {
 					closed.push(openTile);
 					continue;
 				}
-				return openTile;
+
+				//look for many good choices, and return the best
+				if (open.length > 20) {
+					return open[0];
+				}
 			}
 			for (let tile of open) {
 				let neighbors = [
@@ -648,10 +658,10 @@ class Map {
 					await tile.W()
 				];
 				for (let neighbor of neighbors) {
-					if (containsTile(open,neighbor)) {
+					if (containsTile(open,neighbor) || containsTile(closed,neighbor)) {
 						continue;
 					}
-					neighbor.cost = neighbor.distance(center);
+					neighbor.cost = neighbor.distance(unitTile);
 					newOpened.push(neighbor);
 				}
 			}
