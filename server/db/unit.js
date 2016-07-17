@@ -98,6 +98,10 @@ class DBUnit {
 
 	};
 
+	async deleteUnit(uuid) {
+		return await this.table.get(uuid).delete().run(this.conn);
+	}
+
 	getUnitAtTile(hash) {
 
 		//TODO find all uses of this function and remove it

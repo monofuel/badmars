@@ -12,6 +12,7 @@ COPY client-package.json /client-npm/package.json
 WORKDIR /client-npm
 RUN npm install
 
+RUN echo 2
 RUN git clone https://github.com/monofuel/badMars-JS /badmars
 
 WORKDIR /badmars/server

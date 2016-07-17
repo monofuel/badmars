@@ -178,6 +178,10 @@ class Unit {
 		return await db.units[this.map].updateUnit(this.uuid,patch);
 	}
 
+	async delete() {
+		return await db.units[this.map].deleteUnit(this.uuid);
+	}
+
 	async takeIron(amount) {
 		let table = db.units[this.map].getTable();
 		let conn =  db.units[this.map].getConn();

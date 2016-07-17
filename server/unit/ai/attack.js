@@ -20,7 +20,6 @@ exports.simulate = async (unit,map) => {
 	if (unit.destination) {
 		return false;
 	}
-	console.log('tank is scanning');
 	//get nearest enemy
 	//TODO allow attacking a specific enemy
 	let enemy = await map.getNearestEnemy(unit);
@@ -29,6 +28,8 @@ exports.simulate = async (unit,map) => {
 		await enemy.takeDamage(unit.firePower);
 		if (enemy.health === 0) {
 			logger.info('gameEvent',{type:'kill',unitId:enemy.uuid});
+			console.log('enemy killed, deleting');
+			enemy.delete();
 		} else {
 			logger.info('gameEvent',{type:'attack',enemyId:enemy.uuid,unitId:unit.uuid});
 		}

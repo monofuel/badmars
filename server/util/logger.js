@@ -106,6 +106,11 @@ function verifyTrack(name, kargs) {
 
 function track(name, kargs) {
 	kargs = kargs || {};
+	for (let key of Object.keys(kargs)) {
+		if (!kargs[key]) { //delete null fields
+			delete kargs[key];
+		}
+	}
 	name = name.replace(/ /g,"_").replace(/:/g," ");
 	kargs.name = "server_" + name;
 	kargs.module = moduleName;
