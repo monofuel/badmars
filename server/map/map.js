@@ -658,7 +658,7 @@ class Map {
 		}
 	}
 
-	async getNearestEnemy(unit) {
+	async getNearestEnemy(unit,range) {
 		let units = await this.getNearbyUnitsFromChunk(unit.chunkHash[0]);
 		this.sortByNearestUnit(units,unit);
 

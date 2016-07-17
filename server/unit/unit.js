@@ -123,7 +123,8 @@ class Unit {
 		let hasActed = false;
 
 		if (self.type === 'oil' || self.type === 'iron') {
-			return false;
+			self.awake = false;
+			return true;
 		}
 
 		//special one-off AI
@@ -149,7 +150,7 @@ class Unit {
 		}
 
 		if (!hasActed && self.attack && self.range) {
-			let hasActed = await attackAI.simulate(self,map);
+			hasActed = await attackAI.simulate(self,map);
 			if (hasActed) {
 				console.log('attacking');
 				update = true;
