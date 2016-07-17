@@ -670,8 +670,13 @@ class Map {
 				}
 
 				//look for many good choices, and return the best
-				if (open.length > 20) {
-					return open[0];
+				if (open.length > 30) {
+					for (let tile of open) {
+						if (containsTile(closed,tile)) {
+							continue;
+						}
+						return tile;
+					}
 				}
 			}
 			for (let tile of open) {
