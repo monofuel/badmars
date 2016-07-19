@@ -36,7 +36,7 @@ echo building production image
 cp server/package.json docker/server-package.json
 cp client/package.json docker/client-package.json
 cd docker
-docker build -f Dockerfile -t badmars/nodejs:v4 .
+docker build -f Dockerfile -t badmars/nodejs:v6 .
 
 echo building development image
 docker build -f Dockerfile-dev -t badmars/nodejs-dev:v2 .
@@ -53,7 +53,7 @@ sleep 30s
 #create kubernetes configs
 FILES=kubernetes/*.yaml
 for yamlFile in $FILES; do
-	kubectl apply -f kubernetes/$yamlfile
+	kubectl create -f kubernetes/$yamlfile &
 done
 
 kubectl delete hpa badmars-web
@@ -68,13 +68,11 @@ kubectl delete hpa badmars-net
 kubectl autoscale rc badmars-net --min 1 --max 8 --cpu-percent=80
 kubectl delete hpa rethinkdb-proxy
 kubectl autoscale rc rethinkdb-proxy --min 1 --max 5 --cpu-percent=80
-kubectl delete hpa rethinkdb-replica
-kubectl autoscale rc rethinkdb-replica --min 1 --max 8 --cpu-percent=80
 
 echo deploying development replicas
 FILES=kubernetes-dev/*.yaml
 for yamlFile in $FILES; do
-	kubectl apply -f kubernetes-dev/$yamlfile
+	kubectl create -f kubernetes-dev/$yamlfile &
 done
 
 kubectl get rc

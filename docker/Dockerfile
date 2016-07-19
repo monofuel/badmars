@@ -12,7 +12,7 @@ COPY client-package.json /client-npm/package.json
 WORKDIR /client-npm
 RUN npm install
 
-RUN echo 3
+RUN echo 5
 RUN git clone https://github.com/monofuel/badMars-JS /badmars
 
 WORKDIR /badmars/server
@@ -28,6 +28,6 @@ EXPOSE 3002
 ENV BADMARS_DB rethinkdb-driver
 ENV BADMARS_AUTH_SERVER mongo
 ENV BADMARS_WS_PUBLIC_PORT 31085
-ENV BADMARS_WS_SERVER ws://192.168.11.161
+ENV BADMARS_WS_SERVER ws://192.168.11.119
 ENV GOOGLE_OAUTH_ID 1052011336868-oimio3m9j38427o455m4233i3pv8bs8e.apps.googleusercontent.com
 ENV GOOGLE_OAUTH_CALLBACK https://japura.net/auth/google/callback

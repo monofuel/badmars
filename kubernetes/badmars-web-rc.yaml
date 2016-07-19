@@ -14,7 +14,7 @@ spec:
         name: badmars-web
     spec:
       containers:
-      - image: badmars/nodejs:v4
+      - image: badmars/nodejs:v5
         name: badmars-web
         resources:
           requests:

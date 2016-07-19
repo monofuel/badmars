@@ -637,7 +637,7 @@ class Map {
 		];
 
 		for (let tile of open) {
-			tile.cost = tile.distance(unitTile);
+			tile.cost = tile.distance(center);
 		}
 		let closed = [];
 		let newOpened = [];
@@ -669,17 +669,11 @@ class Map {
 					continue;
 				}
 
-				//look for many good choices, and return the best
-				if (open.length > 30) {
-					for (let tile of open) {
-						if (containsTile(closed,tile)) {
-							continue;
-						}
-						return tile;
-					}
-				}
+				
+				return openTile;
 			}
 			for (let tile of open) {
+
 				let neighbors = [
 					await tile.N(),
 					await tile.S(),
@@ -690,7 +684,7 @@ class Map {
 					if (containsTile(open,neighbor) || containsTile(closed,neighbor)) {
 						continue;
 					}
-					neighbor.cost = neighbor.distance(unitTile);
+					neighbor.cost = neighbor.distance(center);
 					newOpened.push(neighbor);
 				}
 			}
