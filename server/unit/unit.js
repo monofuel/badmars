@@ -8,6 +8,7 @@
 var r = require('rethinkdb');
 var db = require('../db/db.js');
 var fs = require('fs');
+const logger = require('../util/logger.js');
 
 var env = require('../config/env.js');
 
@@ -111,20 +112,17 @@ class Unit {
 	}
 
 	async simulate() {
-		//console.log('simulating unit');
 		var self = this;
-		var update = false;  //only save when there are changes
 		self.awake = false; //awake should be updated to true if we need another simulation tick soon
 
 		//either only move, attack or construct. not doing multiple at once.
-
 		let map = await db.map.getMap(this.map);
 
 		let hasActed = false;
 
 		if (self.type === 'oil' || self.type === 'iron') {
 			self.awake = false;
-			return true;
+			return;
 		}
 
 		//special one-off AI
@@ -132,9 +130,9 @@ class Unit {
 		if (self.type === 'mine' && !self.ghosting) {
 			hasActed = true;
 			self.awake = true;
-			update = true;
 			await mineAI.simulate(self,map);
 		}
+
 		if (!hasActed) {
 			switch (self.movementType) {
 				case 'ground':
@@ -144,7 +142,6 @@ class Unit {
 
 			if (hasActed) {
 				console.log('moved');
-				update = true;
 				self.awake = true;
 			}
 		}
@@ -153,7 +150,6 @@ class Unit {
 			hasActed = await attackAI.simulate(self,map);
 			if (hasActed) {
 				console.log('attacking');
-				update = true;
 				self.awake = true;
 			}
 		}
@@ -162,7 +158,6 @@ class Unit {
 			hasActed = await constructionAI.simulate(self,map);
 			if (hasActed) {
 				//console.log('constructing');
-				update = true;
 				self.awake = true;
 			}
 		}
@@ -170,13 +165,11 @@ class Unit {
 		if (self.factoryQueue && self.factoryQueue.length > 0) {
 			self.awake = true;
 		}
-
-		if (!update && !self.awake) {
-			//if there is no update but the unit will no longer be awake, update to sleep it
-			update = true;
+		//if there is no update but the unit will no longer be awake, sleep it
+		if (!self.awake) {
+			logger.info('sleeping unit');
+			await self.update({awake: false});
 		}
-		return update;
-
 	}
 
 	async update(patch) {

@@ -37,7 +37,7 @@ exports.listNames = () => {
 exports.getMap = async function getMap(name) {
 	let profile = logger.startProfile('getMap');
 	if (!name) {
-		throw new Error('invalid map get');
+		throw new Error('missing map name');
 	}
 	if (mapCache[name] && Date.now() - mapCache[name].lastUpdate < 5000) {
 		logger.addSumStat('mapCacheHit',1);
@@ -79,6 +79,10 @@ exports.saveMap = (map) => {
 };
 exports.createMap = (map) => {
 	return table.insert(map,{conflict:"error"}).run(conn);
+};
+
+exports.updateMap = async (name,patch) => {
+	return await table.get(name).update(patch).run(conn);
 };
 
 exports.removeMap = (name) => {

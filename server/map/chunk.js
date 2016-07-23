@@ -15,8 +15,8 @@ var PlanetLoc = require("./planetloc.js");
 
 class Chunk {
 	constructor(x, y, map) {
-		this.x = x;
-		this.y = y;
+		this.x = parseInt(x);
+		this.y = parseInt(y);
 		this.hash = x + ":" + y;
 		this.map = map;
 		this.grid = []; //grid size should be chunkSize + 1
@@ -150,6 +150,8 @@ class Chunk {
 		for (let key in object) {
 			this[key] = object[key];
 		}
+		this.x = parseInt(this.x);
+		this.y = parseInt(this.y);
 	}
 
 	getTiles() {

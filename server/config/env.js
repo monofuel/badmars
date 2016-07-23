@@ -38,6 +38,11 @@ vars.authDB = process.env.BADMARS_AUTH_DATABASE || 'japura';
 
 vars.wsServer = process.env.BADMARS_WS_SERVER || 'ws://localhost';
 
+vars.aiHost = process.env.AI_HOST || 'localhost';
+vars.aiPort = process.env.AI_PORT || '3010';
+vars.mapHost = process.env.MAP_HOST || 'localhost';
+vars.mapPort = process.env.MAP_PORT || '3011';
+
 var googleAuth = {};
 
 googleAuth.clientID = process.env.GOOGLE_OAUTH_ID;

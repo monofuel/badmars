@@ -5,34 +5,34 @@
 
 'use strict';
 
-var db = require('../db/db.js');
-var env = require('../config/env.js');
-var logger = require('../util/logger.js');
+const db = require('../db/db.js');
+const env = require('../config/env.js');
+const logger = require('../util/logger.js');
+const grpc = require('grpc');
+
+const ai = grpc.load(__dirname + '/../protos/ai.proto').ai;
+const aiClient = new ai.AI(env.aiHost + ':' + env.aiPort, grpc.credentials.createInsecure());
 
 exports.init = () => {
-	setInterval(mapTick, 1000 / (env.ticksPerSec));
+
+	mapTick();
+
 };
 
 async function mapTick() {
-	let names = await db.map.listNames();
-	for (var name of names) {
-		//NOTICE
-		//this is shoddy and generally a terrible idea.
-		//but it works, and allows for multiple instances running this to not step over each other for now.
-		//this was probably done in completely the wrong way.
-		//the updating of this value 'kicks off' the entire system, and starts unit simulation.
-		tryNewTick(name);
+	while (true) {
+		let names = await db.map.listNames();
+		let mapPromises = [];
+		for (var name of names) {
+
+			mapPromises.push(tryNewTick(name));
+		}
+		await Promise.all(mapPromises);
 	}
 }
 
 async function tryNewTick(name) {
 	let map = await db.map.getMap(name);
-
-	//TODO if map.lastTickTimestamp is in the future, this whole thing is fubared. fix this.
-	//TODO should do this check atomically when updating with rethinkdb branch
-	if (map.lastTick !== 0 && (new Date()).getTime() - map.lastTickTimestamp < 1000 / env.ticksPerSec) {
-		return;
-	}
 
 	let uCount = await db.units[name].countUnprocessedUnits(map.lastTick);
 	let awakeCount = await db.units[name].countAwakeUnits();
@@ -43,14 +43,34 @@ async function tryNewTick(name) {
 	logger.addAverageStat('totalUnitCount', allCount);
 	logger.addAverageStat('totalAwakeCount', awakeCount);
 
-	if (uCount === awakeCount) {
-		console.info('skipping tick');
-		return;
-	}
+	//console.log('sending process orders');
+	while (true) {
+		const unitKeys = await db.units[name].getUnprocessedUnitKeys(map.lastTick);
+		if (unitKeys.length === 0) {
+			break;
+		}
 
-	map.lastTickTimestamp = (new Date()).getTime();
-	map.lastTick++;
-	//TODO do this more elegantly
-	//clobbers all updated values for map
-	return map.save();
+		const unitPromises = [];
+		for (let key of unitKeys) {
+			const message = {uuid:key.uuid,mapName:map.name,tick:map.lastTick};
+			unitPromises.push(new Promise((resolve,reject) => {
+				aiClient.processUnit(message,(err,response) => {
+					if (err) {
+						return reject(err);
+					}
+					resolve(response);
+				});
+			}));
+		}
+		//console.log('requests sent');
+		let results = await Promise.all(unitPromises);
+		//TODO verify results
+		//console.log('results are in');
+	}
+	//console.log('done processing orders');
+
+
+	await map.advanceTick();
+
+	return;
 }

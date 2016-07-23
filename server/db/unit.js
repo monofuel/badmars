@@ -232,10 +232,36 @@ class DBUnit {
 		});
 	}
 
+	async getUnprocessedUnitKeys(tick) {
+		return this.table.getAll(true, {
+			index: 'awake'
+		}).filter(r.row('lastTick').lt(tick))
+		.limit(env.unitProcessChunks)
+		.pluck('uuid')
+		.coerceTo('array')
+		.run(this.conn);
+	}
+
+	async claimUnitTick(uuid,tick) {
+		let delta = await this.table.get(uuid).update((unit) => {
+			return r.branch(
+				unit('lastTick').ne(tick),
+				{lastTick: tick},
+				{}
+			)
+		}, {returnChanges: true}).run(this.conn);
+
+		if (!delta.changes || delta.changes.length !== 1) {
+			return null;
+		}
+		let properUnit = new Unit();
+		properUnit.clone(delta.changes[0].new_val);
+		return properUnit;
+	}
+
 	async countUnprocessedUnits(tick) {
 		//new units will have lastTick set to 0. we do not want this in the 'unprocessed' count
 		//however we still want to process them next tick.
-
 		return await this.table.getAll(true, {
 			index: 'awake'
 		}).filter(r.row('lastTick').lt(tick - 1).and(r.row('lastTick').gt(0))).count().run(this.conn);

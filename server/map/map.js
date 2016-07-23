@@ -5,16 +5,21 @@
 
 'use strict';
 
-var db = require('../db/db.js');
-var logger = require('../util/logger.js');
-var env = require('../config/env.js');
-var Chunk = require("../map/chunk.js");
-var PlanetLoc = require("./planetloc.js");
+const db = require('../db/db.js');
+const logger = require('../util/logger.js');
+const helper = require('../util/helper.js');
+const env = require('../config/env.js');
+const Chunk = require("../map/chunk.js");
+const PlanetLoc = require("./planetloc.js");
 
-var Tiletypes = require('../map/tiletypes.js');
-var Unit = require('../unit/unit.js');
+const Tiletypes = require('../map/tiletypes.js');
+const Unit = require('../unit/unit.js');
 
-var chunkCache = {};
+const grpc = require('grpc');
+
+
+const mapService = grpc.load(__dirname + '/../protos/map.proto').map;
+const mapClient = new mapService.Map(env.mapHost + ':' + env.mapPort, grpc.credentials.createInsecure());
 
 function containsTile(list,tile) {
 	for (let item of list) {
@@ -28,9 +33,6 @@ function containsTile(list,tile) {
 class Map {
 	constructor(name) {
 		this.name = name;
-		if (name && !chunkCache[name]) {
-			chunkCache[name] = {};
-		}
 		this.settings = {
 			chunkSize: 32,
 			waterHeight: 6.4,
@@ -52,13 +54,29 @@ class Map {
 	}
 
 	async getChunk(x, y) {
-		var hash = x + ":" + y;
-		if (chunkCache[this.name][hash]) {
-			logger.addSumStat('chunkCacheHit',1);
-			return chunkCache[this.name][hash];
-		} else {
-			logger.addSumStat('chunkCacheMiss',1);
-		}
+		x = parseInt(x);
+		y = parseInt(y);
+		return await new Promise((resolve,reject) => {
+			mapClient.getChunk({mapName: this.name,x,y},(err,response) => {
+				if (err) {
+					console.log(err);
+					return reject(err);
+				}
+				let chunk = new Chunk();
+				chunk.clone(response);
+				for (let i = 0; i < chunk.navGrid.length; i++) {
+					chunk.navGrid[i] = chunk.navGrid[i].items;
+				}
+				for (let i = 0; i < chunk.grid.length; i++) {
+					chunk.grid[i] = chunk.grid[i].items;
+				}
+				resolve(chunk);
+			});
+		})
+	}
+
+
+	async fetchOrGenChunk(x,y) {
 		let chunk = await db.chunks[this.name].getChunk(x, y);
 
 		if (!chunk || !chunk.isValid()) {
@@ -66,7 +84,6 @@ class Map {
 			chunk = new Chunk(x, y, this.name);
 			await chunk.save();
 		}
-		chunkCache[this.name][hash] = chunk;
 		return chunk;
 	}
 
@@ -669,7 +686,7 @@ class Map {
 					continue;
 				}
 
-				
+
 				return openTile;
 			}
 			for (let tile of open) {
@@ -705,11 +722,32 @@ class Map {
 	}
 
 	getNearestGhost(unit) {
+		console.log("STUB: getNearestGhost");
 		//similar to get nearest enemy
 		//TODO
 	}
 
+	async update(patch) {
+		return await db.map.updateMap(this.name,patch);
+	}
+
+	async advanceTick() {
+		let delta = Date.now() - this.lastTickTimestamp;
+		console.log('delta',delta);
+		if (delta < 1000 / env.ticksPerSec) {
+			let sleepTime = (1000 / env.ticksPerSec) - delta;
+			console.log('sleeping for ' + sleepTime);
+			//set a timeout to wait before response
+			await helper.sleep(sleepTime);
+		}
+		console.log('advancing tick: ', this.lastTick);
+		this.lastTickTimestamp = Date.now();
+		this.lastTick++;
+		return await this.update({lastTick:this.lastTick,lastTickTimestamp:this.lastTickTimestamp});
+	}
+
 	save() {
+		console.log("SAVE MAP DANGEROUS");
 		return db.map.saveMap(this);
 	}
 	clone(object) {
