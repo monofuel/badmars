@@ -4,7 +4,7 @@
 
 #run as root
 
-#setup a production environment and start the game server
+#setup a production environment
 
 #install tools
 apt-get --assume-yes  install make vim git nodejs npm tmux
@@ -18,8 +18,9 @@ ln -s /usr/bin/nodejs /usr/bin/node
 
 npm install -g gulp nodemon browserify flow
 
+#OPTIONAL
+#could run rethinkdb on another server and edit server/config/env.js to reflect
 #setup rethinkdb locally
-
 echo "deb http://download.rethinkdb.com/apt `lsb_release -cs` main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
 wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
 sudo apt-get update
