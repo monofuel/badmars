@@ -25,5 +25,12 @@ cd ~/badMars-JS/server
 npm install
 
 export NODE_ENV="production"
+export AI_HOST='localhost'
+export MAP_HOST='localhost'
+export BADMARS_DB='localhost'
 
-tmux new-session -d -s badmars -c ~/badMars-JS 'nodemon -w ./,util/,routes/,models/,config/ app.js'
+tmux new-session -d -s badmars-ai -c ~/badMars-JS/server 'nodemon ai.js'
+tmux new-session -d -s badmars-ai -c ~/badMars-JS/server 'nodemon pathfinder.js'
+tmux new-session -d -s badmars-ai -c ~/badMars-JS/server 'nodemon chunk.js'
+tmux new-session -d -s badmars-ai -c ~/badMars-JS/server 'nodemon net.js'
+tmux new-session -d -s badmars-ai -c ~/badMars-JS/server 'nodemon web.js'
