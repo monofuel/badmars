@@ -5,6 +5,7 @@
 
 'use strict';
 
+const _ = require('lodash');
 const db = require('../db/db.js');
 const logger = require('../util/logger.js');
 const helper = require('../util/helper.js');
@@ -807,7 +808,7 @@ class Map {
 	}
 	clone(object) {
 		for (let key in object) {
-			this[key] = object[key];
+			this[key] = _.cloneDeep(object[key]);
 		}
 		this.settings = {
 			chunkSize: 8,

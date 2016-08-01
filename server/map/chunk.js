@@ -8,6 +8,7 @@
 var db = require('../db/db.js');
 var env = require("../config/env.js");
 var SimplexNoise = require('simplex-noise');
+var _ = require('lodash');
 var Alea = require('alea');
 var Tiletypes = require('./tiletypes.js');
 var Unit = require('../unit/unit.js');
@@ -152,7 +153,7 @@ class Chunk {
 
 	clone(object) {
 		for (let key in object) {
-			this[key] = object[key];
+			this[key] = _.cloneDeep(object[key]);
 		}
 		this.x = parseInt(this.x);
 		this.y = parseInt(this.y);

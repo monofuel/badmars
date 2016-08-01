@@ -9,6 +9,7 @@ var r = require('rethinkdb');
 var db = require('../db/db.js');
 var fs = require('fs');
 const logger = require('../util/logger.js');
+const _ = require('lodash');
 
 var env = require('../config/env.js');
 
@@ -439,11 +440,11 @@ class Unit {
 	}
 	clone(object) {
 		for (let key in object) {
-			this[key] = object[key];
+			this[key] = _.cloneDeep(object[key]);
 		}
 		var stats = unitStats[this.type];
 		for (let key in stats) {
-			this[key] = stats[key];
+			this[key] = _.cloneDeep(object[key]);
 		}
 	}
 

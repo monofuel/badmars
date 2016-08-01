@@ -33,7 +33,6 @@ async function getChunk(call,callback) {
 	logger.info('chunkRequested',{mapName:mapName,x:x,y:y});
 	let map = await db.map.getMap(mapName);
 
-	//TODO caching
 	let localChunk = await map.fetchOrGenChunk(x,y);
 
 	let chunk = new Chunk();

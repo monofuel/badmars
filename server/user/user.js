@@ -7,6 +7,7 @@
 
 var db = require('../db/db.js');
 var hat = require('hat');
+const _ = require('lodash');
 
 class User {
 	constructor(userName,color) {
@@ -21,7 +22,7 @@ class User {
 	}
 	clone(object) {
 		for (let key in object) {
-			this[key] = object[key];
+			this[key] = _.cloneDeep(object[key]);
 		}
 	}
 

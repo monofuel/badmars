@@ -9,7 +9,7 @@ var db = require('../db/db.js');
 var env = require('../config/env.js');
 var logger = require('../util/logger.js');
 var authHandler = require('../net/handler/auth.js');
-var _ = require('underscore');
+var _ = require('lodash');
 
 var filter = require('../util/socketFilter.js');
 

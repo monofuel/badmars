@@ -43,12 +43,12 @@
     "figlet": "^1.1.2",
     "grpc": "^1.0.0-pre1",
     "hat": "0.0.3",
+    "lodash": "^4.14.1",
     "mongoose": "^4.4.14",
     "passport": "^0.3.2",
     "request": "^2.72.0",
     "rethinkdb": "2.2.3",
     "simplex-noise": "^2.2.0",
-    "underscore": "^1.8.3",
     "vorpal": "^1.10.10",
     "ws": "^1.1.0"
   },
