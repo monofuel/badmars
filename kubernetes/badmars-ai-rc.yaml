@@ -14,7 +14,7 @@ spec:
         name: badmars-ai
     spec:
       containers:
-      - image: badmars/nodejs:v5
+      - image: badmars/nodejs:v6
         name: badmars-ai
         resources:
           requests:

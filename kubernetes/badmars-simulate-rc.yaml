@@ -14,7 +14,7 @@ spec:
         name: badmars-simulate
     spec:
       containers:
-      - image: badmars/nodejs:v5
+      - image: badmars/nodejs:v6
         name: badmars-simulate
         resources:
           requests:

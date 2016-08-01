@@ -17,7 +17,6 @@ const Unit = require('../unit/unit.js');
 
 const grpc = require('grpc');
 
-
 const mapService = grpc.load(__dirname + '/../protos/map.proto').map;
 const mapClient = new mapService.Map(env.mapHost + ':' + env.mapPort, grpc.credentials.createInsecure());
 
@@ -51,13 +50,27 @@ class Map {
 		this.lastTick = 0;
 		this.users = [];
 		this.seed = Math.random();
+		this.chunkCache = [];
+		this.chunkCacheMap = {};
 	}
 
 	async getChunk(x, y) {
 		x = parseInt(x);
 		y = parseInt(y);
+
+		logger.addAverageStat('chunkCacheSize',this.chunkCache.length);
+		let cacheChunk = this.getChunkFromCache(x + ':' + y);
+		if (cacheChunk) {
+			logger.addSumStat('cacheChunkHit',1);
+			return cacheChunk;
+		} else {
+			logger.addSumStat('cacheChunkMiss',1);
+		}
+
 		return await new Promise((resolve,reject) => {
+			let profile = logger.startProfile('getChunk');
 			mapClient.getChunk({mapName: this.name,x,y},(err,response) => {
+				logger.endProfile(profile);
 				if (err) {
 					console.log(err);
 					return reject(err);
@@ -70,13 +83,24 @@ class Map {
 				for (let i = 0; i < chunk.grid.length; i++) {
 					chunk.grid[i] = chunk.grid[i].items;
 				}
+				this.addChunkToCache(chunk);
 				resolve(chunk);
 			});
 		})
 	}
 
-
 	async fetchOrGenChunk(x,y) {
+
+		logger.addAverageStat('chunkCacheSize',this.chunkCache.length);
+		let cacheChunk = this.getChunkFromCache(x + ':' + y);
+		if (cacheChunk) {
+			logger.addSumStat('cacheChunkHit',1);
+			console.log(Object.keys(cacheChunk));
+			return cacheChunk;
+		} else {
+			logger.addSumStat('cacheChunkMiss',1);
+		}
+
 		let chunk = await db.chunks[this.name].getChunk(x, y);
 
 		if (!chunk || !chunk.isValid()) {
@@ -84,9 +108,35 @@ class Map {
 			chunk = new Chunk(x, y, this.name);
 			await chunk.save();
 		}
+		this.addChunkToCache(chunk);
 		return chunk;
 	}
 
+	addChunkToCache(chunk) {
+		let profile = logger.startProfile('addChunkToCache');
+		let entry = {
+			chunk,
+			timestamp: Date.now()
+		}
+
+		//clear old entries from cache
+		while (this.chunkCache.length > env.chunkCacheLimit) {
+			let oldChunk = this.chunkCache.shift();
+			delete this.chunkCacheMap[oldChunk.chunk.hash];
+		}
+		this.chunkCache.push(entry);
+		this.chunkCacheMap[chunk.hash] = chunk;
+
+		//sort latest to oldest
+		this.chunkCache.sort((a,b) => {
+			return b.timestamp - a.timestamp
+		});
+		logger.endProfile(profile);
+	}
+
+	getChunkFromCache(hash) {
+		return this.chunkCacheMap[hash];
+	}
 
 	async getLocFromHash(hash) {
 		let x = hash.split(':')[0];
@@ -127,7 +177,6 @@ class Map {
 
 	async spawnUnit(newUnit) {
 		console.log('spawning unit: ' + newUnit.type);
-		console.log('unit tiles: ' + newUnit.tileHash.length);
 		for (let tileHash of newUnit.tileHash) {
 			if (!await this.checkValidForUnit( await this.getLocFromHash(tileHash),newUnit)) {
 				return false;
@@ -135,6 +184,12 @@ class Map {
 				//console.log('valid tile for unit: ' + tileHash);
 			}
 		}
+		return await db.units[this.name].addUnit(newUnit);
+	}
+
+	async spawnUnitWithoutTileCheck(newUnit) {
+		console.log('force spawning unit: ' + newUnit.type);
+
 		return await db.units[this.name].addUnit(newUnit);
 	}
 

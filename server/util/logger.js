@@ -49,7 +49,8 @@ module.exports.error = (err) => {
 	console.log(dateFormat(timestamp) + ' : ' + err.stack);
 	track('error', {
 		message: err.message,
-		stack: err.stack
+		stack: err.stack,
+		timestamp: Date.now()
 	});
 };
 
@@ -73,7 +74,9 @@ module.exports.requestInfo = (info, req) => {
 };
 
 module.exports.info = (info, body, silent) => {
-	var timestamp = new Date();
+	let timestamp = new Date();
+	body = body || {};
+	body.timestamp = timestamp.getTime();
 	track(info,body);
 	if (silent) {
 		return;
@@ -121,7 +124,7 @@ function track(name, kargs) {
 	db.event.addEvent(kargs);
 
 	request({
-		url: 'https://' + env.trackingServer + ':' + env.trackingPort + '/track/event',
+		url: env.trackingServer + ':' + env.trackingPort + '/track/event',
 		method: 'POST',
 		body: JSON.stringify(kargs)
 	}, (error, response, body) => {

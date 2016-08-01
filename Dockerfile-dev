@@ -1,0 +1,6 @@
+FROM node:argon
+
+npm install -g gulp
+
+EXPOSE 3002
+EXPOSE 7005

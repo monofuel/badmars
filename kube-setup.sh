@@ -10,6 +10,10 @@
 #badmars/nodejs is for 'production' nodejs modules
 #badmars/nodejs-dev is for mounting an NFS share for hot-reloading code
 
+#WARNING
+#this script is not really usable right now. badmars does not work well on kubernetes at all just yet.
+
+
 #needs some extra magic for rethinkdb persistent storage
 
 
@@ -56,24 +60,13 @@ for yamlFile in $FILES; do
 	kubectl create -f kubernetes/$yamlfile &
 done
 
-kubectl delete hpa badmars-web
-kubectl autoscale rc badmars-web --min 1 --max 4 --cpu-percent=80
-kubectl delete hpa badmars-ai
-kubectl autoscale rc badmars-ai --min 1 --max 8 --cpu-percent=80
-kubectl delete hpa badmars-simulate
-kubectl autoscale rc badmars-simulate --min 1 --max 2 --cpu-percent=80
-kubectl delete hpa badmars-pathfinder
-kubectl autoscale rc badmars-pathfinder --min 1 --max 4 --cpu-percent=80
-kubectl delete hpa badmars-net
-kubectl autoscale rc badmars-net --min 1 --max 8 --cpu-percent=80
-kubectl delete hpa rethinkdb-proxy
-kubectl autoscale rc rethinkdb-proxy --min 1 --max 5 --cpu-percent=80
 
-echo deploying development replicas
-FILES=kubernetes-dev/*.yaml
-for yamlFile in $FILES; do
-	kubectl create -f kubernetes-dev/$yamlfile &
-done
+#TODO nfs mount does not work at all for some reason
+#echo deploying development replicas
+#FILES=kubernetes-dev/*.yaml
+#for yamlFile in $FILES; do
+	#kubectl create -f kubernetes-dev/$yamlfile &
+#done
 
 kubectl get rc
 kubectl get pods

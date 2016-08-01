@@ -106,12 +106,16 @@ class Chunk {
 				if (resourceAlea() < map.settings.ironChance) {
 					//console.log('spawning iron');
 					let unit = new Unit('iron', map, x, y);
-					map.spawnUnit(unit);
+					if (!await map.spawnUnitWithoutTileCheck(unit)) {
+						logger.info('failed to spawn iron');
+					}
 
 				} else if (resourceAlea() < map.settings.oilChance) {
 					//console.log('spawning oil');
 					let unit = new Unit('oil', map, x, y);
-					map.spawnUnit(unit);
+					if (!await map.spawnUnitWithoutTileCheck(unit)) {
+						logger.info('failed to spawn oil');
+					}
 
 				}
 			}

@@ -10,22 +10,21 @@ tech stack:
 		threejs
 
 current task:
-	trying out kubernetes and becoming more microservice-y
-	might be reasonable to do something about how mongo is half-assed setup for google oauth with japura.net
+	trying out docker and becoming more microservice-y
+	fix up auth stuff now that the game is more seriously working
 	polishing and bug fixing for v1.0
 	cancel ghost feature
+	have units actually use fuel
+	time left for fuel usage on units
+
 
 TODO:
 	watch user table for changes and push updates
 	dummy DB interface to allow testing modules in production without actually writing changes
 	properly flowtype the entire codebase
-	make sure that all writes do not clobber
-	maybe a distributed locking system for unit movement?
-	web console would be cool
-	admin page would be cool
+	some sort of a distributed locking system for unit movement? maybe lock unit movement to the chunk document
 	work through TODOs in code and refactor things that I was too lazy to do properly the first time around
 	work on documentation
-	chat (client and server)
 	SSAO lighting effects (client)
 	better models (client)
 	textures (client)
@@ -33,6 +32,4 @@ TODO:
 	lines between units showing how resources are being automatically delivered. (client)
 	cancel ghost feature (server)
 	trade routes (both client and server)
-	have units actually use fuel
-	time left for fuel usage on units
 	music (epic guitar stuffs of course)

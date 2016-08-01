@@ -19,7 +19,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 var flash = require('connect-flash');
-var mongoDBStore = require('connect-mongodb-session')(session);
+//var mongoDBStore = require('connect-mongodb-session')(session);
 
 
 exports.init = () => {
@@ -34,46 +34,6 @@ exports.init = () => {
     app.use(bodyParser.urlencoded({
         extended: false
     }));
-
-
-    //auth db connection
-    var serverAddress = 'mongodb://' + env.authServer + '/' + env.authDB;
-
-    logger.info('connecting to auth DB', {
-        host: env.authServer,
-        db: env.authDB
-    });
-
-    var authConn = mongoose.createConnection(serverAddress);
-    logger.info('auth DB connected');
-
-    require('../web/models/user')(authConn);
-
-    var store = new mongoDBStore({
-        uri: serverAddress,
-        collection: 'sessions'
-    });
-
-    store.on('error', (error) => {
-        console.log(error);
-    });
-
-    require('../web/passport')(passport, authConn);
-
-    //TODO switch from mongodb to rethinkdb for auth for consistency
-    // https://rethinkdb.com/blog/passport-oauth-with-rethinkdb/
-
-    //must be done before initializing passport
-    app.use(session({
-        secret: env.googleAuth.secret,
-        cookie: {
-            maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
-        },
-        store: store
-    }));
-
-    app.use(passport.initialize());
-    app.use(passport.session());
 
     app.use(flash());
     app.use(cookieParser());
