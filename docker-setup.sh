@@ -15,14 +15,14 @@ docker create --link badmars-rethinkdb:rethinkdb \
 	-h badmars-chunk-dev \
 	--restart always \
 	-v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars \
-	-t monofuel/badmars-js-dev:v3 nodemon -L /badmars/server/chunk.js
+	-t monofuel/badmars-js-dev:v3 node /badmars/server/chunk.js
 docker create --link badmars-rethinkdb:rethinkdb \
 	--link badmars-chunk-dev:badmars-chunk \
 	--name badmars-ai-dev \
 	-h badmars-ai \
 	--restart always \
 	-v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars \
-	-t monofuel/badmars-js-dev:v3 nodemon -L /badmars/server/ai.js
+	-t monofuel/badmars-js-dev:v3 node /badmars/server/ai.js
 
 #lan facing dev
 docker create -p 0.0.0.0:3002:3002 \
@@ -31,17 +31,17 @@ docker create -p 0.0.0.0:3002:3002 \
 	--name badmars-web-dev \
 	--restart always \
 	-v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars \
-	-t monofuel/badmars-js-dev:v3 nodemon -L /badmars/server/web.js
+	-t monofuel/badmars-js-dev:v3 node /badmars/server/web.js
 docker create -p 0.0.0.0:7005:7005 \
 --link badmars-rethinkdb:rethinkdb \
 --link badmars-chunk-dev:badmars-chunk \
 --name badmars-net-dev \
 --restart always \
 -v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars \
--t monofuel/badmars-js-dev:v3 nodemon -L /badmars/server/net.js
+-t monofuel/badmars-js-dev:v3 node /badmars/server/net.js
 
-docker create --link badmars-rethinkdb:rethinkdb --link badmars-chunk-dev:badmars-chunk  --link badmars-ai-dev:badmars-ai --name badmars-simulate-dev --restart always -v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars -t monofuel/badmars-js-dev:v3 nodemon -L /badmars/server/simulate.js
-docker create --link badmars-rethinkdb:rethinkdb --link badmars-chunk-dev:badmars-chunk  --link badmars-ai-dev:badmars-ai --name badmars-pathfinder-dev --restart always -v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars -t monofuel/badmars-js-dev:v3 nodemon -L /badmars/server/pathfinder.js
+docker create --link badmars-rethinkdb:rethinkdb --link badmars-chunk-dev:badmars-chunk  --link badmars-ai-dev:badmars-ai --name badmars-simulate-dev --restart always -v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars -t monofuel/badmars-js-dev:v3 node /badmars/server/simulate.js
+docker create --link badmars-rethinkdb:rethinkdb --link badmars-chunk-dev:badmars-chunk  --link badmars-ai-dev:badmars-ai --name badmars-pathfinder-dev --restart always -v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars -t monofuel/badmars-js-dev:v3 node /badmars/server/pathfinder.js
 
 #public facing
 docker create -p 0.0.0.0:3012:3002 \

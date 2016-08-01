@@ -8,6 +8,7 @@
 const db = require('../db/db.js');
 const env = require('../config/env.js');
 const logger = require('../util/logger.js');
+const Chunk = require('../map/chunk.js');
 const grpc = require('grpc');
 const mapservice = grpc.load(__dirname + '/../protos/map.proto').map;
 
@@ -29,16 +30,19 @@ async function getChunk(call,callback) {
 	const mapName = request.mapName;
 	const x = parseInt(request.x);
 	const y = parseInt(request.y);
+	logger.info('chunkRequested',{mapName:mapName,x:x,y:y});
 	let map = await db.map.getMap(mapName);
 
 	//TODO caching
-	let chunk = await map.fetchOrGenChunk(x,y);
+	let localChunk = await map.fetchOrGenChunk(x,y);
+
+	let chunk = new Chunk();
+	chunk.clone(localChunk);
 	for (let i = 0; i < chunk.navGrid.length; i++) {
 		chunk.navGrid[i] = {items:chunk.navGrid[i]};
 	}
 	for (let i = 0; i < chunk.grid.length; i++) {
 		chunk.grid[i] = {items:chunk.grid[i]};
 	}
-
 	callback(null,chunk);
 }

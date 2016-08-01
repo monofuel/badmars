@@ -3,6 +3,7 @@ awesome webGL MMORTS with an infinite procedurally generated map.
 tech stack:
 	backend:
 		nodejs
+		grpc
 		rethinkdb
 
 	frontend:
@@ -19,6 +20,8 @@ current task:
 
 
 TODO:
+	have a 'locking' table on the chunk document for unit positions
+		use this table to keep unit movement locked
 	watch user table for changes and push updates
 	dummy DB interface to allow testing modules in production without actually writing changes
 	properly flowtype the entire codebase
