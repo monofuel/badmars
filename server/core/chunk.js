@@ -30,7 +30,6 @@ async function getChunk(call,callback) {
 	const mapName = request.mapName;
 	const x = parseInt(request.x);
 	const y = parseInt(request.y);
-	logger.info('chunkRequested',{mapName:mapName,x:x,y:y});
 	let map = await db.map.getMap(mapName);
 
 	let localChunk = await map.fetchOrGenChunk(x,y);

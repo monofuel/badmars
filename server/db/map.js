@@ -10,7 +10,7 @@ var Map = require('../map/map.js');
 var r = require('rethinkdb');
 var logger = require('../util/logger.js');
 
-let mapCache = {};
+const mapCache = {};
 
 var conn;
 var table;
@@ -35,11 +35,11 @@ exports.listNames = () => {
 };
 
 exports.getMap = async function getMap(name) {
-	let profile = logger.startProfile('getMap');
 	if (!name) {
 		throw new Error('missing map name');
 	}
-	if (mapCache[name] && Date.now() - mapCache[name].lastUpdate < 5000) {
+	let profile = logger.startProfile('getMap');
+	if (mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/) {
 		logger.addSumStat('mapCacheHit',1);
 		logger.endProfile(profile);
 		return mapCache[name].map;

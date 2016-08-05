@@ -19,7 +19,7 @@ vars.attackMoveRange = process.env.ATTACK_MOVE_RANGE || 25;
 
 vars.movementAttemptLimit = process.env.MOVEMENT_ATTEMPT_LIMIT || 3;
 vars.pathComplexityLimit = process.env.PATH_COMPLEXITY_LIMIT || 100;
-vars.chunkCacheLimit = process.env.CHUNK_CACHE_LIMIT || 2000;
+vars.chunkCacheLimit = process.env.CHUNK_CACHE_LIMIT || 5000;
 
 vars.dbHost = process.env.BADMARS_DB || 'rethinkdb';
 vars.database = process.env.BADMARS_DATABASE || 'badmars';

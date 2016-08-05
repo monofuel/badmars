@@ -122,7 +122,7 @@ class Unit {
 		let hasActed = false;
 
 		if (self.type === 'oil' || self.type === 'iron') {
-			self.awake = false;
+			self.update({awake: false});
 			return;
 		}
 
@@ -130,7 +130,6 @@ class Unit {
 		//mines should always be awake
 		if (self.type === 'mine' && !self.ghosting) {
 			hasActed = true;
-			self.awake = true;
 			await mineAI.simulate(self,map);
 		}
 
@@ -140,34 +139,21 @@ class Unit {
 					hasActed = await groundUnitAI.simulate(self,map);
 					break;
 			}
-
-			if (hasActed) {
-				console.log('moved');
-				self.awake = true;
-			}
 		}
 
 		if (!hasActed && self.attack && self.range) {
 			hasActed = await attackAI.simulate(self,map);
-			if (hasActed) {
-				console.log('attacking');
-				self.awake = true;
-			}
 		}
 
 		if (!hasActed && self.construction) {
 			hasActed = await constructionAI.simulate(self,map);
-			if (hasActed) {
-				//console.log('constructing');
-				self.awake = true;
-			}
 		}
 
 		if (self.factoryQueue && self.factoryQueue.length > 0) {
-			self.awake = true;
+			hasActed = true;
 		}
 		//if there is no update but the unit will no longer be awake, sleep it
-		if (!self.awake) {
+		if (!hasActed) {
 			logger.info('sleeping unit');
 			await self.update({awake: false});
 		}
