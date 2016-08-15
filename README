@@ -18,10 +18,13 @@ current task:
 	have units actually use fuel
 	time left for fuel usage on units
 
+current bugs:
+	unit movement is a little jumpy on the client when server ticks are on time
 
 TODO:
 	have a 'locking' table on the chunk document for unit positions
 		use this table to keep unit movement locked
+		also use this table to speed up the function 'getUnitsAtCHunk'
 	watch user table for changes and push updates
 	dummy DB interface to allow testing modules in production without actually writing changes
 	properly flowtype the entire codebase
