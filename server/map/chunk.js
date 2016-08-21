@@ -158,6 +158,7 @@ class Chunk {
 
 		await this.refresh();
 		const unitUuids = _.map(this.units);
+		console.log(unitUuids);
 
 		return db.units[this.map].getUnits(unitUuids);
 	}
