@@ -63,7 +63,9 @@ async function tryNewTick(name) {
 			}));
 		}
 		//console.log('requests sent');
-		let results = await Promise.all(unitPromises);
+		let results = await Promise.all(unitPromises).catch((err) => {
+			console.log('grpc error:',err);
+		});
 		//TODO verify results
 		//console.log('results are in');
 	}

@@ -122,7 +122,7 @@ function track(name, kargs) {
 	verifyTrack(name,kargs);
 
 	db.event.addEvent(kargs);
-
+	return;
 	request({
 		url: env.trackingServer + ':' + env.trackingPort + '/track/event',
 		method: 'POST',

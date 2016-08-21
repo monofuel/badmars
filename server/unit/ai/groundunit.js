@@ -33,7 +33,7 @@ async function simulate(unit,map) {
 				let units = await map.getNearbyUnitsFromChunk(unit.chunkHash[0]);
 				for (let nearby of units) {
 					if (nearby.type === 'builder') {
-						nearby.updateUnit({awake: true});
+						await nearby.updateUnit({awake: true});
 					}
 				}
 			}

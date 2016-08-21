@@ -86,6 +86,7 @@ function reportStats() {
 	for (let key of Object.keys(profileCount)) {
 		stats['executions-' + key] = profileCount[key];
 	}
+	profileCount = {};
 
 	logger.info('stats',stats,false); //set to true after testing
 };

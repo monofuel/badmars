@@ -18,7 +18,7 @@ var pathfinding = require('./core/pathfinding.js');
 var figlet = require('figlet');
 
 function init() {
-	logger.setModule('simulate');
+	logger.setModule('pathfinder');
 	logger.info("start begin");
 
 	startupHeader();

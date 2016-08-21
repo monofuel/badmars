@@ -15,10 +15,10 @@ async function pullResource(unit,map) {
 
 	if (unit.resourceCooldown > 0) {
 		unit.resourceCooldown--;
-		unit.updateUnit({resourceCooldown: unit.resourceCooldown});
+		await unit.updateUnit({resourceCooldown: unit.resourceCooldown});
 	}
 	if (unit.resourceCooldown === 0) {
-		unit.updateUnit({resourceCooldown: 10});
+		await unit.updateUnit({resourceCooldown: 10});
 
 		let tile = await map.getLocFromHash(unit.tileHash[0]);
 		let unitsAtTile = await map.unitsTileCheck(tile);

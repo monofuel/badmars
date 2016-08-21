@@ -30,7 +30,7 @@ async function GRPCProcessUnit(call,callback) {
 	const uuid = request.uuid;
 	const mapName = request.mapName;
 	const tick = parseInt(request.tick);
-
+	logger.addSumStat('unitRequest',1);
 	//console.log('got process unit order: ', uuid,' for map ',mapName, ' on tick ',tick);
 	try {
 		const unit = await db.units[mapName].claimUnitTick(uuid,tick);
@@ -47,6 +47,6 @@ async function GRPCProcessUnit(call,callback) {
 }
 
 async function processUnit(unit) {
-	logger.addSumStat('unit_AI',1);
+	//logger.addSumStat('unit_AI',1);
 	await unit.simulate();
 }

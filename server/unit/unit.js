@@ -122,8 +122,7 @@ class Unit {
 		let hasActed = false;
 
 		if (self.type === 'oil' || self.type === 'iron') {
-			self.update({awake: false});
-			return;
+			return self.update({awake: false});
 		}
 
 		//special one-off AI
@@ -132,6 +131,7 @@ class Unit {
 			hasActed = true;
 			await mineAI.simulate(self,map);
 		}
+		const profile = logger.startProfile('unit_AI');
 
 		if (!hasActed) {
 			switch (self.movementType) {
@@ -157,14 +157,16 @@ class Unit {
 			logger.info('sleeping unit');
 			await self.update({awake: false});
 		}
+
+		logger.endProfile(profile);
 	}
 
 	async update(patch) {
-		return await db.units[this.map].updateUnit(this.uuid,patch);
+		return db.units[this.map].updateUnit(this.uuid,patch);
 	}
 
 	async delete() {
-		return await db.units[this.map].deleteUnit(this.uuid);
+		return db.units[this.map].deleteUnit(this.uuid);
 	}
 
 	async takeIron(amount) {
@@ -227,12 +229,12 @@ class Unit {
 		}
 		if (amount > max) {
 			this.iron += max;
-			db.units[this.map].updateUnit(this.uuid,{iron: r.row('iron').default(0).add(max)});
+			await db.units[this.map].updateUnit(this.uuid,{iron: r.row('iron').default(0).add(max)});
 			return max;
 		}
 		if (amount <= max) {
 			this.iron += amount;
-			db.units[this.map].updateUnit(this.uuid,{iron: r.row('iron').default(0).add(amount)});
+			await db.units[this.map].updateUnit(this.uuid,{iron: r.row('iron').default(0).add(amount)});
 			return amount;
 		}
 	}
@@ -246,12 +248,12 @@ class Unit {
 		}
 		if (amount > max) {
 			this.fuel += max;
-			db.units[this.map].updateUnit(this.uuid,{fuel: r.row('fuel').default(0).add(max)});
+			await db.units[this.map].updateUnit(this.uuid,{fuel: r.row('fuel').default(0).add(max)});
 			return max;
 		}
 		if (amount <= max) {
 			this.fuel += amount;
-			db.units[this.map].updateUnit(this.uuid,{fuel: r.row('fuel').default(0).add(amount)});
+			await db.units[this.map].updateUnit(this.uuid,{fuel: r.row('fuel').default(0).add(amount)});
 			return amount;
 		}
 	}
@@ -315,12 +317,12 @@ class Unit {
 			iron: iron,
 			fuel: fuel
 		}
-		return await this.updateUnit({transferGoal: this.transferGoal});
+		return this.updateUnit({transferGoal: this.transferGoal});
 	}
 
 	async clearTransferGoal() {
 		this.transferGoal = null;
-		return await this.updateUnit({transferGoal: this.transferGoal});
+		return this.updateUnit({transferGoal: this.transferGoal});
 	}
 
 	async setDestination(x,y) {
