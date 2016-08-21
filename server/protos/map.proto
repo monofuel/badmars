@@ -13,6 +13,12 @@ message IntRow {
 message FloatRow {
 	repeated float items = 1;
 }
+
+message Unit {
+	string uuid = 1;
+	string tileHash = 2;
+}
+
 message Chunk {
 	required string hash = 1;
 	required string map = 2;
@@ -21,7 +27,7 @@ message Chunk {
 	repeated IntRow navGrid = 5;
 	repeated FloatRow grid = 6;
 	int32 chunkSize = 7;
-
+	repeated Unit units = 8;
 }
 
 service Map {

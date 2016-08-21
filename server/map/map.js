@@ -70,7 +70,7 @@ class Map {
 
 		return await new Promise((resolve,reject) => {
 			let profile = logger.startProfile('getChunk');
-			mapClient.getChunk({mapName: this.name,x,y},(err,response) => {
+			return mapClient.getChunk({mapName: this.name,x,y},(err,response) => {
 				logger.endProfile(profile);
 				if (err) {
 					console.log(err);
@@ -185,7 +185,12 @@ class Map {
 				//console.log('valid tile for unit: ' + tileHash);
 			}
 		}
-		return await db.units[this.name].addUnit(newUnit);
+		let unit = await db.units[this.name].addUnit(newUnit);
+		if (unit) {
+			let tile = await this.getLocFromHash(tileHash);
+			await tile.chunk.addUnit(unit.uuid,tileHash);
+		}
+		return unit;
 	}
 
 	async spawnUnitWithoutTileCheck(newUnit) {

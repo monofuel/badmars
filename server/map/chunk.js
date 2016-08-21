@@ -5,6 +5,7 @@
 
 'use strict';
 
+var r = require('rethinkdb');
 var db = require('../db/db.js');
 var env = require("../config/env.js");
 var SimplexNoise = require('simplex-noise');
@@ -23,8 +24,8 @@ class Chunk {
 		this.grid = []; //grid size should be chunkSize + 1
 		this.navGrid = []; //tile size should be chunkSize
 		this.chunkSize = 16;
+		this.units = {}; //tilehash unit uuid pairs
 	}
-
 
 	//TODO should be refactored neater
 	//the old server never actually did world generation and left it to the client.
@@ -107,17 +108,22 @@ class Chunk {
 				if (resourceAlea() < map.settings.ironChance) {
 					//console.log('spawning iron');
 					let unit = new Unit('iron', map, x, y);
-					if (!await map.spawnUnitWithoutTileCheck(unit)) {
+					unit = await map.spawnUnitWithoutTileCheck(unit);
+					if (!unit) {
 						logger.info('failed to spawn iron');
+					} else {
+						self.units[unit.tileHash[0]] = unit.uuid;
 					}
 
 				} else if (resourceAlea() < map.settings.oilChance) {
 					//console.log('spawning oil');
 					let unit = new Unit('oil', map, x, y);
-					if (!await map.spawnUnitWithoutTileCheck(unit)) {
+					unit = await map.spawnUnitWithoutTileCheck(unit);
+					if (!unit) {
 						logger.info('failed to spawn oil');
+					} else {
+						self.units[unit.tileHash[0]] = unit.uuid;
 					}
-
 				}
 			}
 		}
@@ -148,7 +154,40 @@ class Chunk {
 	}
 
 	async getUnits() {
-		return await db.units[this.map].getUnitsAtChunk(this.x,this.y);
+		//return await db.units[this.map].getUnitsAtChunk(this.x,this.y);
+
+		await this.refresh();
+		const unitUuids = _.map(this.units);
+
+		return db.units[this.map].getUnits(unitUuids);
+	}
+
+	//returns success
+	async moveUnit(unit,newHash) {
+		console.log('new hash:',newHash);
+		console.log('old hash:',unit.tileHash[0]);
+		let table = db.chunks[this.map].getTable();
+		let conn = db.chunks[this.map].getConn();
+		let mapUpdate = {};
+		mapUpdate[unit.tileHash[0]] = null;
+		mapUpdate[newHash] = unit.uuid;
+		let delta = await table.get(this.hash).update((self) => {
+			return r.branch(
+				self('units').hasFields(unit.tileHash[0]),
+				{},
+				self.merge({units:mapUpdate}).without({units: unit.tileHash[0]})
+			)
+		},{returnChanges:true}).run(conn);
+		return delta.replaced == 1;
+	}
+
+	addUnit(uuid,tileHash) {
+		let table = db.chunks[this.map].getTable();
+		let conn =  db.chunks[this.map].getConn();
+		let mapUpdate = {
+			tileHash:uuid
+		};
+		return table.get(this.hash).merge(tileHash).run(conn);
 	}
 
 	clone(object) {
@@ -157,6 +196,16 @@ class Chunk {
 		}
 		this.x = parseInt(this.x);
 		this.y = parseInt(this.y);
+	}
+
+	async refresh() {
+		const map = await this.getMap();
+		const fresh = await map.getChunk(this.x,this.y);
+		this.clone(fresh);
+	}
+
+	async getMap() {
+		return db.map.getMap(this.map);
 	}
 
 	getTiles() {

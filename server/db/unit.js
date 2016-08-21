@@ -82,6 +82,12 @@ class DBUnit {
 		logger.endProfile(profile);
 		return this.loadUnit(doc);
 	}
+	async getUnits(uuids) {
+		let profile = logger.startProfile('getUnits');
+		let docs = await this.table.getAll(uuids).run(this.conn);
+		logger.endProfile(profile);
+		return this.loadUnits(docs);
+	}
 
 	async updateUnit(uuid, patch) {
 		let profile = logger.startProfile('updateUnit');
@@ -152,6 +158,15 @@ class DBUnit {
 		logger.endProfile(profile);
 		return units;
 
+	}
+
+	async loadUnits(docs) {
+		const units = [];
+		docs.each((doc) => {
+			units.push(this.loadUnit(doc));
+		})
+
+		return units;
 	}
 
 	async loadUnit(doc) {

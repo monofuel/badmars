@@ -52,7 +52,13 @@ class DBChunk {
 		return this.table.insert(chunk,{conflict:"replace"}).run(this.conn);
 	}
 
-
+	//these should never get used.
+	getTable() {
+		return this.table;
+	}
+	getConn() {
+		return this.conn;
+	}
 }
 
 

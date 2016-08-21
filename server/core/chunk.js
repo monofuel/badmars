@@ -42,5 +42,18 @@ async function getChunk(call,callback) {
 	for (let i = 0; i < chunk.grid.length; i++) {
 		chunk.grid[i] = {items:chunk.grid[i]};
 	}
+	const unitList = [];
+	for (const hash in chunk.units) {
+		if (!(chunk.units[hash] instanceof String)) {
+			continue;
+		}
+		unitList.push({
+			uuid: chunk.units[hash],
+			tileHash: hash
+		})
+	}
+	if (unitList.length != 0) console.log(unitList);
+	chunk.units = unitList;
+
 	callback(null,chunk);
 }

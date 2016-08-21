@@ -53,6 +53,8 @@ class Unit {
 		this.x = x;
 		this.y = y;
 		this.lastTick = 0;
+		this.tileHash = x + ":" + y;
+		this.chunkHash = this.chunkX + ":" + this.chunkY;
 
 		//TODO optimize values stored on units depending on type
 		this.constructing = 0;
@@ -386,6 +388,8 @@ class Unit {
 		if (!validMove) {
 			return false;
 		} else {
+			const success = await tile.chunk.moveUnit(this,tile.hash);
+			console.log('movement:',success);
 
 			this.x = tile.x;
 			this.y = tile.y;
@@ -408,7 +412,6 @@ class Unit {
 			);
 			//console.log('moved');
 		}
-
 		return true;
 	}
 
