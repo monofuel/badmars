@@ -9,14 +9,12 @@ const db = require('../db/db.js');
 const env = require('../config/env.js');
 const logger = require('../util/logger.js');
 const Chunk = require('../map/chunk.js');
+const helper = require('../util/socketFilter.js');
 const grpc = require('grpc');
 const mapservice = grpc.load(__dirname + '/../protos/map.proto').map;
 
-
-let server;
-
 exports.init = async () => {
-	server = new grpc.Server();
+	const server = new grpc.Server();
 	server.addProtoService(mapservice.Map.service, {
 		getChunk
 	});
@@ -26,12 +24,12 @@ exports.init = async () => {
 
 	console.log('Map GRPC server started');
 
-	return;
-}
-exports.forceShutdown = async () => {
-	if (server) {
+	process.on('exit', () => {
+		//GRPC likes to hang and prevent a proper shutdown for some reason
 		server.forceShutdown();
-	}
+	});
+
+	return;
 }
 
 async function getChunk(call,callback) {
@@ -51,18 +49,6 @@ async function getChunk(call,callback) {
 	for (let i = 0; i < chunk.grid.length; i++) {
 		chunk.grid[i] = {items:chunk.grid[i]};
 	}
-	const unitList = [];
-	for (const hash in chunk.units) {
-		if (!(chunk.units[hash] instanceof String)) {
-			continue;
-		}
-		unitList.push({
-			uuid: chunk.units[hash],
-			tileHash: hash
-		})
-	}
-	if (unitList.length != 0) console.log(unitList);
-	chunk.units = unitList;
-
+	chunk = helper.sanitizeChunk(chunk);
 	callback(null,chunk);
 }

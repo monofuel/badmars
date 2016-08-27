@@ -6,32 +6,28 @@
 'use strict';
 require("babel-register");
 require("babel-polyfill");
-//this app.js script is ment for running the whole server at once
-//usually either for development or if we are just running on 1 process.
 
 var env = require('./config/env.js');
 var db = require('./db/db.js');
 var logger = require('./util/logger.js');
 var commands = require('./util/commands.js');
-var AI = require('./core/AI.js');
+var validator = require('./core/validator.js');
 
 var figlet = require('figlet');
 
+logger.setModule('validator');
+
 function init() {
-	logger.setModule('ai');
 	logger.info("start begin");
 
 	startupHeader();
-	var startupPromises = [];
-	startupPromises.push(db.init());
-	Promise.all(startupPromises)
+	db.init()
+	.then(validator.init)
 	.then(() => {
 		logger.info("start complete");
-		AI.init();
 	}).catch((err) => {
 		logger.error(err);
 		logger.info('start script caught error, exiting');
-		process.exit();
 	});
 }
 

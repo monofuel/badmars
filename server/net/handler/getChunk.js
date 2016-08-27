@@ -19,7 +19,7 @@ async function getChunk(client,data) {
 	let chunk = await client.planet.getChunk(x,y);
 
 	if (!unitsOnly) {
-		client.send('chunk',{chunk:chunk});
+		client.send('chunk',{chunk:filter.sanitizeChunk(chunk)});
 	}
 
 	let units = await chunk.getUnits();

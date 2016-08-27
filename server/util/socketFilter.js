@@ -25,7 +25,6 @@ const unitKeyWhitelist = [
 	'owner'
 ]
 
-//TODO should break this off into a helper file
 module.exports.sanitizeUnit = function sanitizeUnit(unit) {
 
 	//TODO sanitized based on if user owns the unit
@@ -34,6 +33,26 @@ module.exports.sanitizeUnit = function sanitizeUnit(unit) {
 	let sanitized = {}
 	for (let key of unitKeyWhitelist) {
 		sanitized[key] = unit[key];
+	}
+	return sanitized;
+}
+
+const chunkKeyWhitelist = [
+	'x',
+	'y',
+	'hash',
+	'map',
+	'grid',
+	'navGrid',
+	'chunkSize'
+];
+
+module.exports.sanitizeChunk = function sanitizeChunk(chunk) {
+
+	//whitelist
+	let sanitized = {}
+	for (let key of chunkKeyWhitelist) {
+		sanitized[key] = chunk[key];
 	}
 	return sanitized;
 }

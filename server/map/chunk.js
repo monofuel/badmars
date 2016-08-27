@@ -1,3 +1,4 @@
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -5,26 +6,48 @@
 
 'use strict';
 
-var r = require('rethinkdb');
-var db = require('../db/db.js');
-var env = require("../config/env.js");
-var SimplexNoise = require('simplex-noise');
-var _ = require('lodash');
-var Alea = require('alea');
-var Tiletypes = require('./tiletypes.js');
-var Unit = require('../unit/unit.js');
-var PlanetLoc = require("./planetloc.js");
+const r = require('rethinkdb');
+const db = require('../db/db.js');
+const env = require("../config/env.js");
+const SimplexNoise = require('simplex-noise');
+const _ = require('lodash');
+const Alea = require('alea');
+const Tiletypes = require('./tiletypes.js');
+const Map = require('../map/map.js');
+const Unit = require('../unit/unit.js');
+const PlanetLoc = require("./planetloc.js");
+const logger = require('../util/logger.js');
+
+
+type EntityMap = {
+	[key: TileHash]: UUID
+};
 
 class Chunk {
-	constructor(x, y, map) {
-		this.x = parseInt(x);
-		this.y = parseInt(y);
-		this.hash = x + ":" + y;
-		this.map = map;
+	x: number;
+	y: number;
+	hash: string;
+	map: string;
+	grid: Array<Array<number>>;
+	navGrid: Array<Array<number>>;
+	chunkSize: number;
+	units: EntityMap;
+	resources: EntityMap;
+	airUnits: EntityMap;
+
+	constructor(x: ?number, y: ?number, map: ?string) {
+		this.x = parseInt(x) || 0;
+		this.y = parseInt(y) || 0;
+		this.hash = this.x + ":" + this.y;
+		this.map = map || 'undefined';
 		this.grid = []; //grid size should be chunkSize + 1
 		this.navGrid = []; //tile size should be chunkSize
 		this.chunkSize = 16;
+
+		//units for each 'layer' of combat
 		this.units = {}; //tilehash unit uuid pairs
+		this.resources = {};
+		this.airUnits = {};
 	}
 
 	//TODO should be refactored neater
@@ -112,7 +135,8 @@ class Chunk {
 					if (!unit) {
 						logger.info('failed to spawn iron');
 					} else {
-						self.units[unit.tileHash[0]] = unit.uuid;
+						self.resources[unit.tileHash[0]] = unit.uuid;
+						console.log(self.resources);
 					}
 
 				} else if (resourceAlea() < map.settings.oilChance) {
@@ -122,7 +146,7 @@ class Chunk {
 					if (!unit) {
 						logger.info('failed to spawn oil');
 					} else {
-						self.units[unit.tileHash[0]] = unit.uuid;
+						self.resources[unit.tileHash[0]] = unit.uuid;
 					}
 				}
 			}
@@ -153,15 +177,16 @@ class Chunk {
 		return !env.stressTest;
 	}
 
-	async getUnits() {
+	async getUnits(): Promise<Array<Unit>> {
 
-		this.findAndFixUnits();
-		await this.refresh();
-		const unitUuids = _.map(this.units);
+		//this.findAndFixUnits();
+		//await this.refresh();
+		//const unitUuids = _.map(this.units);
 
-		const fastUnitsList = db.units[this.map].getUnits(unitUuids);
+		//const fastUnitsList = db.units[this.map].getUnits(unitUuids);
 
-		return fastUnitsList;
+		//return fastUnitsList;
+		return await  db.units[this.map].getUnitsAtChunk(this.x,this.y);
 	}
 
 	async findAndFixUnits() {
@@ -169,23 +194,28 @@ class Chunk {
 
 		const self = this;
 		await this.refresh();
-		const unitUuids = _.map(this.units);
+		const unitUuids = _.union(_.map(this.airUnits),_.map(this.resources),_.map(this.units));
+		if (slowUnitsList.length > 0) {
+			console.log('uuids:',unitUuids,_.map(slowUnitsList,'uuid'));
+		}
 
 		const fastUnitsList = db.units[this.map].getUnits(unitUuids);
 
 		_.each(slowUnitsList,(unit) => {
 			const unit2 = _.find(fastUnitsList,{uuid: unit.uuid});
 			if (!unit2) {
-
-				self.addUnit(unit.uuid,unit.tileHash[0]);
+				if (unit.type === 'iron' || unit.type === 'oil') {
+					self.addResource(unit.uuid,unit.tileHash[0]);
+				} else {
+					self.addUnit(unit.uuid,unit.tileHash[0]);
+				}
 				console.log('fixed unit missing from chunk:',unit.uuid);
 			}
 		});
 
 	}
 
-	//returns success
-	async moveUnit(unit,newHash) {
+	async moveUnit(unit: Unit,newHash: TileHash): Promise<Success> {
 		console.log('new hash:',newHash);
 		console.log('old hash:',unit.tileHash[0]);
 		let table = db.chunks[this.map].getTable();
@@ -200,20 +230,79 @@ class Chunk {
 				self.merge({units:mapUpdate}).without({units: unit.tileHash[0]})
 			)
 		},{returnChanges:true}).run(conn);
-		return delta.replaced == 1;
+		if (delta.replaced === 0) {
+			return false;
+		}
+		let newChunk = delta.changes[0].new_val;
+		if (unit.uuid !== newChunk.units[newHash]) {
+			console.log('wrong new position',newHash,unit.uuid,newChunk[newHash]);
+		}
+		return delta.replaced === 1;
 	}
 
-	async addUnit(uuid,tileHash) {
+	async addUnit(uuid: UUID,tileHash: TileHash): Promise<Success> {
 		let table = db.chunks[this.map].getTable();
 		let conn =  db.chunks[this.map].getConn();
-		let mapUpdate = {
-			tileHash:uuid
-		};
-		return table.get(this.hash).merge(tileHash).run(conn);
+		let unitUpdate = {};
+		unitUpdate[tileHash] = uuid;
+		this.units[tileHash] = uuid;
+		const delta = await table.get(this.hash).update({units: unitUpdate},{returnChanges:true}).run(conn);
+		if (delta.replaced === 0) {
+			return false;
+		}
+		const newChunk = delta.changes[0].new_val;
+		if (uuid !== newChunk.units[tileHash]) {
+			console.log('wrong new position',tileHash,'expected',uuid,'found',newChunk.units[tileHash]);
+			console.log('old',this.units);
+			console.log('new',newChunk.units);
+		}
+		if (delta.changes[0].old_val.units.length != 1 + newChunk.units.length) {
+			console.log('wrong number of units on chunk');
+			//delete old unit
+			const oldUnitUUID = delta.changes[0].old_val.units[tileHash]
+			console.log('deleting old unit',oldUnitUUID);
+			db.units[this.map].deleteUnit(oldUnitUUID);
+		}
+		return delta.replaced === 1;
 	}
 
-	clone(object) {
+
+	async addResource(uuid: UUID,tileHash: TileHash): Promise<Success> {
+		let table = db.chunks[this.map].getTable();
+		let conn =  db.chunks[this.map].getConn();
+		let unitUpdate = {};
+		unitUpdate[tileHash] = uuid;
+		this.resources[tileHash] = uuid;
+		console.log(unitUpdate);
+		const delta = await table.get(this.hash).update({'resources': unitUpdate},{returnChanges:true}).run(conn);
+		if (delta.replaced === 0) {
+			return false;
+		}
+		const newChunk = delta.changes[0].new_val;
+		if (uuid !== newChunk.resources[tileHash]) {
+			console.log('wrong new position',tileHash,'expected',uuid,'found',newChunk.resources[tileHash]);
+			console.log('old',this.resources);
+			console.log('new',newChunk.resources);
+			console.log(tileHash,uuid);
+			console.log('chunkHash',this.hash);
+		}
+		if (delta.changes[0].old_val.resources.length != 1 + newChunk.resources.length) {
+			console.log('wrong number of units on chunk');
+			//delete old unit
+			const oldUnitUUID = delta.changes[0].old_val.units[tileHash]
+			if (oldUnitUUID) {
+				console.log('deleting old unit',oldUnitUUID);
+				await db.units[this.map].deleteUnit(oldUnitUUID);
+			} else {
+				console.log('failed to find duplicate unit on tile');
+				console.log('changes:',JSON.stringify(delta.changes));
+			}
+		}
+		return delta.replaced === 1;
+	}
+	clone(object: any) {
 		for (let key in object) {
+			// $FlowFixMe: hiding this issue for now
 			this[key] = _.cloneDeep(object[key]);
 		}
 		this.x = parseInt(this.x);
@@ -221,12 +310,11 @@ class Chunk {
 	}
 
 	async refresh() {
-		const map = await this.getMap();
-		const fresh = await map.getChunk(this.x,this.y);
+		const fresh = await db.chunks[this.map].getChunk(this.x,this.y);
 		this.clone(fresh);
 	}
 
-	async getMap() {
+	async getMap(): Promise<Map> {
 		return db.map.getMap(this.map);
 	}
 

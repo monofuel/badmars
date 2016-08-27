@@ -30,7 +30,8 @@ function init() {
 	.then(() => {
 		logger.info("start complete");
 	}).catch((err) => {
-		console.log(err);
+		logger.error(err);
+		logger.info('start script caught error, exiting');
 		process.exit();
 	});
 }

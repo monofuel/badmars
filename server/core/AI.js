@@ -22,6 +22,12 @@ exports.init = () => {
 	server.start();
 	console.log('AI GRPC server started');
 
+	process.on('exit', () => {
+		//GRPC likes to hang and prevent a proper shutdown for some reason
+		server.forceShutdown();
+	});
+
+
 	return;
 };
 

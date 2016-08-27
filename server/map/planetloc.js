@@ -102,6 +102,10 @@ class PlanetLoc {
 
 	}
 
+  async validate() {
+    console.log('TODO');
+  }
+
   equals(otherLoc) {
 		if (!otherLoc || !otherLoc.map) return false;
     return (otherLoc.x === this.x &&

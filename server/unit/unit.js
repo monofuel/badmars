@@ -1,3 +1,4 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -21,8 +22,11 @@ var attackAI = require('./ai/attack.js');
 var constructionAI = require('./ai/construction.js');
 var mineAI = require('./ai/mine.js');
 
+const Map = require('../map/map.js');
+const PlanetLoc = require('../map/planetloc.js');
+
 try {
-var unitStats = JSON.parse(fs.readFileSync('config/units.json'));
+var unitStats = JSON.parse(fs.readFileSync('config/units.json').toString());
 } catch (err) {
 	console.log(err);
 }
@@ -38,7 +42,53 @@ fs.watchFile("config/units.json", () => {
 });
 
 class Unit {
-	constructor(unitType, map,x,y) {
+
+	uuid: UUID;
+	type: UnitType;
+	map: string;
+	chunkX: number;
+	chunkY: number;
+	x: number;
+	y: number;
+
+	lastTick: Tick;
+	tileHash: Array<TileHash>;
+	chunkHash: Array<ChunkHash>;
+
+	constructing: number;
+	ghosting: boolean;
+	ghostCreation: number;
+	movementCooldown: number;
+	fireCooldown: number;
+
+	owner: UUID;
+
+	health: number;
+	iron: number;
+	fuel: number;
+	path: Array<TileHash>;
+	pathAttempts: number;
+	pathAttemptAttempts: number;
+	isPathing: boolean;
+	factoryQueue: Array<Object>; //TODO type this better
+	resourceCooldown: number;
+	transferGoal: Object;
+	awake: boolean;
+	pathUpdate: number;
+	destination: ?TileHash;
+
+	//unit stats
+	size: ?number;
+	maxHealth: ?number;
+	movementType: ?string;
+	ironStorage: ?number;
+	fuelStorage: ?number;
+	fireRate: ?number;
+	speed: ?number;
+	size: ?number;
+
+
+	constructor(unitType: string, map: Map,x: number,y: number) {
 
 		this.type = unitType;
 		//uuid is set by DB
@@ -70,10 +120,7 @@ class Unit {
 			console.log('could not find stats for ' + unitType);
 			throw new Error('invalid unitType');
 		} else {
-			//console.log(stats);
-			for (let key in stats) {
-				this[key] = stats[key];
-			}
+			_.assignIn(this,stats);
 		}
 
 		if (!this.size || this.size === 1) {
@@ -163,6 +210,11 @@ class Unit {
 		logger.endProfile(profile);
 	}
 
+
+	//---------------------------------------------------------------------------
+	// mutators
+	//---------------------------------------------------------------------------
+
 	async update(patch) {
 		return db.units[this.map].updateUnit(this.uuid,patch);
 	}
@@ -222,7 +274,10 @@ class Unit {
 	//we shouldn't be requiring rethink in this file
 
 	//returns the amount that actually could be deposited
-	async addIron(amount) {
+	async addIron(amount: number): Promise<*> {
+		if (!this.ironStorage) {
+			return 0;
+		}
 
 		let max = this.ironStorage - this.iron;
 
@@ -242,7 +297,10 @@ class Unit {
 	}
 
 	//returns the amount that actually could be deposited
-	async addFuel(amount) {
+	async addFuel(amount: number): Promise<*> {
+		if (!this.fuelStorage) {
+			return 0;
+		}
 
 		let max = this.fuelStorage - this.fuel;
 		if (max === 0) {
@@ -323,7 +381,7 @@ class Unit {
 	}
 
 	async clearTransferGoal() {
-		this.transferGoal = null;
+		this.transferGoal = {};
 		return this.updateUnit({transferGoal: this.transferGoal});
 	}
 
@@ -365,6 +423,9 @@ class Unit {
 	}
 
 	async armFireCooldown() {
+		if (!this.fireRate) {
+			return;
+		}
 		this.fireCooldown = this.fireRate;
 		await this.updateUnit({fireCooldown: this.fireCooldown});
 	}
@@ -378,8 +439,6 @@ class Unit {
 	}
 
 	async moveToTile(tile) {
-
-
 		//TODO there is a hole between checking the tile and upating the unit.
 		//this will need some sort of work-around as rethink doesn't do transactions.
 		let validMove = await tile.map.checkValidForUnit(tile,this);
@@ -397,7 +456,11 @@ class Unit {
 			this.chunkY = tile.chunk.y;
 			this.tileHash = [tile.hash];
 			this.chunkHash = [tile.chunk.hash];
+			if (!this.speed) {
+				throw new Error('tried to move unit without speed: ' + this.uuid);
+			}
 			this.movementCooldown = this.speed;
+
 			//TODO update chunk hash
 			await db.units[this.map].updateUnit(this.uuid,
 				{
@@ -421,22 +484,95 @@ class Unit {
 		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 	}
 
-	save() {
-		//TODO
-		//bad way to update units. should white-list and apply updates atomicly.
+	//---------------------------------------------------------------------------
+	// helpers
+	//---------------------------------------------------------------------------
 
-		//TODO
-		//remove unit stats from object before saving (or impliment update whitelist)
-		return db.units[this.map].saveUnit(this);
+	async validate() {
+		await this.refresh();
+
+		const invalid = (reason) => {
+			throw new Error(this.uuid + ': ' + reason);
+		}
+
+		if (!this.type) {
+			invalid('missing type');
+		}
+		//TODO verify type is a valid type
+		if (!this.map) {
+			invalid ('missing map name');
+		}
+		//TODO verify map is valid
+		if (this.chunkX == null) {
+			invalid('invalid chunkX: ' + this.chunkY);
+		}
+		if (this.chunkY == null) {
+			invalid('invalid chunkY: ' + this.chunkY);
+		}
+		const chunk = await db.chunks[this.map].getChunk(this.chunkX,this.chunkY);
+		if (!chunk) {
+			invalid('unit chunk does not exist');
+		}
+
+		if (this.x == null) {
+			invalid('invalid x: ' + this.x);
+		}
+		if (this.y == null) {
+			invalid('invalid y: ' + this.y);
+		}
+
+		for (const tileHash of this.tileHash) {
+			const x = tileHash.split(':')[0];
+			const y = tileHash.split(':')[1];
+
+		}
+
+		if (this.size == 1) {
+			const planetLoc = await this.getLoc();
+			planetLoc.validate();
+		}
+
+		const planetLocs = await this.getLocs();
+		for (const loc of planetLocs) {
+			loc.validate();
+		}
+
 	}
+
+	async getLoc(): PlanetLoc {
+		if (!this.size || this.size > 1) {
+			throw new Error('getloc called on large unit');
+		}
+		const map = await db.map.getMap(this.map);
+		return map.getLoc(this.x,this.y);
+	}
+
+	async getLocs(): Promise<Array<PlanetLoc>> {
+		const promises:Array<Promise<PlanetLoc>> = [];
+		const map = await db.map.getMap(this.map);
+		for (const tileHash of this.tileHash) {
+			const x = tileHash.split(':')[0];
+			const y = tileHash.split(':')[1];
+			promises.push(map.getLoc(x,y));
+		}
+		return Promise.all(promises);
+	}
+
 	clone(object) {
 		for (let key in object) {
+			// $FlowFixMe: hiding this issue for now
 			this[key] = _.cloneDeep(object[key]);
 		}
 		var stats = unitStats[this.type];
 		for (let key in stats) {
+			// $FlowFixMe: hiding this issue for now
 			this[key] = _.cloneDeep(object[key]);
 		}
+	}
+
+	async refresh() {
+		const fresh = await db.units[this.map].getUnit(this.uuid);
+		this.clone(fresh);
 	}
 
 	getTypeInfo(type) {

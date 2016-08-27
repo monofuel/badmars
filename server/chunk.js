@@ -21,16 +21,13 @@ function init() {
 	logger.info("start begin");
 
 	startupHeader();
-	var startupPromises = [];
-	startupPromises.push(db.init());
-	startupPromises.push(chunk.init());
-	Promise.all(startupPromises)
+	db.init()
+	.then(chunk.init)
 	.then(() => {
 		logger.info("start complete");
 	}).catch((err) => {
 		logger.error(err);
 		logger.info('start script caught error, exiting');
-		shutdown();
 	});
 }
 
@@ -47,11 +44,5 @@ function startupHeader() {
 		console.log('running in development');
 	}
 }
-
-process.on('exit', () => {
-	console.log('GOT EXIT');
-	//GRPC likes to hang and prevent a proper shutdown for some reason
-	chunk.forceShutdown();
-});
 
 init();

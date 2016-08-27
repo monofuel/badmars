@@ -29,7 +29,8 @@ function init() {
 		logger.info("start complete");
 		simulate.init();
 	}).catch((err) => {
-		console.log(err);
+		logger.error(err);
+		logger.info('start script caught error, exiting');
 		process.exit();
 	});
 }

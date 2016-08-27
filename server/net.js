@@ -28,9 +28,9 @@ function init() {
             logger.info("start complete");
             net.init();
         }).catch((err) => {
-            console.log(err.stack);
-            console.log("exiting badmars");
-            process.exit();
+          logger.error(err);
+          logger.info('start script caught error, exiting');
+          process.exit();
         });
 }
 

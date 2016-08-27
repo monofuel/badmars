@@ -1,3 +1,4 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -21,6 +22,21 @@ const grpc = require('grpc');
 const mapService = grpc.load(__dirname + '/../protos/map.proto').map;
 const mapClient = new mapService.Map(env.mapHost + ':' + env.mapPort, grpc.credentials.createInsecure());
 
+const defaultSettings = {
+	chunkSize: 8,
+	waterHeight: 0,
+	cliffDelta: 0.4,
+	water: true,
+	bigNoise: 0.005,
+	medNoise: 0.04,
+	smallNoise: 0.1,
+	bigNoiseScale: 15,
+	medNoiseScale: 3,
+	smallNoiseScale: 1,
+	ironChance: 0.002,
+	oilChance: 0.0015
+};
+
 function containsTile(list,tile) {
 	for (let item of list) {
 		if (item.equals(tile)) {
@@ -30,23 +46,27 @@ function containsTile(list,tile) {
 	return false;
 }
 
+type CacheChunk = {
+	chunk: Chunk,
+	timestamp: number
+};
+type ChunkCacheMap = {
+	[key: string]: CacheChunk;
+}
+
 class Map {
-	constructor(name) {
+	name: string;
+	settings: Object;
+	lastTickTimestamp: number;
+	lastTick: number;
+	users: Array<any>;
+	seed: number;
+	chunkCache: Array<CacheChunk>;
+	chunkCacheMap: ChunkCacheMap;
+
+	constructor(name: string) {
 		this.name = name;
-		this.settings = {
-			chunkSize: 32,
-			waterHeight: 6.4,
-			cliffDelta: 0.3,
-			water: true,
-			bigNoise: 0.07,
-			medNoise: 0.24,
-			smallNoise: 0.53,
-			bigNoiseScale: 1.8,
-			medNoiseScale: 0.25,
-			smallNoiseScale: 0.25,
-			ironChance: 0.003,
-			oilChance: 0.002
-		};
+		this.settings = _.cloneDeep(defaultSettings);
 		this.lastTickTimestamp = (new Date()).getTime();
 		this.lastTick = 0;
 		this.users = [];
@@ -58,6 +78,7 @@ class Map {
 	async getChunk(x, y) {
 		x = parseInt(x);
 		y = parseInt(y);
+		const self = this;
 
 		logger.addAverageStat('chunkCacheSize',this.chunkCache.length);
 		let cacheChunk = this.getChunkFromCache(x + ':' + y);
@@ -70,24 +91,28 @@ class Map {
 
 		return await new Promise((resolve,reject) => {
 			let profile = logger.startProfile('getChunk');
-			return mapClient.getChunk({mapName: this.name,x,y},(err,response) => {
+			return mapClient.getChunk({mapName: this.name,x,y},(err: Error,response: ChunkProto) => {
 				logger.endProfile(profile);
 				if (err) {
-					console.log(err);
+					logger.error(err);
 					return reject(err);
 				}
 				let chunk = new Chunk();
 				chunk.clone(response);
 				for (let i = 0; i < chunk.navGrid.length; i++) {
-					chunk.navGrid[i] = chunk.navGrid[i].items;
+					chunk.navGrid[i] = response.navGrid[i].items;
 				}
 				for (let i = 0; i < chunk.grid.length; i++) {
-					chunk.grid[i] = chunk.grid[i].items;
+					chunk.grid[i] = response.grid[i].items;
 				}
 				this.addChunkToCache(chunk);
 				resolve(chunk);
 			});
-		})
+		}).catch((err) => {
+			console.log('failed to get chunk, retrying');
+			helper.sleep(50);
+			return self.getChunk(x,y);
+		});
 	}
 
 	async fetchOrGenChunk(x,y) {
@@ -96,12 +121,10 @@ class Map {
 		let cacheChunk = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
 			logger.addSumStat('cacheChunkHit',1);
-			console.log(Object.keys(cacheChunk));
 			return cacheChunk;
 		} else {
 			logger.addSumStat('cacheChunkMiss',1);
 		}
-
 		let chunk = await db.chunks[this.name].getChunk(x, y);
 
 		if (!chunk || !chunk.isValid()) {
@@ -145,7 +168,7 @@ class Map {
 		return await this.getLoc(x,y);
 	}
 
-	async getLoc(x, y) {
+	async getLoc(x, y): PlanetLoc {
 		var real_x = Math.floor(x);
 		var real_y = Math.floor(y);
 		var chunkX = Math.floor(real_x / this.settings.chunkSize);
@@ -186,10 +209,10 @@ class Map {
 			}
 		}
 		let unit = await db.units[this.name].addUnit(newUnit);
-		if (unit) {
+		/*if (unit) {
 			let tile = await this.getLocFromHash(tileHash);
 			await tile.chunk.addUnit(unit.uuid,tileHash);
-		}
+		}*/
 		return unit;
 	}
 
@@ -362,7 +385,7 @@ class Map {
 	}
 
 	async getNearbyUnitsFromChunkWithTileRange(chunkHash,tileRange) {
-		let chunkRange = tileRange / this.chunkSize;
+		let chunkRange = tileRange / this.settings.chunkSize;
 		return await this.getNearbyUnitsFromChunk(chunkHash,chunkRange);
 	}
 
@@ -388,7 +411,7 @@ class Map {
 		return units;
 	}
 
-	getNearbyChunkHashes(chunkHash, range) {
+	getNearbyChunkHashes(chunkHash: string, range: number) {
 		let x = parseInt(chunkHash.split(':')[0]);
 		let y = parseInt(chunkHash.split(':')[1]);
 
@@ -574,11 +597,13 @@ class Map {
 		//if amount is still greater than 0
 		//that means the amount of iron changed after checking,
 		//and we should put iron back
-		for (let unit of Object.keys(pulledMap)) {
+		//TODO refactor this
+		/*
+		for (let uuid of Object.keys(pulledMap)) {
 			console.log('failed, restoring fuel:');
 			await unit.addFuel(pulledMap[unit.uuid]);
 			return false;
-		}
+		}*/
 
 		console.log('pulled fuel');
 		return true;
@@ -813,22 +838,13 @@ class Map {
 	}
 	clone(object) {
 		for (let key in object) {
+			// $FlowFixMe: hiding this issue for now
 			this[key] = _.cloneDeep(object[key]);
 		}
-		this.settings = {
-			chunkSize: 8,
-			waterHeight: 0,
-			cliffDelta: 0.4,
-			water: true,
-			bigNoise: 0.005,
-			medNoise: 0.04,
-			smallNoise: 0.1,
-			bigNoiseScale: 15,
-			medNoiseScale: 3,
-			smallNoiseScale: 1,
-			ironChance: 0.002,
-			oilChance: 0.0015
-		};
+
+		//TODO should probably not do this
+		//apply default settings to existing maps
+		this.settings = _.cloneDeep(defaultSettings);
 	}
 }
 

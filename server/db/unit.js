@@ -54,7 +54,7 @@ class DBUnit {
 
 	listUnits() {
 		let profile = logger.startProfile('listUnits');
-		return this.table.run(this.conn).coerceTo('array').then((array) => {
+		return this.table.coerceTo('array').run(this.conn).then((array) => {
 			logger.endProfile(profile);
 			return array;
 		});
