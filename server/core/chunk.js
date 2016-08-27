@@ -13,18 +13,27 @@ const grpc = require('grpc');
 const mapservice = grpc.load(__dirname + '/../protos/map.proto').map;
 
 
-exports.init = () => {
-	let server = new grpc.Server();
+let server;
+
+exports.init = async () => {
+	server = new grpc.Server();
 	server.addProtoService(mapservice.Map.service, {
 		getChunk
 	});
 
 	server.bind('0.0.0.0:' + env.mapPort,grpc.ServerCredentials.createInsecure());
 	server.start();
+
 	console.log('Map GRPC server started');
 
 	return;
 }
+exports.forceShutdown = async () => {
+	if (server) {
+		server.forceShutdown();
+	}
+}
+
 async function getChunk(call,callback) {
 	const request = call.request;
 	const mapName = request.mapName;

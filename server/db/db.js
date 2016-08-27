@@ -23,9 +23,9 @@ exports.units = {};
 
 var conn;
 
-exports.init = () => {
+exports.init = async function init() {
 
-	var options = {
+	const options = {
 		host: env.dbHost,
 		db: env.database
 	};
@@ -38,51 +38,52 @@ exports.init = () => {
 	if (env.dbPassword) {
 		options.password = env.dbPassword;
 	}
-	return r.connect(options).then((connection) => {
-		conn = connection;
-		return r.dbList().run(conn);
-	}).then((dbList) => {
-		if (dbList.indexOf('badmars') == -1) {
-			console.log('creating database');
-			return r.dbCreate('badmars').run(conn);
-		}
-	}).then(() => {
-		r.db('badmars');
-		console.log('preparing tables');
-		var initPromises = [];
-		initPromises.push(exports.map.init(conn));
-		initPromises.push(exports.chat.init(conn));
-		initPromises.push(exports.event.init(conn));
-		initPromises.push(exports.user.init(conn));
-		return Promise.all(initPromises);
-	}).then(() => {
-		return exports.map.listNames();
-	}).then((names) => {
-		console.log('preparing chunks');
-		var chunkPromises = [];
-		for (var name of names) {
-			var chunk = new DBChunk(conn, name);
-			chunkPromises.push(chunk.init());
-			exports.chunks[name] = chunk;
-		}
-		return Promise.all(chunkPromises).then(() => {
-			return exports.map.listNames();
-		});
-	}).then((names) => {
-		console.log('preparing units');
-		var unitPromises = [];
-		for (var name of names) {
-			var unit = new DBUnit(conn, name);
-			unitPromises.push(unit.init());
-			exports.units[name] = unit;
-		}
-		return Promise.all(unitPromises);
-	}).then(() => {
-		return exports.map.createRandomMap('testmap').then(() => {
-			console.log('created map testmap');
-		});
-	});
+	try {
+		conn = await r.connect(options);
+	} catch (err) {
+		logger.error(err);
+		console.log('failed to connect to DB, retrying in 5 seconds');
+		await helper.sleep(5000);
+		return exports.init();
+	}
+	const dbList = await r.dbList().run(conn);
+
+	if (dbList.indexOf('badmars') == -1) {
+		console.log('creating database');
+		await r.dbCreate('badmars').run(conn);
+	}
+
+	r.db('badmars');
+	console.log('preparing tables');
+	await Promise.all([
+		exports.map.init(conn),
+		exports.chat.init(conn),
+		exports.event.init(conn),
+		exports.user.init(conn)
+	]);
+
+	const mapNames = await exports.map.listNames();
+
+	console.log('preparing chunks');
+	var chunkPromises = [];
+	for (var name of mapNames) {
+		var chunk = new DBChunk(conn, name);
+		chunkPromises.push(chunk.init());
+		exports.chunks[name] = chunk;
+	}
+	await  Promise.all(chunkPromises);
+	console.log('preparing units');
+	var unitPromises = [];
+	for (var name of mapNames) {
+		var unit = new DBUnit(conn, name);
+		unitPromises.push(unit.init());
+		exports.units[name] = unit;
+	}
+	await Promise.all(unitPromises);
+	await exports.map.createRandomMap('testmap');
+	console.log('created map testmap');
 };
+
 
 exports.safeCreateTable = async (tableName) => {
 

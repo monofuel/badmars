@@ -53,8 +53,8 @@ class Unit {
 		this.x = x;
 		this.y = y;
 		this.lastTick = 0;
-		this.tileHash = x + ":" + y;
-		this.chunkHash = this.chunkX + ":" + this.chunkY;
+		this.tileHash = [x + ":" + y];
+		this.chunkHash = [this.chunkX + ":" + this.chunkY];
 
 		//TODO optimize values stored on units depending on type
 		this.constructing = 0;

@@ -6,8 +6,6 @@
 'use strict';
 require("babel-register");
 require("babel-polyfill");
-//this app.js script is ment for running the whole server at once
-//usually either for development or if we are just running on 1 process.
 
 var env = require('./config/env.js');
 var db = require('./db/db.js');
@@ -30,8 +28,9 @@ function init() {
 	.then(() => {
 		logger.info("start complete");
 	}).catch((err) => {
-		console.log(err);
-		process.exit();
+		logger.error(err);
+		logger.info('start script caught error, exiting');
+		shutdown();
 	});
 }
 
@@ -48,5 +47,11 @@ function startupHeader() {
 		console.log('running in development');
 	}
 }
+
+process.on('exit', () => {
+	console.log('GOT EXIT');
+	//GRPC likes to hang and prevent a proper shutdown for some reason
+	chunk.forceShutdown();
+});
 
 init();

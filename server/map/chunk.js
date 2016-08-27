@@ -154,13 +154,34 @@ class Chunk {
 	}
 
 	async getUnits() {
-		//return await db.units[this.map].getUnitsAtChunk(this.x,this.y);
 
+		this.findAndFixUnits();
 		await this.refresh();
 		const unitUuids = _.map(this.units);
-		console.log(unitUuids);
 
-		return db.units[this.map].getUnits(unitUuids);
+		const fastUnitsList = db.units[this.map].getUnits(unitUuids);
+
+		return fastUnitsList;
+	}
+
+	async findAndFixUnits() {
+		const slowUnitsList = await  db.units[this.map].getUnitsAtChunk(this.x,this.y);
+
+		const self = this;
+		await this.refresh();
+		const unitUuids = _.map(this.units);
+
+		const fastUnitsList = db.units[this.map].getUnits(unitUuids);
+
+		_.each(slowUnitsList,(unit) => {
+			const unit2 = _.find(fastUnitsList,{uuid: unit.uuid});
+			if (!unit2) {
+
+				self.addUnit(unit.uuid,unit.tileHash[0]);
+				console.log('fixed unit missing from chunk:',unit.uuid);
+			}
+		});
+
 	}
 
 	//returns success
@@ -182,7 +203,7 @@ class Chunk {
 		return delta.replaced == 1;
 	}
 
-	addUnit(uuid,tileHash) {
+	async addUnit(uuid,tileHash) {
 		let table = db.chunks[this.map].getTable();
 		let conn =  db.chunks[this.map].getConn();
 		let mapUpdate = {
