@@ -75,12 +75,15 @@ class DBUnit {
 			returnChanges: true
 		}).run(this.conn);
 		logger.endProfile(profile);
-		return delta.changes[0].new_val;
+		return await this.loadUnit(delta.changes[0].new_val);
 	}
 
 	async getUnit(uuid) {
 		let profile = logger.startProfile('getUnit');
 		let doc = await this.table.get(uuid).run(this.conn);
+		if (!doc) {
+			console.log('unit not found: ',  uuid);
+		}
 		logger.endProfile(profile);
 		return this.loadUnit(doc);
 	}
@@ -206,6 +209,9 @@ class DBUnit {
 	}
 
 	async loadUnit(doc) {
+		if (!doc) {
+			return null;
+		}
 		let profile = logger.startProfile('loadUnit');
 		let map = await db.map.getMap(doc.map);
 		let unit = new Unit(doc.type, map, doc.x, doc.y);

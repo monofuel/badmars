@@ -490,6 +490,7 @@ class Unit {
 	//---------------------------------------------------------------------------
 
 	async validate() {
+		return;
 		if (!env.debug) {
       return;
     }
@@ -522,7 +523,7 @@ class Unit {
 		}
 		const chunk = await db.chunks[this.map].getChunk(this.chunkX,this.chunkY);
 		if (!chunk) {
-			invalid('unit chunk does not exist');
+			//invalid('unit chunk does not exist');
 		}
 
 		if (this.x == null) {
@@ -543,12 +544,12 @@ class Unit {
 
 		if (this.size == 1) {
 			const planetLoc = await this.getLoc();
-			planetLoc.validate();
+			await planetLoc.validate();
 		}
-
+		console.log('checking locs');
 		const planetLocs = await this.getLocs();
 		for (const loc of planetLocs) {
-			loc.validate();
+			await loc.validate();
 		}
 
 		const unitsFromChunk = await chunk.getUnitsMap(this.tileHash[0]);

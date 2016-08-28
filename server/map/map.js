@@ -188,8 +188,9 @@ export class Map {
 		//console.log("chunk: " + chunkX + ":" + chunkY);
 		//console.log("local: " + local_x + ":" + local_y);
 
-
+		console.log('getting chunk');
 		let chunk = await this.getChunk(chunkX, chunkY);
+		console.log('asdadf');
 
 		return new PlanetLoc(this,chunk, real_x, real_y);
 	}
