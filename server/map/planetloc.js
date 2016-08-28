@@ -148,6 +148,15 @@ class PlanetLoc {
       invalid('bad tile type');
     }
 
+    const real_x = (this.chunk.chunkSize * this.chunk.x) + this.local_x;
+    const real_y = (this.chunk.chunkSize * this.chunk.y) + this.local_y;
+    if (this.x != real_x) {
+      invalid('x does not match up: ' + real_x + ' != ' + this.x);
+    }
+    if (this.y != real_y) {
+      invalid('y does not match up: ' + real_y + ' != ' + this.y);
+    }
+
 
   }
 

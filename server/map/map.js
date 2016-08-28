@@ -106,6 +106,7 @@ export class Map {
 					chunk.grid[i] = response.grid[i].items;
 				}
 				this.addChunkToCache(chunk);
+				chunk.validate();
 				resolve(chunk);
 			});
 		}).catch((err) => {
@@ -168,7 +169,7 @@ export class Map {
 		return await this.getLoc(x,y);
 	}
 
-	async getLoc(x, y): PlanetLoc {
+	async getLoc(x, y): Promise<PlanetLoc> {
 		var real_x = Math.floor(x);
 		var real_y = Math.floor(y);
 		var chunkX = Math.floor(real_x / this.settings.chunkSize);
@@ -199,27 +200,27 @@ export class Map {
 		return await this.spawnUnit(newUnit);
 	}
 
-	async spawnUnit(newUnit) {
+	async spawnUnit(newUnit:Unit):Promise<Unit> {
 		console.log('spawning unit: ' + newUnit.type);
 		for (let tileHash of newUnit.tileHash) {
-			if (!await this.checkValidForUnit( await this.getLocFromHash(tileHash),newUnit)) {
+			if (!await this.checkValidForUnit( await unit.getLoc(),newUnit)) {
 				return false;
 			} else {
 				//console.log('valid tile for unit: ' + tileHash);
 			}
 		}
-		let unit = await db.units[this.name].addUnit(newUnit);
-		/*if (unit) {
-			let tile = await this.getLocFromHash(tileHash);
-			await tile.chunk.addUnit(unit.uuid,tileHash);
-		}*/
-		return unit;
+		return this.spawnUnit(newUnit);
 	}
 
-	async spawnUnitWithoutTileCheck(newUnit) {
+	async spawnUnitWithoutTileCheck(newUnit: Unit): Promise<Unit> {
 		console.log('force spawning unit: ' + newUnit.type);
+		return this.spawnUnit(newUnit);
 
-		return await db.units[this.name].addUnit(newUnit);
+	}
+	async spawnUnit(newUnit:Unit):Promise<Unit> {
+		const unit = await db.units[this.name].addUnit(newUnit);
+		unit.validate();
+		return unit;
 	}
 
 	async checkValidForUnit(tile, unit,ignoreAwake) {

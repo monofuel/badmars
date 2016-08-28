@@ -499,6 +499,9 @@ class Unit {
 			throw new Error(this.uuid + ': ' + reason);
 		}
 
+		if (!this.uuid) {
+			invalid('missing uuid');
+		}
 		if (!this.type) {
 			invalid('missing type');
 		}
@@ -506,6 +509,10 @@ class Unit {
 		if (!this.map) {
 			invalid ('missing map name');
 		}
+		if (!this.owner && this.type !== 'oil' && this.type !== 'iron') {
+			invalid ('missing owner');
+		}
+
 		//TODO verify map is valid
 		if (this.chunkX == null) {
 			invalid('invalid chunkX: ' + this.chunkY);
@@ -544,9 +551,18 @@ class Unit {
 			loc.validate();
 		}
 
+		const unitsFromChunk = await chunk.getUnitsMap(this.tileHash[0]);
+		console.log(unitsFromChunk);
+		if (!unitsFromChunk[this.uuid]) {
+			for (const tileHash of this.tileHash) {
+				await chunk.addUnit(this.uuid,tileHash);
+			}
+			invalid('unit not found on chunk map');
+		}
+
 	}
 
-	async getLoc(): PlanetLoc {
+	async getLoc(): Promise<PlanetLoc> {
 		if (!this.size || this.size > 1) {
 			throw new Error('getloc called on large unit');
 		}

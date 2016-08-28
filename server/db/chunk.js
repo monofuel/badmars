@@ -1,3 +1,4 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -9,8 +10,10 @@ import r from 'rethinkdb';
 import {Chunk} from '../map/chunk.js';
 
 class DBChunk {
-
-	constructor(connection, mapName) {
+	conn: any;
+	mapName: string;
+	table: any;
+	constructor(connection, mapName: string) {
 		this.conn = connection;
 		this.mapName = mapName;
 	}
@@ -31,9 +34,16 @@ class DBChunk {
 				self.table = r.table(tableName);
 			});
 	}
-	listChunks() {
-		return this.table.run(this.conn).then((cursor) => {
-			return cursor.toArray();
+
+	async each(func) {
+		const cursor = await this.table.run(this.conn);
+		await cursor.each((err,doc) => {
+			if (err) {
+				throw err;
+			}
+			var chunk = new Chunk();
+			chunk.clone(chunk);
+			func(chunk);
 		});
 	}
 
@@ -46,6 +56,9 @@ class DBChunk {
 			chunk.clone(doc);
 			return chunk;
 		});
+	}
+	async update(hash: ChunkHash,patch: any): Promise<Object> {
+		return this.table.get(hash).update(patch,{returnChanges:true}).run(this.conn);
 	}
 
 	saveChunk(chunk) {

@@ -12,22 +12,41 @@ const logger = require('../util/logger.js');
 const Unit = require('../unit/unit.js');
 
 exports.init = async () => {
+  console.log('-------------------------------');
+  console.log('starting validation');
+  console.log('-------------------------------');
+
   await validateUnits();
-  //TODO validate chunks
+  await validateChunks();
   //TODO validate maps
 
-
+  console.log('-------------------------------');
   console.log('happy results');
+  console.log('-------------------------------');
   process.exit();
 }
 
 async function validateUnits() {
+  console.log('validating units');
+  let counter = 0;
   const unitList = await db.units['testmap'].listUnits();
   for (const unitDoc of unitList) {
+    counter++;
     const unit = new Unit();
     unit.clone(unitDoc);
     await unit.validate();
   }
+  console.log('units validated: ',counter);
+}
+
+async function validateChunks() {
+  console.log('validating chunks');
+  let counter = 0;
+  await db.chunks['testmap'].each((chunk) => {
+    counter++;
+    chunk.validate();
+  });
+  console.log('chunks validated: ',counter);
 }
 
 

@@ -43,6 +43,7 @@ async function getChunk(call,callback) {
 
 	let chunk = new Chunk();
 	chunk.clone(localChunk);
+	chunk.validate();
 	for (let i = 0; i < chunk.navGrid.length; i++) {
 		chunk.navGrid[i] = {items:chunk.navGrid[i]};
 	}

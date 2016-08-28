@@ -89,6 +89,19 @@ class DBUnit {
 		return this.loadUnits(docs);
 	}
 
+	async getUnitsMap(uuids) {
+		const profile = logger.startProfile('getUnits');
+		const cursor = await this.table.getAll(uuids).run(this.conn);
+		const unitMap = {};
+		cursor.each((doc) => {
+			const unit = new Unit();
+			unit.clone(doc);
+			unitMap[unit.uuid] = unit;
+		});
+		logger.endProfile(profile);
+		return unitMap;
+	}
+
 	async updateUnit(uuid, patch) {
 		let profile = logger.startProfile('updateUnit');
 		let result = await this.table.get(uuid).update(patch).run(this.conn);

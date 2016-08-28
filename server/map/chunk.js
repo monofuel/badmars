@@ -178,6 +178,26 @@ export class Chunk {
 		return !env.stressTest;
 	}
 
+	async getUnitsMap(hash: TileHash): Promise<UnitMap> {
+		const uuids = [];
+		let uuid = this.units[hash];
+		if (uuid) {
+			uuids.push(uuid);
+		}
+
+		uuid = this.resources[hash];
+		if (uuid) {
+			uuids.push(uuid);
+		}
+
+		uuid = this.airUnits[hash];
+		if (uuid) {
+			uuids.push(uuid);
+		}
+		return db.units[this.map].getUnitsMap(uuids);
+
+	}
+
 	async getUnits(): Promise<Array<Unit>> {
 
 		//this.findAndFixUnits();
@@ -216,6 +236,10 @@ export class Chunk {
 
 	}
 
+	async update(patch: any): Promise<Object> {
+		return db.chunks[this.map].update(this.hash, patch);
+	}
+
 	async moveUnit(unit: Unit,newHash: TileHash): Promise<Success> {
 		console.log('new hash:',newHash);
 		console.log('old hash:',unit.tileHash[0]);
@@ -242,12 +266,10 @@ export class Chunk {
 	}
 
 	async addUnit(uuid: UUID,tileHash: TileHash): Promise<Success> {
-		let table = db.chunks[this.map].getTable();
-		let conn =  db.chunks[this.map].getConn();
 		let unitUpdate = {};
 		unitUpdate[tileHash] = uuid;
 		this.units[tileHash] = uuid;
-		const delta = await table.get(this.hash).update({units: unitUpdate},{returnChanges:true}).run(conn);
+		const delta = await this.update({units: unitUpdate});
 		if (delta.replaced === 0) {
 			return false;
 		}
@@ -301,8 +323,77 @@ export class Chunk {
 		}
 		return delta.replaced === 1;
 	}
-	async validate() {
-		console.log("TODO");
+	async validate(): Promise<*> {
+		if (!env.debug) {
+      return;
+    }
+		await this.refresh();
+
+		const invalid = (reason) => {
+			throw new Error(this.hash + ': ' + reason);
+		}
+
+		if (this.x == null) {
+			invalid('bad chunk x');
+		}
+		if (this.y == null) {
+			invalid('bad chunk y');
+		}
+		if (!this.hash) {
+			invalid('missing chunk hash');
+		}
+		if (this.hash.split(":").length !== 2) {
+			invalid('bad chunk hash: ' + this.hash);
+		}
+		if (!this.map) {
+			invalid('bad map');
+		}
+		if (this.chunkSize == null) {
+			invalid('missing chunk size');
+		}
+		if (this.grid.length !== this.chunkSize + 1) {
+			invalid('bad chunk grid: ' + this.grid.length + ':' + (this.chunkSize + 1));
+		}
+		for (const row of this.grid) {
+			if (row.length !== this.chunkSize + 1) {
+				invalid('bad row length');
+			}
+		}
+		if (this.navGrid.length !== this.chunkSize) {
+			invalid('bad chunk nav grid: ' + this.navGrid.length + ':' + (this.chunkSize));
+		}
+		for (const row of this.navGrid) {
+			if (row.length !== this.chunkSize) {
+				invalid('bad nav row length');
+			}
+		}
+
+		_.each(this.units, (uuid, tileHash) => {
+			const unit = db.units[this.map].getUnit(uuid);
+			if (!unit) {
+				invalid('no unit at tile: ' + tileHash);
+			}
+			if (unit.type === 'mine') {
+				if (!this.resources[tileHash]) {
+					invalid('mine must be over a resource: ' + tileHash);
+				}
+			}
+		});
+
+		_.each(this.resources, (uuid, tileHash) => {
+			const unit = db.units[this.map].getUnit(uuid);
+			if (!unit) {
+				invalid('no unit at tile: ' + tileHash);
+			}
+		});
+
+		_.each(this.airUnits, (uuid, tileHash) => {
+			const unit = db.units[this.map].getUnit(uuid);
+			if (!unit) {
+				invalid('no unit at tile: ' + tileHash);
+			}
+		});
+
 	}
 	clone(object: any) {
 		for (let key in object) {
@@ -318,20 +409,24 @@ export class Chunk {
 		this.clone(fresh);
 	}
 
-	getTiles() {
-		//TODO caching system
+	async getMap():Promise<Map> {
+		return db.map.getMap(this.map);
+	}
+
+	async getTiles():Promise<Array<PlanetLoc>> {
+		//TODO should cache or parallelize this
 		var tiles = [];
 		for (let i = 0; i < this.chunkSize; i++) {
 			for (let j = 0; j < this.chunkSize; j++) {
 				var x = i + (this.x * this.chunkSize);
 				var y = j + (this.y * this.chunkSize);
-				tiles.push(new PlanetLoc(this.map,this,x,y));
+				tiles.push(new PlanetLoc(await this.getMap(this.map),this,x,y));
 			}
 		}
-		return Promise.resolve(tiles);
+		return tiles;
 	}
 }
 
-function getMap(mapName) {
+function getMap(mapName: string): Map {
 	return db.map.getMap(mapName);
 }
