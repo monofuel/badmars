@@ -106,7 +106,6 @@ export class Map {
 					chunk.grid[i] = response.grid[i].items;
 				}
 				this.addChunkToCache(chunk);
-				chunk.validate();
 				resolve(chunk);
 			});
 		}).catch((err) => {
@@ -188,9 +187,7 @@ export class Map {
 		//console.log("chunk: " + chunkX + ":" + chunkY);
 		//console.log("local: " + local_x + ":" + local_y);
 
-		console.log('getting chunk');
 		let chunk = await this.getChunk(chunkX, chunkY);
-		console.log('asdadf');
 
 		return new PlanetLoc(this,chunk, real_x, real_y);
 	}
@@ -210,7 +207,9 @@ export class Map {
 				//console.log('valid tile for unit: ' + tileHash);
 			}
 		}
-		return this.spawnAndValidate(newUnit);
+		const unit = await this.spawnAndValidate(newUnit);
+		await unit.addToChunks();
+		return unit;
 	}
 
 	async spawnUnitWithoutTileCheck(newUnit: Unit): Promise<Unit> {
@@ -219,8 +218,8 @@ export class Map {
 	}
 	async spawnAndValidate(newUnit:Unit):Promise<Unit> {
 		const unit = await db.units[this.name].addUnit(newUnit);
-		await unit.addToChunks();
-		await unit.validate();
+		//await unit.addToChunks();
+		//await unit.validate();
 		return unit;
 	}
 

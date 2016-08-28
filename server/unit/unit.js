@@ -490,7 +490,6 @@ class Unit {
 	//---------------------------------------------------------------------------
 
 	async validate() {
-		return;
 		if (!env.debug) {
       return;
     }
@@ -556,11 +555,7 @@ class Unit {
 		if (!unitsFromChunk[this.uuid]) {
 			for (const tileHash of this.tileHash) {
 				console.log('adding unit to chunk map');
-				if (this.type === 'oil' || this.type === 'iron') {
-
-				} else {
-					await this.addToChunks();
-				}
+				await this.addToChunks();
 			}
 			invalid('unit not found on chunk map');
 		}
@@ -589,7 +584,11 @@ class Unit {
 	async addToChunks() {
 		const locs = await this.getLocs();
 		for (const loc of locs) {
-			await loc.chunk.addUnit(this.uuid,loc.hash);
+			if (this.type === 'oil' || this.type === 'iron') {
+				await loc.chunk.addResource(this.uuid,loc.hash);
+			} else {
+				await loc.chunk.addUnit(this.uuid,loc.hash);
+			}
 		}
 	}
 

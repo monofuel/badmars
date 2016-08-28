@@ -137,7 +137,6 @@ export class Chunk {
 						logger.info('failed to spawn iron');
 					} else {
 						self.resources[unit.tileHash[0]] = unit.uuid;
-						console.log(self.resources);
 					}
 
 				} else if (resourceAlea() < map.settings.oilChance) {
@@ -188,6 +187,7 @@ export class Chunk {
 
 		uuid = this.resources[hash];
 		if (uuid) {
+			console.log('resource',uuid);
 			uuids.push(uuid);
 		}
 
@@ -203,39 +203,13 @@ export class Chunk {
 
 		//this.findAndFixUnits();
 		await this.refresh();
-		const unitUuids = _.map(this.units);
+		const unitUuids = _.union(_.map(this.resources),_.map(this.units),_.map(this.airUnits));
 
 		//fast units list
 		return db.units[this.map].getUnits(unitUuids);
 
 		//slow units list
 		//return await  db.units[this.map].getUnitsAtChunk(this.x,this.y);
-	}
-
-	async findAndFixUnits() {
-		const slowUnitsList = await  db.units[this.map].getUnitsAtChunk(this.x,this.y);
-
-		const self = this;
-		await this.refresh();
-		const unitUuids = _.union(_.map(this.airUnits),_.map(this.resources),_.map(this.units));
-		if (slowUnitsList.length > 0) {
-			console.log('uuids:',unitUuids,_.map(slowUnitsList,'uuid'));
-		}
-
-		const fastUnitsList = db.units[this.map].getUnits(unitUuids);
-
-		_.each(slowUnitsList,(unit) => {
-			const unit2 = _.find(fastUnitsList,{uuid: unit.uuid});
-			if (!unit2) {
-				if (unit.type === 'iron' || unit.type === 'oil') {
-					self.addResource(unit.uuid,unit.tileHash[0]);
-				} else {
-					self.addUnit(unit.uuid,unit.tileHash[0]);
-				}
-				console.log('fixed unit missing from chunk:',unit.uuid);
-			}
-		});
-
 	}
 
 	async update(patch: any): Promise<Object> {

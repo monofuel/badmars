@@ -203,7 +203,9 @@ class DBUnit {
 				throw err;
 			}
 			units.push(this.loadUnit(doc));
-		})
+		}).catch((err) => {
+			console.log(err);
+		});
 
 		return Promise.all(units);
 	}
