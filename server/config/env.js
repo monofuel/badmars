@@ -8,6 +8,7 @@
 var vars = {};
 
 vars.envType = process.env.NODE_ENV || 'dev';
+vars.debug = vars.envType === 'dev';
 
 vars.ticksPerSec = process.env.TICKS_PER_SEC || 2;
 vars.stressTest = process.env.STRESS_TEST || false;

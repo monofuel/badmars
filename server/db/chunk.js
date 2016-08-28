@@ -5,8 +5,8 @@
 
 'use strict';
 
-var r = require('rethinkdb');
-var Chunk = require('../map/chunk.js');
+import r from 'rethinkdb';
+import {Chunk} from '../map/chunk.js';
 
 class DBChunk {
 

@@ -8,7 +8,7 @@
 const db = require('../db/db.js');
 const env = require('../config/env.js');
 const logger = require('../util/logger.js');
-const Chunk = require('../map/chunk.js');
+import {Chunk} from '../map/chunk.js';
 const helper = require('../util/socketFilter.js');
 const grpc = require('grpc');
 const mapservice = grpc.load(__dirname + '/../protos/map.proto').map;

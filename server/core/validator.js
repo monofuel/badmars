@@ -12,8 +12,10 @@ const logger = require('../util/logger.js');
 const Unit = require('../unit/unit.js');
 
 exports.init = async () => {
-  await checkUnitLocations();
   await validateUnits();
+  //TODO validate chunks
+  //TODO validate maps
+
 
   console.log('happy results');
   process.exit();

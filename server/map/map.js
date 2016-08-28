@@ -11,7 +11,7 @@ const db = require('../db/db.js');
 const logger = require('../util/logger.js');
 const helper = require('../util/helper.js');
 const env = require('../config/env.js');
-const Chunk = require("../map/chunk.js");
+import {Chunk} from './chunk.js';
 const PlanetLoc = require("./planetloc.js");
 
 const Tiletypes = require('../map/tiletypes.js');
@@ -54,7 +54,7 @@ type ChunkCacheMap = {
 	[key: string]: CacheChunk;
 }
 
-class Map {
+export class Map {
 	name: string;
 	settings: Object;
 	lastTickTimestamp: number;
@@ -847,5 +847,3 @@ class Map {
 		this.settings = _.cloneDeep(defaultSettings);
 	}
 }
-
-module.exports = Map;

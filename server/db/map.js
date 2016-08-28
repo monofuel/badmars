@@ -5,10 +5,10 @@
 
 'use strict';
 
-var Map = require('../map/map.js');
+import {Map} from '../map/map.js';
 
-var r = require('rethinkdb');
-var logger = require('../util/logger.js');
+import r from 'rethinkdb';
+import logger from '../util/logger.js';
 
 const mapCache = {};
 

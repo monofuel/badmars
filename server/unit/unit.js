@@ -22,7 +22,8 @@ var attackAI = require('./ai/attack.js');
 var constructionAI = require('./ai/construction.js');
 var mineAI = require('./ai/mine.js');
 
-const Map = require('../map/map.js');
+import {Map} from '../map/map.js';
+import {Chunk} from '../map/chunk.js';
 const PlanetLoc = require('../map/planetloc.js');
 
 try {
@@ -489,6 +490,9 @@ class Unit {
 	//---------------------------------------------------------------------------
 
 	async validate() {
+		if (!env.debug) {
+      return;
+    }
 		await this.refresh();
 
 		const invalid = (reason) => {
@@ -522,6 +526,9 @@ class Unit {
 		}
 
 		for (const tileHash of this.tileHash) {
+			if (tileHash.split(':').length != 2) {
+				invalid("bad tileHash: " + tileHash);
+			}
 			const x = tileHash.split(':')[0];
 			const y = tileHash.split(':')[1];
 

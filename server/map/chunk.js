@@ -13,17 +13,18 @@ const SimplexNoise = require('simplex-noise');
 const _ = require('lodash');
 const Alea = require('alea');
 const Tiletypes = require('./tiletypes.js');
-const Map = require('../map/map.js');
 const Unit = require('../unit/unit.js');
 const PlanetLoc = require("./planetloc.js");
 const logger = require('../util/logger.js');
+
+import {Map} from './map.js';
 
 
 type EntityMap = {
 	[key: TileHash]: UUID
 };
 
-class Chunk {
+export class Chunk {
 	x: number;
 	y: number;
 	hash: string;
@@ -300,6 +301,9 @@ class Chunk {
 		}
 		return delta.replaced === 1;
 	}
+	async validate() {
+		console.log("TODO");
+	}
 	clone(object: any) {
 		for (let key in object) {
 			// $FlowFixMe: hiding this issue for now
@@ -312,10 +316,6 @@ class Chunk {
 	async refresh() {
 		const fresh = await db.chunks[this.map].getChunk(this.x,this.y);
 		this.clone(fresh);
-	}
-
-	async getMap(): Promise<Map> {
-		return db.map.getMap(this.map);
 	}
 
 	getTiles() {
@@ -335,5 +335,3 @@ class Chunk {
 function getMap(mapName) {
 	return db.map.getMap(mapName);
 }
-
-module.exports = Chunk;

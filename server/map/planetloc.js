@@ -1,3 +1,4 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -8,12 +9,24 @@
 var TILETYPES = require('./tiletypes.js');
 var DIRECTION = require('../map/directions.js');
 
+import env from '../config/env.js';
+import {Map} from './map.js';
+import {Chunk} from './chunk.js';
+
 /**
  * Representation of a point on a planet
  */
 
 class PlanetLoc {
-  constructor(map,chunk,x,y) {
+  x: number;
+  y: number;
+  map: Map;
+  hash: TileHash;
+  chunk: Chunk;
+  local_x: number;
+  local_y: number;
+  tileType: TILETYPES;
+  constructor(map: Map,chunk: Chunk,x: number,y: number) {
     if (!map) {
       console.log(this.toString());
       console.log('invalid planetloc');
@@ -103,7 +116,39 @@ class PlanetLoc {
 	}
 
   async validate() {
-    console.log('TODO');
+    if (!env.debug) {
+      return;
+    }
+    const invalid = (reason) => {
+      throw new Error(this.hash + ': ' + reason);
+    }
+    if (this.x == null) {
+      invalid('bad x value:' + this.x);
+    }
+    if (this.y == null) {
+      invalid('bad x value:' + this.y);
+    }
+
+    if (!this.map) {
+      invalid('bad map');
+    }
+    if (!this.hash || this.hash.split(':').length != 2) {
+      invalid('bad hash: ' + this.hash);
+    }
+    if (!this.chunk) {
+      invalid('bad chunk');
+    }
+    if (this.local_x == null) {
+      invalid('bad local x');
+    }
+    if (this.local_y == null) {
+      invalid('bad local y');
+    }
+    if (this.tileType == null) {
+      invalid('bad tile type');
+    }
+
+
   }
 
   equals(otherLoc) {
