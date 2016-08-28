@@ -17,7 +17,7 @@ async function getChunk(client,data) {
 	let unitsOnly = data.unitsOnly;
 
 	let chunk = await client.planet.getChunk(x,y);
-
+	chunk.validate();
 	if (!unitsOnly) {
 		client.send('chunk',{chunk:filter.sanitizeChunk(chunk)});
 	}
@@ -26,6 +26,7 @@ async function getChunk(client,data) {
 	if (units.length > 0) {
 		let sanitized = [];
 		for (let unit of units) {
+			unit.validate();
 			sanitized.push(filter.sanitizeUnit(unit));
 		}
 		//TODO sanitize unit data

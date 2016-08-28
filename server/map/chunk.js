@@ -157,7 +157,7 @@ export class Chunk {
 	save() {
 		var self = this;
 		return self.generate().then(() => {
-			//console.log('saving chunk');
+			console.log('saving new chunk');
 			return db.chunks[self.map].saveChunk(self);
 		});
 	}
@@ -179,6 +179,7 @@ export class Chunk {
 	}
 
 	async getUnitsMap(hash: TileHash): Promise<UnitMap> {
+		await this.refresh();
 		const uuids = [];
 		let uuid = this.units[hash];
 		if (uuid) {
@@ -201,13 +202,14 @@ export class Chunk {
 	async getUnits(): Promise<Array<Unit>> {
 
 		//this.findAndFixUnits();
-		//await this.refresh();
-		//const unitUuids = _.map(this.units);
+		await this.refresh();
+		const unitUuids = _.map(this.units);
 
-		//const fastUnitsList = db.units[this.map].getUnits(unitUuids);
+		//fast units list
+		return db.units[this.map].getUnits(unitUuids);
 
-		//return fastUnitsList;
-		return await  db.units[this.map].getUnitsAtChunk(this.x,this.y);
+		//slow units list
+		//return await  db.units[this.map].getUnitsAtChunk(this.x,this.y);
 	}
 
 	async findAndFixUnits() {
@@ -271,8 +273,11 @@ export class Chunk {
 		this.units[tileHash] = uuid;
 		const delta = await this.update({units: unitUpdate});
 		if (delta.replaced === 0) {
+			console.log('failed adding unit to chunk');
+			console.log(delta);
 			return false;
 		}
+
 		const newChunk = delta.changes[0].new_val;
 		if (uuid !== newChunk.units[tileHash]) {
 			console.log('wrong new position',tileHash,'expected',uuid,'found',newChunk.units[tileHash]);
@@ -282,22 +287,19 @@ export class Chunk {
 		if (delta.changes[0].old_val.units.length != 1 + newChunk.units.length) {
 			console.log('wrong number of units on chunk');
 			//delete old unit
-			const oldUnitUUID = delta.changes[0].old_val.units[tileHash]
-			console.log('deleting old unit',oldUnitUUID);
-			db.units[this.map].deleteUnit(oldUnitUUID);
+			//const oldUnitUUID = delta.changes[0].old_val.units[tileHash]
+			//console.log('deleting old unit',oldUnitUUID);
+			//db.units[this.map].deleteUnit(oldUnitUUID);
 		}
 		return delta.replaced === 1;
 	}
 
 
 	async addResource(uuid: UUID,tileHash: TileHash): Promise<Success> {
-		let table = db.chunks[this.map].getTable();
-		let conn =  db.chunks[this.map].getConn();
 		let unitUpdate = {};
 		unitUpdate[tileHash] = uuid;
 		this.resources[tileHash] = uuid;
-		console.log(unitUpdate);
-		const delta = await table.get(this.hash).update({'resources': unitUpdate},{returnChanges:true}).run(conn);
+		const delta = await this.update({'resources': unitUpdate});
 		if (delta.replaced === 0) {
 			return false;
 		}

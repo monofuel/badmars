@@ -552,10 +552,14 @@ class Unit {
 		}
 
 		const unitsFromChunk = await chunk.getUnitsMap(this.tileHash[0]);
-		console.log(unitsFromChunk);
 		if (!unitsFromChunk[this.uuid]) {
 			for (const tileHash of this.tileHash) {
-				await chunk.addUnit(this.uuid,tileHash);
+				console.log('adding unit to chunk map');
+				if (this.type === 'oil' || this.type === 'iron') {
+
+				} else {
+					await this.addToChunks();
+				}
 			}
 			invalid('unit not found on chunk map');
 		}
@@ -579,6 +583,13 @@ class Unit {
 			promises.push(map.getLoc(x,y));
 		}
 		return Promise.all(promises);
+	}
+
+	async addToChunks() {
+		const locs = await this.getLocs();
+		for (const loc of locs) {
+			await loc.chunk.addUnit(this.uuid,loc.hash);
+		}
 	}
 
 	clone(object) {

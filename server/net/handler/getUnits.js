@@ -12,6 +12,9 @@ var logger = require('../../util/logger.js');
 async function getUnits(client,data) {
 	console.log('sending player their own units');
 	let units = await db.units[client.planet.name].listPlayersUnits(client.user.uuid);
+	for (let unit of units) {
+		unit.validate();
+	}
 	client.send('units',{units:units});
 };
 

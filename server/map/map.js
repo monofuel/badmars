@@ -200,26 +200,26 @@ export class Map {
 		return await this.spawnUnit(newUnit);
 	}
 
-	async spawnUnit(newUnit:Unit):Promise<Unit> {
+	async spawnUnit(newUnit:Unit):Promise<?Unit> {
 		console.log('spawning unit: ' + newUnit.type);
 		for (let tileHash of newUnit.tileHash) {
-			if (!await this.checkValidForUnit( await unit.getLoc(),newUnit)) {
-				return false;
+			if (!await this.checkValidForUnit( await newUnit.getLoc(),newUnit)) {
+				return null;
 			} else {
 				//console.log('valid tile for unit: ' + tileHash);
 			}
 		}
-		return this.spawnUnit(newUnit);
+		return this.spawnAndValidate(newUnit);
 	}
 
 	async spawnUnitWithoutTileCheck(newUnit: Unit): Promise<Unit> {
 		console.log('force spawning unit: ' + newUnit.type);
-		return this.spawnUnit(newUnit);
-
+		return this.spawnAndValidate(newUnit);
 	}
-	async spawnUnit(newUnit:Unit):Promise<Unit> {
+	async spawnAndValidate(newUnit:Unit):Promise<Unit> {
 		const unit = await db.units[this.name].addUnit(newUnit);
-		unit.validate();
+		await unit.addToChunks();
+		await unit.validate();
 		return unit;
 	}
 

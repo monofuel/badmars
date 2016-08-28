@@ -5,6 +5,7 @@
 
 'use strict';
 
+import _ from 'lodash';
 var r = require('rethinkdb');
 var Unit = require('../unit/unit.js');
 var db = require("./db.js");
@@ -61,10 +62,11 @@ class DBUnit {
 	}
 
 	async listPlayersUnits(owner) {
-		let profile = logger.startProfile('listPlayersUnits');
-		let array = await this.table.filter(r.row('owner').eq(owner)).coerceTo('array').run(this.conn);
+		const profile = logger.startProfile('listPlayersUnits');
+		const cursor = await this.table.filter(r.row('owner').eq(owner)).run(this.conn);
+		const units = await this.loadUnitsCursor(cursor);
 		logger.endProfile(profile);
-		return array;
+		return units;
 	}
 
 	async addUnit(unit) {
@@ -84,20 +86,29 @@ class DBUnit {
 	}
 	async getUnits(uuids) {
 		let profile = logger.startProfile('getUnits');
-		let docs = await this.table.getAll(uuids).run(this.conn);
+		const promises = [];
+		for (const uuid of uuids) {
+			promises.push(this.table.get(uuid).run(this.conn));
+		}
+		const docs = await Promise.all(promises);
+		const units = await this.loadUnits(docs);
 		logger.endProfile(profile);
-		return this.loadUnits(docs);
+		return units;
 	}
 
-	async getUnitsMap(uuids) {
+	async getUnitsMap(uuids: Array<UUID>): Promise<UnitMap> {
 		const profile = logger.startProfile('getUnits');
-		const cursor = await this.table.getAll(uuids).run(this.conn);
+		const promises = [];
+		for (const uuid of uuids) {
+			promises.push(this.table.get(uuid).run(this.conn));
+		}
+		const unitDocs = await Promise.all(promises);
 		const unitMap = {};
-		cursor.each((doc) => {
+		for (let doc of unitDocs) {
 			const unit = new Unit();
 			unit.clone(doc);
 			unitMap[unit.uuid] = unit;
-		});
+		}
 		logger.endProfile(profile);
 		return unitMap;
 	}
@@ -173,13 +184,25 @@ class DBUnit {
 
 	}
 
-	async loadUnits(docs) {
+	async loadUnits(unitsList: Array<Object>): Promise<Array<Unit>> {
 		const units = [];
-		docs.each((doc) => {
+		_.each(unitsList,(doc) => {
+			units.push(this.loadUnit(doc));
+		});
+
+		return Promise.all(units);
+	}
+
+	async loadUnitsCursor(cursor): Promise<Array<Unit>> {
+		const units = [];
+		await cursor.each((err,doc) => {
+			if (err) {
+				throw err;
+			}
 			units.push(this.loadUnit(doc));
 		})
 
-		return units;
+		return Promise.all(units);
 	}
 
 	async loadUnit(doc) {
