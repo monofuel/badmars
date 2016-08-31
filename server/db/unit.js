@@ -204,7 +204,11 @@ class DBUnit {
 			}
 			units.push(this.loadUnit(doc));
 		}).catch((err) => {
-			console.log(err);
+			//dumb rethinkdb bug
+			if (err.message === 'No more rows in the cursor.') {
+				return;
+			}
+			throw err;
 		});
 
 		return Promise.all(units);

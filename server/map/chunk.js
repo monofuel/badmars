@@ -216,7 +216,14 @@ export class Chunk {
 		return db.chunks[this.map].update(this.hash, patch);
 	}
 
+  //not fully working yet
+	//moveUnit tries to move a unit, and returns success
 	async moveUnit(unit: Unit,newHash: TileHash): Promise<Success> {
+		await this.refresh();
+		return false;
+
+		/*
+		//go something lke this:
 		console.log('new hash:',newHash);
 		console.log('old hash:',unit.tileHash[0]);
 		let table = db.chunks[this.map].getTable();
@@ -238,13 +245,14 @@ export class Chunk {
 		if (unit.uuid !== newChunk.units[newHash]) {
 			console.log('wrong new position',newHash,unit.uuid,newChunk[newHash]);
 		}
-		return delta.replaced === 1;
+		return delta.replaced === 1;*/
 	}
 
 	async addUnit(uuid: UUID,tileHash: TileHash): Promise<Success> {
 		let unitUpdate = {};
 		unitUpdate[tileHash] = uuid;
 		this.units[tileHash] = uuid;
+		//TODO add atomic check to make sure we don't clobber an existing unit
 		const delta = await this.update({units: unitUpdate});
 		if (delta.replaced === 0) {
 			console.log('failed adding unit to chunk');
@@ -273,6 +281,7 @@ export class Chunk {
 		let unitUpdate = {};
 		unitUpdate[tileHash] = uuid;
 		this.resources[tileHash] = uuid;
+		//TODO add atomic check to make sure we don't clobber an existing unit
 		const delta = await this.update({'resources': unitUpdate});
 		if (delta.replaced === 0) {
 			return false;

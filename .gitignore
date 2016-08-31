@@ -63,3 +63,5 @@ node_modules
 .remote-sync.json
 
 bin/www
+
+rethinkdb_data

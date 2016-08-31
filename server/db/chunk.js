@@ -44,6 +44,12 @@ class DBChunk {
 			var chunk = new Chunk();
 			chunk.clone(chunk);
 			func(chunk);
+		}).catch((err) => {
+			//dumb rethinkdb bug
+			if (err.message === 'No more rows in the cursor.') {
+				return;
+			}
+			throw err;
 		});
 	}
 

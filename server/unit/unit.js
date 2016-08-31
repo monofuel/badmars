@@ -564,7 +564,8 @@ class Unit {
 
 	async getLoc(): Promise<PlanetLoc> {
 		if (!this.size || this.size > 1) {
-			throw new Error('getloc called on large unit');
+			console.log('getloc called on large unit- should use getLocs');
+			//console.log((new Error()).stack);
 		}
 		const map = await db.map.getMap(this.map);
 		return map.getLoc(this.x,this.y);
