@@ -25,6 +25,7 @@ getting started:
 
 
 run dev-start.sh to start rethink, and all the backend services.
+after dev-start is running, you can use tmux attach to attach to it.
 dev-start will run most services with nodemon, so they will auto reload on updates.
 the net and web services are set to not run with nodemon,
 so that you can test changes without reconnecting.
@@ -53,6 +54,7 @@ for unit locations. use atomic rethinkdb operations to ensure only 1 unit is on 
 - time left for fuel usage on units
 
 current bugs:
+- first login takes a while. a long while.
 - unit movement is a little jumpy on the client when server ticks are on time
 - when starting multiple services at once, sometimes the tables in rethinkdb
 aren't generated properly and have duplicates. delete the duplicates and start just one service.
