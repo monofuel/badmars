@@ -221,20 +221,20 @@ export class Chunk {
 	async moveUnit(unit: Unit,newTile: PlanetLoc): Promise<Success> {
 		await this.refresh();
 
-		console.log('moving unit', unit.uuid);
-		console.log('new hash:',newTile.hash);
-		console.log('old hash:',unit.tileHash[0]);
+		//console.log('moving unit', unit.uuid);
+		//console.log('new hash:',newTile.hash);
+		//console.log('old hash:',unit.tileHash[0]);
 
 		const oldTile = await unit.getLoc();
 
-		const delta = await this.putUnit(unit.uuid, newTile.hash);
+		const delta = await oldTile.chunk.putUnit(unit.uuid, newTile.hash);
 		if (delta.replaced === 1) {
 			const newChunk = delta.changes[0].new_val;
 			if (unit.uuid !== newChunk.units[newTile.hash]) {
 				console.log('wrong new position',newTile.hash,unit.uuid,newChunk[newTile.hash]);
 				return false;
 			}
-			console.log('new loc success');
+			//console.log('new loc success');
 
 			const clearDelta = await this.clearUnit(unit.uuid, oldTile.hash);
 			if (clearDelta.replaced !== 1) {
@@ -244,31 +244,12 @@ export class Chunk {
 				console.log('wrong new position',newTile.hash,unit.uuid,newChunk[newTile.hash]);
 				return false;
 			}
-			console.log('old loc success');
+			//console.log('old loc success');
 			return true;
 		}
-		console.log('failed placing new unit');
-		console.log(delta);
+		//console.log('failed placing new unit');
+		//console.log(delta);
 		return false;
-
-		/*
-		mapUpdate[unit.tileHash[0]] = null;
-		mapUpdate[newHash] = unit.uuid;
-		let delta = await table.get(this.hash).update((self) => {
-			return r.branch(
-				self('units').hasFields(unit.tileHash[0]),
-				{},
-				self.merge({units:mapUpdate}).without({units: unit.tileHash[0]})
-			)
-		},{returnChanges:true}).run(conn);
-		if (delta.replaced === 0) {
-			return false;
-		}
-		let newChunk = delta.changes[0].new_val;
-		if (unit.uuid !== newChunk.units[newHash]) {
-			console.log('wrong new position',newHash,unit.uuid,newChunk[newHash]);
-		}
-		return delta.replaced === 1;*/
 	}
 
 	async clearUnit(uuid: UUID, tileHash: TileHash): Promise<Object> {
@@ -422,13 +403,17 @@ export class Chunk {
 				console.log('unit doesn\'t agree with chunk location. chunk:' + tileHash + ' unit: ' + unit.tileHash);
 				console.log('removing unit from chunk (hope the unit was correct)');
 
+
 				const loc = await unit.getLoc();
-				const delta = await loc.chunk.clearUnit(unit.uuid,tileHash);
+				await loc.chunk.refresh();
+				if (!this.equals(loc.chunk)) {
+					console.log('unit on wrong chunk');
+				}
+				const delta = await this.clearUnit(unit.uuid,tileHash);
 				if (delta.replaced !== 1) {
 					console.log('failed to remove unit');
 					console.log(delta);
 				}
-
 			}
 		}
 

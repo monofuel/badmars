@@ -441,7 +441,7 @@ class Unit {
 
 	async moveToTile(tile) {
 		const hasMoved = await tile.chunk.moveUnit(this, tile);
-		console.log('has moved: ',hasMoved);
+		//console.log('has moved: ',hasMoved);
 		if (hasMoved) {
 			this.x = tile.x;
 			this.y = tile.y;
