@@ -88,5 +88,5 @@ function reportStats() {
 	}
 	profileCount = {};
 
-	logger.info('stats',stats,false); //set to true after testing
+	logger.info('stats',stats,true);
 };
