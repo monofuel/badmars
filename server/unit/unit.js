@@ -550,7 +550,7 @@ class Unit {
 				console.log('adding unit to chunk map');
 				const success = await this.addToChunks();
 				if (!success) {
-					invalid('unit not found on chunk map');
+					invalid('unit not found on chunk map, failed to add');
 				}
 			}
 		}
