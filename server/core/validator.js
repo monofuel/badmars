@@ -10,6 +10,7 @@ const db = require('../db/db.js');
 const env = require('../config/env.js');
 const logger = require('../util/logger.js');
 const Unit = require('../unit/unit.js');
+import {Chunk} from '../map/chunk.js';
 
 exports.init = async () => {
   console.log('-------------------------------');
@@ -29,6 +30,7 @@ exports.init = async () => {
 async function validateUnits() {
   console.log('validating units');
   let counter = 0;
+  //TODO should rename listUnits to just list (and friends)
   const unitList = await db.units['testmap'].listUnits();
   for (const unitDoc of unitList) {
     counter++;
@@ -42,10 +44,13 @@ async function validateUnits() {
 async function validateChunks() {
   console.log('validating chunks');
   let counter = 0;
-  await db.chunks['testmap'].each((chunk) => {
+  const chunkList = await db.chunks['testmap'].list();
+  for (const chunkDoc of chunkList) {
     counter++;
-    chunk.validate();
-  });
+    const chunk = new Chunk();
+    chunk.clone(chunkDoc);
+    await chunk.validate();
+  };
   console.log('chunks validated: ',counter);
 }
 

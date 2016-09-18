@@ -440,21 +440,14 @@ class Unit {
 	}
 
 	async moveToTile(tile) {
-		//TODO there is a hole between checking the tile and upating the unit.
-		//this will need some sort of work-around as rethink doesn't do transactions.
-		let validMove = await tile.map.checkValidForUnit(tile,this);
-		//let validMove = true;
-		//console.log('validMove: ' + validMove);
-		if (!validMove) {
-			return false;
-		} else {
-			const success = await tile.chunk.moveUnit(this,tile.hash);
-			console.log('movement:',success);
-
+		const hasMoved = await tile.chunk.moveUnit(this, tile);
+		//console.log('has moved: ',hasMoved);
+		if (hasMoved) {
 			this.x = tile.x;
 			this.y = tile.y;
 			this.chunkX = tile.chunk.x;
 			this.chunkY = tile.chunk.y;
+			//TODO handle multi tile units
 			this.tileHash = [tile.hash];
 			this.chunkHash = [tile.chunk.hash];
 			if (!this.speed) {
@@ -462,7 +455,6 @@ class Unit {
 			}
 			this.movementCooldown = this.speed;
 
-			//TODO update chunk hash
 			await db.units[this.map].updateUnit(this.uuid,
 				{
 					x: this.x,
@@ -474,9 +466,10 @@ class Unit {
 					movementCooldown: this.movementCooldown
 				}
 			);
-			//console.log('moved');
+		} else {
+			console.log('movement blocked');
 		}
-		return true;
+		return hasMoved;
 	}
 
 	distance(unit) {
@@ -545,7 +538,7 @@ class Unit {
 			const planetLoc = await this.getLoc();
 			await planetLoc.validate();
 		}
-		console.log('checking locs');
+		//console.log('checking locs');
 		const planetLocs = await this.getLocs();
 		for (const loc of planetLocs) {
 			await loc.validate();
@@ -555,9 +548,11 @@ class Unit {
 		if (!unitsFromChunk[this.uuid]) {
 			for (const tileHash of this.tileHash) {
 				console.log('adding unit to chunk map');
-				await this.addToChunks();
+				const success = await this.addToChunks();
+				if (!success) {
+					invalid('unit not found on chunk map, failed to add');
+				}
 			}
-			invalid('unit not found on chunk map');
 		}
 
 	}

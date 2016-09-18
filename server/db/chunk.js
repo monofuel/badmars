@@ -7,6 +7,7 @@
 'use strict';
 
 import r from 'rethinkdb';
+import Logger from '../util/logger.js';
 import {Chunk} from '../map/chunk.js';
 
 class DBChunk {
@@ -33,6 +34,14 @@ class DBChunk {
 			}).then(() => {
 				self.table = r.table(tableName);
 			});
+	}
+
+	list() {
+		let profile = Logger.startProfile('listChunks');
+		return this.table.coerceTo('array').run(this.conn).then((array) => {
+			Logger.endProfile(profile);
+			return array;
+		});
 	}
 
 	async each(func) {

@@ -1,4 +1,8 @@
 #!/bin/bash
+set -euo pipefail
+
+#DIR='/home/monofuel/code/src/github.com/monofuel/badMars-JS'
+DIR='/home/monof/src/badMars-JS'
 
 echo building docker image
 cd docker
@@ -14,14 +18,14 @@ docker create --link badmars-rethinkdb:rethinkdb \
 	--name badmars-chunk-dev \
 	-h badmars-chunk-dev \
 	--restart always \
-	-v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars \
+	-v ${DIR}:/badmars \
 	-t monofuel/badmars-js-dev:v3 node /badmars/server/chunk.js
 docker create --link badmars-rethinkdb:rethinkdb \
 	--link badmars-chunk-dev:badmars-chunk \
 	--name badmars-ai-dev \
 	-h badmars-ai \
 	--restart always \
-	-v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars \
+	-v ${DIR}:/badmars \
 	-t monofuel/badmars-js-dev:v3 node /badmars/server/ai.js
 
 #lan facing dev
@@ -30,14 +34,14 @@ docker create -p 0.0.0.0:3002:3002 \
 	--link badmars-chunk-dev:badmars-chunk \
 	--name badmars-web-dev \
 	--restart always \
-	-v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars \
+	-v${DIR}:/badmars \
 	-t monofuel/badmars-js-dev:v3 node /badmars/server/web.js
 docker create -p 0.0.0.0:7005:7005 \
 --link badmars-rethinkdb:rethinkdb \
 --link badmars-chunk-dev:badmars-chunk \
 --name badmars-net-dev \
 --restart always \
--v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars \
+-v ${DIR}:/badmars \
 -t monofuel/badmars-js-dev:v3 node /badmars/server/net.js
 
 docker create --link badmars-rethinkdb:rethinkdb --link badmars-chunk-dev:badmars-chunk  --link badmars-ai-dev:badmars-ai --name badmars-simulate-dev --restart always -v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars -t monofuel/badmars-js-dev:v3 node /badmars/server/simulate.js
@@ -51,7 +55,7 @@ docker create -p 0.0.0.0:3012:3002 \
 	--restart always \
 	-e BADMARS_WS_PUBLIC_PORT='7006' \
 	-e BADMARS_WS_SERVER='wss://japura.net' \
-	-v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars \
+	-v ${DIR}:/badmars \
 	-t monofuel/badmars-js-dev:v3 node /badmars/server/web.js
 
 docker create -p 0.0.0.0:7004:7005 \
@@ -59,7 +63,7 @@ docker create -p 0.0.0.0:7004:7005 \
 --link badmars-chunk-dev:badmars-chunk \
 --name badmars-net \
 --restart always \
--v /home/monofuel/code/src/github.com/monofuel/badMars-JS:/badmars \
+-v ${DIR}:/badmars \
 -t monofuel/badmars-js-dev:v3 node /badmars/server/net.js
 
 echo starting badmars
