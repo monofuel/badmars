@@ -187,7 +187,7 @@ export class Chunk {
 
 		uuid = this.resources[hash];
 		if (uuid) {
-			console.log('resource',uuid);
+			//console.log('resource',uuid);
 			uuids.push(uuid);
 		}
 
@@ -218,17 +218,40 @@ export class Chunk {
 
   //not fully working yet
 	//moveUnit tries to move a unit, and returns success
-	async moveUnit(unit: Unit,newHash: TileHash): Promise<Success> {
+	async moveUnit(unit: Unit,newTile: PlanetLoc): Promise<Success> {
 		await this.refresh();
+
+		console.log('moving unit', unit.uuid);
+		console.log('new hash:',newTile.hash);
+		console.log('old hash:',unit.tileHash[0]);
+
+		const oldTile = await unit.getLoc();
+
+		const delta = await this.putUnit(unit.uuid, newTile.hash);
+		if (delta.replaced === 1) {
+			const newChunk = delta.changes[0].new_val;
+			if (unit.uuid !== newChunk.units[newTile.hash]) {
+				console.log('wrong new position',newTile.hash,unit.uuid,newChunk[newTile.hash]);
+				return false;
+			}
+			console.log('new loc success');
+
+			const clearDelta = await this.clearUnit(unit.uuid, oldTile.hash);
+			if (clearDelta.replaced !== 1) {
+				console.log('failed clearing old location');
+			}
+			if (unit.uuid !== newChunk.units[newTile.hash]) {
+				console.log('wrong new position',newTile.hash,unit.uuid,newChunk[newTile.hash]);
+				return false;
+			}
+			console.log('old loc success');
+			return true;
+		}
+		console.log('failed placing new unit');
+		console.log(delta);
 		return false;
 
 		/*
-		//go something lke this:
-		console.log('new hash:',newHash);
-		console.log('old hash:',unit.tileHash[0]);
-		let table = db.chunks[this.map].getTable();
-		let conn = db.chunks[this.map].getConn();
-		let mapUpdate = {};
 		mapUpdate[unit.tileHash[0]] = null;
 		mapUpdate[newHash] = unit.uuid;
 		let delta = await table.get(this.hash).update((self) => {
@@ -248,12 +271,47 @@ export class Chunk {
 		return delta.replaced === 1;*/
 	}
 
-	async addUnit(uuid: UUID,tileHash: TileHash): Promise<Success> {
+	async clearUnit(uuid: UUID, tileHash: TileHash): Promise<Object> {
+		const table = db.chunks[this.map].getTable();
+		const conn = db.chunks[this.map].getConn();
+
+		const unitUpdate = {};
+		unitUpdate[tileHash] = true;
+		if (this.units[tileHash] !== uuid) {
+			console.log('wrong unit at old tile!');
+			console.log('found ',this.units[tileHash], 'expected',uuid);
+		}
+		delete this.units[tileHash];
+
+		//return table.get(this.hash).without({units: tileHash}).run(conn);
+		return table.get(this.hash).replace(r.row.without({units: unitUpdate})).run(conn);
+	}
+
+	async putUnit(uuid:UUID, tileHash: TileHash): Promise<Object> {
+		const table = db.chunks[this.map].getTable();
+		const conn = db.chunks[this.map].getConn();
+
+		if (this.units[tileHash]) {
+			console.log('uuid:',uuid);
+			console.log('unit already at tile:',this.units[tileHash]);
+			console.log('unit already at tile');
+		}
+
 		let unitUpdate = {};
 		unitUpdate[tileHash] = uuid;
 		this.units[tileHash] = uuid;
-		//TODO add atomic check to make sure we don't clobber an existing unit
-		const delta = await this.update({units: unitUpdate});
+
+		return table.get(this.hash).update((self) => {
+			return r.branch(
+				self('units').hasFields(tileHash),
+				{},
+				self.merge({units:unitUpdate})
+			)
+		},{returnChanges:true}).run(conn);
+	}
+
+	async addUnit(uuid: UUID,tileHash: TileHash): Promise<Success> {
+		const delta = await this.putUnit(uuid,tileHash);
 		if (delta.replaced === 0) {
 			console.log('failed adding unit to chunk');
 			console.log(delta);
@@ -268,6 +326,7 @@ export class Chunk {
 		}
 		if (delta.changes[0].old_val.units.length != 1 + newChunk.units.length) {
 			console.log('wrong number of units on chunk');
+			console.log(delta);
 			//delete old unit
 			//const oldUnitUUID = delta.changes[0].old_val.units[tileHash]
 			//console.log('deleting old unit',oldUnitUUID);
@@ -278,11 +337,7 @@ export class Chunk {
 
 
 	async addResource(uuid: UUID,tileHash: TileHash): Promise<Success> {
-		let unitUpdate = {};
-		unitUpdate[tileHash] = uuid;
-		this.resources[tileHash] = uuid;
-		//TODO add atomic check to make sure we don't clobber an existing unit
-		const delta = await this.update({'resources': unitUpdate});
+		const delta = await this.putUnit(uuid,tileHash);
 		if (delta.replaced === 0) {
 			return false;
 		}
@@ -352,9 +407,9 @@ export class Chunk {
 				invalid('bad nav row length');
 			}
 		}
-
-		_.each(this.units, (uuid, tileHash) => {
-			const unit = db.units[this.map].getUnit(uuid);
+		for (let tileHash of Object.keys(this.units)) {
+			const uuid = this.units[tileHash];
+			const unit = await db.units[this.map].getUnit(uuid);
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
 			}
@@ -363,7 +418,19 @@ export class Chunk {
 					invalid('mine must be over a resource: ' + tileHash);
 				}
 			}
-		});
+			if (!_.includes(unit.tileHash,tileHash)) {
+				console.log('unit doesn\'t agree with chunk location. chunk:' + tileHash + ' unit: ' + unit.tileHash);
+				console.log('removing unit from chunk (hope the unit was correct)');
+
+				const loc = await unit.getLoc();
+				const delta = await loc.chunk.clearUnit(unit.uuid,tileHash);
+				if (delta.replaced !== 1) {
+					console.log('failed to remove unit');
+					console.log(delta);
+				}
+
+			}
+		}
 
 		_.each(this.resources, (uuid, tileHash) => {
 			const unit = db.units[this.map].getUnit(uuid);
@@ -380,6 +447,11 @@ export class Chunk {
 		});
 
 	}
+
+	equals(other: Chunk) {
+		return this.hash === other.hash;
+	}
+
 	clone(object: any) {
 		for (let key in object) {
 			// $FlowFixMe: hiding this issue for now
