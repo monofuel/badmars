@@ -227,24 +227,31 @@ export class Chunk {
 
 		const oldTile = await unit.getLoc();
 
-		const delta = await oldTile.chunk.putUnit(unit.uuid, newTile.hash);
+		const delta = await newTile.chunk.putUnit(unit.uuid, newTile.hash);
 		if (delta.replaced === 1) {
-			const newChunk = delta.changes[0].new_val;
+			let newChunk = delta.changes[0].new_val;
 			if (unit.uuid !== newChunk.units[newTile.hash]) {
 				console.log('wrong new position',newTile.hash,unit.uuid,newChunk[newTile.hash]);
 				return false;
 			}
 			//console.log('new loc success');
 
-			const clearDelta = await this.clearUnit(unit.uuid, oldTile.hash);
+			const clearDelta = await oldTile.chunk.clearUnit(unit.uuid, oldTile.hash);
 			if (clearDelta.replaced !== 1) {
 				console.log('failed clearing old location');
+				console.log(clearDelta);
+			} else {
+				newChunk = clearDelta.changes[0].new_val;
+				if (newChunk.units[oldTile.hash] === unit.uuid) {
+					console.log('unit did not get removed from old position');
+					console.log('unit:',unit.uuid,'found:',newChunk.units[oldTile.hash]);
+				}
+				if (unit.uuid !== newChunk.units[newTile.hash]) {
+					console.log('wrong new position',newTile.hash,unit.uuid,newChunk[newTile.hash]);
+					return false;
+				}
+				//console.log('old loc success');
 			}
-			if (unit.uuid !== newChunk.units[newTile.hash]) {
-				console.log('wrong new position',newTile.hash,unit.uuid,newChunk[newTile.hash]);
-				return false;
-			}
-			//console.log('old loc success');
 			return true;
 		}
 		//console.log('failed placing new unit');
@@ -265,7 +272,7 @@ export class Chunk {
 		delete this.units[tileHash];
 
 		//return table.get(this.hash).without({units: tileHash}).run(conn);
-		return table.get(this.hash).replace(r.row.without({units: unitUpdate})).run(conn);
+		return table.get(this.hash).replace(r.row.without({units: unitUpdate}),{returnChanges:true}).run(conn);
 	}
 
 	async putUnit(uuid:UUID, tileHash: TileHash): Promise<Object> {
