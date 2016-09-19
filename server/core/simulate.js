@@ -10,7 +10,7 @@ const env = require('../config/env.js');
 const logger = require('../util/logger.js');
 const grpc = require('grpc');
 
-const ai = grpc.load(__dirname + '/../protos/ai.proto').ai;
+const ai = grpc.load(__dirname + '/../../protos/ai.proto').ai;
 const aiClient = new ai.AI(env.aiHost + ':' + env.aiPort, grpc.credentials.createInsecure());
 
 exports.init = () => {

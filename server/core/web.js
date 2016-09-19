@@ -9,18 +9,8 @@ var db = require('../db/db.js');
 var env = require('../config/env.js');
 var logger = require('../util/logger.js');
 
-
 var express = require('express');
 var path = require('path');
-var mongoose = require('mongoose');
-
-var passport = require('passport');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var session = require('express-session');
-var flash = require('connect-flash');
-//var mongoDBStore = require('connect-mongodb-session')(session);
-
 
 exports.init = () => {
     var app = express();
@@ -28,15 +18,6 @@ exports.init = () => {
     app.set('view engine', 'ejs');
     app.set('trust proxy', true); //for accurate logs running behind a proxy
 
-    //TODO favicon
-
-    app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({
-        extended: false
-    }));
-
-    app.use(flash());
-    app.use(cookieParser());
     app.use(express.static(path.join(__dirname, '/../public')));
     app.set('views', __dirname + '/../web/views');
 

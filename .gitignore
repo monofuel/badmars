@@ -1,27 +1,4 @@
-#ignore js files that should be generated from coffeescript
-/badMars.js
-/worldGenerator.js
-/db.js
-/buildings.js
-/units.js
-/net.js
-/nav.js
-/app.js
-/PlanetLoc.js
-/direction.js
-/planet.js
-/tileType.js
-
-models/world.js
-models/user.js
-
-routes/worlds.js
-routes/planets.js
-routes/main.js
-routes/users.js
-routes/units.js
-routes/management.js
-client/js/viewer.js
+./badmars
 
 public/clientdocs/
 public/docs/
@@ -61,7 +38,4 @@ build/Release
 node_modules
 
 .remote-sync.json
-
-bin/www
-
 rethinkdb_data

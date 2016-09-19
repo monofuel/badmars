@@ -9,7 +9,7 @@ const db = require('../db/db.js');
 const env = require('../config/env.js');
 const logger = require('../util/logger.js');
 const grpc = require('grpc');
-const ai = grpc.load(__dirname + '/../protos/ai.proto').ai;
+const ai = grpc.load(__dirname + '/../../protos/ai.proto').ai;
 
 
 exports.init = () => {

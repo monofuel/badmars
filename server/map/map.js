@@ -19,7 +19,7 @@ const Unit = require('../unit/unit.js');
 
 const grpc = require('grpc');
 
-const mapService = grpc.load(__dirname + '/../protos/map.proto').map;
+const mapService = grpc.load(__dirname + '/../../protos/map.proto').map;
 const mapClient = new mapService.Map(env.mapHost + ':' + env.mapPort, grpc.credentials.createInsecure());
 
 const defaultSettings = {

@@ -11,7 +11,7 @@ const logger = require('../util/logger.js');
 import {Chunk} from '../map/chunk.js';
 const helper = require('../util/socketFilter.js');
 const grpc = require('grpc');
-const mapservice = grpc.load(__dirname + '/../protos/map.proto').map;
+const mapservice = grpc.load(__dirname + '/../../protos/map.proto').map;
 
 exports.init = async () => {
 	const server = new grpc.Server();
