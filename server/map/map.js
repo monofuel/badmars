@@ -820,14 +820,14 @@ export class Map {
 
 	async advanceTick() {
 		let delta = Date.now() - this.lastTickTimestamp;
-		console.log('delta',delta);
+		//console.log('delta',delta);
 		if (delta < 1000 / env.ticksPerSec) {
 			let sleepTime = (1000 / env.ticksPerSec) - delta;
-			console.log('sleeping for ' + sleepTime);
+			//console.log('sleeping for ' + sleepTime);
 			//set a timeout to wait before response
 			await helper.sleep(sleepTime);
 		}
-		console.log('advancing tick: ', this.lastTick);
+		//console.log('advancing tick: ', this.lastTick);
 		this.lastTickTimestamp = Date.now();
 		this.lastTick++;
 		return await this.update({lastTick:this.lastTick,lastTickTimestamp:this.lastTickTimestamp});

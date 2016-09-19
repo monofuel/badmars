@@ -21,7 +21,6 @@ function init() {
 	logger.setModule('pathfinder');
 	logger.info("start begin");
 
-	startupHeader();
 	var startupPromises = [];
 	startupPromises.push(db.init());
 	Promise.all(startupPromises)
@@ -34,19 +33,4 @@ function init() {
 		process.exit();
 	});
 }
-
-function startupHeader() {
-	var fonts = figlet.fontsSync();
-	var font = fonts[Math.floor(Math.random() * fonts.length)];
-	console.log("----------------------------------------------------------------------------");
-	console.log(figlet.textSync("BadMars", { font: font }));
-	console.log("----------------------------------------------------------------------------");
-
-	if (env.envType == 'production') {
-		console.log('running in production!');
-	} else {
-		console.log('running in development');
-	}
-}
-
 init();

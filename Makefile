@@ -15,7 +15,7 @@ watchClient:
 watchDashboard:
 	 watchify dashboard/js/index.jsx -t babelify -p livereactload -o ./dashboard/public/js/index.js
 
-check: build
+check:
 	go vet .
-	flow check
 	go test -cover
+	flow check

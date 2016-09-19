@@ -81,7 +81,7 @@ module.exports.info = (info, body, silent) => {
 	if (silent) {
 		return;
 	} else if (body) {
-		console.log("INFO: " + dateFormat(timestamp) + ": " + info + " : " + JSON.stringify(body));
+		console.log("INFO: " + dateFormat(timestamp) + ": " + info + " : " + moduleName);
 	} else {
 		console.log("INFO: " + dateFormat(timestamp) + ": " + info);
 	}

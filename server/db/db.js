@@ -54,7 +54,7 @@ exports.init = async function init() {
 	}
 
 	r.db('badmars');
-	console.log('preparing tables');
+	//console.log('preparing tables');
 	await Promise.all([
 		exports.map.init(conn),
 		exports.chat.init(conn),
@@ -64,7 +64,7 @@ exports.init = async function init() {
 
 	const mapNames = await exports.map.listNames();
 
-	console.log('preparing chunks');
+	//console.log('preparing chunks');
 	var chunkPromises = [];
 	for (var name of mapNames) {
 		var chunk = new DBChunk(conn, name);
@@ -72,7 +72,7 @@ exports.init = async function init() {
 		exports.chunks[name] = chunk;
 	}
 	await  Promise.all(chunkPromises);
-	console.log('preparing units');
+	//console.log('preparing units');
 	var unitPromises = [];
 	for (var name of mapNames) {
 		var unit = new DBUnit(conn, name);
@@ -81,7 +81,7 @@ exports.init = async function init() {
 	}
 	await Promise.all(unitPromises);
 	await exports.map.createRandomMap('testmap');
-	console.log('created map testmap');
+	//console.log('created map testmap');
 };
 
 
