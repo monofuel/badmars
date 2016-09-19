@@ -11,11 +11,11 @@ const logger = require('../util/logger.js');
 import {Chunk} from '../map/chunk.js';
 const helper = require('../util/socketFilter.js');
 const grpc = require('grpc');
-const mapservice = grpc.load(__dirname + '/../../protos/map.proto').map;
+const chunkService = grpc.load(__dirname + '/../../protos/chunk.proto').chunk;
 
 exports.init = async () => {
 	const server = new grpc.Server();
-	server.addProtoService(mapservice.Map.service, {
+	server.addProtoService(chunkService.Map.service, {
 		getChunk
 	});
 

@@ -39,3 +39,5 @@ node_modules
 
 .remote-sync.json
 rethinkdb_data
+
+*.pb.go

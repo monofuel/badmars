@@ -1,10 +1,16 @@
 run: client server check
 	go run main.go
 
-server:
+server: grpc
 	go get
 	go fmt
 	go build
+
+grpc:
+	protoc -I protos protos/master.proto --go_out=plugins=grpc:service/master
+	protoc -I protos protos/chunk.proto --go_out=plugins=grpc:service/chunk
+	protoc -I protos protos/ai.proto --go_out=plugins=grpc:service/ai
+
 
 client:
 	BABEL_ENV=production gulp build

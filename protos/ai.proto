@@ -3,14 +3,14 @@ syntax = "proto3";
 package ai;
 
 message Entity {
-	required string uuid = 1;
-	required string mapName = 2;
-	required int64 tick = 3;
+	string uuid = 1;
+	string mapName = 2;
+	int64 tick = 3;
 }
 
 message Success {
-	required bool success = 1;
-	required string error = 2;
+	bool success = 1;
+	string error = 2;
 }
 
 service AI {
