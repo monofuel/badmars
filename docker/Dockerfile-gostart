@@ -11,7 +11,7 @@ RUN apt-get install -y rethinkdb
 RUN apt-get install -y curl python build-essential git
 RUN apt-get install -y ca-certificates g++ gcc libc6-dev make wget
 
-RUN npm install -g flow browserify watchify
+RUN npm install -g flow browserify
 
 WORKDIR /root/
 
@@ -33,7 +33,7 @@ RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
 
 WORKDIR /go/src/github.com/monofuel/badmars/
 
-CMD make saferun & make watchClient
+CMD make saferun
 
 EXPOSE 3002
 EXPOSE 7005
