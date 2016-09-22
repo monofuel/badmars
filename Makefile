@@ -25,3 +25,9 @@ check:
 	go vet .
 	go test -cover
 	flow check
+
+setup:
+	npm install
+	cd client && make copy
+
+saferun: setup run

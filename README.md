@@ -1,6 +1,6 @@
 awesome webGL MMORTS with an infinite procedurally generated map.
 
-tech stack:
+## tech stack
 - backend:
 	- nodejs
 	- golang (separate repository atm)
@@ -12,18 +12,27 @@ tech stack:
 	- react
 	- threejs
 
-getting started:
-- if you're on debian, run dev-setup.sh
-- otherwise read dev-setup.sh and install everything yourself with a real package manager like emerge
-
-- `cd client/`
-- `npm install`
-- `make copy` copy dependencies, 3d and audio assets to server directory
-- build the client:
-	- `gulp transpile` builds the code and moves it to the server
-	- `gulp watch` live updates client code on updates
+## getting started
+- install go, and setup your gopath
+- install nodejs
+- install rethinkdb
+- check out the github project into $GOPATH/src/github.com/monofuel/badmars
+ - not badmars-js, i'll want to move the git repo sometime
+- `make setup` to prepare the project initially
 
 
+## new setup to start the server
+- if rethinkdb is on your path, badmars will run it, otherwise you can run it from a separate terminal or as a daemon.
+- run `make run` or `go run main.go`
+- http://localhost:3002/badMars_v1 for the game server
+- http://localhost:8080/ for rethinkdb
+
+## alternative for docker
+- run `sh dev-docker-start.sh`
+- http://localhost:3002/badMars_v1 for the game server
+- http://localhost:8080/ for rethinkdb
+
+## old way to start the server
 run dev-start.sh to start rethink, and all the backend services.
 after dev-start is running, you can use tmux attach to attach to it.
 dev-start will run most services with nodemon, so they will auto reload on updates.
