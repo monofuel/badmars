@@ -41,3 +41,5 @@ node_modules
 rethinkdb_data
 
 *.pb.go
+
+badmars

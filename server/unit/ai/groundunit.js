@@ -26,7 +26,7 @@ async function simulate(unit,map) {
 
 		//check if they are trying to transfer resources.
 		//if they are, do it.
-		if (!unit.transferGoal || !unit.transferGoal.uuid) {
+		if (!unit.transferGoal || !unit.transferGoal.uuid || (unit.transferGoal.iron || 0 === 0 && unit.transferGoal.oil || 0 === 0)) {
 			if (unit.type === 'transport') {
 				//wake up nearby ghost builders
 				console.log('waking builders');
