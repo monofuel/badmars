@@ -42,7 +42,7 @@ func init() {
 	if tpsEnv != "" {
 		tps, err = strconv.Atoi(tpsEnv)
 	} else {
-		tps = 2
+		tps = 1
 	}
 }
 
@@ -116,7 +116,7 @@ func tryNewTick(planet *planetdb.Planet) error {
 	//get unprocessed units
 	unprocessed, err := unitdb.GetUnprocessedUnitIds(planet.LastTick, planet.Name)
 	var wg sync.WaitGroup
-	ctx, _ := context.WithTimeout(context.Background(), 400*time.Millisecond)
+	ctx, _ := context.WithTimeout(context.Background(), time.Duration(1000/tps)*time.Millisecond)
 	wg.Add(len(*unprocessed))
 	successChan := make(chan (bool), len(*unprocessed))
 	for _, uuid := range *unprocessed {

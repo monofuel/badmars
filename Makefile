@@ -1,7 +1,7 @@
 run: client server check
 	go run main.go
 
-server: grpc
+server: goSetup
 	go get
 	go fmt
 	go build
@@ -26,7 +26,11 @@ check:
 	go test -cover
 	flow check
 
-setup:
+goSetup:
+	go get
+	cd core && go get
+
+setup: goSetup
 	npm install
 	cd client && make copy
 
