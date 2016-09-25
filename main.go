@@ -27,6 +27,9 @@ func main() {
 	fmt.Println(GetRandomBanner())
 	fmt.Println("----------------------------------------")
 
+	//TODO watch subdirectories for changes
+	//and only reload the modules that need changes
+
 	if shouldRunRethink() {
 		err = startProgram("rethinkdb", "./")
 		if err != nil {
@@ -66,7 +69,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	err = startNodeModule("simulate")
+	err = startGoModule("simulate")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -93,6 +96,24 @@ func defaultEnv(key string, defaultValue string) {
 
 func startNodeModule(name string) error {
 	return startProgram("node", "./server/", name)
+}
+
+func startGoModule(name string) error {
+	err := buildGoModule(name, fmt.Sprintf("./core/%s.go", name))
+	if err != nil {
+		return err
+	}
+	return startProgram(fmt.Sprintf("./%s", name), "./")
+}
+
+func buildGoModule(name string, source string) error {
+	fmt.Printf("building %s\n", name)
+	cmd := exec.Command("go", "build", source)
+	err := cmd.Start()
+	if err != nil {
+		return err
+	}
+	return cmd.Wait()
 }
 
 func startProgram(name string, path string, args ...string) error {

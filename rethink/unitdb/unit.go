@@ -1,4 +1,4 @@
-package unit
+package unitdb
 
 import (
 	. "github.com/monofuel/badmars/util"

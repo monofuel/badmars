@@ -20,6 +20,7 @@ func init() {
 	if rethinkHost == "" {
 		rethinkHost = "localhost"
 	}
+	r.SetTags("gorethink", "json")
 }
 
 func Connect() error {

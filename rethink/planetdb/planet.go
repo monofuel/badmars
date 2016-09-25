@@ -1,15 +1,15 @@
-package planet
+package planetdb
 
-type Map struct {
-	Name              string      `json:"name"`
-	Settings          MapSettings `json:"settings"`
-	LastTickTimestamp int         `json:"lastTickTimestamp"`
-	LastTick          int         `json:"lastTick"`
-	Users             []string    `json:"users"`
-	Seed              float32     `json:"seed"`
+type Planet struct {
+	Name              string         `json:"name"`
+	Settings          PlanetSettings `json:"settings"`
+	LastTickTimestamp int64          `json:"lastTickTimestamp"`
+	LastTick          int            `json:"lastTick"`
+	Users             []string       `json:"users"`
+	Seed              float32        `json:"seed"`
 }
 
-type MapSettings struct {
+type PlanetSettings struct {
 	ChunkSize   int     `json:"chunkSize"`
 	WaterHeight float32 `json:"waterHeight"`
 	CliffDelta  float32 `json:"cliffDelta"`
