@@ -1,7 +1,7 @@
 package error
 
 //ErrorDoc is the layout of the server error event
-type Error struct {
+type ErrorDoc struct {
 	ID        string `gorethink:"id" json:"id"`
 	Env       string `gorethink:"env" json:"env"`
 	Hostname  string `gorethink:"hostname" json:"hostname"`

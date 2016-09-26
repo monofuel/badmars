@@ -1,13 +1,14 @@
-package db
+package error
 
 import (
 	"fmt"
 
+	"github.com/monofuel/badmars/rethink"
 	r "gopkg.in/dancannon/gorethink.v2"
 )
 
 //FetchServerErrors will fetch all of the server errors in the events table
-func (sess *BMDB) fetchErrors(limit int) (*r.Cursor, error) {
+func ServerErrors(limit int) ([]ErrorDoc, error) {
 	fmt.Println("Fetching errors")
 
 	cursor, err := r.DB("badmars").
@@ -15,10 +16,12 @@ func (sess *BMDB) fetchErrors(limit int) (*r.Cursor, error) {
 		GetAllByIndex("name", "server_error").
 		OrderBy(r.Desc("timestamp")).
 		Limit(limit).
-		Run(sess)
+		Run(rethink.Sess)
 	if err != nil {
 		return nil, err
 	}
-
-	return cursor, nil
+	var results []ErrorDoc
+	err = cursor.All(&results)
+	defer cursor.Close()
+	return results, err
 }

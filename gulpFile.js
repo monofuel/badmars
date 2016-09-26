@@ -17,13 +17,13 @@ gulp.task('client', function () {
 
 gulp.task('dashboard', function () {
 
-    return browserify({entries: './dashboard/js/index.jsx', debug: true})
+    return browserify({entries: './dashboard-frontend/js/index.jsx', debug: true})
         .transform("babelify")
         .bundle()
         .pipe(source('index.js'))
         .pipe(buffer())
         .pipe(uglify())
-        .pipe(gulp.dest('./dashboard/public/js/'))
+        .pipe(gulp.dest('./dashboard-frontend/public/js/'))
 });
 
 

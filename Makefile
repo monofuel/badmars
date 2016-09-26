@@ -13,13 +13,13 @@ grpc:
 
 
 client:
-	BABEL_ENV=production gulp build
+	BABEL_ENV=production gulp
 
 watchClient:
 	 watchify ./client/badmars-v1/client.js -t babelify -p livereactload -o ./server/public/js/badmars/badmars-v1.js
 
 watchDashboard:
-	 watchify dashboard/js/index.jsx -t babelify -p livereactload -o ./dashboard/public/js/index.js
+	 watchify dashboard-frontend/js/index.jsx -t babelify -p livereactload -o ./dashboard-frontend/public/js/index.js
 
 check:
 	go vet .
@@ -28,7 +28,8 @@ check:
 
 goSetup:
 	go get
-	cd core && go get
+	cd core/simulate && go get
+	cd core/dashboard && go get
 
 setup: goSetup
 	npm install

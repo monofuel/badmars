@@ -3,7 +3,7 @@ awesome webGL MMORTS with an infinite procedurally generated map.
 ## tech stack
 - backend:
 	- nodejs
-	- golang (separate repository atm)
+	- golang
 	- grpc
 	- rethinkdb
 
@@ -17,7 +17,6 @@ awesome webGL MMORTS with an infinite procedurally generated map.
 - install nodejs
 - install rethinkdb
 - check out the github project into $GOPATH/src/github.com/monofuel/badmars
- - not badmars-js, i'll want to move the git repo sometime
 - `make setup` to prepare the project initially
 
 
@@ -74,6 +73,7 @@ TODO:
 	- use this table to keep unit movement locked,
 also use this table to speed up the function 'getUnitsAtChunk'
 - watch user table for changes and push updates to users (eg: color changes)
+- unit tests and integration tests
 - dummy DB interface to allow testing modules in production without actually writing changes
 - properly flowtype the entire codebase
 - some sort of a distributed locking system for unit movement? maybe lock unit movement to the chunk document

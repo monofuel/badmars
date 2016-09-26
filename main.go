@@ -37,6 +37,10 @@ func main() {
 		}
 		time.Sleep(1000 * time.Millisecond)
 	}
+	err = killExistingProcesses()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	err = bmdb.Connect()
 	if err != nil {
@@ -48,6 +52,10 @@ func main() {
 	}
 	time.Sleep(5 * time.Second)
 	err = startNodeModule("chunk")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = startGoModule("dashboard")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -99,7 +107,7 @@ func startNodeModule(name string) error {
 }
 
 func startGoModule(name string) error {
-	err := buildGoModule(name, fmt.Sprintf("./core/%s.go", name))
+	err := buildGoModule(name, fmt.Sprintf("./core/%s/%s.go", name, name))
 	if err != nil {
 		return err
 	}
@@ -205,4 +213,20 @@ func shouldRunRethink() bool {
 	fmt.Printf("found %d rethink processes\n", processCount)
 
 	return processCount == 0
+}
+
+//killExistingProcesses to make sure we don't have any stray processes around
+func killExistingProcesses() error {
+	fmt.Println("killing existing badmars node processes")
+	modules := []string{"chunk", "ai", "web", "net", "pathfinder"}
+	for _, module := range modules {
+		greper := fmt.Sprintf("ps aux | grep -i 'node %s'  | awk '{print $2}' | xargs kill -9", module)
+		cmd := exec.Command("bash", "-c", greper)
+		err := cmd.Start()
+		if err != nil {
+			return err
+		}
+		cmd.Wait()
+	}
+	return nil
 }
