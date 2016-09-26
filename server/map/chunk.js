@@ -273,9 +273,12 @@ export class Chunk {
 		const table = db.chunks[this.map].getTable();
 		const conn = db.chunks[this.map].getConn();
 
-		if (this.units[tileHash] && this.units[tileHash] !== uuid) {
+		/*if (this.units[tileHash] && this.units[tileHash] !== uuid) {
+			console.log('existing ' + this.units[tileHash])
+			console.log('other ' + uuid)
+			console.log('tile already blocked');
 			return false;
-		}
+		}*/
 
 		let unitUpdate = {};
 		unitUpdate[tileHash] = uuid;
@@ -316,7 +319,7 @@ export class Chunk {
 		}
 		await this.refresh();
 		if (uuid !== this.resources[tileHash]) {
-			console.log('wrong new position',tileHash,'expected',uuid,'found',this.resources[tileHash]);
+			console.log('failed adding resource',tileHash,'expected',uuid,'found',this.resources[tileHash]);
 			console.log('new',this.resources);
 			console.log(tileHash,uuid);
 			console.log('chunkHash',this.hash);

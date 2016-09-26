@@ -45,12 +45,8 @@ The current goal for the game is to freeze new features and focus on bug fixing 
 code cleanup.
 
 current primary task:
-- switch unit movement (unit/ai/movement.js) to use chunk.moveUnit
- - Previously, we would query for all units at a location, however this
-allowed for a hole where multiple units could be on the same tile.
-Moving to a new system where each chunk keeps a map of tiles -> unit uuids
-for unit locations. use atomic rethinkdb operations to ensure only 1 unit is on a tile.
-(this table is also probably faster for performance)
+- fix bugs with unit spawning and movement with new chunk system
+- fix bug where spawning sometimes gets caught in a loop if there are no open tiles
 - re-make UI with material-ui with react to look nicer
 	- admin dashboard is already using material-ui
 	- clean up and re-organize UI nicer.

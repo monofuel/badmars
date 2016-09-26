@@ -200,8 +200,8 @@ export class Map {
 
 	async spawnUnit(newUnit:Unit):Promise<?Unit> {
 		console.log('spawning unit: ' + newUnit.type);
-		for (let tileHash of newUnit.tileHash) {
-			if (!await this.checkValidForUnit( await newUnit.getLoc(),newUnit)) {
+		for (let loc of await newUnit.getLocs()) {
+			if (!await this.checkValidForUnit(loc,newUnit)) {
 				return null;
 			} else {
 				//console.log('valid tile for unit: ' + tileHash);

@@ -598,7 +598,7 @@ class Unit {
 	async getLoc(): Promise<PlanetLoc> {
 		if (!this.size || this.size > 1) {
 			console.log('getloc called on large unit- should use getLocs');
-			//console.log((new Error()).stack);
+			console.log((new Error()).stack);
 		}
 		const map = await db.map.getMap(this.map);
 		return map.getLoc(this.x,this.y);
@@ -618,12 +618,17 @@ class Unit {
 	async addToChunks(): Promise<Success> {
 		const locs = await this.getLocs();
 		for (const loc of locs) {
+			let added;
 			if (this.type === 'oil' || this.type === 'iron') {
-				return loc.chunk.addResource(this.uuid,loc.hash);
+				added = await loc.chunk.addResource(this.uuid,loc.hash);
 			} else {
-				return loc.chunk.addUnit(this.uuid,loc.hash);
+				added = await loc.chunk.addUnit(this.uuid,loc.hash);
+			}
+			if (!added) {
+				return false;
 			}
 		}
+		return true;
 	}
 
 	async getMap(): Promise<Map> {
