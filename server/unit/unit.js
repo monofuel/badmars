@@ -544,17 +544,55 @@ class Unit {
 			await loc.validate();
 		}
 
-		const unitsFromChunk = await chunk.getUnitsMap(this.tileHash[0]);
-		if (!unitsFromChunk[this.uuid]) {
-			for (const tileHash of this.tileHash) {
-				console.log('adding unit to chunk map');
+		const map = await this.getMap()
+		for (let unitTile of this.tileHash) {
+			//skip this check for mines
+			if (this.type === 'oil' || this.type === 'iron') {
+				break;
+			}
+
+			const tile = await map.getLocFromHash(unitTile);
+			const chunk = tile.chunk;
+			const unitMap = await chunk.getUnitsMap(unitTile);
+
+			if (!unitMap[this.uuid]) {
+				console.log(chunk.units)
+				console.log('unit ' + this.uuid + 'missing from hash: '+unitTile)
+
+				console.log('fixing');
 				const success = await this.addToChunks();
 				if (!success) {
-					invalid('unit not found on chunk map, failed to add');
+					console.log('was not successful');
+					/*
+					//untested!
+					console.log("tile blocked, moving unit")
+					//the tile might be blocked, let's try moving this unit
+					const freeTile = await map.getNearestFreeTile(tile,this,true)
+					console.log('moving from ' + this.tileHash + ' to ' + freeTile.hash);
+					const patch = {
+						x: freeTile.x,
+						y: freeTile.y,
+						tileHash: [freeTile.hash],
+						chunk: freeTile.chunk.x,
+						chunkY: freeTile.chunk.y,
+						chunkHash: [freeTile.chunk.hash]
+					}
+					this.x = freeTile.x;
+					this.y = freeTile.y;
+					this.tileHash = [freeTile.hash]
+					this.chunkX = freeTile.chunk.x;
+					this.chunkY = freeTile.chunk.y;
+					this.chunkHash = [freeTile.chunk.hash]
+
+					const success = await this.addToChunks();
+					if (!success) {
+						invalid('unit not added to chunk map, failed to add');
+					}
+					await this.patch(patch);
+					*/
 				}
 			}
 		}
-
 	}
 
 	async getLoc(): Promise<PlanetLoc> {
@@ -577,15 +615,19 @@ class Unit {
 		return Promise.all(promises);
 	}
 
-	async addToChunks() {
+	async addToChunks(): Promise<Success> {
 		const locs = await this.getLocs();
 		for (const loc of locs) {
 			if (this.type === 'oil' || this.type === 'iron') {
-				await loc.chunk.addResource(this.uuid,loc.hash);
+				return loc.chunk.addResource(this.uuid,loc.hash);
 			} else {
-				await loc.chunk.addUnit(this.uuid,loc.hash);
+				return loc.chunk.addUnit(this.uuid,loc.hash);
 			}
 		}
+	}
+
+	async getMap(): Promise<Map> {
+		return await db.map.getMap(this.map);
 	}
 
 	clone(object) {

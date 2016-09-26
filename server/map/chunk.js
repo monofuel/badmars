@@ -156,7 +156,7 @@ export class Chunk {
 	save() {
 		var self = this;
 		return self.generate().then(() => {
-			console.log('saving new chunk');
+			//console.log('saving new chunk');
 			return db.chunks[self.map].saveChunk(self);
 		});
 	}
@@ -295,7 +295,7 @@ export class Chunk {
 	async addUnit(uuid: UUID,tileHash: TileHash): Promise<Success> {
 		const success = await this.putUnit(uuid,tileHash);
 		if (!success) {
-			console.log('failed adding unit to chunk');
+			console.log('failed putting unit to chunk');
 			return false;
 		}
 

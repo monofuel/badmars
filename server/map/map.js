@@ -208,18 +208,21 @@ export class Map {
 			}
 		}
 		const unit = await this.spawnAndValidate(newUnit);
-		await unit.addToChunks();
+
 		return unit;
 	}
 
 	async spawnUnitWithoutTileCheck(newUnit: Unit): Promise<Unit> {
 		console.log('force spawning unit: ' + newUnit.type);
-		return this.spawnAndValidate(newUnit);
+		return db.units[this.name].addUnit(newUnit);
 	}
 	async spawnAndValidate(newUnit:Unit):Promise<Unit> {
 		const unit = await db.units[this.name].addUnit(newUnit);
-		//await unit.addToChunks();
-		//await unit.validate();
+		const success = await unit.addToChunks();
+		if (!success) {
+			console.log('spawned unit, but was not able to add to tile map');
+		}
+		await unit.validate();
 		return unit;
 	}
 
@@ -291,6 +294,7 @@ export class Map {
 	}
 
 	async unitsTileCheck(tile, includeGhosts) {
+		//const units = await tile.chunk.getUnits(tile.hash);
 		let units = await db.units[this.name].getUnitsAtTile(tile.hash);
 		if (!includeGhosts) {
 			var unitsToReturn = [];
@@ -369,7 +373,7 @@ export class Map {
 	async findSpawnLocation(attempts) {
 		attempts = attempts || 0;
 
-		var direction = Math.random() * attempts * 50; //100 is a magic number
+		var direction = Math.random() * attempts * 50; //1magic number
 		var rotation = Math.random() * Math.PI * 2; //random value between 0 and 2PI
 
 		var x = direction * Math.cos(rotation);
@@ -435,7 +439,7 @@ export class Map {
 	async validChunkForSpawn(chunk) {
 		var self = this;
 
-		let nearbyUnits = await this.getNearbyUnitsFromChunkWithTileRange(chunk.hash,128);
+		let nearbyUnits = await this.getNearbyUnitsFromChunkWithTileRange(chunk.hash,32);
 		for (let unit of nearbyUnits) {
 			if (unit.owner !== "") {
 				return false;
@@ -706,7 +710,7 @@ export class Map {
 
 	//doot doot
 
-	//tile is the tile to check
+	//center is the tile to check
 	//unit is an optional unit to ignore
 	//includeGhosts decide if we should consider ghosts as units
 
@@ -761,6 +765,8 @@ export class Map {
 				let unitsOnTile = await this.unitsTileCheck(openTile,includeGhosts);
 				for (let tileUnit of unitsOnTile) {
 					if (unit && unit.uuid === tileUnit.uuid) {
+						console.log(_.map(unitsOnTile,'uuid'));
+						console.log('unit already at tile:' + openTile.hash)
 						return openTile; //unit is already on tile
 					}
 				}
@@ -773,7 +779,7 @@ export class Map {
 					continue;
 				}
 
-
+				console.log('found open tile')
 				return openTile;
 			}
 			for (let tile of open) {

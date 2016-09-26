@@ -22,7 +22,7 @@ vars.movementAttemptLimit = process.env.MOVEMENT_ATTEMPT_LIMIT || 3;
 vars.pathComplexityLimit = process.env.PATH_COMPLEXITY_LIMIT || 100;
 vars.chunkCacheLimit = process.env.CHUNK_CACHE_LIMIT || 5000;
 
-vars.dbHost = process.env.BADMARS_DB || 'rethinkdb';
+vars.dbHost = process.env.BADMARS_DB || 'localhost';
 vars.database = process.env.BADMARS_DATABASE || 'badmars';
 vars.dbPort = process.env.BADMARS_DB_PORT;
 vars.dbUser = process.env.BADMARS_DB_USER;
@@ -39,9 +39,9 @@ vars.authDB = process.env.BADMARS_AUTH_DATABASE || 'japura';
 
 vars.wsServer = process.env.BADMARS_WS_SERVER || 'ws://shipyard.lan';
 
-vars.aiHost = process.env.AI_HOST || 'badmars-ai';
+vars.aiHost = process.env.AI_HOST || 'localhost';
 vars.aiPort = process.env.AI_PORT || '3010';
-vars.mapHost = process.env.MAP_HOST || 'badmars-chunk';
+vars.mapHost = process.env.MAP_HOST || 'localhost';
 vars.mapPort = process.env.MAP_PORT || '3011';
 
 var googleAuth = {};
