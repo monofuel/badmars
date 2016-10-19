@@ -1,7 +1,8 @@
 //monofuel 2016
 'use strict';
 
-var WebSocket = require('ws');
+const _ = require('lodash');
+const WebSocket = require('ws');
 
 const SERVER_URL = "ws://localhost";
 const SERVER_PORT = 7005;
@@ -22,13 +23,13 @@ function verify(data) {
 	}
 }
 
-function sendAndCheck(data, check) {
+function sendAndCheck(data, ignoreList,check) {
 	return new Promise((resolve, reject) => {
 		s.onmessage = (event) => {
 			var data = JSON.parse(event.data);
 			verify(data);
 			//ignore unit movements
-			if (data.type == 'moving') {
+			if (_.includes(ignoreList,data.type)) {
 				return;
 			}
 			check(data);
@@ -45,9 +46,9 @@ function sendAndCheck(data, check) {
 
 function connect() {
 	console.log('connecting..');
-	return sendAndCheck(null, (data) => {
+	return sendAndCheck(null,['moving','players'], (data) => {
 		if (data.type != 'connected') {
-			throw new Error('invalid first packet');
+			throw new Error('invalid first response');
 		}
 		if (!data.success) {
 			throw new Error('not successful');
@@ -64,7 +65,7 @@ function login() {
 		planet: 'secunda',
 		color: '0xffffff',
 		apiKey: '4daa3dae8c0eb1c223a3e343446e6c54'
-	}, (data) => {
+	},['moving','players'], (data) => {
 		if (!data.success) {
 			console.log(data);
 			throw new Error('not successful');
@@ -80,7 +81,7 @@ function getPlayers() {
 	console.log('fetching player list');
 	return sendAndCheck({
 		type: 'getPlayers',
-	}, (data) => {
+	}, ['moving'],(data) => {
 		if (!data.success) {
 			console.log(data);
 			throw new Error('not successful');
@@ -101,7 +102,7 @@ function getUnits() {
 	console.log('fetching units list');
 	return sendAndCheck({
 		type: 'getUnits',
-	}, (data) => {
+	},['moving','players'], (data) => {
 		if (!data.success) {
 			console.log(data);
 			throw new Error('not successful');
@@ -122,7 +123,7 @@ function getMap() {
 	console.log('fetching map');
 	return sendAndCheck({
 		type: 'getMap'
-	}, (data) => {
+	},['moving','players'], (data) => {
 		if (!data.success) {
 			console.log(data);
 			throw new Error('not successful');
@@ -145,7 +146,7 @@ function getChunk() {
 		type: 'getChunk',
 		x: 0,
 		y: 0
-	}, (data) => {
+	},['moving','players'],  (data) => {
 		if (!data.success) {
 			console.log(data);
 			throw new Error('not successful');

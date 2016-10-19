@@ -85,8 +85,8 @@ module.exports = (client,data) => {
 			});
 		}
 	}).catch((error) => {
-		console.log("error: " + error);
-		client.sendError('login',error);
+		console.log("net error: " + error);
+		client.sendError('login',error.message);
 	});
 
 
