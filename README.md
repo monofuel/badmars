@@ -40,6 +40,26 @@ so that you can test changes without reconnecting.
 - http://localhost:3002/badMars_v1 for the game server
 - http://localhost:8080/ for rethinkdb
 
+## Architecture
+
+Frontend talks to the net backend service via websockets. All of the backend services
+coordinate together with grpc for direct communication and rethinkdb for data storage
+and realtime changes. The backend is currently a mix of nodejs and go. Currently, just
+rapid-prototyping out the backend, however it would be a good idea to migrate
+everything to go (since i discovered i really like go) and have a more testable system.
+
+### backend services:
+- web | nodejs service that provides the actual website
+- net | nodejs service that provides a websocket server for clients to connect to.
+sends the player information about the game world, and receives commands from the player.
+- dashboard | go service that provides an admin dashboard site
+- chunk | nodejs service that handles chunk generation and caching.
+- ai | nodejs service that handles unit AI logic each game tick.
+- pathfinder | nodejs service that handles pathfinding for units.
+- simulate | go service that controls the backend tickrate for each planet.
+
+
+## Progress
 
 The current goal for the game is to freeze new features and focus on bug fixing and
 code cleanup.
@@ -59,7 +79,7 @@ current primary task:
 
 current bugs:
 - first login takes a while. a long while.
-- unit movement is a little jumpy on the client when server ticks are on time
+- unit movement is a little jumpy on the client when server ticks are actually on time (ha ha ha ha oh dear...)
 - when starting multiple services at once, sometimes the tables in rethinkdb
 aren't generated properly and have duplicates. delete the duplicates and start just one service.
 
