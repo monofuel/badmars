@@ -25,6 +25,7 @@ awesome webGL MMORTS with an infinite procedurally generated map.
 - run `make run` or `go run main.go`
 - http://localhost:3002/badMars_v1 for the game server
 - http://localhost:8080/ for rethinkdb
+- run `make check` to check that everything looks good while running the server
 
 ## alternative for docker
 - run `sh dev-docker-start.sh`
@@ -47,6 +48,10 @@ coordinate together with grpc for direct communication and rethinkdb for data st
 and realtime changes. The backend is currently a mix of nodejs and go. Currently, just
 rapid-prototyping out the backend, however it would be a good idea to migrate
 everything to go (since i discovered i really like go) and have a more testable system.
+All backend services should be capable of scaling across many processes on many servers.
+In the future, the main.go program should be improved to support delegating work across
+many servers. However, services like docker swarm or kubernetes can currently be used instead
+to handle backend cluster orchestration.
 
 ### backend services:
 - web | nodejs service that provides the actual website
@@ -57,7 +62,7 @@ sends the player information about the game world, and receives commands from th
 - ai | nodejs service that handles unit AI logic each game tick.
 - pathfinder | nodejs service that handles pathfinding for units.
 - simulate | go service that controls the backend tickrate for each planet.
-
+- commander | nodejs tool for running commands against the database
 
 ## Progress
 
@@ -90,6 +95,7 @@ TODO:
 also use this table to speed up the function 'getUnitsAtChunk'
 - watch user table for changes and push updates to users (eg: color changes)
 - unit tests and integration tests
+- allow tests to start their own server if one is not already running, go tests require that server is running.
 - dummy DB interface to allow testing modules in production without actually writing changes
 - properly flowtype the entire codebase
 - some sort of a distributed locking system for unit movement? maybe lock unit movement to the chunk document

@@ -12,26 +12,39 @@ const logger = require('../util/logger.js');
 const Unit = require('../unit/unit.js');
 import {Chunk} from '../map/chunk.js';
 
+var maps = [];
+
 exports.init = async () => {
+	if (process.argv.length > 2) {
+	 	maps = process.argv.slice(2,process.argv.length);
+	} else {
+		maps = await db.map.listNames();
+	}
+	console.log("checking maps",maps)
+
   console.log('-------------------------------');
   console.log('starting validation');
   console.log('-------------------------------');
 
-  await validateUnits();
-  await validateChunks();
-  //TODO validate maps
+	for (var mapName of maps) {
+		const map = await db.map.getMap(mapName);
+		if (!map) {
+			console.log("no such map");
+			process.exit(-1);
+		}
+	  await validateUnits(mapName);
+	  await validateChunks(mapName);
+	  //TODO validate maps
+}
 
-  console.log('-------------------------------');
-  console.log('happy results');
-  console.log('-------------------------------');
   process.exit();
 }
 
-async function validateUnits() {
+async function validateUnits(mapName: string) {
   console.log('validating units');
   let counter = 0;
   //TODO should rename listUnits to just list (and friends)
-  const unitList = await db.units['testmap'].listUnits();
+  const unitList = await db.units[mapName].listUnits();
   for (const unitDoc of unitList) {
     counter++;
     const unit = new Unit();
@@ -41,10 +54,10 @@ async function validateUnits() {
   console.log('units validated: ',counter);
 }
 
-async function validateChunks() {
+async function validateChunks(mapName: string) {
   console.log('validating chunks');
   let counter = 0;
-  const chunkList = await db.chunks['testmap'].list();
+  const chunkList = await db.chunks[mapName].list();
   for (const chunkDoc of chunkList) {
     counter++;
     const chunk = new Chunk();
@@ -55,8 +68,8 @@ async function validateChunks() {
 }
 
 
-async function checkUnitLocations() {
-  const unitList = await db.units['testmap'].listUnits();
+async function checkUnitLocations(mapName: string) {
+  const unitList = await db.units[mapName].listUnits();
   const tileMap = {};
   for (let unit of unitList) {
     if (!unit.tileHash) {
@@ -73,7 +86,7 @@ async function checkUnitLocations() {
     }
   }
   const chunkTileMap = {};
-  const chunks = await db.chunks['testmap'].listChunks();
+  const chunks = await db.chunks[mapName].listChunks();
   for (let chunk of chunks) {
     _.each(chunk.units,(uuid,tileHash) => {
       if (chunkTileMap[tileHash]) {

@@ -28,10 +28,8 @@ exports.init = (connection) => {
 		});
 };
 
-exports.listNames = () => {
-	return table.getField('name').run(conn).then((cursor) => {
-		return cursor.toArray();
-	});
+exports.listNames = async () => {
+	return table.getField('name').coerceTo('array').run(conn);
 };
 
 exports.getMap = async function getMap(name) {

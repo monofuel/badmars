@@ -5,8 +5,6 @@
 
 'use strict';
 require("babel-register");
-//this app.js script is ment for running the whole server at once
-//usually either for development or if we are just running on 1 process.
 
 var env = require('./config/env.js');
 var db = require('./db/db.js');
@@ -14,14 +12,12 @@ var logger = require('./util/logger.js');
 var commands = require('./util/commands.js');
 var figlet = require('figlet');
 
-/**
- * Boot up everything (and i mean everything)
- * mainly ment for development.
- */
+
+
+logger.setModule('commander');
 function init() {
 	logger.info('start begin');
 
-	startupHeader();
 	var startupPromises = [];
 	startupPromises.push(db.init());
 	Promise.all(startupPromises)
@@ -33,25 +29,6 @@ function init() {
 			console.log('exiting badmars');
 			process.exit();
 		});
-}
-
-/**
- * Pretty header for startup
- */
-function startupHeader() {
-	var fonts = figlet.fontsSync();
-	var font = fonts[Math.floor(Math.random() * fonts.length)];
-	console.log('----------------------------------------------------------------------------');
-	console.log(figlet.textSync('BadMars', {
-		font: font
-	}));
-	console.log('----------------------------------------------------------------------------');
-
-	if (env.envType == 'production') {
-		console.log('running in production!');
-	} else {
-		console.log('running in development');
-	}
 }
 
 init();

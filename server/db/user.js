@@ -66,3 +66,12 @@ exports.createUser = (name, color) => {
 		returnChanges: true
 	}).run(conn);
 };
+
+exports.updateUser = async (name, patch) => {
+	let result = await table.getAll(name,{index:'name'}).update(patch).run(conn);
+	return result;
+}
+
+exports.deleteUser = async(name) => {
+	return table.getAll(name,{index:'name'}).delete().run(conn)
+}

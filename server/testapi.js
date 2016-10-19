@@ -3,8 +3,8 @@
 
 var WebSocket = require('ws');
 
-const SERVER_URL = "ws://192.168.11.161";
-const SERVER_PORT = 31085;
+const SERVER_URL = "ws://localhost";
+const SERVER_PORT = 7005;
 
 var s = new WebSocket(SERVER_URL + ":" + SERVER_PORT);
 var players = [];
@@ -61,7 +61,7 @@ function login() {
 	return sendAndCheck({
 		type: 'login',
 		username: 'testUser',
-		planet: 'testplanet',
+		planet: 'secunda',
 		color: '0xffffff',
 		apiKey: '4daa3dae8c0eb1c223a3e343446e6c54'
 	}, (data) => {

@@ -83,7 +83,9 @@ exports.init = async function init() {
 	await exports.map.createRandomMap('testmap');
 	//console.log('created map testmap');
 };
-
+exports.close = async () => {
+	return conn.close()
+}
 
 exports.safeCreateTable = async (tableName) => {
 

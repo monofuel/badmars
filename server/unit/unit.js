@@ -557,8 +557,8 @@ class Unit {
 
 			if (!unitMap[this.uuid]) {
 				console.log(chunk.units)
-				console.log('unit ' + this.uuid + 'missing from hash: '+unitTile)
-
+				invalid('unit ' + this.uuid + ' missing from hash: '+unitTile)
+				/*
 				console.log('fixing');
 				const success = await this.addToChunks();
 				if (!success) {
@@ -589,8 +589,8 @@ class Unit {
 						invalid('unit not added to chunk map, failed to add');
 					}
 					await this.patch(patch);
-					*/
-				}
+					
+				}*/
 			}
 		}
 	}

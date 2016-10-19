@@ -19,8 +19,6 @@ logger.setModule('validator');
 
 function init() {
 	logger.info("start begin");
-
-	startupHeader();
 	db.init()
 	.then(validator.init)
 	.then(() => {
@@ -29,20 +27,6 @@ function init() {
 		logger.error(err);
 		logger.info('start script caught error, exiting');
 	});
-}
-
-function startupHeader() {
-	var fonts = figlet.fontsSync();
-	var font = fonts[Math.floor(Math.random() * fonts.length)];
-	console.log("----------------------------------------------------------------------------");
-	console.log(figlet.textSync("BadMars", { font: font }));
-	console.log("----------------------------------------------------------------------------");
-
-	if (env.envType == 'production') {
-		console.log('running in production!');
-	} else {
-		console.log('running in development');
-	}
 }
 
 init();
