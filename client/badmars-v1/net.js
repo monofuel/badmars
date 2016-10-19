@@ -140,7 +140,7 @@ export class Net {
 
 	}
 
-	connect(): Promise {
+	connect(): Promise<*> {
 		return new Promise((resolve, reject) => {
 			console.log("connecting to: " + SERVER_URL + ":" + SERVER_PORT);
 			self.s = new WebSocket(SERVER_URL + ":" + SERVER_PORT);

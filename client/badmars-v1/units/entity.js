@@ -40,6 +40,7 @@ export class Entity {
 	location: PlanetLoc;
 	mesh: THREE.OBject3D;
 	health: number;
+	speed: number;
 	selectionCircle: THREE.Object3D;
 	transferCircle: THREE.Object3D;
 	damageSphere: THREE.Object3D;

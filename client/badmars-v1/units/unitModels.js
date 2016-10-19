@@ -42,7 +42,7 @@ export function getMesh(name: string): ? ModelInfo {
 /**
  * kick off tasks to load all the models and returns a promise
  */
-export function loadAllModelsAsync() : Promise {
+export function loadAllModelsAsync() : Promise<*> {
 	loaded = 0;
 	total = modelMap.length;
 

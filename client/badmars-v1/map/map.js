@@ -209,6 +209,7 @@ export class Map {
 					//update monkeypatch
 					//TODO make this more elegant
 					for (let key of Object.keys(unit)) {
+						// $FlowFixMe: hiding this issue for now
 						oldUnit[key] = unit[key];
 						let skipChunk = playerInfo && unit.owner !== playerInfo.id
 						let tile = new PlanetLoc(self,unit.x,unit.y,(playerInfo && unit && unit.owner !== playerInfo.id));
