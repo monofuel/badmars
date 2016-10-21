@@ -66,12 +66,12 @@ func main() {
 			for {
 				planet, err := planetdb.Get(name)
 				if err != nil {
-					fmt.Printf("error getting planet: %v\n", err)
-					continue
+					fmt.Printf("planet deleted: %v\n", err)
+					break
 				}
 				//not sure why this happens
 				if planet.Name == "" {
-					//fmt.Printf("invalid planet without name\n")
+					fmt.Printf("invalid planet without name\n")
 					//fmt.Printf("%v\n", planet)
 					continue
 				}

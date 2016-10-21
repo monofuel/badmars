@@ -280,6 +280,11 @@ export class Chunk {
 			return false;
 		}*/
 
+		await this.refresh();
+		if (this.units[tileHash] === uuid) {
+			return true;
+		}
+
 		let unitUpdate = {};
 		unitUpdate[tileHash] = uuid;
 		this.units[tileHash] = uuid;
@@ -291,8 +296,7 @@ export class Chunk {
 				self.merge({units:unitUpdate})
 			)
 		},{returnChanges:true}).run(conn);
-
-		return delta.replaced !== 1;
+		return delta.replaced === 1;
 	}
 
 	async addUnit(uuid: UUID,tileHash: TileHash): Promise<Success> {

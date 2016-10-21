@@ -212,6 +212,9 @@ export class Map {
 		return unit;
 	}
 
+	//to be used when spawning units on chunks that are not yet generated
+	//this prevents a loop of trying to validate against a chunk that
+	//is not yet generated (hence infinite loop)
 	async spawnUnitWithoutTileCheck(newUnit: Unit): Promise<Unit> {
 		console.log('force spawning unit: ' + newUnit.type);
 		return db.units[this.name].addUnit(newUnit);
@@ -220,7 +223,9 @@ export class Map {
 		const unit = await db.units[this.name].addUnit(newUnit);
 		const success = await unit.addToChunks();
 		if (!success) {
-			console.log('spawned unit, but was not able to add to tile map');
+			console.log("spawn collision");
+			await unit.delete();
+			return null;
 		}
 		await unit.validate();
 		return unit;

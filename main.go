@@ -17,6 +17,13 @@ import (
 
 var env []string
 
+var hotReload = true
+
+var hotReloadBlacklist = []string{
+	"net",
+	"web",
+}
+
 func init() {
 	prepareEnv()
 }
@@ -103,7 +110,11 @@ func defaultEnv(key string, defaultValue string) {
 }
 
 func startNodeModule(name string) error {
-	return startProgram("node", "./server/", name)
+	if hotReload && !Contains(hotReloadBlacklist, name) {
+		return startProgram("nodemon", "./server/", fmt.Sprintf("%s.js", name))
+	} else {
+		return startProgram("node", "./server/", name)
+	}
 }
 
 func startGoModule(name string) error {
