@@ -17,6 +17,7 @@ const Unit = require('../unit/unit.js');
 const PlanetLoc = require("./planetloc.js");
 const logger = require('../util/logger.js');
 
+import DBChunk from '../db/chunk.js';
 import {Map} from './map.js';
 
 
@@ -222,7 +223,7 @@ export class Chunk {
 		await this.refresh();
 		const oldTile = await unit.getLoc();
 
-		let success = await newTile.chunk.putUnit(unit.uuid, newTile.hash);
+		let success = await newTile.chunk.getChunkDB().setUnit(newTile.chunk,unit.uuid, newTile.hash);
 		if (!success) {
 			return false;
 		}
@@ -269,38 +270,8 @@ export class Chunk {
 		}
 	}
 
-	async putUnit(uuid:UUID, tileHash: TileHash): Promise<Success> {
-		const table = db.chunks[this.map].getTable();
-		const conn = db.chunks[this.map].getConn();
-
-		/*if (this.units[tileHash] && this.units[tileHash] !== uuid) {
-			console.log('existing ' + this.units[tileHash])
-			console.log('other ' + uuid)
-			console.log('tile already blocked');
-			return false;
-		}*/
-
-		await this.refresh();
-		if (this.units[tileHash] === uuid) {
-			return true;
-		}
-
-		let unitUpdate = {};
-		unitUpdate[tileHash] = uuid;
-		this.units[tileHash] = uuid;
-
-		const delta = await table.get(this.hash).update((self) => {
-			return r.branch(
-				self('units').hasFields(tileHash),
-				{},
-				self.merge({units:unitUpdate})
-			)
-		},{returnChanges:true}).run(conn);
-		return delta.replaced === 1;
-	}
-
 	async addUnit(uuid: UUID,tileHash: TileHash): Promise<Success> {
-		const success = await this.putUnit(uuid,tileHash);
+		const success = await this.getChunkDB().setUnit(this,uuid,tileHash);
 		if (!success) {
 			console.log('failed putting unit to chunk');
 			return false;
@@ -317,7 +288,7 @@ export class Chunk {
 
 
 	async addResource(uuid: UUID,tileHash: TileHash): Promise<Success> {
-		const success = await this.putUnit(uuid,tileHash);
+		const success = await this.getChunkDB().setResource(this,uuid,tileHash);
 		if (!success) {
 			return false;
 		}
@@ -453,7 +424,12 @@ export class Chunk {
 		}
 		return tiles;
 	}
+	getChunkDB(): DBChunk {
+		return db.chunks[this.map];
+	}
 }
+
+
 
 function getMap(mapName: string): Map {
 	return db.map.getMap(mapName);

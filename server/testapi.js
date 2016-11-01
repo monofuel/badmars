@@ -163,6 +163,20 @@ function getChunk() {
 	});
 }
 
+//doesn't actually test spawning, atm just for seeing if the server validator catches anything
+//not used atm as modules don't cleanly handle new maps at runtime
+function spawn() {
+	console.log('testing spawn');
+	return sendAndCheck({
+		type: 'spawn'
+	},['moving','players'],  (data) => {
+		if (!data.success) {
+			console.log(data);
+			throw new Error('not successful');
+		}
+	});
+}
+
 function doAllTests() {
 
 	connect()

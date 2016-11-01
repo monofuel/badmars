@@ -219,7 +219,7 @@ export class Map {
 		console.log('force spawning unit: ' + newUnit.type);
 		return db.units[this.name].addUnit(newUnit);
 	}
-	async spawnAndValidate(newUnit:Unit):Promise<Unit> {
+	async spawnAndValidate(newUnit:Unit):Promise<?Unit> {
 		const unit = await db.units[this.name].addUnit(newUnit);
 		const success = await unit.addToChunks();
 		if (!success) {

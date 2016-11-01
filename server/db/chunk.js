@@ -80,6 +80,51 @@ class DBChunk {
 		return this.table.insert(chunk,{conflict:"replace"}).run(this.conn);
 	}
 
+	async setUnit(chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<Success> {
+		return this.setEntity(chunk,uuid,'units',tileHash);
+	}
+
+	async setResource(chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<Success> {
+		return this.setEntity(chunk,uuid,'resources',tileHash);
+	}
+
+	//update a specific entity location for a specific layer
+	//note: layers must have different names than other values on chunk for now
+	async setEntity(chunk: Chunk, uuid: UUID, layer: string, tileHash: TileHash): Promise<Success> {
+
+		let entityUpdate = {};
+		entityUpdate[tileHash] = uuid; //copy to save to DB
+		// $FlowFixMe: layers should probably be in their own map that won't conflict
+		chunk[layer][tileHash] = uuid; //update the chunk we were given without doing a chunk.refresh()
+
+		//set the unit in the unit map in the DB without clobbering existing values.
+		//if the tileHash key is already set, that means another unit beat us to this
+		//location and we will be returning false.
+		let mergeObject = {}
+		mergeObject[layer] = entityUpdate;
+		const delta = await this.table.get(chunk.hash).update((self) => {
+			return r.branch(
+				self(layer).hasFields(tileHash),
+				{},
+				self.merge(mergeObject)
+			)
+		},{returnChanges:true}).run(this.conn);
+
+		//if the update was successful, then the unit is successfully set at the location
+		if (delta.replaced === 1) {
+			return true;
+		}
+		//otherwise, it's possible that the unit was already at this location
+		//fetch the latest copy and check it
+		await chunk.refresh();
+		// $FlowFixMe: layers should probably be in their own map that won't conflict
+		const layerList = chunk[layer];
+		if (layerList[tileHash] === uuid) {
+			return true;
+		}
+		return false;
+	}
+
 	//these should never get used.
 	getTable() {
 		return this.table;

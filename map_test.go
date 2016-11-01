@@ -33,7 +33,11 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestUser(t *testing.T) {
-	err := verify()
+	err := LoginTest()
+	if err != nil {
+		t.Error(err)
+	}
+	err = verify()
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,6 +68,35 @@ func verify() error {
 	}
 
 	cmd := exec.Command(prog, "validator.js", mapName)
+	cmd.Env = env
+	cmd.Dir = "./server/"
+
+	cmdOut, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	cmdErr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+
+	go io.Copy(os.Stdout, cmdOut)
+	go io.Copy(os.Stderr, cmdErr)
+
+	return cmd.Wait()
+}
+
+func LoginTest() error {
+	prog, err := exec.LookPath("node")
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command(prog, "testapi.js", mapName)
 	cmd.Env = env
 	cmd.Dir = "./server/"
 
