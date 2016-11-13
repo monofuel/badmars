@@ -25,6 +25,11 @@ var aiSvc ai.AIClient
 
 var tps int
 
+var simulatedPlanets struct {
+	*sync.RWMutex
+	Planets []string
+}
+
 func init() {
 	err := bmdb.Connect()
 	if err != nil {
@@ -62,43 +67,62 @@ func main() {
 	}
 	fmt.Printf("simulating %d planets\n", len(planets))
 	for _, planetName := range planets {
-		go func(name string) {
-			for {
-				planet, err := planetdb.Get(name)
-				if err != nil {
-					fmt.Printf("planet deleted: %v\n", err)
-					break
-				}
-				//not sure why this happens
-				if planet.Name == "" {
-					fmt.Printf("invalid planet without name\n")
-					//fmt.Printf("%v\n", planet)
-					continue
-				}
-				err = tryNewTick(planet)
-				if err != nil {
-					fmt.Printf("tick error: %v\n", err)
-				}
-
-				delta := NowTimestamp() - planet.LastTickTimestamp
-				//fmt.Printf("delta ms: %d\n", delta)
-
-				if delta < int64(1000/tps) {
-					sleepTime := int64(1000/tps) - delta
-					time.Sleep(time.Duration(sleepTime) * time.Millisecond)
-				} else if delta > int64(1.5*1000/tps) {
-					fmt.Printf("Long tick length, delta of %d\n", delta)
-				}
-			}
-		}(planetName)
+		go simulatePlanet(planetName)
 	}
 	c := make(chan int)
 	<-c
 }
 
+func checkForPlanets() {
+	planets, err := planetdb.ListNames()
+	if err != nil {
+		log.Fatal(err)
+	}
+	simulatedPlanets.RLock()
+	for _, planetName := range planets {
+		if !Contains(simulatedPlanets.Planets, planetName) {
+			fmt.Println("found new planet to simulate: ", planetName)
+			go simulatePlanet(planetName)
+		}
+	}
+	simulatedPlanets.RUnlock()
+}
+
+func simulatePlanet(name string) {
+	for {
+		planet, err := planetdb.Get(name)
+		if err != nil {
+			fmt.Printf("planet deleted: %v\n", err)
+
+			break
+		}
+		//not sure why this happens
+		if planet.Name == "" {
+			fmt.Printf("invalid planet without name\n")
+			//fmt.Printf("%v\n", planet)
+			continue
+		}
+		err = tryNewTick(planet)
+		if err != nil {
+			fmt.Printf("tick error: %v\n", err)
+		}
+
+		delta := NowTimestamp() - planet.LastTickTimestamp
+		//fmt.Printf("delta ms: %d\n", delta)
+
+		if delta < int64(1000/tps) {
+			sleepTime := int64(1000/tps) - delta
+			time.Sleep(time.Duration(sleepTime) * time.Millisecond)
+		} else if delta > int64(1.5*1000/tps) {
+			fmt.Printf("Long tick length, delta of %d\n", delta)
+		}
+	}
+}
+
 func tryNewTick(planet *planetdb.Planet) error {
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Duration(1000/tps)*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(1000/tps)*time.Millisecond)
+	defer cancel()
 	/*
 		uCount, err := unitdb.CountUnprocessed(planet.LastTick, planet.Name)
 		if err != nil {

@@ -3,7 +3,6 @@ public/docs/
 public/js/badmars/*.js
 public/js/badmars/dependencies/*.js
 
-
 client/planet_viewer/*.js
 
 #ignore authorization file
@@ -11,6 +10,9 @@ config/auth.js
 
 #ignore documentation
 doc/
+
+dashboard
+simulate
 
 #github git ignore for nodejs
 #https://github.com/github/gitignore/blob/master/Node.gitignore
@@ -37,4 +39,3 @@ node_modules
 
 .remote-sync.json
 rethinkdb_data
-
