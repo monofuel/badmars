@@ -88,7 +88,27 @@ func checkForPlanets() {
 	simulatedPlanets.RUnlock()
 }
 
+func addPlanetToSimulated(name string) {
+	simulatedPlanets.Lock()
+	simulatedPlanets.Planets = append(simulatedPlanets.Planets, name)
+	simulatedPlanets.Unlock()
+}
+
+func removePlanetFromSimulated(name string) {
+	simulatedPlanets.Lock()
+	defer simulatedPlanets.Unlock()
+	for i, _ := range simulatedPlanets.Planets {
+		if simulatedPlanets.Planets[i] == name {
+			//each planet should only be listed once
+			simulatedPlanets.Planets[i] = simulatedPlanets.Planets[len(simulatedPlanets.Planets)-1]
+			simulatedPlanets.Planets[len(simulatedPlanets.Planets)-1] = ""
+			simulatedPlanets.Planets = simulatedPlanets.Planets[:len(simulatedPlanets.Planets)-1]
+			return
+		}
+	}
+}
 func simulatePlanet(name string) {
+	addPlanetToSimulated(name)
 	for {
 		planet, err := planetdb.Get(name)
 		if err != nil {
