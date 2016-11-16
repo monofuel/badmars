@@ -26,7 +26,7 @@ var aiSvc ai.AIClient
 var tps int
 
 var simulatedPlanets struct {
-	*sync.RWMutex
+	sync.RWMutex
 	Planets []string
 }
 
