@@ -61,31 +61,38 @@ func main() {
 	defer conn.Close()
 
 	fmt.Println("starting simulation service")
-	planets, err := planetdb.ListNames()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("simulating %d planets\n", len(planets))
-	for _, planetName := range planets {
-		go simulatePlanet(planetName)
-	}
+	/*
+		planets, err := planetdb.ListNames()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("simulating %d planets\n", len(planets))
+		for _, planetName := range planets {
+			go simulatePlanet(planetName)
+		}
+	*/
+	go checkForPlanets()
+
 	c := make(chan int)
 	<-c
 }
 
 func checkForPlanets() {
-	planets, err := planetdb.ListNames()
-	if err != nil {
-		log.Fatal(err)
-	}
-	simulatedPlanets.RLock()
-	for _, planetName := range planets {
-		if !Contains(simulatedPlanets.Planets, planetName) {
-			fmt.Println("found new planet to simulate: ", planetName)
-			go simulatePlanet(planetName)
+	for {
+		planets, err := planetdb.ListNames()
+		if err != nil {
+			log.Fatal(err)
 		}
+		simulatedPlanets.RLock()
+		for _, planetName := range planets {
+			if !Contains(simulatedPlanets.Planets, planetName) {
+				fmt.Println("starting planet simulation: ", planetName)
+				go simulatePlanet(planetName)
+			}
+		}
+		simulatedPlanets.RUnlock()
+		time.Sleep(2 * time.Second)
 	}
-	simulatedPlanets.RUnlock()
 }
 
 func addPlanetToSimulated(name string) {
@@ -116,15 +123,12 @@ func simulatePlanet(name string) {
 
 			break
 		}
-		//not sure why this happens
-		if planet.Name == "" {
-			fmt.Printf("invalid planet without name\n")
-			//fmt.Printf("%v\n", planet)
-			continue
-		}
+
 		err = tryNewTick(planet)
 		if err != nil {
 			fmt.Printf("tick error: %v\n", err)
+			//force a sleep and hope the error goes away?
+			time.Sleep(5 * time.Second)
 		}
 
 		delta := NowTimestamp() - planet.LastTickTimestamp
@@ -161,6 +165,9 @@ func tryNewTick(planet *planetdb.Planet) error {
 
 	//get unprocessed units
 	unprocessed, err := unitdb.GetUnprocessedUnitIds(planet.LastTick, planet.Name)
+	if err != nil {
+		return err
+	}
 	var wg sync.WaitGroup
 	wg.Add(len(*unprocessed))
 	successChan := make(chan (bool), len(*unprocessed))

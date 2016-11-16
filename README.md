@@ -93,6 +93,7 @@ TODO:
 - have a 'locking' table on the chunk document for unit positions (in progress)
 	- use this table to keep unit movement locked,
 also use this table to speed up the function 'getUnitsAtChunk'
+- health check for services, and ability to kill unhealthy services
 - watch user table for changes and push updates to users (eg: color changes)
 - unit tests and integration tests
 - allow tests to start their own server if one is not already running, go tests require that server is running.
