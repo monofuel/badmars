@@ -23,8 +23,10 @@ watchDashboard:
 
 check:
 	go vet .
-	go test -cover
 	flow check
+
+test:
+	go test -cover
 
 goSetup:
 	go get
