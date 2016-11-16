@@ -87,6 +87,7 @@ current bugs:
 - unit movement is a little jumpy on the client when server ticks are actually on time (ha ha ha ha oh dear...)
 - when starting multiple services at once, sometimes the tables in rethinkdb
 aren't generated properly and have duplicates. delete the duplicates and start just one service.
+- when creating a planet, the go backend currently does not handle creating the unit and chunk tables
 
 
 TODO:
@@ -97,6 +98,8 @@ also use this table to speed up the function 'getUnitsAtChunk'
 - watch user table for changes and push updates to users (eg: color changes)
 - unit tests and integration tests
 - allow tests to start their own server if one is not already running, go tests require that server is running.
+- underwater units
+- have automatic transports able to avoid military
 - dummy DB interface to allow testing modules in production without actually writing changes
 - properly flowtype the entire codebase
 - some sort of a distributed locking system for unit movement? maybe lock unit movement to the chunk document
