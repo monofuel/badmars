@@ -1,6 +1,6 @@
 /* @flow */
 
-import {Unit} from '../unit/unit.js';
+import {Unit} from '../server/unit/unit.js';
 
 type UUID = string;
 type TileHash = string;
@@ -18,4 +18,19 @@ type ChunkProto = {
 
 type UnitMap = {
   [key: UUID]: Unit
+}
+
+
+declare interface Init {
+  init(): Promise<void>;
+}
+
+declare interface MonoDoc {
+  validateSync(): boolean;
+  validateAsync(): Promise<boolean>;
+  refresh(): Promise<void>;
+}
+
+declare interface Entity extends MonoDoc {
+  clone(): Entity;
 }

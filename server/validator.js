@@ -7,13 +7,11 @@
 require("babel-register");
 require("babel-polyfill");
 
-var env = require('./config/env.js');
-var db = require('./db/db.js');
-var logger = require('./util/logger.js');
-var commands = require('./util/commands.js');
-var validator = require('./core/validator.js');
-
-var figlet = require('figlet');
+const env = require('./config/env.js');
+const db = require('./db/db.js');
+const logger = require('./util/logger.js');
+const commands = require('./util/commands.js');
+const validator = require('./core/validator.js');
 
 logger.setModule('validator');
 

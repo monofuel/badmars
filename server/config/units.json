@@ -76,7 +76,15 @@
     "buildTime": 50,
 		"size":3,
 		"construction":true,
-		"model":"factory.obj"
+		"model":"factory.obj",
+
+    "movable": {
+
+    },
+    "building": {
+
+    }
+
   },
   "storage":{
     "transferRange":20,

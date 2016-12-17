@@ -650,7 +650,7 @@ export class Map {
 			}
 		}
 		if (amount > 0) {
-			console.log('depositing iron into mine',amount);
+			//console.log('depositing iron into mine',amount);
 			await mine.addIron(amount);
 		}
 	}

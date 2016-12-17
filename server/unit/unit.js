@@ -6,7 +6,7 @@
 
 'use strict';
 
-var r = require('rethinkdb');
+var r = require('rethinkdb'); //TODO should not be imported in this file
 var db = require('../db/db.js');
 var fs = require('fs');
 const logger = require('../util/logger.js');
@@ -21,6 +21,8 @@ var groundUnitAI = require('./ai/groundunit.js');
 var attackAI = require('./ai/attack.js');
 var constructionAI = require('./ai/construction.js');
 var mineAI = require('./ai/mine.js');
+
+import UnitStat from './unit';
 
 import {Map} from '../map/map.js';
 import {Chunk} from '../map/chunk.js';
@@ -88,6 +90,8 @@ class Unit {
 	speed: ?number;
 	size: ?number;
 
+
+	movable: ?Object;
 
 	constructor(unitType: string, map: Map,x: number,y: number) {
 
