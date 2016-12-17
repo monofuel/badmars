@@ -1,24 +1,62 @@
 {
-  "tank": {
-    "groundMovable": {
-      "size": 1,
-      "transferRange": 0,
+    "tank": {
+        "details": {
+            "size": 1,
+            "transferRange": 0,
+            "layer": "ground",
+            "movement": true,
+            "buildTime": 20,
+            "cost": 300
+        },
+        "groundAttack": {
+            "range": 5,
+            "fireRate": 5,
+            "firePower": 15,
+        },
+        "storage": {
+            "maxFuel": 50,
+        },
+        "graphical": {
+            "model": "tank_mockup.obj",
+            "scale": 0.3,
+        }
     },
-    "groundAttack": {
-      "range": 5,
-      "fireRate":5,
-      "firePower": 15
+    "wall": {
+        "details": {
+            "size": 1,
+            "layer": "ground",
+            "movement": false,
+            "buildTime": 10,
+            "cost": 100,
+        },
+        "graphical": {
+            "model": "cube.obj",
+            "scale": 1,
+        }
     },
-    "storage": {
-      "maxIron": 0,
-      "maxFuel": 50,
+    "factory": {
+        "details": {
+            "size": 3,
+            "transferRange": 0,
+            "layer": "ground",
+            "movement": false,
+            "buildTime": 50,
+            "cost": 750
+        },
+        "constructor": [
+            "tank",
+            "builder",
+            "transport",
+        ],
+        "graphical": {
+            "model": "factory.obj",
+            "scale": 1.1,
+        }
     },
-    "groundFactoryBuildable": {
-      "buildTime": 20,
+    "transport": {
+
     },
-    "graphical": {
-      "model":"tank_mockup.obj",
-      "scale": 0.3
+    "powerPlant": {
+
     }
-  }
 }
