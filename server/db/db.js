@@ -10,7 +10,7 @@ var logger = require('../util/logger.js');
 var helper = require('../util/helper.js');
 var r = require('rethinkdb');
 
-const UnitStats = require('./unit/unitStat.js');
+const UnitStat = require('./unit/unitStat.js');
 
 var DBChunk = require('./chunk.js');
 var DBUnit = require('./unit.js');
@@ -55,6 +55,8 @@ exports.init = async function init() {
 		console.log('creating database');
 		await r.dbCreate('badmars').run(conn);
 	}
+
+	await UnitStat.init();
 
 	r.db('badmars');
 	//console.log('preparing tables');
