@@ -10,8 +10,6 @@ var logger = require('../util/logger.js');
 var helper = require('../util/helper.js');
 var r = require('rethinkdb');
 
-const UnitStat = require('./unit/unitStat.js');
-
 var DBChunk = require('./chunk.js');
 var DBUnit = require('./unit.js');
 import DBUnitStat from './unitStat.js';
@@ -23,6 +21,7 @@ exports.event = require('./event.js');
 
 exports.chunks = {};
 exports.units = {};
+exports.unitStats = {};
 
 var conn;
 
@@ -56,8 +55,6 @@ exports.init = async function init() {
 		await r.dbCreate('badmars').run(conn);
 	}
 
-	await UnitStat.init();
-
 	r.db('badmars');
 	//console.log('preparing tables');
 	await Promise.all([
@@ -77,6 +74,8 @@ exports.init = async function init() {
 		exports.chunks[name] = chunk;
 	}
 	await  Promise.all(chunkPromises);
+
+
 	//console.log('preparing units');
 	var unitPromises = [];
 	for (var name of mapNames) {
@@ -85,6 +84,16 @@ exports.init = async function init() {
 		exports.units[name] = unit;
 	}
 	await Promise.all(unitPromises);
+
+	var unitStatPromises = [];
+	for (var name of mapNames) {
+		var unitStat = new DBUnitStat(conn, name);
+		unitStatPromises.push(unitStat.init());
+		exports.unitStats[name] = unitStat;
+	}
+	await Promise.all(unitStatPromises);
+
+
 	await exports.map.createRandomMap('testmap');
 	//console.log('created map testmap');
 };

@@ -9,12 +9,45 @@
 
 import _ from 'lodash';
 import r from 'rethinkdb';
+import fs from 'fs';
+import jsonlint from 'jsonlint';
 
 import db from './db';
 import env from '../config/env';
 import logger from '../util/logger';
 
 import UnitStat from '../unit/unitStat';
+
+const UNIT_STAT_FILE = 'config/units.json';
+
+const defaultUnits = {};
+
+//load all default stats from file
+async function loadDefaults() {
+  const statsFile = fs.readFileSync(UNIT_STAT_FILE).toString();
+  let stats;
+  try {
+    // using jsonlint to give readable errors
+    const stats = jsonlint.parse(statsFile);
+    _.map(stats,(unit: Object, type: string) => {
+        const unitStat = new UnitStat(type,unit);
+        try {
+          unitStat.validateSync()
+        } catch (err) {
+          console.error('unit ' + type + ' failed to validate',err);
+        }
+    });
+  } catch (err) {
+
+    console.log('====================');
+    console.log('failed to load unit definitions');
+    console.log('====================');
+    throw err;
+  }
+  console.log('Unit definitions loaded');
+}
+
+
 
 export default class DBUnitStat {
   conn: r.Connection;
@@ -28,21 +61,25 @@ export default class DBUnitStat {
     this.tableName = this.mapName + "_unitStats";
   }
 
-  init(): Promise<void> {
+  async init(): Promise<void> {
     const self = this;
 
-    return r.tableList().run(self.conn)
-      .then((tableList: Array<string>) => {
-        if (tableList.indexOf(self.tableName) === -1) {
-          console.log('creating unit table for ' + self.mapName);
-          return self.createTable();
-        } else {
-          // if we ever change indexes, add code to change them
-        }
-      })
-      .then(() => {
-        self.table = r.table(self.tableName);
-      });
+    const tableList: Array<string> = await r.tableList().run(self.conn);
+
+    if (tableList.indexOf(self.tableName) === -1) {
+      console.log('creating unit table for ' + self.mapName);
+      await self.createTable();
+    } else {
+      // if we ever change indexes, add code to change them
+    }
+
+    self.table = r.table(self.tableName);
+    await loadDefaults();
+
+    fs.watchFile(UNIT_STAT_FILE,async () => {
+      	console.log('units.json updated, reloading');
+        await loadDefaults();
+    })
   }
 
   createTable(): Promise<void> {

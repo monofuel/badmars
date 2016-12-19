@@ -18,7 +18,8 @@ logger.setModule('validator');
 function init() {
 	logger.info("start begin");
 	db.init()
-	.then(validator.init)
+	//TODO disabled while i test unit stat importer
+	//.then(validator.init)
 	.then(() => {
 		logger.info("start complete");
 	}).catch((err) => {

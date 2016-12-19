@@ -28,22 +28,6 @@ import {Map} from '../map/map.js';
 import {Chunk} from '../map/chunk.js';
 const PlanetLoc = require('../map/planetloc.js');
 
-try {
-var unitStats = JSON.parse(fs.readFileSync('config/units.json').toString());
-} catch (err) {
-	console.log(err);
-}
-
-fs.watchFile("config/units.json", () => {
-	console.log('units.json updated, reloading');
-	fs.readFile('config/units.json', (err,data) => {
-		if (err) {
-			return console.log(err);
-		}
-		unitStats = JSON.parse(data);
-	});
-});
-
 class Unit {
 
 	uuid: UUID;
