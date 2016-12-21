@@ -1,3 +1,4 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -6,13 +7,18 @@
 'use strict';
 
 import _ from 'lodash';
-var r = require('rethinkdb');
-var Unit = require('../unit/unit.js');
-var db = require("./db.js");
-var env = require('../config/env.js');
-var logger = require('../util/logger.js');
+import R from 'rethinkdb';
+import Unit from '../unit/unit.js';
+import DB from "./db";
+var Env = require('../config/env.js');
+var Logger = require('../util/logger.js');
+
+import Context from 'node-context';
 
 class DBUnit {
+	conn: R.Connection;
+	mapName: string;
+	table: R.Table;
 
 	constructor(connection, mapName) {
 		this.conn = connection;
@@ -22,85 +28,85 @@ class DBUnit {
 	init() {
 		var tableName = this.mapName + "_unit";
 		var self = this;
-		//r.tableDrop(tableName).run(self.conn);
+		//R.tableDrop(tableName).run(self.conn);
 
-		return r.tableList().run(self.conn)
+		return R.tableList().run(self.conn)
 			.then((tableList) => {
 				if (tableList.indexOf(tableName) == -1) {
 					console.log('creating unit table for ' + self.mapName);
-					return r.tableCreate(tableName, {
+					return R.tableCreate(tableName, {
 						primaryKey: 'uuid'
 					}).run(self.conn).then(() => {
 						console.log("adding tile hash index");
-						return r.table(tableName).indexCreate("tileHash", {
+						return R.table(tableName).indexCreate("tileHash", {
 							multi: true
 						}).run(self.conn);
 					}).then(() => {
 						console.log("adding chunk hash index");
-						return r.table(tableName).indexCreate("chunkHash", {
+						return R.table(tableName).indexCreate("chunkHash", {
 							multi: true
 						}).run(self.conn);
 					}).then(() => {
 						console.log("adding lastTick index");
-						return r.table(tableName).indexCreate("lastTick").run(self.conn);
+						return R.table(tableName).indexCreate("lastTick").run(self.conn);
 					}).then(() => {
 						console.log("adding awake index");
-						return r.table(tableName).indexCreate("awake").run(self.conn);
+						return R.table(tableName).indexCreate("awake").run(self.conn);
 					});
 				}
 			}).then(() => {
-				self.table = r.table(tableName);
+				self.table = R.table(tableName);
 			});
 	}
 
 	listUnits() {
-		let profile = logger.startProfile('listUnits');
+		let profile = Logger.startProfile('listUnits');
 		return this.table.coerceTo('array').run(this.conn).then((array) => {
-			logger.endProfile(profile);
+			Logger.endProfile(profile);
 			return array;
 		});
 	}
 
 	async listPlayersUnits(owner) {
-		const profile = logger.startProfile('listPlayersUnits');
-		const cursor = await this.table.filter(r.row('owner').eq(owner)).run(this.conn);
+		const profile = Logger.startProfile('listPlayersUnits');
+		const cursor = await this.table.filter(R.row('owner').eq(owner)).run(this.conn);
 		const units = await this.loadUnitsCursor(cursor);
-		logger.endProfile(profile);
+		Logger.endProfile(profile);
 		return units;
 	}
 
 	async addUnit(unit) {
-		let profile = logger.startProfile('addUnit');
+		let profile = Logger.startProfile('addUnit');
 		let delta = await this.table.insert(unit, {
 			returnChanges: true
 		}).run(this.conn);
-		logger.endProfile(profile);
+		Logger.endProfile(profile);
 		return await this.loadUnit(delta.changes[0].new_val);
 	}
 
 	async getUnit(uuid) {
-		let profile = logger.startProfile('getUnit');
+		let profile = Logger.startProfile('getUnit');
 		let doc = await this.table.get(uuid).run(this.conn);
 		if (!doc) {
 			console.log('unit not found: ',  uuid);
 		}
-		logger.endProfile(profile);
+		Logger.endProfile(profile);
 		return this.loadUnit(doc);
 	}
 	async getUnits(uuids) {
-		let profile = logger.startProfile('getUnits');
+		let profile = Logger.startProfile('getUnits');
 		const promises = [];
 		for (const uuid of uuids) {
 			promises.push(this.table.get(uuid).run(this.conn));
 		}
 		const docs = await Promise.all(promises);
 		const units = await this.loadUnits(docs);
-		logger.endProfile(profile);
+		Logger.endProfile(profile);
 		return units;
 	}
 
 	async getUnitsMap(uuids: Array<UUID>): Promise<UnitMap> {
-		const profile = logger.startProfile('getUnits');
+		const profile = Logger.startProfile('getUnits');
 		const promises = [];
 		for (const uuid of uuids) {
 			promises.push(this.table.get(uuid).run(this.conn));
@@ -112,21 +118,21 @@ class DBUnit {
 			unit.clone(doc);
 			unitMap[unit.uuid] = unit;
 		}
-		logger.endProfile(profile);
+		Logger.endProfile(profile);
 		return unitMap;
 	}
 
 	async updateUnit(uuid, patch) {
-		let profile = logger.startProfile('updateUnit');
+		let profile = Logger.startProfile('updateUnit');
 		let result = await this.table.get(uuid).update(patch).run(this.conn);
-		logger.endProfile(profile);
+		Logger.endProfile(profile);
 		return result;
 	}
 
 	async saveUnit(unit) {
-		let profile = logger.startProfile('saveUnit');
+		let profile = Logger.startProfile('saveUnit');
 		let result = await this.table.get(unit.uuid).update(unit).run(this.conn);
-		logger.endProfile(profile);
+		Logger.endProfile(profile);
 		return result;
 
 	};
@@ -158,7 +164,7 @@ class DBUnit {
 	}
 
 	async getUnitsAtTile(hash) {
-		let profile = logger.startProfile('getUnitsAtTile');
+		let profile = Logger.startProfile('getUnitsAtTile');
 		let docs = await this.table.getAll(hash, {
 			index: "tileHash"
 		}).coerceTo('array').run(this.conn);
@@ -167,12 +173,12 @@ class DBUnit {
 		for (let doc of docs) {
 			units.push(await this.loadUnit(doc));
 		}
-		logger.endProfile(profile);
+		Logger.endProfile(profile);
 		return units;
 	}
 
 	async getUnitsAtChunk(x, y) {
-		let profile = logger.startProfile('getUnitsAtChunk');
+		let profile = Logger.startProfile('getUnitsAtChunk');
 		var hash = x + ":" + y;
 		var unitDocs = await this.table.getAll(hash, {
 			index: "chunkHash"
@@ -182,7 +188,7 @@ class DBUnit {
 		for (let doc of unitDocs) {
 			units.push(await this.loadUnit(doc));
 		}
-		logger.endProfile(profile);
+		Logger.endProfile(profile);
 		return units;
 
 	}
@@ -204,8 +210,8 @@ class DBUnit {
 			}
 			units.push(this.loadUnit(doc));
 		}).catch((err) => {
-			//dumb rethinkdb bug
-			if (err.message === 'No more rows in the cursor.') {
+			//dumb rethinkDB bug
+			if (err.message === 'No more rows in the cursoR.') {
 				return;
 			}
 			throw err;
@@ -218,17 +224,17 @@ class DBUnit {
 		if (!doc) {
 			return null;
 		}
-		let profile = logger.startProfile('loadUnit');
-		let map = await db.map.getMap(doc.map);
+		let profile = Logger.startProfile('loadUnit');
+		let map = await DB.map.getMap(doc.map);
 		let unit = new Unit(doc.type, map, doc.x, doc.y);
 		unit.clone(doc);
-		logger.endProfile(profile);
+		Logger.endProfile(profile);
 		return unit;
 	}
 
 	addFactoryOrder(uuid, order) {
 		return this.table.get(uuid).update({
-			factoryQueue: r.row('factoryQueue').append(order),
+			factoryQueue: R.row('factoryQueue').append(order),
 			awake: true
 		}).run(this.conn);
 	}
@@ -238,9 +244,9 @@ class DBUnit {
 	//atm pathlistener will trigger a check to fetch unprocessed
 	//and unprocessed atomicly picks off a unit
 	registerPathListener(func) {
-		return this.table.filter(r.row.hasFields('destination'))
-			.filter(r.row('isPathing').eq(false))
-			.filter(r.row('path').eq([]))
+		return this.table.filter(R.row.hasFields('destination'))
+			.filter(R.row('isPathing').eq(false))
+			.filter(R.row('path').eq([]))
 			.changes().run(this.conn).then((cursor) => {
 				cursor.each(func);
 			})
@@ -248,12 +254,12 @@ class DBUnit {
 
 	async getUnprocessedPath() {
 
-			let result = await this.table.filter(r.row.hasFields('destination'))
-				.filter(r.row('isPathing').eq(false))
-				.filter(r.row('path').eq([]))
-				.limit(env.pathChunks)
+			let result = await this.table.filter(R.row.hasFields('destination'))
+				.filter(R.row('isPathing').eq(false))
+				.filter(R.row('path').eq([]))
+				.limit(Env.pathChunks)
 				.update((unit) => {
-					return r.branch(
+					return R.branch(
 						unit('isPathing').eq(false),
 						{isPathing: true,pathUpdate: Date.now()},
 						{}
@@ -268,8 +274,8 @@ class DBUnit {
 	getUnprocessedUnits(tick) {
 		return this.table.getAll(true, {
 			index: 'awake'
-		}).filter(r.row('lastTick').lt(tick)).limit(env.unitProcessChunks).update((unit) => {
-			return r.branch(
+		}).filter(R.row('lastTick').lt(tick)).limit(Env.unitProcessChunks).update((unit) => {
+			return R.branch(
 				unit('lastTick').ne(tick),
 				{lastTick: tick},
 				{}
@@ -298,21 +304,24 @@ class DBUnit {
 	async getUnprocessedUnitKeys(tick) {
 		return this.table.getAll(true, {
 			index: 'awake'
-		}).filter(r.row('lastTick').lt(tick))
-		.limit(env.unitProcessChunks)
+		}).filter(R.row('lastTick').lt(tick))
+		.limit(Env.unitProcessChunks)
 		.pluck('uuid')
 		.coerceTo('array')
 		.run(this.conn);
 	}
 
-	async claimUnitTick(uuid,tick) {
-		let delta = await this.table.get(uuid).update((unit) => {
-			return r.branch(
+	async claimUnitTick(ctx: Context,uuid: UUID,tick: number) {
+		const profile = Logger.startProfile('claimUnitTick');
+		const delta = await this.table.get(uuid).update((unit) => {
+			return R.branch(
 				unit('lastTick').ne(tick),
 				{lastTick: tick},
 				{}
 			)
 		}, {returnChanges: true}).run(this.conn);
+		profile.endProfile(profile);
+		Logger.checkContext(ctx,'claim unit tick');
 
 		if (!delta.changes || delta.changes.length !== 1) {
 			return null;
@@ -327,7 +336,7 @@ class DBUnit {
 		//however we still want to process them next tick.
 		return await this.table.getAll(true, {
 			index: 'awake'
-		}).filter(r.row('lastTick').lt(tick - 1).and(r.row('lastTick').gt(0))).count().run(this.conn);
+		}).filter(R.row('lastTick').lt(tick - 1).and(R.row('lastTick').gt(0))).count().run(this.conn);
 	}
 
 	countAllUnits() {

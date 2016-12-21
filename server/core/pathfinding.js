@@ -15,6 +15,8 @@ var AStarPath = require('../nav/astarpath.js');
 var TILETYPES = require('../map/tiletypes.js');
 var DIRECTION = require('../map/directions.js');
 
+import Context from 'node-context';
+
 var registeredMaps = [];
 
 async function init() {

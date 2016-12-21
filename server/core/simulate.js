@@ -13,6 +13,8 @@ const grpc = require('grpc');
 const ai = grpc.load(__dirname + '/../../protos/ai.proto').ai;
 const aiClient = new ai.AI(env.aiHost + ':' + env.aiPort, grpc.credentials.createInsecure());
 
+import Context from 'node-context';
+
 exports.init = () => {
 
 	mapTick();

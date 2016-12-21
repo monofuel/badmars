@@ -13,6 +13,8 @@ const helper = require('../util/socketFilter.js');
 const grpc = require('grpc');
 const chunkService = grpc.load(__dirname + '/../../protos/chunk.proto').chunk;
 
+import Context from 'node-context';
+
 exports.init = async () => {
 	const server = new grpc.Server();
 	server.addProtoService(chunkService.Map.service, {

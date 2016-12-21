@@ -1,3 +1,4 @@
+/* @flow-weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -10,11 +11,15 @@ var os = require('os');
 var env = require('../config/env.js');
 var stats = require('./stats.js');
 var db = require('../db/db.js');
+import Context from 'node-context';
 stats.init();
 
 var moduleName = 'monolith';
 
-exports.setModule = (name) => {
+//list of modules to output logs for STDOUT
+const DEBUG_MODULES = ['ai'];
+
+exports.setModule = (name: string) => {
 	moduleName = name;
 };
 
@@ -44,7 +49,7 @@ exports.endProfile = stats.endProfile;
 //==================================================================
 // logging methods
 
-module.exports.error = (err) => {
+function handleError(err: Error) {
 	var timestamp = new Date();
 	console.log(dateFormat(timestamp) + ' : ' + err.stack);
 	track('error', {
@@ -53,6 +58,7 @@ module.exports.error = (err) => {
 		timestamp: Date.now()
 	});
 };
+module.exports.error = handleError;
 
 module.exports.requestInfo = (info, req) => {
 	var timestamp = new Date();
@@ -80,6 +86,8 @@ module.exports.info = (info, body, silent) => {
 	track(info,body);
 	if (silent) {
 		return;
+	} else if (!DEBUG_MODULES.includes(moduleName)) {
+		return;
 	} else if (body) {
 		console.log("INFO: " + dateFormat(timestamp) + ": " + info + " : " + moduleName);
 	} else {
@@ -90,11 +98,18 @@ module.exports.info = (info, body, silent) => {
 //==================================================================
 // functions
 
-function dateFormat(date) {
+function checkContext(ctx: Context, msg: string) {
+	if (!ctx.cancelled) {
+		return;
+	}
+	throw new Error('context cancelled: ' + msg);
+}
+
+function dateFormat(date: Date) {
 	return date.getMonth() + "/" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes();
 }
 
-function verifyTrack(name, kargs) {
+function verifyTrack(name: string, kargs: ?Object) {
 	for (let key in kargs) {
 		if (typeof kargs[key] == 'object') {
 			console.log('invalid element ' + key + ' on ' + name);
@@ -107,7 +122,7 @@ function verifyTrack(name, kargs) {
 }
 
 
-function track(name, kargs) {
+function track(name: string, kargs: ?Object) {
 	kargs = kargs || {};
 	for (let key of Object.keys(kargs)) {
 		if (!kargs[key]) { //delete null fields

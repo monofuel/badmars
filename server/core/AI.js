@@ -1,3 +1,4 @@
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -5,22 +6,23 @@
 
 'use strict';
 
-const db = require('../db/db.js');
-const env = require('../config/env.js');
-const logger = require('../util/logger.js');
-const grpc = require('grpc');
-const ai = grpc.load(__dirname + '/../../protos/ai.proto').ai;
+import DB from '../db/db';
+import Env from '../config/env';
+import Logger from '../util/logger';
+import Grpc from 'grpc';
+import Context from 'node-context';
 
+const AI = Grpc.load(__dirname + '/../../protos/ai.proto').ai;
 
 exports.init = () => {
-	let server = new grpc.Server();
-	server.addProtoService(ai.AI.service, {
+	let server = new Grpc.Server();
+	server.addProtoService(AI.AI.service, {
 		processUnit: GRPCProcessUnit
 	});
 
-	server.bind('0.0.0.0:' + env.aiPort,grpc.ServerCredentials.createInsecure());
+	server.bind('0.0.0.0:' + Env.aiPort,Grpc.ServerCredentials.createInsecure());
 	server.start();
-	console.log('AI GRPC server started');
+	Logger.info('AI GRPC server started');
 
 	process.on('exit', () => {
 		//GRPC likes to hang and prevent a proper shutdown for some reason
@@ -31,23 +33,26 @@ exports.init = () => {
 	return;
 };
 
-async function GRPCProcessUnit(call,callback) {
+async function GRPCProcessUnit(call,callback: Function) {
 	const request = call.request;
 	const uuid = request.uuid;
 	const mapName = request.mapName;
 	const tick = parseInt(request.tick);
-	logger.addSumStat('unitRequest',1);
-	//console.log('got process unit order: ', uuid,' for map ',mapName, ' on tick ',tick);
+	Logger.addSumStat('unitRequest',1);
+	Logger.info('process unit order',{uuid, mapName, tick});
+	const ctx = new Context.Context({timeout: 1000 / Env.TICKS_PER_SEC});
 	try {
-		const unit = await db.units[mapName].claimUnitTick(uuid,tick);
-		if (unit) {
-			await processUnit(unit);
+		const unit = await DB.units[mapName].claimUnitTick(ctx,uuid,tick);
+		if (!unit) {
+			Logger.info('unit missing',{uuid});
+			throw new Error('unit missing');
 		}
-
+		await processUnit(unit);
+		Logger.checkContext(ctx,"processing unit");
 
 		callback(null,{success:true});
 	} catch (err) {
-		logger.error(err);
+		Logger.error(err);
 		callback(err);
 	}
 }

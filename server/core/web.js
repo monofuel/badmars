@@ -1,4 +1,4 @@
-//-----------------------------------
+  //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
@@ -11,6 +11,8 @@ var logger = require('../util/logger.js');
 
 var express = require('express');
 var path = require('path');
+
+import Context from 'node-context';
 
 exports.init = () => {
     var app = express();

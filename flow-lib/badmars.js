@@ -9,6 +9,8 @@ type Timestamp = number;
 type Tick = number;
 type UnitType = string;
 
+type ProfileKey = string;
+
 type Success = boolean;
 
 type ChunkProto = {

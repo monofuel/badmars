@@ -12,6 +12,8 @@ var Client = require('../net/client.js');
 
 var WebSocketServer = require('ws').Server;
 
+import Context from 'node-context';
+
 const KEEP_ALIVE = 5000;
 var wss;
 

@@ -13,8 +13,8 @@
         "attack": {
             "layers": ["ground"],
             "range": 5.0,
-            "damage": 2,
-						"fireRate": 3
+            "damage": 5,
+            "fireRate": 3
         },
         "storage": {
             "maxFuel": 50
@@ -26,10 +26,10 @@
     },
     "builder": {
         "details": {
-					"size": 1,
-					"buildTime": 10,
-					"cost": 250,
-					"maxHealth": 50
+            "size": 1,
+            "buildTime": 10,
+            "cost": 250,
+            "maxHealth": 50
         },
         "movable": {
             "layer": "ground",

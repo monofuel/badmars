@@ -77,7 +77,7 @@ class Unit {
 
 	movable: ?Object;
 
-	constructor(unitType: string, map: Map,x: number,y: number) {
+	constructor(unitType: ?string, map: ?Map,x: ?number,y: ?number) {
 
 		this.type = unitType;
 		//uuid is set by DB

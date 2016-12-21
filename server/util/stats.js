@@ -1,3 +1,4 @@
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -5,20 +6,28 @@
 
 'use strict';
 
-var env = require('../config/env.js');
-var logger = require('./logger.js');
+import env from '../config/env';
+import logger from './logger.js';
 
 var avgStats = {};
 var sumStats = {};
 
-var runningProfiles = {};
-var profileCount = {};
+type Profile = {
+	name: string,
+	key: ProfileKey,
+	startTime: number,
+	endTime?: number,
+	delta?: number
+}
+
+var runningProfiles: {[key: ProfileKey]: Profile} = {};
+var profileCount: {[key: string]: number} = {};
 
 exports.init = () => {
 	setInterval(reportStats, env.statReportRate * 60 * 1000);
 };
 
-exports.startProfile = (name) => {
+exports.startProfile = (name: string): ProfileKey => {
 	let key = name + Math.random();
 	runningProfiles[key] = {
 		name: name,
@@ -28,7 +37,7 @@ exports.startProfile = (name) => {
 
 	return key;
 }
-exports.endProfile = (key) => {
+exports.endProfile = (key: ProfileKey) => {
 
 	let profileRun = runningProfiles[key];
 	let name = profileRun.name;
@@ -43,7 +52,7 @@ exports.endProfile = (key) => {
 	}
 }
 
-function addAverageStat(key, value) {
+function addAverageStat(key: string, value: number) {
 	if (!avgStats[key]) {
 		avgStats[key] = [];
 	}
@@ -53,7 +62,7 @@ function addAverageStat(key, value) {
 
 exports.addAverageStat = addAverageStat;
 
-exports.addSumStat = (key, value) => {
+exports.addSumStat = (key: string, value: number) => {
 	if (!sumStats[key]) {
 		sumStats[key] = [];
 	}

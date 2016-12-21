@@ -12,6 +12,7 @@ const logger = require('../util/logger.js');
 const Unit = require('../unit/unit.js');
 import {Chunk} from '../map/chunk.js';
 
+import Context from 'node-context';
 var maps = [];
 
 exports.init = async () => {
