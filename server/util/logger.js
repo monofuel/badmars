@@ -1,4 +1,4 @@
-/* @flow-weak */
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -30,7 +30,7 @@ function unhandled(err) {
 	console.log('uncaught error');
 	console.error(err.stack);
 	try {
-		logger.error(err);
+		exports.error(err);
 	} catch(err) {
 		console.log('failed to track unhandled error');
 	}
@@ -137,7 +137,7 @@ function track(name: string, kargs: ?Object) {
 	verifyTrack(name,kargs);
 
 	db.event.addEvent(kargs);
-	return;
+	/*
 	request({
 		url: env.trackingServer + ':' + env.trackingPort + '/track/event',
 		method: 'POST',
@@ -146,5 +146,5 @@ function track(name: string, kargs: ?Object) {
 		if(error) {
 			console.log(error);
 		}
-	});
+	});*/
 }
