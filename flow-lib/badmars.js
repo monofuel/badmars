@@ -1,6 +1,6 @@
 /* @flow */
 
-import {Unit} from '../server/unit/unit.js';
+import Unit from '../server/unit/unit';
 
 type UUID = string;
 type TileHash = string;
@@ -10,6 +10,7 @@ type Tick = number;
 type UnitType = string;
 
 type ProfileKey = string;
+type MovementLayer = string;
 
 type Success = boolean;
 

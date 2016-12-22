@@ -20,7 +20,8 @@ import UnitStat from '../unit/unitStat';
 
 const UNIT_STAT_FILE = 'config/units.json';
 
-const defaultUnits = {};
+const unitsFromDatabase = [];
+const unitMap = {};
 
 //load all default stats from file
 async function loadDefaults() {
@@ -35,6 +36,9 @@ async function loadDefaults() {
           unitStat.validateSync()
         } catch (err) {
           console.error('unit ' + type + ' failed to validate',err);
+        }
+        if (!unitsFromDatabase.includes(type)) {
+          unitMap[type] = unitStat;
         }
     });
   } catch (err) {
@@ -80,6 +84,9 @@ export default class DBUnitStat {
       	console.log('units.json updated, reloading');
         await loadDefaults();
     })
+
+    // TODO get all unit stats from database and put them into unitMap
+    // and add their types to unitsFromDatabase
   }
 
   createTable(): Promise<void> {
@@ -98,14 +105,9 @@ export default class DBUnitStat {
     })
   }
 
-  async get(type: string) {
-    let profile = logger.startProfile('getUnitStat')
-    let doc = await this.table.get(type).run(this.conn);
-    if (!doc) {
-      throw new Error('unit stat not found for type: ',type);
-    }
-    logger.endProfile(profile);
-    return this.load(doc);
+  get(type: string) {
+    //TODO update unitmap on db changes
+    return unitMap[type];
   }
 
   async put(stat: UnitStat) {
@@ -113,12 +115,6 @@ export default class DBUnitStat {
 		let result = await this.table.get(stat.type).update(stat).run(this.conn);
 		logger.endProfile(profile);
 		return result;
-  }
-
-  async load(doc: r.Document) {
-    const stat = new UnitStat();
-    stat.clone(doc);
-    return stat;
   }
 
 }

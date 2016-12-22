@@ -45,7 +45,6 @@ const COMPONENT_DEFAULTS = {
 
 export default class UnitStat {
 
-  type: string;
   details: Object;
   movable: Object;
   attack: Object;
@@ -56,7 +55,6 @@ export default class UnitStat {
   constructor(type: string, stats: Object) {
     _.defaultsDeep(this,stats);
     _.defaultsDeep(this,COMPONENT_DEFAULTS);
-    this.type = type;
   }
 
   validateSync() {
@@ -71,7 +69,7 @@ export default class UnitStat {
 
     const self = this;
     function throwError(msg: string) {
-      throw new Error(msg + " for " + self.type);
+      throw new Error(msg + " for " + self.details.type);
     }
 
     //==============================

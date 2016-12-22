@@ -28,72 +28,87 @@ import {Map} from '../map/map.js';
 import {Chunk} from '../map/chunk.js';
 const PlanetLoc = require('../map/planetloc.js');
 
-class Unit {
+export default class Unit {
 
-	uuid: UUID;
-	type: UnitType;
-	map: string;
-	chunkX: number;
-	chunkY: number;
-	x: number;
-	y: number;
+	uuid: UUID; // set by database
 
-	lastTick: Tick;
-	tileHash: Array<TileHash>;
-	chunkHash: Array<ChunkHash>;
+	//components
+	details: {
+		type: string,
+		size: number,
+		buildTime: number,
+		cost: number,
+		maxHealth: number,
+		tick: number,
+		lastTick: number
+	}
+	location: {
+		hash: Array<string>,
+		x: number,
+		y: number,
+		chunkHash: Array<string>,
+		chunkX: number,
+		chunkY: number,
+		map: string
+	}
+	movable: {
+		layer: MovementLayer,
+		speed: number
+	}
+	attack: {
+		layers: Array<MovementLayer>,
+		range: number,
+		damage: number,
+		fireRate: number
+	}
+	storage: {
+		maxIron: number,
+		maxFuel: number,
+		transferRange: number
+	}
+	graphical: {
+		model: string,
+		scale: number
+	}
+	stationary: {
+		layer: MovementLayer
+	}
+	construct: Array<string>
 
-	constructing: number;
-	ghosting: boolean;
-	ghostCreation: number;
-	movementCooldown: number;
-	fireCooldown: number;
 
-	owner: UUID;
+	//constructor will be called with arguments when making a new unit
+	//constructor will be called without arguments when initializing from database (database does .clone())
+	constructor(unitType: ?string, map: ?Map,x: number = 0,y: number = 0) {
 
-	health: number;
-	iron: number;
-	fuel: number;
-	path: Array<TileHash>;
-	pathAttempts: number;
-	pathAttemptAttempts: number;
-	isPathing: boolean;
-	factoryQueue: Array<Object>; //TODO type this better
-	resourceCooldown: number;
-	transferGoal: Object;
-	awake: boolean;
-	pathUpdate: number;
-	destination: ?TileHash;
+		//unit will be blank, and should be filled by .clone()
+		if (!unitType || !map) {
+			return;
+		}
 
-	//unit stats
-	size: ?number;
-	maxHealth: ?number;
-	movementType: ?string;
-	ironStorage: ?number;
-	fuelStorage: ?number;
-	fireRate: ?number;
-	speed: ?number;
-	size: ?number;
+		// start off with loading type information
+		// to decide what components we will initialize
+		this.details.type = unitType;
+		const unitStats = db.unitStats[map.name].get(unitType);
+		if (!stats) {
+			logger.info('unit stat missing',{unitType});
+			throw new Error('unit stats missing');
+		}
+		_.defaultsDeep(this,unitStats);
 
 
-	movable: ?Object;
-
-	constructor(unitType: ?string, map: ?Map,x: ?number,y: ?number) {
-
-		this.type = unitType;
-		//uuid is set by DB
 		if (map && map.settings) {
-			this.chunkX = Math.floor(x / map.settings.chunkSize);
-			this.chunkY = Math.floor(y / map.settings.chunkSize);
-			this.map = map.name;
+			this.location.chunkX = Math.floor(x / map.settings.chunkSize);
+			this.location.chunkY = Math.floor(y / map.settings.chunkSize);
+			this.location.map = map.name;
 		}
 		x = Math.round(x);
 		y = Math.round(y);
 
-		this.x = x;
-		this.y = y;
-		this.lastTick = 0;
-		this.tileHash = [x + ":" + y];
-		this.chunkHash = [this.chunkX + ":" + this.chunkY];
+		this.location.x = x;
+		this.location.y = y;
+		this.details.lastTick = 0;
+		this.location.hash = [x + ":" + y];
+		this.location.chunkHash = [this.location.chunkX + ":" + this.location.chunkY];
 
 		//TODO optimize values stored on units depending on type
 		this.constructing = 0;
@@ -671,5 +686,3 @@ class Unit {
 	}
 
 }
-
-module.exports = Unit;
