@@ -4,13 +4,13 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var express = require('express');
-var router = express.Router();
+import express from 'express';
 
-var env = require('../../config/env.js');
-var logger = require('../../util/logger.js');
-var db = require('../../db/db.js');
+import env from '../../config/env';
+import logger from '../../util/logger';
+import db from '../../db/db';
 
+const router = express.Router();
 
 module.exports = (app) => {
 	app.get('/', (req, res) => {

@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var env = require('../config/env.js');
+import env from '../config/env';
 
 const unitKeyWhitelist = [
 	'x',

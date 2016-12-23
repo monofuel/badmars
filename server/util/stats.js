@@ -5,10 +5,10 @@
 //	Licensed under included modified BSD license
 
 import env from '../config/env';
-import logger from './logger.js';
+import logger from './logger';
 
-var avgStats = {};
-var sumStats = {};
+let avgStats = {};
+let sumStats = {};
 
 type Profile = {
 	name: string,
@@ -19,9 +19,11 @@ type Profile = {
 }
 
 var runningProfiles: {
-	[key: ProfileKey]: Profile } = {};
+	[key: ProfileKey]: Profile
+} = {};
 var profileCount: {
-	[key: string]: number } = {};
+	[key: string]: number
+} = {};
 
 exports.init = () => {
 	setInterval(reportStats, env.statReportRate * 60 * 1000);

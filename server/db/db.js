@@ -5,13 +5,13 @@
 //	Licensed under included modified BSD license
 
 import env from '../config/env';
-var logger = require('../util/logger.js');
-var helper = require('../util/helper.js');
-var r = require('rethinkdb');
+import logger from '../util/logger';
+import helper from '../util/helper';
+import r from 'rethinkdb';
 
-var DBChunk = require('./chunk.js');
-var DBUnit = require('./unit.js');
-import DBUnitStat from './unitStat.js';
+import DBChunk from './chunk';
+import DBUnit from './unit';
+import DBUnitStat from './unitStat';
 
 exports.map = require('./map.js');
 exports.user = require('./user.js');

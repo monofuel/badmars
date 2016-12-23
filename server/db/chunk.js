@@ -5,8 +5,8 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import Logger from '../util/logger.js';
-import { Chunk } from '../map/chunk.js';
+import Logger from '../util/logger';
+import Chunk from '../map/chunk';
 
 class DBChunk {
 	conn: any;

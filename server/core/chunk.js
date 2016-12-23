@@ -4,15 +4,15 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-const db = require('../db/db.js');
+import db from '../db/db';
 import env from '../config/env';
-const logger = require('../util/logger.js');
-import { Chunk } from '../map/chunk.js';
-const helper = require('../util/socketFilter.js');
-const grpc = require('grpc');
-const chunkService = grpc.load(__dirname + '/../../protos/chunk.proto').chunk;
+import logger from '../util/logger';
+import Chunk from '../map/chunk';
+import helper from '../util/socketFilter';
+import grpc from 'grpc';
+import { Context } from 'node-context';
 
-import Context from 'node-context';
+const chunkService = grpc.load(__dirname + '/../../protos/chunk.proto').chunk;
 
 exports.init = async() => {
 	const server = new grpc.Server();
@@ -45,10 +45,10 @@ async function getChunk(call, callback) {
 	let chunk = new Chunk();
 	chunk.clone(localChunk);
 
-	for (let i = 0; i < chunk.navGrid.length; i++) {
+	for(let i = 0; i < chunk.navGrid.length; i++) {
 		chunk.navGrid[i] = { items: chunk.navGrid[i] };
 	}
-	for (let i = 0; i < chunk.grid.length; i++) {
+	for(let i = 0; i < chunk.grid.length; i++) {
 		chunk.grid[i] = { items: chunk.grid[i] };
 	}
 	chunk = helper.sanitizeChunk(chunk);

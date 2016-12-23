@@ -4,18 +4,17 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var db = require('../db/db.js');
-import env from '../config/env';
-var logger = require('../util/logger.js');
-var authHandler = require('../net/handler/auth.js');
-var _ = require('lodash');
-
 import WebSocket from 'ws';
-import { Map } from '../map/map';
+import _ from 'lodash';
 
-var filter = require('../util/socketFilter.js');
+import db from '../db/db';
+import env from '../config/env';
+import logger from '../util/logger';
+import authHandler from '../net/handler/auth';
+import Map from '../map/map';
+import filter from '../util/socketFilter';
 
-var KEEP_ALIVE = 5000;
+const KEEP_ALIVE = 5000;
 
 class Client {
 	ws: WebSocket;

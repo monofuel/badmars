@@ -4,18 +4,18 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-const _ = require('lodash');
-const db = require('../db/db.js');
+import _ from 'lodash';
+import db from '../db/db';
 import env from '../config/env';
-const logger = require('../util/logger.js');
-import Unit from '../unit/unit.js';
-import { Chunk } from '../map/chunk.js';
+import logger from '../util/logger';
+import Unit from '../unit/unit';
+import Chunk from '../map/chunk';
 
 import Context from 'node-context';
 var maps = [];
 
 exports.init = async() => {
-	if (process.argv.length > 2) {
+	if(process.argv.length > 2) {
 		maps = process.argv.slice(2, process.argv.length);
 	} else {
 		maps = await db.map.listNames();
@@ -26,9 +26,9 @@ exports.init = async() => {
 	console.log('starting validation');
 	console.log('-------------------------------');
 
-	for (var mapName of maps) {
+	for(var mapName of maps) {
 		const map = await db.map.getMap(mapName);
-		if (!map) {
+		if(!map) {
 			console.log("no such map");
 			process.exit(-1);
 		}
@@ -45,7 +45,7 @@ async function validateUnits(mapName: string) {
 	let counter = 0;
 	//TODO should rename listUnits to just list (and friends)
 	const unitList = await db.units[mapName].listUnits();
-	for (const unitDoc of unitList) {
+	for(const unitDoc of unitList) {
 		counter++;
 		const unit = new Unit();
 		unit.clone(unitDoc);
@@ -58,7 +58,7 @@ async function validateChunks(mapName: string) {
 	console.log('validating chunks');
 	let counter = 0;
 	const chunkList = await db.chunks[mapName].list();
-	for (const chunkDoc of chunkList) {
+	for(const chunkDoc of chunkList) {
 		counter++;
 		const chunk = new Chunk();
 		chunk.clone(chunkDoc);
@@ -71,15 +71,15 @@ async function validateChunks(mapName: string) {
 async function checkUnitLocations(mapName: string) {
 	const unitList = await db.units[mapName].listUnits();
 	const tileMap = {};
-	for (let unit of unitList) {
-		if (!unit.tileHash) {
+	for(let unit of unitList) {
+		if(!unit.tileHash) {
 			throw new Error('unit missing tile: ' + unit.uuid);
 		}
-		if (unit.type === 'iron' || unit.type === 'oil') {
+		if(unit.type === 'iron' || unit.type === 'oil') {
 			continue;
 		}
-		for (let tileHash of unit.tileHash) {
-			if (tileMap[tileHash]) {
+		for(let tileHash of unit.tileHash) {
+			if(tileMap[tileHash]) {
 				throw new Error('conflicting tile location:' + tileHash);
 			}
 			tileMap[tileHash] = unit.uuid;
@@ -87,9 +87,9 @@ async function checkUnitLocations(mapName: string) {
 	}
 	const chunkTileMap = {};
 	const chunks = await db.chunks[mapName].listChunks();
-	for (let chunk of chunks) {
+	for(let chunk of chunks) {
 		_.each(chunk.units, (uuid, tileHash) => {
-			if (chunkTileMap[tileHash]) {
+			if(chunkTileMap[tileHash]) {
 				console.log('chunk', chunk.hash);
 				throw new Error('conflicting chunk tile location:' + tileHash);
 			}

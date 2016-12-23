@@ -5,11 +5,11 @@
 //	Licensed under included modified BSD license
 
 import { getTypeName } from './tiletypes';
-var DIRECTION = require('../map/directions.js');
+import DIRECTION from '../map/directions';
 
-import env from '../config/env.js';
-import { Map } from './map.js';
-import { Chunk } from './chunk.js';
+import env from '../config/env';
+import Map from './map';
+import Chunk from './chunk';
 
 /**
  * Representation of a point on a planet

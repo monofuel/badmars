@@ -4,11 +4,10 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var db = require('../../db/db.js');
+import db from '../../db/db';
 import env from '../../config/env';
-var logger = require('../../util/logger.js');
-
-var Unit = require('../../unit/unit.js');
+import logger from '../../util/logger';
+import Unit from '../../unit/unit';
 
 // https://www.youtube.com/watch?v=PK-tVTsSKpw
 

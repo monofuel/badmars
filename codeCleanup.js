@@ -14,7 +14,7 @@ const IGNORE = [
   'node_modules',
   'dependencies',
 	'codeCleanup.js',
-  'gulpfile.js',
+  'gulpFile.js',
   'server/ai.js',
   'server/app.js',
   'server/chunk.js',
@@ -26,7 +26,8 @@ const IGNORE = [
   'server/validator.js',
   'server/testapi.js',
   'badmars/badmars-v1.js',
-  'public/js/index.js'
+  'public/js/index.js',
+	'commands.js' // uses libraries that do not mix well with flow
 ];
 
 //TODO once we get a few things checked, perhaps refactor this code to be more efficient
@@ -38,7 +39,7 @@ function main() {
 	count += checkFlowAnnotation();
 	count += checkRequires();
 	count += noStrict();
-	//TODO catch .js extensions in import lines
+	count += nojsimport();
 
 	console.log('=============================');
 	console.log(count + ' issues detected');
@@ -73,7 +74,7 @@ function checkRequires() {
 	// prefer imports over require for code consistency in babelified code
 	recurseDir('./', ['.js'], (file) => {
 		const badLines = [];
-		const re = / require\(.*\)/g
+		const re = /(const|var|let).*require\(.*\)/g
 		const contents = fs.readFileSync(file, 'utf8').toString().split('\n');
 		_.each(contents, (line, index) => {
 			if(re.test(line)) {
@@ -114,6 +115,31 @@ function noStrict() {
 	});
 	return count;
 }
+
+function nojsimport() {
+	let count = 0;
+	// strict is added through "transform-strict-mode"
+	// so we should not have 'use strict' in any file.
+	recurseDir('./', ['.js'], (file) => {
+		const badLines = [];
+		const re = /import.*from.*'.*\.js'/g
+		const contents = fs.readFileSync(file, 'utf8').toString().split('\n');
+		_.each(contents, (line, index) => {
+			if(re.test(line)) {
+				badLines.push(index + ': ' + line);
+			}
+		});
+		if(badLines.length !== 0) {
+			console.log('=============================');
+			console.log('import file with .js, not needed');
+			console.log(file);
+			_.each(badLines, (line) => console.log(line));
+			count += badLines.length;
+		}
+	});
+	return count;
+}
+
 
 //=============================
 // helper functions

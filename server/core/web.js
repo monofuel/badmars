@@ -4,14 +4,14 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var db = require('../db/db.js');
+import express from 'express';
+import path from 'path';
+
+import db from '../db/db';
 import env from '../config/env';
-var logger = require('../util/logger.js');
+import logger from '../util/logger';
 
-var express = require('express');
-var path = require('path');
-
-import Context from 'node-context';
+import { Context } from 'node-context';
 
 exports.init = () => {
 	var app = express();

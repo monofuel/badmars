@@ -5,11 +5,11 @@
 //	Licensed under included modified BSD license
 
 import fs from 'fs';
-var db = require('../../db/db.js');
+import db from '../../db/db';
 import env from '../../config/env';
-var logger = require('../../util/logger.js');
+import logger from '../../util/logger';
 
-var unitStats = JSON.parse(fs.readFileSync('config/units.json'));
+var unitStats = JSON.parse(fs.readFileSync('config/units.json').toString());
 
 async function getUnitStats(client, data) {
 	client.send('unitStats', { units: unitStats });

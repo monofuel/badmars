@@ -4,15 +4,15 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var request = require('request');
-var os = require('os');
-var env = require('../config/env.js');
-var stats = require('./stats.js');
-var db = require('../db/db.js');
+import request from 'request';
+import os from 'os';
+import env from '../config/env';
+import stats from './stats';
+import db from '../db/db';
 import Context from 'node-context';
 stats.init();
 
-var moduleName = 'monolith';
+let moduleName = 'monolith';
 
 //list of modules to output logs for STDOUT
 const DEBUG_MODULES = ['ai'];

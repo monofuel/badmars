@@ -4,12 +4,16 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var db = require('../db/db.js');
-var hat = require('hat');
-const _ = require('lodash');
+import db from '../db/db';
+import hat from 'hat';
+import _ from 'lodash';
 
 class User {
-	constructor(userName, color) {
+	name: string;
+	color: string;
+	apiKey: string;
+
+	constructor(userName: string, color: string) {
 		this.name = userName;
 		//uuid is set by DB
 		this.apiKey = hat();
@@ -20,9 +24,7 @@ class User {
 		return db.user.saveUser(this);
 	}
 	clone(object) {
-		for(let key in object) {
-			this[key] = _.cloneDeep(object[key]);
-		}
+		_.cloneDeep(this, object);
 	}
 
 }

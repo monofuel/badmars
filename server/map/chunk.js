@@ -4,26 +4,29 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-const r = require('rethinkdb');
-const db = require('../db/db.js');
+import db from '../db/db';
 import env from "../config/env";
-const SimplexNoise = require('simplex-noise');
-const _ = require('lodash');
-const Alea = require('alea');
-const Tiletypes = require('./tiletypes.js');
-import Unit from '../unit/unit';
-const PlanetLoc = require("./planetloc.js");
-const logger = require('../util/logger.js');
+import logger from '../util/logger';
 
-import DBChunk from '../db/chunk.js';
-import { Map } from './map.js';
+import r from 'rethinkdb';
+import SimplexNoise from 'simplex-noise';
+import _ from 'lodash';
+import Alea from 'alea';
+
+import { LAND, CLIFF, WATER, COAST } from './tiletypes';
+import Unit from '../unit/unit';
+import PlanetLoc from "./planetloc";
+
+
+import DBChunk from '../db/chunk';
+import Map from './map';
 
 
 type EntityMap = {
 	[key: TileHash]: UUID
 };
 
-export class Chunk {
+export default class Chunk {
 	x: number;
 	y: number;
 	hash: string;
@@ -98,19 +101,19 @@ export class Chunk {
 				var underwater = 0;
 				var avg = (corners[0] + corners[1] + corners[2] + corners[3]) / 4;
 
-				var type = Tiletypes.LAND;
+				var type = LAND;
 				for(let k of corners) {
 					if(Math.abs(k - avg) > map.settings.cliffDelta) {
-						type = Tiletypes.CLIFF;
+						type = CLIFF;
 						break;
 					} else if(k < map.settings.waterHeight) {
 						underwater++;
 					}
 				}
 				if(underwater == 4) {
-					type = Tiletypes.WATER;
+					type = WATER;
 				} else if(underwater > 0) {
-					type = Tiletypes.COAST;
+					type = COAST;
 				}
 
 				self.navGrid[i].push(type);
@@ -124,7 +127,7 @@ export class Chunk {
 			for(let j = 0; j < self.chunkSize; j++) {
 				let y = (self.y * self.chunkSize) + j;
 
-				if(self.navGrid[i][j] != Tiletypes.LAND) {
+				if(self.navGrid[i][j] != LAND) {
 					continue;
 				}
 

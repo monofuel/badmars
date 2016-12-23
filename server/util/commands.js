@@ -1,14 +1,13 @@
-/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var env = require('../config/env.js');
-var vorpal = require('vorpal')();
-var colors = require('colors');
-var db = require('../db/db.js');
-var logger = require('../util/logger.js');
+import env from '../config/env';
+const vorpal = require('vorpal')();
+import colors from 'colors';
+import db from '../db/db';
+import logger from '../util/logger';
 
 exports.init = () => {
 	if(process.argv.length > 2) {

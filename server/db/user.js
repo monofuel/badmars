@@ -4,8 +4,8 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var r = require('rethinkdb');
-var User = require('../user/user.js');
+import r from 'rethinkdb';
+import User from '../user/user';
 
 var conn;
 var table;

@@ -4,21 +4,21 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var express = require('express');
-var router = express.Router();
-var exec = require('child_process').exec;
+import express from 'express';
+import { exec } from 'child_process';
 
-var env = require('../../config/env.js');
-var logger = require('../../util/logger.js');
-var db = require('../../db/db.js');
+import env from '../../config/env';
+import logger from '../../util/logger';
+import db from '../../db/db';
 
+const router = express.Router();
 
 module.exports = (app) => {
 	app.get('/management/pull', (req, res) => {
 		logger.requestInfo("GET /management/pull", req);
 		exec('sh update.sh', (err, stdout, stderr) => {
 			if(err) {
-				logger.error('update_hook_error', err);
+				logger.error(err);
 			}
 		});
 		res.json(JSON.stringify({ success: true }));

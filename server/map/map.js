@@ -4,18 +4,17 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-const _ = require('lodash');
-const db = require('../db/db.js');
-const logger = require('../util/logger.js');
-const helper = require('../util/helper.js');
+import _ from 'lodash';
+import db from '../db/db';
+import logger from '../util/logger';
+import helper from '../util/helper';
 import env from '../config/env';
-import { Chunk } from './chunk.js';
-const PlanetLoc = require("./planetloc.js");
-
-const Tiletypes = require('../map/tiletypes.js');
+import Chunk from './chunk';
+import PlanetLoc from "./planetloc";
+import { LAND } from './tiletypes';
 import Unit from '../unit/unit';
 
-const grpc = require('grpc');
+import grpc from 'grpc';
 
 const chunkService = grpc.load(__dirname + '/../../protos/chunk.proto').chunk;
 const mapClient = new chunkService.Map(env.mapHost + ':' + env.mapPort, grpc.credentials.createInsecure());
@@ -52,7 +51,7 @@ type ChunkCacheMap = {
 	[key: string]: CacheChunk;
 }
 
-export class Map {
+export default class Map {
 	name: string;
 	settings: Object;
 	lastTickTimestamp: number;
@@ -234,7 +233,7 @@ export class Map {
 
 	async checkValidForUnit(tile, unit, ignoreAwake) {
 		//TODO handle air and water units
-		if(tile.tileType !== Tiletypes.LAND) {
+		if(tile.tileType !== LAND) {
 			return false;
 		}
 
@@ -457,7 +456,7 @@ export class Map {
 			console.log('checking tile types');
 			var landTiles = 0;
 			for(let tile of tiles) {
-				if(tile.tileType === Tiletypes.LAND) {
+				if(tile.tileType === LAND) {
 					landTiles++;
 				}
 			}
@@ -730,7 +729,7 @@ export class Map {
 		}
 
 		//check if the tile we are checking is already free
-		if(unitsOnTile.length == 0 && center.tileType == Tiletypes.LAND) {
+		if(unitsOnTile.length == 0 && center.tileType == LAND) {
 			return center;
 		} else {
 			//check if the unit is already on this tile
@@ -780,7 +779,7 @@ export class Map {
 					closed.push(openTile);
 					continue;
 				}
-				if(openTile.tileType !== Tiletypes.LAND) {
+				if(openTile.tileType !== LAND) {
 					closed.push(openTile);
 					continue;
 				}

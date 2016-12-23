@@ -4,12 +4,11 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var db = require('../db/db.js');
+import db from '../db/db';
 import env from '../config/env';
-var logger = require('../util/logger.js');
+import logger from '../util/logger';
 
-var TILETYPE = require('../map/tiletypes.js');
-var DIRECTION = require('../map/directions.js');
+import DIRECTION from '../map/directions';
 
 class AStarPath {
 	constructor(start, end, unit) {

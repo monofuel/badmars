@@ -6,10 +6,10 @@
 
 const TABLE_NAME = 'event';
 
-var r = require('rethinkdb');
+import r from 'rethinkdb';
 
-var db = require('./db.js');
-var logger = require('../util/logger.js');
+import db from './db';
+import logger from '../util/logger';
 
 var conn = null;
 var table = null;

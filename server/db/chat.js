@@ -6,9 +6,9 @@
 
 const TABLE_NAME = 'chat';
 
-var r = require('rethinkdb');
-var db = require('./db.js');
-var logger = require('../util/logger.js');
+import r from 'rethinkdb';
+import db from './db';
+import logger from '../util/logger';
 
 var conn;
 var table;

@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var mongoose = require('mongoose');
+import mongoose from 'mongoose';
 module.exports = (authConn) => {
 	var UserSchema = new mongoose.Schema({
 		username: String,

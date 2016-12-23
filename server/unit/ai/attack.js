@@ -4,9 +4,9 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var db = require('../../db/db.js');
-var env = require('../../config/env.js');
-var logger = require('../../util/logger.js');
+import db from '../../db/db';
+import env from '../../config/env';
+import logger from '../../util/logger';
 
 //TODO not tested  yet
 exports.simulate = async(unit, map) => {

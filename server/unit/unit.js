@@ -4,29 +4,29 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var r = require('rethinkdb'); //TODO should not be imported in this file
-var db = require('../db/db.js');
-var fs = require('fs');
-const logger = require('../util/logger.js');
-const _ = require('lodash');
+import r from 'rethinkdb'; //TODO should not be imported in this file
+import db from '../db/db';
+import fs from 'fs';
+import logger from '../util/logger';
+import _ from 'lodash';
 
 import Context from 'node-context';
 
-var env = require('../config/env.js');
+import env from '../config/env';
 
-var simplePath = require('../nav/simplepath.js');
-var astarpath = require('../nav/astarpath.js');
+import simplePath from '../nav/simplepath';
+import astarpath from '../nav/astarpath';
 
-import groundUnitAI from './ai/groundunit.js';
-var attackAI = require('./ai/attack.js');
-var constructionAI = require('./ai/construction.js');
-var mineAI = require('./ai/mine.js');
+import groundUnitAI from './ai/groundunit';
+import attackAI from './ai/attack';
+import constructionAI from './ai/construction';
+import mineAI from './ai/mine';
 
 import UnitStat from './unit';
 
-import { Map } from '../map/map.js';
-import { Chunk } from '../map/chunk.js';
-const PlanetLoc = require('../map/planetloc.js');
+import Map from '../map/map';
+import Chunk from '../map/chunk';
+import PlanetLoc from '../map/planetloc';
 
 export default class Unit {
 

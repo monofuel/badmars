@@ -1,183 +1,183 @@
 {
-    "scout": {
-        "details": {
-            "size": 1,
-            "buildTime": 10,
-            "cost": 100,
-            "maxHealth": 20
-        },
-        "movable": {
-            "layer": "ground",
-            "speed": 1
-        },
-        "attack": {
-            "layers": ["ground"],
-            "range": 5.0,
-            "damage": 5,
-            "fireRate": 3
-        },
-        "storage": {
-            "maxFuel": 50
-        },
-        "graphical": {
-            "model": "TODO.obj",
-            "scale": 1
-        }
-    },
-    "builder": {
-        "details": {
-            "size": 1,
-            "buildTime": 10,
-            "cost": 250,
-            "maxHealth": 50
-        },
-        "movable": {
-            "layer": "ground",
-            "speed": 2
-        },
-        "construct": {
-            "types": [
-                "factory",
-                "storage",
-                "wall"
-            ]
-        },
-        "graphical": {
-            "model": "builder.obj",
-            "scale": 1.1
-        }
-    },
-    "tank": {
-        "details": {
-            "size": 1,
-            "buildTime": 20,
-            "cost": 300,
-            "maxHealth": 50
-        },
-        "movable": {
-            "layer": "ground",
-            "speed": 1
-        },
-        "attack": {
-            "layers": ["ground"],
-            "range": 5,
-            "fireRate": 5,
-            "damage": 15
-        },
-        "storage": {
-            "maxFuel": 50
-        },
-        "graphical": {
-            "model": "tank_mockup.obj",
-            "scale": 0.3
-        }
-    },
-    "wall": {
-        "details": {
-            "size": 1,
-            "buildTime": 10,
-            "cost": 100
-        },
-        "stationary": {
-            "layer": "ground"
-        },
-        "graphical": {
-            "model": "cube.obj",
-            "scale": 1
-        }
-    },
-    "mine": {
-        "details": {
-            "size": 1
-        },
-        "storage": {
-            "transferRange": 5
-        },
-        "stationary": {
-            "layer": "ground"
-        },
-        "graphical": {
-            "model": "mine.obj",
-            "scale": 1
-        }
-    },
-    "factory": {
-        "details": {
-            "size": 3,
-            "buildTime": 50,
-            "cost": 750
-        },
-        "construct": {
-            "types": [
-                "tank",
-                "builder",
-                "transport"
-            ]
-        },
-        "stationary": {
-            "layer": "ground"
-        },
-        "storage": {
-            "transferRange": 0
-        },
-        "graphical": {
-            "model": "factory.obj",
-            "scale": 1.1
-        }
-    },
-    "transport": {
-        "details": {
-            "size": 1
-        },
-        "storage": {
-            "transferRange": 10,
-            "maxIron": 1000,
-            "maxFuel": 1000
-        },
-        "graphical": {
-            "model": "transport.obj",
-            "scale": 1
-        }
-    },
-    "storage": {
-        "details": {
-            "size": 3
-        },
-        "stationary": {
-            "layer": "ground"
-        },
-        "storage": {
-            "transferRange": 20,
-            "maxIron": 2000,
-            "maxFuel": 2000
-        },
-        "graphical": {
-            "model": "storage.obj",
-            "scale": 1
-        }
-    },
-    "iron": {
-        "details": {
-            "size": 1
-        },
-        "stationary": {
-            "layer": "ground"
-        },
-        "graphical": {
-            "model": "iron.obj",
-            "scale": 1
-        }
-    },
-    "oil": {
-        "details": {
-            "size": 1
-        },
-        "stationary": {
-            "layer": "ground"
-        },
-        "graphical": {
-            "model": "oil.obj",
-            "scale": 1
-        }
-    }
+	"scout": {
+		"details": {
+			"size": 1,
+			"buildTime": 10,
+			"cost": 100,
+			"maxHealth": 20
+		},
+		"movable": {
+			"layer": "ground",
+			"speed": 1
+		},
+		"attack": {
+			"layers": ["ground"],
+			"range": 5.0,
+			"damage": 5,
+			"fireRate": 3
+		},
+		"storage": {
+			"maxFuel": 50
+		},
+		"graphical": {
+			"model": "TODO.obj",
+			"scale": 1
+		}
+	},
+	"builder": {
+		"details": {
+			"size": 1,
+			"buildTime": 10,
+			"cost": 250,
+			"maxHealth": 50
+		},
+		"movable": {
+			"layer": "ground",
+			"speed": 2
+		},
+		"construct": {
+			"types": [
+				"factory",
+				"storage",
+				"wall"
+			]
+		},
+		"graphical": {
+			"model": "builder.obj",
+			"scale": 1.1
+		}
+	},
+	"tank": {
+		"details": {
+			"size": 1,
+			"buildTime": 20,
+			"cost": 300,
+			"maxHealth": 50
+		},
+		"movable": {
+			"layer": "ground",
+			"speed": 1
+		},
+		"attack": {
+			"layers": ["ground"],
+			"range": 5,
+			"fireRate": 5,
+			"damage": 15
+		},
+		"storage": {
+			"maxFuel": 50
+		},
+		"graphical": {
+			"model": "tank_mockup.obj",
+			"scale": 0.3
+		}
+	},
+	"wall": {
+		"details": {
+			"size": 1,
+			"buildTime": 10,
+			"cost": 100
+		},
+		"stationary": {
+			"layer": "ground"
+		},
+		"graphical": {
+			"model": "cube.obj",
+			"scale": 1
+		}
+	},
+	"mine": {
+		"details": {
+			"size": 1
+		},
+		"storage": {
+			"transferRange": 5
+		},
+		"stationary": {
+			"layer": "ground"
+		},
+		"graphical": {
+			"model": "mine.obj",
+			"scale": 1
+		}
+	},
+	"factory": {
+		"details": {
+			"size": 3,
+			"buildTime": 50,
+			"cost": 750
+		},
+		"construct": {
+			"types": [
+				"tank",
+				"builder",
+				"transport"
+			]
+		},
+		"stationary": {
+			"layer": "ground"
+		},
+		"storage": {
+			"transferRange": 0
+		},
+		"graphical": {
+			"model": "factory.obj",
+			"scale": 1.1
+		}
+	},
+	"transport": {
+		"details": {
+			"size": 1
+		},
+		"storage": {
+			"transferRange": 10,
+			"maxIron": 1000,
+			"maxFuel": 1000
+		},
+		"graphical": {
+			"model": "transport.obj",
+			"scale": 1
+		}
+	},
+	"storage": {
+		"details": {
+			"size": 3
+		},
+		"stationary": {
+			"layer": "ground"
+		},
+		"storage": {
+			"transferRange": 20,
+			"maxIron": 2000,
+			"maxFuel": 2000
+		},
+		"graphical": {
+			"model": "storage.obj",
+			"scale": 1
+		}
+	},
+	"iron": {
+		"details": {
+			"size": 1
+		},
+		"stationary": {
+			"layer": "ground"
+		},
+		"graphical": {
+			"model": "iron.obj",
+			"scale": 1
+		}
+	},
+	"oil": {
+		"details": {
+			"size": 1
+		},
+		"stationary": {
+			"layer": "ground"
+		},
+		"graphical": {
+			"model": "oil.obj",
+			"scale": 1
+		}
+	}
 }

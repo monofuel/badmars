@@ -4,10 +4,10 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var db = require('../../db/db.js');
+import db from '../../db/db';
 import env from '../../config/env';
-var logger = require('../../util/logger.js');
-var filter = require('../../util/socketFilter.js');
+import logger from '../../util/logger';
+import filter from '../../util/socketFilter';
 
 async function getChunk(client, data) {
 	var x = data.x || 0;

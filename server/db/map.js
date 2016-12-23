@@ -4,10 +4,10 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import { Map } from '../map/map.js';
+import Map from '../map/map';
 
 import r from 'rethinkdb';
-import logger from '../util/logger.js';
+import logger from '../util/logger';
 
 const mapCache = {};
 

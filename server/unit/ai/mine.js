@@ -4,12 +4,12 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-var db = require('../../db/db.js');
-var env = require('../../config/env.js');
-var logger = require('../../util/logger.js');
+import db from '../../db/db';
+import env from '../../config/env';
+import logger from '../../util/logger';
 
 import Unit from '../unit';
-import { Map } from '../../map/map';
+import Map from '../../map/map';
 
 async function actionable(unit: Unit, map: Map): Promise < boolean > {
 	return Promise.resolve(unit.details.type === 'mine' && !unit.details.ghosting)
