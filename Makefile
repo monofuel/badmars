@@ -24,6 +24,7 @@ watchDashboard:
 check:
 	go vet .
 	flow check
+	node codeCleanup.sh
 
 test:
 	go test -cover

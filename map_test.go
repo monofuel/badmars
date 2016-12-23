@@ -54,12 +54,14 @@ func TestRemoveUser(t *testing.T) {
 	}
 }
 
+/*
 func TestRemoveMap(t *testing.T) {
 	err := Commander([]string{"removemap", mapName})
 	if err != nil {
 		t.Error(err)
 	}
 }
+*/
 
 func verify() error {
 	prog, err := exec.LookPath("node")

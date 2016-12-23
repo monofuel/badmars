@@ -1,3 +1,4 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -85,7 +86,7 @@ module.exports = (client,data) => {
 			});
 		}
 	}).catch((error) => {
-		console.log("net error: " + error);
+		console.error(error);
 		client.sendError('login',error.message);
 	});
 

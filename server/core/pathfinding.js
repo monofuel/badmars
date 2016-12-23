@@ -1,9 +1,8 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
-
-'use strict';
 
 var db = require('../db/db.js');
 var env = require('../config/env.js');
@@ -20,7 +19,7 @@ import Context from 'node-context';
 var registeredMaps = [];
 
 async function init() {
-	setInterval(registerListeners,1000);
+	setInterval(registerListeners, 1000);
 
 	await registerListeners();
 
@@ -46,7 +45,7 @@ function registerListeners() {
 	});
 }
 
-function pathfind(err,delta) {
+function pathfind(err, delta) {
 	if (err) {
 		logger.error(err);
 	}
@@ -55,7 +54,7 @@ function pathfind(err,delta) {
 		return;
 	}
 
-  //console.log('unit updated');
+	//console.log('unit updated');
 	process(delta.new_val.map);
 }
 
@@ -91,16 +90,16 @@ async function processUnit(unitDoc) {
 	//console.log(unit);
 	let map = await db.map.getMap(unit.map);
 
-	let start = await map.getLoc(unit.x,unit.y);
+	let start = await map.getLoc(unit.x, unit.y);
 	if (!unit.destination) {
 		return;
 	}
 	let destinationX = unit.destination.split(":")[0];
 	let destinationY = unit.destination.split(":")[1];
-	let dest = await map.getLoc(destinationX,destinationY);
+	let dest = await map.getLoc(destinationX, destinationY);
 
 	//if the destination is covered, get the nearest valid point.
-	let end = await map.getNearestFreeTile(dest,unit,false);
+	let end = await map.getNearestFreeTile(dest, unit, false);
 	if (!dest.equals(end)) {
 		console.log('tweaking destination');
 	}
@@ -110,7 +109,7 @@ async function processUnit(unitDoc) {
 		return;
 	}
 
-	let pathfinder = new AStarPath(start,end, unit);
+	let pathfinder = new AStarPath(start, end, unit);
 
 	if (pathfinder.generate) {
 		//console.log('generating path');
@@ -130,5 +129,5 @@ async function processUnit(unitDoc) {
 	} while (true);
 
 	await unit.setPath(path);
-	await unit.updateUnit({destination: end.x + ":" + end.y});
+	await unit.updateUnit({ destination: end.x + ":" + end.y });
 }

@@ -1,3 +1,4 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -11,12 +12,22 @@ var logger = require('../util/logger.js');
 var authHandler = require('../net/handler/auth.js');
 var _ = require('lodash');
 
+import WebSocket from 'ws';
+import {Map} from '../map/map';
+
 var filter = require('../util/socketFilter.js');
 
 var KEEP_ALIVE = 5000;
 
 class Client {
-	constructor(ws) {
+	ws: WebSocket;
+	auth: boolean;
+	handlers: Object;
+	keepAlive: number;
+	map: Map;
+	unitStatWatcher: any;
+
+	constructor(ws: WebSocket) {
 		this.ws = ws;
 		this.auth = false;
 		this.handlers = {};

@@ -1,12 +1,11 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-'use strict';
-
 const db = require('../db/db.js');
-const env = require('../config/env.js');
+import env from '../config/env';
 const logger = require('../util/logger.js');
 const grpc = require('grpc');
 
@@ -54,9 +53,9 @@ async function tryNewTick(name) {
 
 		const unitPromises = [];
 		for (let key of unitKeys) {
-			const message = {uuid:key.uuid,mapName:map.name,tick:map.lastTick};
-			unitPromises.push(new Promise((resolve,reject) => {
-				aiClient.processUnit(message,(err,response) => {
+			const message = { uuid: key.uuid, mapName: map.name, tick: map.lastTick };
+			unitPromises.push(new Promise((resolve, reject) => {
+				aiClient.processUnit(message, (err, response) => {
 					if (err) {
 						return reject(err);
 					}
@@ -66,7 +65,7 @@ async function tryNewTick(name) {
 		}
 		//console.log('requests sent');
 		let results = await Promise.all(unitPromises).catch((err) => {
-			console.log('grpc error:',err);
+			console.log('grpc error:', err);
 		});
 		//TODO verify results
 		//console.log('results are in');
