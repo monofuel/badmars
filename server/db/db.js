@@ -4,8 +4,6 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-'use strict';
-
 import env from '../config/env';
 var logger = require('../util/logger.js');
 var helper = require('../util/helper.js');

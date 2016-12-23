@@ -1,9 +1,8 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
-
-'use strict';
 
 var env = require('../config/env.js');
 var vorpal = require('vorpal')();
@@ -12,9 +11,9 @@ var db = require('../db/db.js');
 var logger = require('../util/logger.js');
 
 exports.init = () => {
-	if (process.argv.length > 2) {
-		const commands = process.argv.slice(2,process.argv.length);
-		console.log("handling command:",commands.join(' '));
+	if(process.argv.length > 2) {
+		const commands = process.argv.slice(2, process.argv.length);
+		console.log("handling command:", commands.join(' '));
 		vorpal.exec(commands.join(' ')).then(process.exit);
 
 	} else {
@@ -67,21 +66,21 @@ vorpal.command('createmap <name>', 'create a new random map')
 	});
 
 
-	//==================================================================
-	// user methods
-	vorpal.command('createuser <name> [apikey]', 'create a user account with an api key')
-		.action((args, callback) => {
-			return db.user.createUser(args.name,'0xffffff').then((result) => {
-					if (result.inserted !== 1) {
-						throw new Error('failed to create user');
-					}
-					if (args.apikey) {
-						return db.user.updateUser(args.name,{apiKey: args.apikey});
-					}
-			}).then((result) => {
-				console.log(result);
-			})
-		});
+//==================================================================
+// user methods
+vorpal.command('createuser <name> [apikey]', 'create a user account with an api key')
+	.action((args, callback) => {
+		return db.user.createUser(args.name, '0xffffff').then((result) => {
+			if(result.inserted !== 1) {
+				throw new Error('failed to create user');
+			}
+			if(args.apikey) {
+				return db.user.updateUser(args.name, { apiKey: args.apikey });
+			}
+		}).then((result) => {
+			console.log(result);
+		})
+	});
 
 vorpal.command('removeuser <name>', 'remove all accounts with a given name')
 	.action((args, callback) => {

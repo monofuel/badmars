@@ -4,8 +4,6 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-'use strict';
-
 const r = require('rethinkdb');
 const db = require('../db/db.js');
 import env from "../config/env";

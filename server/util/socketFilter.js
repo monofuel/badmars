@@ -1,9 +1,8 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
-
-'use strict';
 
 var env = require('../config/env.js');
 
@@ -31,7 +30,7 @@ module.exports.sanitizeUnit = function sanitizeUnit(unit) {
 
 	//whitelist
 	let sanitized = {}
-	for (let key of unitKeyWhitelist) {
+	for(let key of unitKeyWhitelist) {
 		sanitized[key] = unit[key];
 	}
 	return sanitized;
@@ -51,7 +50,7 @@ module.exports.sanitizeChunk = function sanitizeChunk(chunk) {
 
 	//whitelist
 	let sanitized = {}
-	for (let key of chunkKeyWhitelist) {
+	for(let key of chunkKeyWhitelist) {
 		sanitized[key] = chunk[key];
 	}
 	return sanitized;

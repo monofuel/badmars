@@ -4,8 +4,6 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-'use strict';
-
 var request = require('request');
 var os = require('os');
 var env = require('../config/env.js');
@@ -35,7 +33,7 @@ function unhandled(err) {
 		console.log('failed to track unhandled error');
 	}
 	console.log('uncaught exception, bailing out');
-  process.exit(1);
+	process.exit(1);
 };
 
 //==================================================================
@@ -73,8 +71,8 @@ module.exports.requestInfo = (info, req) => {
 		ip: req.ip,
 		username: req.user.username
 	});
-	if (req.ip) {
-		if (req.isAuthenticated && req.isAuthenticated()) {
+	if(req.ip) {
+		if(req.isAuthenticated && req.isAuthenticated()) {
 			console.log("INFO: " + dateFormat(timestamp) + ": " + info + " FROM: " + req.ip + " USER: " + req.user.username);
 		} else {
 			console.log("INFO: " + dateFormat(timestamp) + ": " + info + " FROM: " + req.ip);
@@ -89,12 +87,12 @@ module.exports.info = (info, body, silent) => {
 	let timestamp = new Date();
 	body = body || {};
 	body.timestamp = timestamp.getTime();
-	track(info,body);
-	if (silent) {
+	track(info, body);
+	if(silent) {
 		return;
-	} else if (!DEBUG_MODULES.includes(moduleName)) {
+	} else if(!DEBUG_MODULES.includes(moduleName)) {
 		return;
-	} else if (body) {
+	} else if(body) {
 		console.log("INFO: " + dateFormat(timestamp) + ": " + info + " : " + moduleName);
 	} else {
 		console.log("INFO: " + dateFormat(timestamp) + ": " + info);
@@ -105,7 +103,7 @@ module.exports.info = (info, body, silent) => {
 // functions
 
 function checkContext(ctx: Context, msg: string) {
-	if (!ctx.cancelled) {
+	if(!ctx.cancelled) {
 		return;
 	}
 	throw new Error('context cancelled: ' + msg);
@@ -116,9 +114,9 @@ function dateFormat(date: Date) {
 	return date.getMonth() + "/" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes();
 }
 
-function verifyTrack(name: string, kargs: ?Object) {
-	for (let key in kargs) {
-		if (typeof kargs[key] == 'object') {
+function verifyTrack(name: string, kargs: ? Object) {
+	for(let key in kargs) {
+		if(typeof kargs[key] == 'object') {
 			console.log('invalid element ' + key + ' on ' + name);
 			delete kargs[key];
 			track('error', {
@@ -129,19 +127,19 @@ function verifyTrack(name: string, kargs: ?Object) {
 }
 
 
-function track(name: string, kargs: ?Object) {
+function track(name: string, kargs: ? Object) {
 	kargs = kargs || {};
-	for (let key of Object.keys(kargs)) {
-		if (!kargs[key]) { //delete null fields
+	for(let key of Object.keys(kargs)) {
+		if(!kargs[key]) { //delete null fields
 			delete kargs[key];
 		}
 	}
-	name = name.replace(/ /g,"_").replace(/:/g," ");
+	name = name.replace(/ /g, "_").replace(/:/g, " ");
 	kargs.name = "server_" + name;
 	kargs.module = moduleName;
 	kargs.hostname = os.hostname();
 	kargs.env = env.envType;
-	verifyTrack(name,kargs);
+	verifyTrack(name, kargs);
 
 	db.event.addEvent(kargs);
 	/*

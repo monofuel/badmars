@@ -13,6 +13,7 @@ const IGNORE = [
   'client/', //TODO remove this
   'node_modules',
   'dependencies',
+	'codeCleanup.js',
   'gulpfile.js',
   'server/ai.js',
   'server/app.js',
@@ -51,13 +52,13 @@ function checkFlowAnnotation() {
 	recurseDir('./', ['.js'], (file) => {
 		const contents = fs.readFileSync(file, 'utf8').toString().split('\n');
 		const firstLine = contents[0];
-		if (firstLine !== '/* @flow */' && firstLine !== '/* @flow weak */') {
+		if(firstLine !== '/* @flow */' && firstLine !== '/* @flow weak */') {
 			console.log('=============================');
 			console.log('file does not start with /* @flow */');
 			console.log(file)
 			console.log('found: ', firstLine);
 			count++;
-		} else if (STRICT && firstLine !== '/* @flow weak */') {
+		} else if(STRICT && firstLine !== '/* @flow weak */') {
 			console.log('=============================');
 			console.log('file is weakly flowtyped');
 			console.log(file);
@@ -75,11 +76,11 @@ function checkRequires() {
 		const re = / require\(.*\)/g
 		const contents = fs.readFileSync(file, 'utf8').toString().split('\n');
 		_.each(contents, (line, index) => {
-			if (re.test(line)) {
+			if(re.test(line)) {
 				badLines.push(index + ': ' + line);
 			}
 		});
-		if (badLines.length !== 0) {
+		if(badLines.length !== 0) {
 			console.log('=============================');
 			console.log('file has requires, replace with import for consistency');
 			console.log(file);
@@ -99,11 +100,11 @@ function noStrict() {
 		const re = /'use.strict'/g
 		const contents = fs.readFileSync(file, 'utf8').toString().split('\n');
 		_.each(contents, (line, index) => {
-			if (re.test(line)) {
+			if(re.test(line)) {
 				badLines.push(index + ': ' + line);
 			}
 		});
-		if (badLines.length !== 0) {
+		if(badLines.length !== 0) {
 			console.log('=============================');
 			console.log('file use strict, unnecessary');
 			console.log(file);
@@ -119,23 +120,23 @@ function noStrict() {
 //=============================
 
 function recurseDir(dir, fileTypes, fileFunc) {
-	if (!dir || !fileTypes || !fileFunc) {
+	if(!dir || !fileTypes || !fileFunc) {
 		console.log('bad args for recurseDir', dir, fileTypes, fileFunc);
 	}
 	const files = fs.readdirSync(dir);
 	files.forEach((file) => {
 
 		const filePath = path.resolve(dir, file);
-		if (_.find(IGNORE, (filter) => { return filePath.includes(filter) })) {
+		if(_.find(IGNORE, (filter) => { return filePath.includes(filter) })) {
 			return;
 		}
 		const stat = fs.statSync(filePath);
-		if (stat.isDirectory()) {
+		if(stat.isDirectory()) {
 			recurseDir(filePath, fileTypes, fileFunc);
 		}
-		if (stat.isFile()) {
+		if(stat.isFile()) {
 			_.each(fileTypes, (type) => {
-				if (file.endsWith(type)) {
+				if(file.endsWith(type)) {
 					fileFunc(filePath);
 				}
 			})

@@ -4,8 +4,6 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-'use strict';
-
 import r from 'rethinkdb';
 import Logger from '../util/logger.js';
 import { Chunk } from '../map/chunk.js';

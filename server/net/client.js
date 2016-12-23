@@ -4,16 +4,14 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-'use strict';
-
 var db = require('../db/db.js');
-var env = require('../config/env.js');
+import env from '../config/env';
 var logger = require('../util/logger.js');
 var authHandler = require('../net/handler/auth.js');
 var _ = require('lodash');
 
 import WebSocket from 'ws';
-import {Map} from '../map/map';
+import { Map } from '../map/map';
 
 var filter = require('../util/socketFilter.js');
 
@@ -51,20 +49,20 @@ class Client {
 		this.keepAlive = setInterval(() => {
 			try {
 				this.ws.ping();
-			} catch (err) {
+			} catch(err) {
 				clearInterval(self.keepAlive);
 			}
 		}, KEEP_ALIVE);
 	}
 
 	send(type, data) {
-		if (!this.ws) return;
+		if(!this.ws) return;
 		data = data || {};
 		data.type = type;
 		data.success = true;
 		try {
 			this.ws.send(JSON.stringify(data));
-		} catch (err) {
+		} catch(err) {
 			this.handleLogOut();
 		}
 	}
@@ -77,19 +75,19 @@ class Client {
 				success: false,
 				reason: errMsg
 			}));
-		} catch (err) {
+		} catch(err) {
 			this.handleLogOut();
 		}
 	}
 
 	handleLogOut() {
 		logger.info('client closed connection');
-		if (this.username) {
+		if(this.username) {
 			logger.info('logout', {
 				player: this.username
 			});
 		}
-		if (this.unitStatWatcher) {
+		if(this.unitStatWatcher) {
 			this.unitStatWatcher.close();
 		}
 		clearInterval(this.keepAlive);
@@ -102,7 +100,7 @@ class Client {
 		//console.log('received' + data);
 		data = JSON.parse(data);
 
-		if (!data.type || !self.handlers[data.type]) {
+		if(!data.type || !self.handlers[data.type]) {
 			self.sendError('invalid', 'invalid request');
 			return;
 		}
@@ -133,9 +131,9 @@ class Client {
 
 	//TODO also handle player list updates
 	handleUnitUpdate(err, delta) {
-		if (!delta.new_val) {
+		if(!delta.new_val) {
 			console.log('unit destroyed');
-			if (delta.old_val) {
+			if(delta.old_val) {
 				//TODO update client for new 'kill' system.
 				this.send('kill', {
 					unitId: delta.old_val.uuid
@@ -148,10 +146,10 @@ class Client {
 
 			let newUnit = filter.sanitizeUnit(delta.new_val);
 
-			if (delta.old_val) {
+			if(delta.old_val) {
 				//console.log('unit change');
 				let oldUnit = filter.sanitizeUnit(delta.old_val);
-				if (!_.isEqual(newUnit, oldUnit)) {
+				if(!_.isEqual(newUnit, oldUnit)) {
 					//console.log('sending unit update');
 					//if (newUnit.iron != oldUnit.iron) {
 					//	console.log('sending iron change');
@@ -170,7 +168,7 @@ class Client {
 	}
 
 	handleEvents(err, data) {
-		if (err) {
+		if(err) {
 			console.log('event handler error');
 			console.log(err);
 			return;
@@ -179,40 +177,40 @@ class Client {
 		//console.log('recieving event');
 		//console.log(data.new_val);
 		let gameEvent = data.new_val;
-		if (gameEvent.name !== 'server_gameEvent') {
+		if(gameEvent.name !== 'server_gameEvent') {
 			return;
 		}
 
 		switch(gameEvent.type) {
-			case 'attack':
-				console.log('attack event');
-				if (!gameEvent.enemyId) {
-					console.log('invalid attack event:' + gameEvent.id);
-				}
-				if (!gameEvent.unitId) {
-					console.log('invalid attack event:' + gameEvent.id);
-				}
-				this.send('attack',{enemyId:gameEvent.enemyId,unitId:gameEvent.unitId});
-				break;
-			case 'kill':
-				console.log('kill event');
-				if (!gameEvent.unitId) {
-					console.log('invalid kill event:' + gameEvent.id);
-				}
-				this.send('attack',{unitId:gameEvent.unitId});
-				break;
-			default:
-				console.log('unhandled game event: ' + gameEvent.type);
+		case 'attack':
+			console.log('attack event');
+			if(!gameEvent.enemyId) {
+				console.log('invalid attack event:' + gameEvent.id);
+			}
+			if(!gameEvent.unitId) {
+				console.log('invalid attack event:' + gameEvent.id);
+			}
+			this.send('attack', { enemyId: gameEvent.enemyId, unitId: gameEvent.unitId });
+			break;
+		case 'kill':
+			console.log('kill event');
+			if(!gameEvent.unitId) {
+				console.log('invalid kill event:' + gameEvent.id);
+			}
+			this.send('attack', { unitId: gameEvent.unitId });
+			break;
+		default:
+			console.log('unhandled game event: ' + gameEvent.type);
 		}
 	}
 
-	handleChat(err,data) {
-		if (err) {
+	handleChat(err, data) {
+		if(err) {
 			console.log('chat handler error');
 			console.log(err);
 			return;
 		}
-		this.send('chat',data.new_val);
+		this.send('chat', data.new_val);
 	}
 }
 module.exports = Client;
