@@ -2,7 +2,7 @@
 .*/node_modules/protobufjs/src/bower.json
 .*/node_modules/gulp-flowtype/test/*
 .*/node_modules/fbjs/*
-.*/node_modules/jsonlint/*
+.*/node_modules/jsonlint/test/*
 
 
 [include]
