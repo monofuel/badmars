@@ -13,7 +13,7 @@ const SimplexNoise = require('simplex-noise');
 const _ = require('lodash');
 const Alea = require('alea');
 const Tiletypes = require('./tiletypes.js');
-const Unit = require('../unit/unit.js');
+import Unit from '../unit/unit';
 const PlanetLoc = require("./planetloc.js");
 const logger = require('../util/logger.js');
 
@@ -221,7 +221,7 @@ export class Chunk {
 	//moveUnit tries to move a unit, and returns success
 	async moveUnit(unit: Unit,newTile: PlanetLoc): Promise<Success> {
 		await this.refresh();
-		const oldTile = await unit.getLoc();
+		const oldTiles = await unit.getLocs();
 
 		let success = await newTile.chunk.getChunkDB().setUnit(newTile.chunk,unit.uuid, newTile.hash);
 		if (!success) {
@@ -234,7 +234,7 @@ export class Chunk {
 			return false;
 		}
 
-		success = await oldTile.chunk.clearUnit(unit.uuid, oldTile.hash);
+		success = await oldTiles[0].chunk.clearUnit(unit.uuid, oldTiles[0].hash);
 		if (!success) {
 			console.log('failed clearing old position');
 		}

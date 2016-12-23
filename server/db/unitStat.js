@@ -112,7 +112,7 @@ export default class DBUnitStat {
 
   async put(stat: UnitStat) {
     let profile = logger.startProfile('saveUnitStat');
-		let result = await this.table.get(stat.type).update(stat).run(this.conn);
+		let result = await this.table.get(stat.details.type).update(stat).run(this.conn);
 		logger.endProfile(profile);
 		return result;
   }

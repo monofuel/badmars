@@ -60,6 +60,12 @@ function handleError(err: Error) {
 };
 module.exports.error = handleError;
 
+//throw a generic error message, but log specific information for debugging
+module.exports.errorWithInfo = (msg: string, details: Object) => {
+	exports.info(msg, details);
+	throw new Error(msg);
+}
+
 module.exports.requestInfo = (info, req) => {
 	var timestamp = new Date();
 	req.user = req.user || {};
@@ -104,6 +110,7 @@ function checkContext(ctx: Context, msg: string) {
 	}
 	throw new Error('context cancelled: ' + msg);
 }
+exports.checkContext = checkContext;
 
 function dateFormat(date: Date) {
 	return date.getMonth() + "/" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes();

@@ -15,7 +15,7 @@ import {Chunk} from './chunk.js';
 const PlanetLoc = require("./planetloc.js");
 
 const Tiletypes = require('../map/tiletypes.js');
-const Unit = require('../unit/unit.js');
+import Unit from '../unit/unit';
 
 const grpc = require('grpc');
 
@@ -199,7 +199,7 @@ export class Map {
 	}
 
 	async spawnUnit(newUnit:Unit):Promise<?Unit> {
-		console.log('spawning unit: ' + newUnit.type);
+		console.log('spawning unit: ' + newUnit.details.type);
 		for (let loc of await newUnit.getLocs()) {
 			if (!await this.checkValidForUnit(loc,newUnit)) {
 				return null;
@@ -216,7 +216,7 @@ export class Map {
 	//this prevents a loop of trying to validate against a chunk that
 	//is not yet generated (hence infinite loop)
 	async spawnUnitWithoutTileCheck(newUnit: Unit): Promise<Unit> {
-		console.log('force spawning unit: ' + newUnit.type);
+		console.log('force spawning unit: ' + newUnit.details.type);
 		return db.units[this.name].addUnit(newUnit);
 	}
 	async spawnAndValidate(newUnit:Unit):Promise<?Unit> {

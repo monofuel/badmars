@@ -203,13 +203,12 @@ export class Map {
 			if (unit.type === 'mine') {
 				console.log(unit);
 			}
-			for (var oldUnit of self.units) {
+			self.units.forEach((oldUnit: Object) => {
 				if (oldUnit.uuid === unit.uuid) {
 
 					//update monkeypatch
 					//TODO make this more elegant
 					for (let key of Object.keys(unit)) {
-						// $FlowFixMe: hiding this issue for now
 						oldUnit[key] = unit[key];
 						let skipChunk = playerInfo && unit.owner !== playerInfo.id
 						let tile = new PlanetLoc(self,unit.x,unit.y,(playerInfo && unit && unit.owner !== playerInfo.id));
@@ -221,7 +220,7 @@ export class Map {
 					//console.log('updating unit');
 					return;
 				}
-			}
+			});
 			if (playerInfo && unit.owner !== playerInfo.id) {
 				let tile = new PlanetLoc(self,unit.x,unit.y,true);
 				if (!tile.chunk) {
@@ -501,6 +500,7 @@ export class Map {
 		const y = newLocation[1];
 		if (unit && unit.updateNextMove) {
 			var tile = new PlanetLoc(unit.location.planet, x, y);
+			// $FlowFixMe better flowtyping for entities
 			return unit.updateNextMove(tile, time);
 		}
 		if (!unit) {

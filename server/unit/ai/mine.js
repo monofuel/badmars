@@ -1,3 +1,4 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -8,6 +9,13 @@
 var db = require('../../db/db.js');
 var env = require('../../config/env.js');
 var logger = require('../../util/logger.js');
+
+import Unit from '../unit';
+import {Map} from '../../map/map';
+
+async function actionable(unit: Unit, map: Map): Promise<boolean>{
+	return Promise.resolve(unit.details.type === 'mine' && !unit.details.ghosting)
+}
 
 //TODO
 //not tested yet
@@ -46,3 +54,4 @@ async function pullResource(unit,map) {
 }
 
 exports.simulate = pullResource;
+exports.actionable = actionable;

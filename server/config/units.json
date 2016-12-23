@@ -35,11 +35,13 @@
             "layer": "ground",
             "speed": 2
         },
-        "construct": [
-            "factory",
-            "storage",
-            "wall"
-        ],
+        "construct": {
+            "types": [
+                "factory",
+                "storage",
+                "wall"
+            ]
+        },
         "graphical": {
             "model": "builder.obj",
             "scale": 1.1
@@ -105,11 +107,13 @@
             "buildTime": 50,
             "cost": 750
         },
-        "constructor": [
-            "tank",
-            "builder",
-            "transport"
-        ],
+        "construct": {
+            "types": [
+                "tank",
+                "builder",
+                "transport"
+            ]
+        },
         "stationary": {
             "layer": "ground"
         },
@@ -137,7 +141,7 @@
     },
     "storage": {
         "details": {
-            "size": 1
+            "size": 3
         },
         "stationary": {
             "layer": "ground"
@@ -149,6 +153,30 @@
         },
         "graphical": {
             "model": "storage.obj",
+            "scale": 1
+        }
+    },
+    "iron": {
+        "details": {
+            "size": 1
+        },
+        "stationary": {
+            "layer": "ground"
+        },
+        "graphical": {
+            "model": "iron.obj",
+            "scale": 1
+        }
+    },
+    "oil": {
+        "details": {
+            "size": 1
+        },
+        "stationary": {
+            "layer": "ground"
+        },
+        "graphical": {
+            "model": "oil.obj",
             "scale": 1
         }
     }

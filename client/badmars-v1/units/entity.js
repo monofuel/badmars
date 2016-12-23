@@ -53,6 +53,7 @@ export class Entity {
 	destination: string;
 	fuel: number;
 	iron: number;
+	transferRange: number;
 
 	maxStorage: number;
 	storage: Object;
@@ -69,6 +70,7 @@ export class Entity {
 		this.ghosting = false;
 		this.selectionSize = 1.1;
 		this.factoryQueue = [];
+		this.transferRange = 0;
 
 		this.maxStorage = 0;
 		this.storage = {

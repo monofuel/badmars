@@ -20,6 +20,7 @@ const MOVABLE_FIELDS = ['layer','speed'];
 const ATTACK_FIELDS = ['layers','range','damage','fireRate'];
 const STORAGE_FIELDS = ['maxIron','maxFuel','transferRange'];
 const STATIONARY_FIELDS = ['layer'];
+const CONSTRUCT_FIELDS = ['types']
 const GRAPHICAL_FIELDS = ['model','scale'];
 
 const VALID_LAYERS = ['ground', 'air','water'];
@@ -54,7 +55,11 @@ export default class UnitStat {
 
   constructor(type: string, stats: Object) {
     _.defaultsDeep(this,stats);
-    _.defaultsDeep(this,COMPONENT_DEFAULTS);
+    //_.defaultsDeep(this,COMPONENT_DEFAULTS);
+    _.defaultsDeep(this.details,COMPONENT_DEFAULTS.details);
+    if (this.storage) {
+      _.defaultsDeep(this.storage,COMPONENT_DEFAULTS.storage);
+    }
   }
 
   validateSync() {
@@ -80,7 +85,10 @@ export default class UnitStat {
       throwError('missing detail component');
     }
     if (typeof this.details.size !== 'number') {
-      throwError('invalid size');
+      throwError('invalid size type');
+    }
+    if (this.details.size <= 0) {
+      throwError('invalid size value');
     }
     if (typeof this.details.buildTime !== 'number') {
       throwError('invalid build time');
@@ -100,24 +108,23 @@ export default class UnitStat {
     //==============================
     // STORAGE
     //==============================
-    if (!this.storage) {
-      throwError('missing storage component');
-    }
-    if (typeof this.storage.maxIron !== 'number') {
-      throwError('invalid maxIron');
-    }
-    if (typeof this.storage.maxFuel !== 'number') {
-      throwError('invalid maxFuel');
-    }
-    if (typeof this.storage.transferRange !== 'number') {
-      throwError('invalid transferRange');
-    }
-
-    _.map(this.storage,(value,key) => {
-      if (!_.includes(STORAGE_FIELDS,key)) {
-        throwError("bad storage field " + key);
+    if (this.storage) {
+      if (typeof this.storage.maxIron !== 'number') {
+        throwError('invalid maxIron');
       }
-    });
+      if (typeof this.storage.maxFuel !== 'number') {
+        throwError('invalid maxFuel');
+      }
+      if (typeof this.storage.transferRange !== 'number') {
+        throwError('invalid transferRange');
+      }
+
+      _.map(this.storage,(value,key) => {
+        if (!_.includes(STORAGE_FIELDS,key)) {
+          throwError("bad storage field " + key);
+        }
+      });
+    }
 
     //==============================
     // MOVABLE
@@ -190,8 +197,8 @@ export default class UnitStat {
     //==============================
 
     if (this.construct) {
-      if (!Array.isArray(this.construct)) {
-        throwError('construct needs to be an array');
+      if (!Array.isArray(this.construct.types)) {
+        throwError('construct.types needs to be an array');
       }
     }
 

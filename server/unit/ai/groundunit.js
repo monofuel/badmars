@@ -1,3 +1,4 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -9,12 +10,17 @@ var db = require('../../db/db.js');
 var env = require('../../config/env.js');
 var logger = require('../../util/logger.js');
 
-
 var TILETYPES = require('../../map/tiletypes.js');
 var DIRECTION = require('../../map/directions.js');
 
-//TODO
-//not tested yet
+import Unit from '../unit';
+import {Map} from '../../map/map';
+
+async function actionable(unit: Unit, map: Map): Promise<boolean>{
+	//TODO return if we can move or not
+	return false;
+}
+
 async function simulate(unit,map) {
 
 	if (await unit.tickMovement()) {
@@ -161,4 +167,7 @@ async function simulate(unit,map) {
 	return true;
 }
 
-exports.simulate = simulate;
+export default {
+	actionable,
+	simulate
+}

@@ -47,7 +47,7 @@ async function GRPCProcessUnit(call,callback: Function) {
 			Logger.info('unit missing',{uuid});
 			throw new Error('unit missing');
 		}
-		await processUnit(unit);
+		await processUnit(ctx,unit);
 		Logger.checkContext(ctx,"processing unit");
 
 		callback(null,{success:true});
@@ -57,7 +57,7 @@ async function GRPCProcessUnit(call,callback: Function) {
 	}
 }
 
-async function processUnit(unit) {
+async function processUnit(ctx,unit) {
 	//logger.addSumStat('unit_AI',1);
-	await unit.simulate();
+	await unit.simulate(ctx);
 }
