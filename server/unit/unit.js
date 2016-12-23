@@ -108,15 +108,14 @@ export default class Unit {
 
 		// start off with loading type information
 		// to decide what components we will initialize
-		this.details.type = unitType;
-		this.location.map = map.name;
-
-		const unitStats = this.getTypeInfo();
+		const unitStats = db.unitStats[map.name].get(unitType);
 		if (!unitStats) {
 			logger.info('unit stat missing',{unitType});
 			throw new Error('unit stats missing');
 		}
 		_.defaultsDeep(this,unitStats);
+
+		this.details.type = unitType;
 		this.awake = true;
 
 		//------------------
@@ -128,28 +127,38 @@ export default class Unit {
 		//------------------
 		// location init
 
-		this.location.chunkX = Math.floor(x / map.settings.chunkSize);
-		this.location.chunkY = Math.floor(y / map.settings.chunkSize);
+		const chunkX = Math.floor(x / map.settings.chunkSize);
+		const chunkY = Math.floor(y / map.settings.chunkSize);
 
 		x = Math.round(x);
 		y = Math.round(y);
 
-		this.location.x = x;
-		this.location.y = y;
+		let hash = [];
+		let chunkHash = [];
 		this.details.lastTick = 0;
 		if (this.details.size === 1) {
-			this.location.hash = [x + ":" + y];
-			this.location.chunkHash = [this.location.chunkX + ":" + this.location.chunkY];
+			hash = [x + ":" + y];
+			chunkHash = [chunkX + ":" + chunkY];
 		} else if (this.details.size === 3) {
 			//TODO multi-chunk should have all chunks listed
-			this.location.chunkHash = [this.location.chunkX + ":" + this.location.chunkY];
-			this.location.hash = [
+			chunkHash = [chunkX + ":" + chunkY];
+			hash = [
 				(x-1) +":" + (y-1), (x) +":" + (y-1), (x+1) +":" + (y-1),
 				(x-1) +":" + (y), (x) +":" + (y), (x+1) +":" + (y),
 				(x-1) +":" + (y+1), (x) +":" + (y+1), (x+1) +":" + (y+1)
 			];
 		} else {
 			logger.errorWithInfo('invalid unit size',{type: unitType, size: this.details.size});
+		}
+
+		this.location = {
+			map: map.name,
+			x,
+			y,
+			hash,
+			chunkX,
+			chunkY,
+			chunkHash
 		}
 
 		//------------------
@@ -187,7 +196,7 @@ export default class Unit {
 	}
 
 	async simulate(ctx: Context) {
-
+		//TODO pass context through stuff
 		//------------------
 		// init
 		this.awake = false;

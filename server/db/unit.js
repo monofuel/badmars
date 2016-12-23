@@ -211,7 +211,7 @@ class DBUnit {
 			units.push(this.loadUnit(doc));
 		}).catch((err) => {
 			//dumb rethinkDB bug
-			if (err.message === 'No more rows in the cursoR.') {
+			if (err.message === 'No more rows in the cursor.') {
 				return;
 			}
 			throw err;
@@ -225,8 +225,8 @@ class DBUnit {
 			return null;
 		}
 		let profile = Logger.startProfile('loadUnit');
-		let map = await DB.map.getMap(doc.map);
-		let unit = new Unit(doc.type, map, doc.x, doc.y);
+		let map = await DB.map.getMap(doc.location.map);
+		let unit = new Unit(doc.type, map, doc.location.x, doc.location.y);
 		unit.clone(doc);
 		Logger.endProfile(profile);
 		return unit;
