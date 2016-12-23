@@ -25,7 +25,7 @@ export default {
 
 	dbHost: process.env.BADMARS_DB || 'localhost',
 	database: process.env.BADMARS_DATABASE || 'badmars',
-	dbPort: process.env.BADMARS_DB_PORT,
+	dbPort: parseInt(process.env.BADMARS_DB_PORT),
 	dbUser: process.env.BADMARS_DB_USER,
 	dbPassword: process.env.BADMARS_DB_PASSWORD,
 	wwwPort: process.env.BADMARS_WWW || '3002',

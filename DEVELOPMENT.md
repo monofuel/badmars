@@ -23,7 +23,6 @@
 	- keep array indentation
 	- preserve newlines
 	- space after annon function
-	- space before conditional
 
 - javascript is not currently linted, so atom-beautify is not enforced.
  - TODO find a linter that cooperates with flowtype

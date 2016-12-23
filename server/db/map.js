@@ -1,11 +1,10 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-'use strict';
-
-import {Map} from '../map/map.js';
+import { Map } from '../map/map.js';
 
 import r from 'rethinkdb';
 import logger from '../util/logger.js';
@@ -19,34 +18,34 @@ exports.init = (connection) => {
 	conn = connection;
 	return r.tableList().run(conn)
 		.then((tableList) => {
-			if (tableList.indexOf('map') == -1) {
+			if(tableList.indexOf('map') == -1) {
 				console.log('creating map table');
-				return r.tableCreate('map',{primaryKey: 'name'}).run(conn);
+				return r.tableCreate('map', { primaryKey: 'name' }).run(conn);
 			}
 		}).then(() => {
 			table = r.table('map');
 		});
 };
 
-exports.listNames = async () => {
+exports.listNames = async() => {
 	return table.getField('name').coerceTo('array').run(conn);
 };
 
 exports.getMap = async function getMap(name) {
-	if (!name) {
+	if(!name) {
 		throw new Error('missing map name');
 	}
 	let profile = logger.startProfile('getMap');
-	if (mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/) {
-		logger.addSumStat('mapCacheHit',1);
+	if(mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/ ) {
+		logger.addSumStat('mapCacheHit', 1);
 		logger.endProfile(profile);
 		return mapCache[name].map;
 	} else {
-		logger.addSumStat('mapCacheMissOrRefresh',1);
+		logger.addSumStat('mapCacheMissOrRefresh', 1);
 	}
 
 	let doc = await table.get(name).run(conn);
-	if (!doc) {
+	if(!doc) {
 		return null;
 	}
 	var map = new Map();
@@ -60,7 +59,7 @@ exports.getMap = async function getMap(name) {
 	return map;
 };
 
-exports.registerListener = (name,func) => {
+exports.registerListener = (name, func) => {
 	table.get(name).changes().run(conn).then((cursor) => {
 		cursor.each(func);
 	});
@@ -76,10 +75,10 @@ exports.saveMap = (map) => {
 	return table.get(map.name).update(map).run(conn);
 };
 exports.createMap = (map) => {
-	return table.insert(map,{conflict:"error"}).run(conn);
+	return table.insert(map, { conflict: "error" }).run(conn);
 };
 
-exports.updateMap = async (name,patch) => {
+exports.updateMap = async(name, patch) => {
 	return await table.get(name).update(patch).run(conn);
 };
 

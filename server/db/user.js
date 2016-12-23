@@ -1,9 +1,8 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
-
-'use strict';
 
 var r = require('rethinkdb');
 var User = require('../user/user.js');
@@ -16,7 +15,7 @@ exports.init = (connection) => {
 
 	return r.tableList().run(conn)
 		.then((tableList) => {
-			if (tableList.indexOf('user') == -1) {
+			if(tableList.indexOf('user') == -1) {
 				console.log('creating user table');
 				return r.tableCreate('user', {
 					primaryKey: 'uuid'
@@ -33,7 +32,7 @@ exports.listAllSanitizedUsers = () => {
 	return table.run(conn).then((cursor) => {
 		return cursor.toArray().then((list) => {
 			var sanitized = [];
-			for (var user of list) {
+			for(var user of list) {
 				sanitized.push({
 					uuid: user.uuid,
 					name: user.name,
@@ -50,7 +49,7 @@ exports.getUser = (name) => {
 		index: "name"
 	}).coerceTo('array').run(conn).then((docs) => {
 		var doc = docs[0];
-		if (!doc) {
+		if(!doc) {
 			return null;
 		}
 		var user = new User();
@@ -67,11 +66,11 @@ exports.createUser = (name, color) => {
 	}).run(conn);
 };
 
-exports.updateUser = async (name, patch) => {
-	let result = await table.getAll(name,{index:'name'}).update(patch).run(conn);
+exports.updateUser = async(name, patch) => {
+	let result = await table.getAll(name, { index: 'name' }).update(patch).run(conn);
 	return result;
 }
 
 exports.deleteUser = async(name) => {
-	return table.getAll(name,{index:'name'}).delete().run(conn)
+	return table.getAll(name, { index: 'name' }).delete().run(conn)
 }

@@ -1,3 +1,4 @@
+/* @flow weak */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -5,7 +6,7 @@
 
 'use strict';
 
-var env = require('../config/env.js');
+import env from '../config/env';
 var logger = require('../util/logger.js');
 var helper = require('../util/helper.js');
 var r = require('rethinkdb');
@@ -27,22 +28,29 @@ var conn;
 
 exports.init = async function init() {
 
-	const options = {
+	const options: {
+		host: string,
+		db: string,
+		port ? : number,
+		user ? : string,
+		password ? : string
+	} = {
 		host: env.dbHost,
-		db: env.database
+		db: env.database,
+
 	};
-	if (env.dbPort) {
+	if(env.dbPort) {
 		options.port = env.dbPort;
 	}
-	if (env.dbUser) {
+	if(env.dbUser) {
 		options.user = env.dbUser;
 	}
-	if (env.dbPassword) {
+	if(env.dbPassword) {
 		options.password = env.dbPassword;
 	}
 	try {
 		conn = await r.connect(options);
-	} catch (err) {
+	} catch(err) {
 		logger.error(err);
 		console.log('failed to connect to DB, retrying in 5 seconds');
 		await helper.sleep(5000);
@@ -50,7 +58,7 @@ exports.init = async function init() {
 	}
 	const dbList = await r.dbList().run(conn);
 
-	if (dbList.indexOf('badmars') == -1) {
+	if(dbList.indexOf('badmars') == -1) {
 		console.log('creating database');
 		await r.dbCreate('badmars').run(conn);
 	}
@@ -68,17 +76,17 @@ exports.init = async function init() {
 
 	//console.log('preparing chunks');
 	var chunkPromises = [];
-	for (var name of mapNames) {
+	for(var name of mapNames) {
 		var chunk = new DBChunk(conn, name);
 		chunkPromises.push(chunk.init());
 		exports.chunks[name] = chunk;
 	}
-	await  Promise.all(chunkPromises);
+	await Promise.all(chunkPromises);
 
 
 	//console.log('preparing units');
 	var unitPromises = [];
-	for (var name of mapNames) {
+	for(var name of mapNames) {
 		var unit = new DBUnit(conn, name);
 		unitPromises.push(unit.init());
 		exports.units[name] = unit;
@@ -86,7 +94,7 @@ exports.init = async function init() {
 	await Promise.all(unitPromises);
 
 	var unitStatPromises = [];
-	for (var name of mapNames) {
+	for(var name of mapNames) {
 		var unitStat = new DBUnitStat(conn, name);
 		unitStatPromises.push(unitStat.init());
 		exports.unitStats[name] = unitStat;
@@ -97,22 +105,21 @@ exports.init = async function init() {
 	await exports.map.createRandomMap('testmap');
 	//console.log('created map testmap');
 };
-exports.close = async () => {
+exports.close = async() => {
 	return conn.close()
 }
 
-exports.safeCreateTable = async (tableName) => {
+exports.safeCreateTable = async(tableName) => {
 
 	//rethinkdb does not atomically create tables
 	await helper.sleep(5000 * Math.random());
 	let results = await r.tableList().contains(tableName)
-	.do((exists) => {
-		return r.branch(exists,
-		{ table_created: 0 },
-		r.tableCreate(tableName)
-		)
-	}).run(conn);
-	if (results.table_created) {
+		.do((exists) => {
+			return r.branch(exists, { table_created: 0 },
+				r.tableCreate(tableName)
+			)
+		}).run(conn);
+	if(results.table_created) {
 		console.log('created table:' + tableName);
 	}
 }

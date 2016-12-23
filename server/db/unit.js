@@ -4,8 +4,6 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-'use strict';
-
 import _ from 'lodash';
 import R from 'rethinkdb';
 import Unit from '../unit/unit.js';
@@ -32,7 +30,7 @@ class DBUnit {
 
 		return R.tableList().run(self.conn)
 			.then((tableList) => {
-				if (tableList.indexOf(tableName) == -1) {
+				if(tableList.indexOf(tableName) == -1) {
 					console.log('creating unit table for ' + self.mapName);
 					return R.tableCreate(tableName, {
 						primaryKey: 'uuid'
@@ -87,8 +85,8 @@ class DBUnit {
 	async getUnit(uuid) {
 		let profile = Logger.startProfile('getUnit');
 		let doc = await this.table.get(uuid).run(this.conn);
-		if (!doc) {
-			console.log('unit not found: ',  uuid);
+		if(!doc) {
+			console.log('unit not found: ', uuid);
 		}
 		Logger.endProfile(profile);
 		return this.loadUnit(doc);
@@ -96,7 +94,7 @@ class DBUnit {
 	async getUnits(uuids) {
 		let profile = Logger.startProfile('getUnits');
 		const promises = [];
-		for (const uuid of uuids) {
+		for(const uuid of uuids) {
 			promises.push(this.table.get(uuid).run(this.conn));
 		}
 		const docs = await Promise.all(promises);
@@ -105,15 +103,15 @@ class DBUnit {
 		return units;
 	}
 
-	async getUnitsMap(uuids: Array<UUID>): Promise<UnitMap> {
+	async getUnitsMap(uuids: Array < UUID > ): Promise < UnitMap > {
 		const profile = Logger.startProfile('getUnits');
 		const promises = [];
-		for (const uuid of uuids) {
+		for(const uuid of uuids) {
 			promises.push(this.table.get(uuid).run(this.conn));
 		}
 		const unitDocs = await Promise.all(promises);
 		const unitMap = {};
-		for (let doc of unitDocs) {
+		for(let doc of unitDocs) {
 			const unit = new Unit();
 			unit.clone(doc);
 			unitMap[unit.uuid] = unit;
@@ -152,10 +150,10 @@ class DBUnit {
 			index: "tileHash"
 		}).coerceTo('array').run(this.conn).then((docs) => {
 			var doc = docs[0];
-			if (docs.length > 1) {
+			if(docs.length > 1) {
 				console.log('error: multiple units at tile');
 			}
-			if (!doc) {
+			if(!doc) {
 				return null;
 			}
 			return self.loadUnit(doc);
@@ -170,7 +168,7 @@ class DBUnit {
 		}).coerceTo('array').run(this.conn);
 
 		let units = [];
-		for (let doc of docs) {
+		for(let doc of docs) {
 			units.push(await this.loadUnit(doc));
 		}
 		Logger.endProfile(profile);
@@ -185,7 +183,7 @@ class DBUnit {
 		}).coerceTo('array').run(this.conn);
 
 		var units = [];
-		for (let doc of unitDocs) {
+		for(let doc of unitDocs) {
 			units.push(await this.loadUnit(doc));
 		}
 		Logger.endProfile(profile);
@@ -193,25 +191,25 @@ class DBUnit {
 
 	}
 
-	async loadUnits(unitsList: Array<Object>): Promise<Array<Unit>> {
+	async loadUnits(unitsList: Array < Object > ): Promise < Array < Unit >> {
 		const units = [];
-		_.each(unitsList,(doc) => {
+		_.each(unitsList, (doc) => {
 			units.push(this.loadUnit(doc));
 		});
 
 		return Promise.all(units);
 	}
 
-	async loadUnitsCursor(cursor): Promise<Array<Unit>> {
+	async loadUnitsCursor(cursor): Promise < Array < Unit >> {
 		const units = [];
-		await cursor.each((err,doc) => {
-			if (err) {
+		await cursor.each((err, doc) => {
+			if(err) {
 				throw err;
 			}
 			units.push(this.loadUnit(doc));
 		}).catch((err) => {
 			//dumb rethinkDB bug
-			if (err.message === 'No more rows in the cursor.') {
+			if(err.message === 'No more rows in the cursor.') {
 				return;
 			}
 			throw err;
@@ -221,7 +219,7 @@ class DBUnit {
 	}
 
 	async loadUnit(doc) {
-		if (!doc) {
+		if(!doc) {
 			return null;
 		}
 		let profile = Logger.startProfile('loadUnit');
@@ -254,21 +252,19 @@ class DBUnit {
 
 	async getUnprocessedPath() {
 
-			let result = await this.table.filter(R.row.hasFields('destination'))
-				.filter(R.row('isPathing').eq(false))
-				.filter(R.row('path').eq([]))
-				.limit(Env.pathChunks)
-				.update((unit) => {
-					return R.branch(
-						unit('isPathing').eq(false),
-						{isPathing: true,pathUpdate: Date.now()},
-						{}
-					)
-				}, {
-					durability: 'hard',
-					returnChanges: true
-				}).run(this.conn);
-			return result;
+		let result = await this.table.filter(R.row.hasFields('destination'))
+			.filter(R.row('isPathing').eq(false))
+			.filter(R.row('path').eq([]))
+			.limit(Env.pathChunks)
+			.update((unit) => {
+				return R.branch(
+					unit('isPathing').eq(false), { isPathing: true, pathUpdate: Date.now() }, {}
+				)
+			}, {
+				durability: 'hard',
+				returnChanges: true
+			}).run(this.conn);
+		return result;
 	}
 
 	getUnprocessedUnits(tick) {
@@ -276,19 +272,17 @@ class DBUnit {
 			index: 'awake'
 		}).filter(R.row('lastTick').lt(tick)).limit(Env.unitProcessChunks).update((unit) => {
 			return R.branch(
-				unit('lastTick').ne(tick),
-				{lastTick: tick},
-				{}
+				unit('lastTick').ne(tick), { lastTick: tick }, {}
 			)
 		}, {
 			returnChanges: true
 		}).run(this.conn).then((delta) => {
-			if (!delta.changes || delta.changes.length === 0) {
+			if(!delta.changes || delta.changes.length === 0) {
 
 				return [];
 			}
 			var units = [];
-			for (let i = 0; i < delta.changes.length; i++) {
+			for(let i = 0; i < delta.changes.length; i++) {
 				var newUnit = delta.changes[i].new_val;
 				var oldUnit = delta.changes[i].old_val;
 
@@ -303,27 +297,25 @@ class DBUnit {
 
 	async getUnprocessedUnitKeys(tick) {
 		return this.table.getAll(true, {
-			index: 'awake'
-		}).filter(R.row('lastTick').lt(tick))
-		.limit(Env.unitProcessChunks)
-		.pluck('uuid')
-		.coerceTo('array')
-		.run(this.conn);
+				index: 'awake'
+			}).filter(R.row('lastTick').lt(tick))
+			.limit(Env.unitProcessChunks)
+			.pluck('uuid')
+			.coerceTo('array')
+			.run(this.conn);
 	}
 
-	async claimUnitTick(ctx: Context,uuid: UUID,tick: number) {
+	async claimUnitTick(ctx: Context, uuid: UUID, tick: number) {
 		const profile = Logger.startProfile('claimUnitTick');
 		const delta = await this.table.get(uuid).update((unit) => {
 			return R.branch(
-				unit('lastTick').ne(tick),
-				{lastTick: tick},
-				{}
+				unit('lastTick').ne(tick), { lastTick: tick }, {}
 			)
-		}, {returnChanges: true}).run(this.conn);
+		}, { returnChanges: true }).run(this.conn);
 		profile.endProfile(profile);
-		Logger.checkContext(ctx,'claim unit tick');
+		Logger.checkContext(ctx, 'claim unit tick');
 
-		if (!delta.changes || delta.changes.length !== 1) {
+		if(!delta.changes || delta.changes.length !== 1) {
 			return null;
 		}
 		let properUnit = new Unit();
