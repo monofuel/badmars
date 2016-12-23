@@ -66,8 +66,8 @@ sends the player information about the game world, and receives commands from th
 
 ## Progress
 
-The current goal for the game is to freeze new features and focus on bug fixing and
-code cleanup.
+The current goal is to work on adding Contexts to all the services, and clean up flow issues now that the
+backend codebase is at least weakly flowtyped.
 
 current primary task:
 - fix bugs with unit spawning and movement with new chunk system
