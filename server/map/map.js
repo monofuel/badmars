@@ -298,7 +298,7 @@ export default class Map {
 		return(await this.unitsTileCheck(tile, false)).length === 0;
 	}
 
-	async unitsTileCheck(tile, includeGhosts) {
+	async unitsTileCheck(tile: PlanetLoc, includeGhosts: ? boolean): Array < Unit > {
 		//const units = await tile.chunk.getUnits(tile.hash);
 		let units = await db.units[this.name].getUnitsAtTile(tile.hash);
 		if(!includeGhosts) {

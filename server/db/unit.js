@@ -160,7 +160,7 @@ class DBunit {
 		});
 	}
 
-	async getunitsAtTile(hash) {
+	async getunitsAtTile(hash): Promise < Array < Unit >> {
 		let profile = logger.startProfile('getunitsAtTile');
 		let docs = await this.table.getAll(hash, {
 			index: "tileHash"
