@@ -7,11 +7,17 @@
 import db from '../db/db';
 import env from '../config/env';
 import logger from '../util/logger';
+import Map from '../map/map';
+import PlanetLoc from '../map/planetloc';
+import Unit from '../unit/unit';
 
 import { LAND } from '../map/tiletypes';
 import DIRECTION from '../map/directions';
 
 class SimplePath {
+	start: PlanetLoc;
+	end: PlanetLoc;
+	map: Map;
 	constructor(start, end) {
 		this.start = start;
 		this.end = end;

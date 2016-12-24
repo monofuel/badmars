@@ -7,11 +7,24 @@
 import db from '../db/db';
 import env from '../config/env';
 import logger from '../util/logger';
+import Map from '../map/map';
+import PlanetLoc from '../map/planetloc';
+import Unit from '../unit/unit';
 
 import DIRECTION from '../map/directions';
 
 class AStarPath {
-	constructor(start, end, unit) {
+	start: PlanetLoc;
+	end: PlanetLoc;
+	current: PlanetLoc;
+	unit: Unit;
+	map: Map;
+	cost: number;
+	path: Array < PlanetLoc > ;
+	open: Array < PlanetLoc > ;
+	closed: Array < PlanetLoc > ;
+
+	constructor(start: PlanetLoc, end: PlanetLoc, unit: Unit) {
 		this.start = start;
 		this.end = end;
 		this.unit = unit;
@@ -22,6 +35,7 @@ class AStarPath {
 			console.log(this.end.toString());
 		}
 		this.map = this.start.map;
+		this.current = this.start;
 
 		this.cost = 0;
 		this.path = [];
@@ -60,6 +74,9 @@ class AStarPath {
 			//save out what we have so far.
 			this.path.push(this.current);
 			while(!this.start.equals(this.current)) {
+				if(!this.current.prev) {
+					throw new Error('bad pathfinder state, no previous tile');
+				}
 				this.current = this.current.prev;
 				this.path.push(this.current);
 			}
@@ -77,6 +94,9 @@ class AStarPath {
 			//save out what we have so far.
 			this.path.push(this.current);
 			while(!this.start.equals(this.current)) {
+				if(!this.current.prev) {
+					throw new Error('bad pathfinder state, no previous tile');
+				}
 				this.current = this.current.prev;
 				this.path.push(this.current);
 			}

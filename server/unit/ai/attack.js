@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -8,8 +8,15 @@ import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
 
-//TODO not tested  yet
-exports.simulate = async(unit, map) => {
+import Unit from '../unit';
+import Map from '../../map/map';
+
+async function actionable(unit: Unit, map: Map): Promise < boolean > {
+	//TODO return if we can attack or not
+	return false;
+}
+
+async function simulate(unit, map) {
 
 	if(unit.fireCooldown) {
 		await unit.tickFireCooldown();
@@ -41,4 +48,9 @@ exports.simulate = async(unit, map) => {
 	}
 	console.log('no enemies nearby');
 	return false;
+}
+
+export default {
+	actionable,
+	simulate
 }

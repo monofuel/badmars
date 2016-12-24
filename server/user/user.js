@@ -13,7 +13,10 @@ class User {
 	color: string;
 	apiKey: string;
 
-	constructor(userName: string, color: string) {
+	constructor(userName: ? string, color : ? string) {
+		if(!username || !color) {
+			return; // empty constructor for DB
+		}
 		this.name = userName;
 		//uuid is set by DB
 		this.apiKey = hat();

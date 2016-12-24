@@ -24,6 +24,11 @@ class PlanetLoc {
 	local_x: number;
 	local_y: number;
 	tileType: TileCode;
+
+	// temp storage used by pathfinder
+	prev: ? PlanetLoc;
+	realCost: number;
+
 	constructor(map: Map, chunk: Chunk, x: number, y: number) {
 		if(!map) {
 			console.log(this.toString());

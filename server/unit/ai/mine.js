@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -15,9 +15,7 @@ async function actionable(unit: Unit, map: Map): Promise < boolean > {
 	return Promise.resolve(unit.details.type === 'mine' && !unit.details.ghosting)
 }
 
-//TODO
-//not tested yet
-async function pullResource(unit, map) {
+async function simulate(unit: Unit, map: Map) {
 
 	if(unit.resourceCooldown > 0) {
 		unit.resourceCooldown--;
@@ -51,5 +49,7 @@ async function pullResource(unit, map) {
 	return true;
 }
 
-exports.simulate = pullResource;
-exports.actionable = actionable;
+export default {
+	actionable,
+	simulate
+}

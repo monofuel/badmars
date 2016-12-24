@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -8,6 +8,13 @@ import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
 
+import Unit from '../unit';
+import Map from '../../map/map';
+
+async function actionable(unit: Unit, map: Map): Promise < boolean > {
+	//TODO return if we can build or not
+	return false;
+}
 
 //pass in the unit to update
 //returns true if the unit was updated
@@ -27,10 +34,6 @@ async function simulate(unit, map) {
 	}
 }
 
-exports.simulate = simulate;
-
-//TODO
-//not tested yet
 async function simulateBuilding(unit, map) {
 
 	//no units left to build
@@ -143,4 +146,9 @@ async function simulateGround(unit, map) {
 		let result = await nearestGhost.updateUnit({ ghosting: false, awake: true });
 		return true;
 	}
+}
+
+export default {
+	actionable,
+	simulate
 }
