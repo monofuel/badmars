@@ -150,7 +150,7 @@ export default class Map {
 			delete this.chunkCacheMap[oldChunk.chunk.hash];
 		}
 		this.chunkCache.push(entry);
-		this.chunkCacheMap[chunk.hash] = chunk;
+		this.chunkCacheMap[chunk.hash] = entry;
 
 		//sort latest to oldest
 		this.chunkCache.sort((a, b) => {
@@ -164,12 +164,12 @@ export default class Map {
 	}
 
 	async getLocFromHash(hash: TileHash) {
-		let x = hash.split(':')[0];
-		let y = hash.split(':')[1];
+		let x = parseInt(hash.split(':')[0]);
+		let y = parseInt(hash.split(':')[1]);
 		return await this.getLoc(x, y);
 	}
 
-	async getLoc(x, y): Promise < PlanetLoc > {
+	async getLoc(x: number, y: number): Promise < PlanetLoc > {
 		var real_x = Math.floor(x);
 		var real_y = Math.floor(y);
 		var chunkX = Math.floor(real_x / this.settings.chunkSize);
@@ -188,11 +188,11 @@ export default class Map {
 		//console.log("chunk: " + chunkX + ":" + chunkY);
 		//console.log("local: " + local_x + ":" + local_y);
 
-		let chunk = await this.getChunk(chunkX, chunkY);
+		let chunk: Chunk = await this.getChunk(chunkX, chunkY);
 
 		return new PlanetLoc(this, chunk, real_x, real_y);
 	}
-	async factoryMakeUnit(unitType, owner, x, y) {
+	async factoryMakeUnit(unitType: string, owner: string, x: number, y: number) {
 		let newUnit = new Unit(unitType, this, x, y);
 		newUnit.owner = owner;
 		newUnit.ghosting = false;
@@ -232,7 +232,7 @@ export default class Map {
 		return unit;
 	}
 
-	async checkValidForUnit(tile, unit, ignoreAwake) {
+	async checkValidForUnit(tile: PlanetLoc, unit: Unit, ignoreAwake: ? boolean) {
 		//TODO handle air and water units
 		if(tile.tileType !== LAND) {
 			return false;
@@ -240,8 +240,8 @@ export default class Map {
 
 		//TODO handle multi tile units properly
 		let units = [];
-		if(!unit.size || unit.size === 1) {
-			units = await this.unitsTileCheck(await this.getLocFromHash(tile.hash), unit.ghosting);
+		if(!unit.details.size || unit.details.size === 1) {
+			units = await this.unitsTileCheck(await this.getLocFromHash(tile.hash), unit.details.ghosting);
 		} else {
 			let tilesToCheck = [
 				(tile.x - 1) + ":" + (tile.y - 1), (tile.x) + ":" + (tile.y - 1), (tile.x + 1) + ":" + (tile.y - 1),
@@ -249,23 +249,23 @@ export default class Map {
 				(tile.x - 1) + ":" + (tile.y + 1), (tile.x) + ":" + (tile.y + 1), (tile.x + 1) + ":" + (tile.y + 1)
 			];
 			for(let tileHash of tilesToCheck) {
-				let units2 = await this.unitsTileCheck(await this.getLocFromHash(tileHash), unit.ghosting);
+				let units2 = await this.unitsTileCheck(await this.getLocFromHash(tileHash), unit.details.ghosting);
 				for(let unit2 of units2) {
 					units.push(unit2);
 				}
 			}
 		}
 
-		if(unit.type === 'mine') {
+		if(unit.details.type === 'mine') {
 			console.log('checking mine');
 			let resource = false;
-			for(let unit2 of units) {
-				if(unit2.type === 'iron' || unit2.type === 'oil') {
+			for(let unit2: Unit of units) {
+				if(unit2.details.type === 'iron' || unit2.details.type === 'oil') {
 					console.log('found resource');
 					resource = true;
 				}
 				//already has a mine
-				if(unit2.type === 'mine') {
+				if(unit2.details.type === 'mine') {
 					return false;
 				}
 			}
@@ -294,7 +294,7 @@ export default class Map {
 		return false;
 	}
 
-	async checkOpen(tile) {
+	async checkOpen(tile: PlanetLoc) {
 		//TODO handle air units
 		return(await this.unitsTileCheck(tile, false)).length === 0;
 	}
@@ -370,7 +370,7 @@ export default class Map {
 
 	//find random spawn locations, looking farther away depending on how many attempts tried
 	//returns a chunk of all free tiles
-	async findSpawnLocation(ctx: Context, attempts) {
+	async findSpawnLocation(ctx: Context, attempts: ? number) {
 		attempts = attempts || 0;
 
 		var direction = Math.random() * attempts * 50; //1magic number
@@ -389,24 +389,24 @@ export default class Map {
 		}
 	}
 
-	async getNearbyUnitsFromChunkWithTileRange(chunkHash, tileRange): Promise < Array < Unit >> {
+	async getNearbyUnitsFromChunkWithTileRange(chunkHash: ChunkHash, tileRange: number): Promise < Array < Unit >> {
 		let chunkRange = tileRange / this.settings.chunkSize;
 		return await this.getNearbyUnitsFromChunk(chunkHash, chunkRange);
 	}
 
-	async getNearbyUnitsFromChunk(chunkHash, chunkRange): Promise < Array < Unit >> {
+	async getNearbyUnitsFromChunk(chunkHash: ChunkHash, chunkRange: ? number): Promise < Array < Unit >> {
 		if(!chunkRange) {
 			chunkRange = env.chunkExamineRange;
 		}
-		let chunkHashes = await this.getNearbyChunkHashes(chunkHash, chunkRange);
+		let chunkHashes: Array < ChunkHash > = await this.getNearbyChunkHashes(chunkHash, chunkRange);
 		return await this.getUnitsAtChunks(chunkHashes);
 	}
 
-	async getUnitsAtChunks(chunkHashes): Promise < Array < Unit >> {
+	async getUnitsAtChunks(chunkHashes: Array < ChunkHash > ): Promise < Array < Unit >> {
 		let units = [];
 		for(let chunkHash of chunkHashes) {
-			let x = chunkHash.split(':')[0];
-			let y = chunkHash.split(':')[1];
+			let x = parseInt(chunkHash.split(':')[0]);
+			let y = parseInt(chunkHash.split(':')[1]);
 			let chunk = await this.getChunk(x, y);
 			let chunkUnits = await chunk.getUnits();
 			for(let unit of chunkUnits) {
@@ -436,7 +436,7 @@ export default class Map {
 
 
 	//TODO this function could use some love to be a bit more sane about spawning
-	async validChunkForSpawn(chunk) {
+	async validChunkForSpawn(chunk: Chunk) {
 		var self = this;
 
 		let nearbyUnits = await this.getNearbyUnitsFromChunkWithTileRange(chunk.hash, 32);
@@ -476,29 +476,32 @@ export default class Map {
 		});
 	}
 
-	async pullIron(taker, amount) {
+	async pullIron(taker: Unit, amount: number) {
 		console.log('pulling iron');
 		//TODO 3 is a magic number- should calculate based on transfer range
-		let units = await this.getNearbyUnitsFromChunk(taker.chunkHash[0]);
+		let units: Array < Unit > = await this.getNearbyUnitsFromChunk(taker.location.chunkHash[0]);
 		//TODO should sort buildings over units
 		this.sortByNearestUnit(units, taker);
 		this.sortBuildingsOverOther(units);
 
 		//first check if we can pull enough
 		let amountCanPull = 0;
-		for(let unit of units) {
+		for(let unit: Unit of units) {
 			if(unit.ghosting) {
 				continue;
 			}
-			if(unit.owner !== taker.owner) {
+			if(unit.details.owner !== taker.details.owner) {
 				continue;
 			}
 			let distance = unit.distance(taker);
-			if(distance > unit.transferRange && distance > taker.transferRange) {
+			if(!unit.storage || !taker.storage) {
+				continue;
+			}
+			if(distance > unit.storage.transferRange && distance > taker.storage.transferRange) {
 				continue;
 			}
 
-			amountCanPull += unit.iron;
+			amountCanPull += unit.storage.iron;
 			if(amountCanPull > amount) {
 				break;
 			}
@@ -509,11 +512,11 @@ export default class Map {
 
 		let pulledMap = {};
 		//actually pull iron
-		for(let unit of units) {
-			if(unit.ghosting) {
+		for(let unit: Unit of units) {
+			if(unit.details.ghosting) {
 				continue;
 			}
-			let pulled = Math.min(unit.iron, amount);
+			let pulled = Math.min(unit.storage.iron, amount);
 			if(pulled === 0) {
 				continue;
 			}
@@ -548,28 +551,32 @@ export default class Map {
 		return true;
 	}
 
-	async pullFuel(taker, amount) {
+	async pullFuel(taker: Unit, amount: number) {
 		console.log('pulling iron');
 		//TODO 3 is a magic number- should calculate based on transfer range
-		let units = await this.getNearbyUnitsFromChunk(taker.chunkHash[0]);
+		let units = await this.getNearbyUnitsFromChunk(taker.location.chunkHash[0]);
 		//TODO should sort buildings over units
 		this.sortByNearestUnit(units, taker);
 		this.sortBuildingsOverOther(units);
 
 		//first check if we can pull enough
 		let amountCanPull = 0;
-		for(let unit of units) {
+		for(let unit: Unit of units) {
 			if(unit.ghosting) {
 				continue;
 			}
-			if(unit.owner !== taker.owner) {
+			if(unit.details.owner !== taker.details.owner) {
 				continue;
 			}
+
 			let distance = unit.distance(taker);
-			if(distance > unit.transferRange && distance > taker.transferRange) {
+			if(!unit.storage || !taker.storage) {
 				continue;
 			}
-			amountCanPull += unit.fuel;
+			if(distance > unit.storage.transferRange && distance > taker.storage.transferRange) {
+				continue;
+			}
+			amountCanPull += unit.storage.fuel;
 			if(amountCanPull > amount) {
 				break;
 			}
@@ -614,28 +621,31 @@ export default class Map {
 		return true;
 	}
 
-	async produceIron(mine, amount) {
+	async produceIron(mine: Unit, amount: number) {
 
 		//TODO 3 is a magic number- should calculate based on transfer range
-		let units = await this.getNearbyUnitsFromChunk(mine.chunkHash[0]);
+		let units: Array < Unit > = await this.getNearbyUnitsFromChunk(mine.location.chunkHash[0]);
 		this.sortByNearestUnit(units, mine);
 		this.sortBuildingsOverOther(units);
 
-		for(let unit of units) {
-			if(unit.ghosting) {
+		for(let unit: Unit of units) {
+			if(unit.details.ghosting) {
 				continue;
 			}
-			if(unit.owner !== mine.owner) {
+			if(unit.details.owner !== mine.details.owner) {
 				continue;
 			}
 			if(mine.uuid === unit.uuid) {
 				continue;
 			}
-			if(unit.movementType !== 'building') {
+			if(unit.movable) {
 				continue;
 			}
 			let distance = unit.distance(mine);
-			if(distance > unit.transferRange && distance > mine.transferRange) {
+			if(!unit.storage || !mine.storage) {
+				continue;
+			}
+			if(distance > unit.storage.transferRange && distance > mine.storage.transferRange) {
 				continue;
 			}
 			let deposited = await unit.addIron(amount);
@@ -650,27 +660,30 @@ export default class Map {
 		}
 	}
 
-	async produceFuel(mine, amount) {
+	async produceFuel(mine: Unit, amount: number) {
 		//TODO 3 is a magic number- should calculate based on transfer range
-		let units = await this.getNearbyUnitsFromChunk(mine.chunkHash[0]);
+		let units: Array < Unit > = await this.getNearbyUnitsFromChunk(mine.location.chunkHash[0]);
 		this.sortByNearestUnit(units, mine);
 		this.sortBuildingsOverOther(units);
 
-		for(let unit of units) {
+		for(let unit: Unit of units) {
 			if(unit.ghosting) {
 				continue;
 			}
-			if(unit.owner !== mine.owner) {
+			if(unit.details.owner !== mine.details.owner) {
 				continue;
 			}
 			if(mine.uuid === unit.uuid) {
 				continue;
 			}
-			if(unit.movementType !== 'building') {
+			if(unit.movable) {
 				continue;
 			}
 			let distance = unit.distance(mine);
-			if(distance > unit.transferRange && distance > mine.transferRange) {
+			if(!unit.storage || !mine.storage) {
+				continue;
+			}
+			if(distance > unit.storage.transferRange && distance > mine.storage.transferRange) {
 				continue;
 			}
 			let deposited = await unit.addFuel(amount);
@@ -685,24 +698,24 @@ export default class Map {
 
 	}
 
-	sortByNearestUnit(units, unit) {
-		units.sort((a, b) => {
+	sortByNearestUnit(units: Array < Unit > , unit: Unit) {
+		units.sort((a: Unit, b: Unit) => {
 			return a.distance(unit) - b.distance(unit);
 		});
 	}
 
-	sortBuildingsOverOther(units) {
-		units.sort((a, b) => {
-			if(a.movementType === 'building' && b.movementType === 'building') {
+	sortBuildingsOverOther(units: Array < Unit > ) {
+		units.sort((a: Unit, b: Unit) => {
+			if(a.stationary && b.stationary) {
 				return 0;
 			}
-			if(a.movementType === 'building' && b.movementType !== 'building') {
+			if(a.stationary && b.movable) {
 				return -1;
 			}
-			if(a.movementType !== 'building' && b.movementType === 'building') {
+			if(a.movable && b.stationary) {
 				return 1;
 			}
-			if(a.movementType !== 'building' && b.movementType !== 'building') {
+			if(a.movable && b.movable) {
 				return 0;
 			}
 		});
@@ -716,9 +729,9 @@ export default class Map {
 
 	//TODO should have an option to find the tile that is nearest to the unit
 	//rather than to center (which it does now)
-	async getNearestFreeTile(center, unit, includeGhosts) {
-		let unitsOnTile = await this.unitsTileCheck(center, includeGhosts);
-		let unitTile = center;
+	async getNearestFreeTile(center: PlanetLoc, unit: Unit, includeGhosts: ? boolean) {
+		let unitsOnTile: Array < Unit > = await this.unitsTileCheck(center, includeGhosts);
+		let unitTile: PlanetLoc = center;
 		if(unit) {
 			unitTile = await this.getLoc(unit.x, unit.y);
 		}

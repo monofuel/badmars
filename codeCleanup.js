@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
 
-const STRICT = false;
+const STRICT = true;
 
 // only checking over ES6 flowtyped code
 // dependencies and non-babelified code are not checked
@@ -40,7 +40,7 @@ function main() {
 	count += checkRequires();
 	count += noStrict();
 	count += nojsimport();
-	//count += letType();
+	count += letType();
 
 	console.log('=============================');
 	console.log(count + ' issues detected');
