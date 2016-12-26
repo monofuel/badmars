@@ -16,15 +16,18 @@ class User {
 
 	constructor(username: ? string, color : ? string) {
 		if(!username || !color) {
-			return logger.errorWithInfo('invalid new user', { username, color });
+			return; // load from DB
 		}
 		this.name = username;
 		//uuid is set by DB
 		this.apiKey = hat();
 		this.color = color;
 	}
-	clone(object) {
-		_.cloneDeep(this, object);
+	clone(other) {
+		for(let key in other) {
+			// $FlowFixMe: hiding this issue for now
+			this[key] = _.cloneDeep(other[key]);
+		}
 	}
 
 }

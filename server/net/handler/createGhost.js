@@ -11,7 +11,7 @@ import Unit from '../../unit/unit';
 
 // https://www.youtube.com/watch?v=PK-tVTsSKpw
 
-async function createGhost(client, data) {
+async function createGhost(ctx: Context, client, data) {
 	if(!data.unitType) {
 		return client.sendError('createGhost', 'no unit specified');
 	}

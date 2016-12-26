@@ -13,13 +13,19 @@ import logger from '../util/logger';
 import authHandler from '../net/handler/auth';
 import Map from '../map/map';
 import filter from '../util/socketFilter';
+import Context from 'node-context';
+import hat from 'hat';
 
 const KEEP_ALIVE = 5000;
+
+type HandlerMap = {
+	[string]: NetHandler
+}
 
 class Client {
 	ws: WebSocket;
 	auth: boolean;
-	handlers: Object;
+	handlers: HandlerMap;
 	keepAlive: number;
 	map: Map;
 	unitStatWatcher: any;
@@ -93,18 +99,17 @@ class Client {
 		this.ws = null;
 	}
 
-	handleFromClient(data) {
-		var self = this;
-
+	handleFromClient(dataText: string) {
+		const uuid = hat();
+		const ctx = new Context({ uuid, timeout: 1000 });
 		//console.log('received' + data);
-		data = JSON.parse(data);
+		const data: Object = JSON.parse(dataText);
 
-		if(!data.type || !self.handlers[data.type]) {
-			self.sendError('invalid', 'invalid request');
+		if(!data.type || !this.handlers[data.type]) {
+			this.sendError('invalid', 'invalid request');
 			return;
 		}
-
-		self.handlers[data.type](self, data);
+		this.handlers[data.type](ctx, this, data);
 	}
 
 	registerUnitListener() {
@@ -131,7 +136,6 @@ class Client {
 	//TODO also handle player list updates
 	handleUnitUpdate(err, delta) {
 		if(!delta.new_val) {
-			console.log('unit destroyed');
 			if(delta.old_val) {
 				//TODO update client for new 'kill' system.
 				this.send('kill', {
@@ -158,7 +162,6 @@ class Client {
 					});
 				}
 			} else {
-				console.log('brand new unit');
 				this.send('units', {
 					units: [newUnit]
 				});

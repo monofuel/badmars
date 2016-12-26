@@ -11,7 +11,7 @@ import logger from '../../util/logger';
 
 var unitStats = JSON.parse(fs.readFileSync('config/units.json').toString());
 
-async function getUnitStats(client, data) {
+async function getUnitStats(ctx: Context, client, data) {
 	client.send('unitStats', { units: unitStats });
 	if(!client.unitStatWatcher) {
 		client.unitStatWatcher = fs.watch('config/units.json', {}, () => {

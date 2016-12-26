@@ -8,11 +8,8 @@ import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
 
-async function getUnits(client, data) {
+export default async function getUnits(ctx: Context, client: Client, data: Object) {
 	console.log('sending player their own units');
-	let units = await db.units[client.planet.name].listPlayersUnits(client.user.uuid);
+	let units = await db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
 	client.send('units', { units: units });
 };
-
-
-module.exports = getUnits;

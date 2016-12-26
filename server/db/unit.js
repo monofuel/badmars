@@ -12,6 +12,8 @@ import db from "./db";
 import env from '../config/env';
 import logger from '../util/logger';
 
+const VALID_INDICES = ['location.chunkHash', 'location.hash', 'details.lastTick', 'awake'];
+
 class DBunit {
 	conn: r.Connection;
 	mapName: string;
@@ -22,88 +24,103 @@ class DBunit {
 		this.mapName = mapName;
 	}
 
-	init() {
+	async init() {
 		var tableName = this.mapName + "_unit";
 		var self = this;
 		//r.tableDrop(tableName).run(self.conn);
 
-		return r.tableList().run(self.conn)
-			.then((tableList) => {
-				if(tableList.indexOf(tableName) == -1) {
-					console.log('creating unit table for ' + self.mapName);
-					return r.tableCreate(tableName, {
-						primaryKey: 'uuid'
-					}).run(self.conn).then(() => {
-						console.log("adding tile hash index");
-						return r.table(tableName).indexCreate("tileHash", {
-							multi: true
-						}).run(self.conn);
-					}).then(() => {
-						console.log("adding chunk hash index");
-						return r.table(tableName).indexCreate("chunkHash", {
-							multi: true
-						}).run(self.conn);
-					}).then(() => {
-						console.log("adding lastTick index");
-						return r.table(tableName).indexCreate("lastTick").run(self.conn);
-					}).then(() => {
-						console.log("adding awake index");
-						return r.table(tableName).indexCreate("awake").run(self.conn);
-					});
-				}
-			}).then(() => {
-				self.table = r.table(tableName);
-			});
+		const tableList: Array < string > = await r.tableList().run(self.conn)
+		if(!tableList.includes(tableName)) {
+			console.log('creating unit table for ' + self.mapName);
+			await r.tableCreate(tableName, {
+				primaryKey: 'uuid'
+			}).run(self.conn);
+		}
+		this.table = r.table(tableName);
+
+		let indexList = await this.table.indexList().run(self.conn);
+		if(!indexList.includes('location.hash')) {
+			console.log("adding location hash index");
+			await this.table.indexCreate("location.hash", {
+				multi: true
+			}).run(self.conn);
+		}
+		if(!indexList.includes('location.chunkHash')) {
+			console.log("adding location chunk hash index");
+			await r.table(tableName).indexCreate("location.chunkHash", {
+				multi: true
+			}).run(self.conn);
+		}
+
+		if(!indexList.includes('details.lastTick')) {
+			console.log("adding lastTick index");
+			await r.table(tableName).indexCreate("details.lastTick").run(self.conn);
+		}
+
+		if(!indexList.includes('awake')) {
+			console.log("adding awake index");
+			await r.table(tableName).indexCreate("awake").run(self.conn);
+		}
+		let spareIndices = [];
+		do {
+			await this.table.indexWait();
+			indexList = await this.table.indexList().run(self.conn);
+			spareIndices = _.remove(indexList, (e) => { return !VALID_INDICES.includes(e) })
+			for(let index of spareIndices) {
+				await this.table.indexDrop(index).run(self.conn);
+			}
+		} while (spareIndices > 0);
 	}
 
 	listUnits() {
-		let profile = logger.startProfile('listunits');
+		let profile = logger.startProfile('listUnits');
 		return this.table.coerceTo('array').run(this.conn).then((array) => {
 			logger.endProfile(profile);
 			return array;
 		});
 	}
 
-	async listPlayersunits(owner) {
-		const profile = logger.startProfile('listPlayersunits');
+	async listPlayersUnits(ctx: Context, owner: string): Promise < Array < Unit >> {
+		const profile = logger.startProfile('listPlayersUnits');
 		const cursor = await this.table.filter(r.row('owner').eq(owner)).run(this.conn);
-		const units = await this.loadunitsCursor(cursor);
+		logger.checkContext(ctx, 'list players units');
+		const units = await this.loadUnitsCursor(cursor);
 		logger.endProfile(profile);
 		return units;
 	}
 
-	async addunit(unit) {
-		let profile = logger.startProfile('addunit');
+	async addUnit(unit) {
+		let profile = logger.startProfile('addUnit');
 		let delta = await this.table.insert(unit, {
 			returnChanges: true
 		}).run(this.conn);
 		logger.endProfile(profile);
-		return await this.loadunit(delta.changes[0].new_val);
+		return await this.loadUnit(delta.changes[0].new_val);
 	}
 
-	async getunit(uuid) {
-		let profile = logger.startProfile('getunit');
+	async getUnit(uuid) {
+		let profile = logger.startProfile('getUnit');
 		let doc = await this.table.get(uuid).run(this.conn);
 		if(!doc) {
 			console.log('unit not found: ', uuid);
 		}
 		logger.endProfile(profile);
-		return this.loadunit(doc);
+		return this.loadUnit(doc);
 	}
-	async getunits(uuids) {
-		let profile = logger.startProfile('getunits');
+	async getUnits(uuids) {
+		let profile = logger.startProfile('getUnits');
 		const promises = [];
 		for(const uuid of uuids) {
 			promises.push(this.table.get(uuid).run(this.conn));
 		}
 		const docs = await Promise.all(promises);
-		const units = await this.loadunits(docs);
+		const units = await this.loadUnits(docs);
 		logger.endProfile(profile);
 		return units;
 	}
 
-	async getunitsMap(uuids: Array < UUID > ): Promise < UnitMap > {
-		const profile = logger.startProfile('getunits');
+	async getUnitsMap(uuids: Array < UUID > ): Promise < UnitMap > {
+		const profile = logger.startProfile('getUnits');
 		const promises = [];
 		for(const uuid of uuids) {
 			promises.push(this.table.get(uuid).run(this.conn));
@@ -119,26 +136,26 @@ class DBunit {
 		return unitMap;
 	}
 
-	async updateunit(uuid, patch) {
-		let profile = logger.startProfile('updateunit');
+	async updateUnit(uuid, patch) {
+		let profile = logger.startProfile('updateUnit');
 		let result = await this.table.get(uuid).update(patch).run(this.conn);
 		logger.endProfile(profile);
 		return result;
 	}
 
-	async saveunit(unit) {
-		let profile = logger.startProfile('saveunit');
+	async saveUnit(unit) {
+		let profile = logger.startProfile('saveUnit');
 		let result = await this.table.get(unit.uuid).update(unit).run(this.conn);
 		logger.endProfile(profile);
 		return result;
 
 	};
 
-	async deleteunit(uuid) {
+	async deleteUnit(uuid) {
 		return await this.table.get(uuid).delete().run(this.conn);
 	}
 
-	getunitAtTile(hash) {
+	getUnitAtTile(hash) {
 
 		//TODO find all uses of this function and remove it
 		console.log('depreciated');
@@ -155,12 +172,12 @@ class DBunit {
 			if(!doc) {
 				return null;
 			}
-			return self.loadunit(doc);
+			return self.loadUnit(doc);
 
 		});
 	}
 
-	async getunitsAtTile(hash): Promise < Array < Unit >> {
+	async getUnitsAtTile(hash): Promise < Array < Unit >> {
 		let profile = logger.startProfile('getunitsAtTile');
 		let docs = await this.table.getAll(hash, {
 			index: "tileHash"
@@ -168,13 +185,13 @@ class DBunit {
 
 		let units = [];
 		for(let doc of docs) {
-			units.push(await this.loadunit(doc));
+			units.push(await this.loadUnit(doc));
 		}
 		logger.endProfile(profile);
 		return units;
 	}
 
-	async getunitsAtChunk(x, y) {
+	async getUnitsAtChunk(x, y) {
 		let profile = logger.startProfile('getunitsAtChunk');
 		var hash = x + ":" + y;
 		var unitDocs = await this.table.getAll(hash, {
@@ -183,29 +200,29 @@ class DBunit {
 
 		var units = [];
 		for(let doc of unitDocs) {
-			units.push(await this.loadunit(doc));
+			units.push(await this.loadUnit(doc));
 		}
 		logger.endProfile(profile);
 		return units;
 
 	}
 
-	async loadunits(unitsList: Array < Object > ): Promise < Array < Unit >> {
+	async loadUnits(unitsList: Array < Object > ): Promise < Array < Unit >> {
 		const units = [];
 		_.each(unitsList, (doc) => {
-			units.push(this.loadunit(doc));
+			units.push(this.loadUnit(doc));
 		});
 
 		return Promise.all(units);
 	}
 
-	async loadunitsCursor(cursor): Promise < Array < Unit >> {
+	async loadUnitsCursor(cursor): Promise < Array < Unit >> {
 		const units = [];
 		await cursor.each((err, doc) => {
 			if(err) {
 				throw err;
 			}
-			units.push(this.loadunit(doc));
+			units.push(this.loadUnit(doc));
 		}).catch((err) => {
 			//dumb rethinkDB bug
 			if(err.message === 'No more rows in the cursor.') {
@@ -217,13 +234,12 @@ class DBunit {
 		return Promise.all(units);
 	}
 
-	async loadunit(doc) {
+	async loadUnit(doc) {
 		if(!doc) {
 			return null;
 		}
-		let profile = logger.startProfile('loadunit');
-		let map = await db.map.getMap(doc.location.map);
-		let unit = new Unit(doc.type, map, doc.location.x, doc.location.y);
+		let profile = logger.startProfile('loadUnit');
+		let unit = new Unit();
 		unit.clone(doc);
 		logger.endProfile(profile);
 		return unit;
@@ -266,7 +282,7 @@ class DBunit {
 		return result;
 	}
 
-	getUnprocessedunits(tick) {
+	getUnprocessedUnits(tick) {
 		return this.table.getAll(true, {
 			index: 'awake'
 		}).filter(r.row('lastTick').lt(tick)).limit(env.unitProcessChunks).update((unit) => {
@@ -294,7 +310,7 @@ class DBunit {
 		});
 	}
 
-	async getUnprocessedunitKeys(tick) {
+	async getUnprocessedUnitKeys(tick) {
 		return this.table.getAll(true, {
 				index: 'awake'
 			}).filter(r.row('lastTick').lt(tick))
@@ -304,8 +320,8 @@ class DBunit {
 			.run(this.conn);
 	}
 
-	async claimunitTick(ctx: Context, uuid: UUID, tick: number) {
-		const profile = logger.startProfile('claimunitTick');
+	async claimUnitTick(ctx: Context, uuid: UUID, tick: number) {
+		const profile = logger.startProfile('claimUnitTick');
 		const delta = await this.table.get(uuid).update((unit) => {
 			return r.branch(
 				unit('lastTick').ne(tick), { lastTick: tick }, {}
@@ -322,7 +338,7 @@ class DBunit {
 		return properunit;
 	}
 
-	async countUnprocessedunits(tick) {
+	async countUnprocessedUnits(tick) {
 		//new units will have lastTick set to 0. we do not want this in the 'unprocessed' count
 		//however we still want to process them next tick.
 		return await this.table.getAll(true, {
@@ -330,11 +346,11 @@ class DBunit {
 		}).filter(r.row('lastTick').lt(tick - 1).and(r.row('lastTick').gt(0))).count().run(this.conn);
 	}
 
-	countAllunits() {
+	countAllUnits() {
 		return this.table.count().run(this.conn);
 	}
 
-	countAwakeunits() {
+	countAwakeUnits() {
 		return this.table.getAll(true, {
 			index: 'awake'
 		}).count().run(this.conn);

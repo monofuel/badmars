@@ -8,7 +8,7 @@ import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
 
-module.exports = (client, data) => {
+module.exports = (ctx: Context, client, data) => {
 	db.user.listAllSanitizedUsers().then((users) => {
 		client.send('players', { players: users });
 	});

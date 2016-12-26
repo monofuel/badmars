@@ -1,6 +1,8 @@
 /* @flow */
 
 import Unit from '../server/unit/unit';
+import Client from '../server/net/client';
+import Context from 'node-context';
 
 type UUID = string;
 type TileHash = string;
@@ -31,6 +33,8 @@ type FactoryOrder = {
 	cost: number,
 	remaining: number
 }
+
+type NetHandler = (ctx: Context, client: Client, data: Object) => Promise < void > ;
 
 declare interface Init {
 	init(): Promise < void > ;

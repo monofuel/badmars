@@ -9,7 +9,7 @@ import env from '../../config/env';
 import logger from '../../util/logger';
 import filter from '../../util/socketFilter';
 
-async function getChunk(client, data) {
+async function getChunk(ctx: Context, client, data) {
 	var x = data.x || 0;
 	var y = data.y || 0;
 

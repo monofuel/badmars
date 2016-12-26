@@ -10,7 +10,7 @@ import logger from '../../util/logger';
 
 const DEFAULT_CHANNEL = 'global';
 
-module.exports = async(client, data) => {
+module.exports = async(ctx: Context, client, data) => {
 	let user = client.user;
 	if(!data.text) {
 		client.sendError('sendChat', 'no text set');

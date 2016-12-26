@@ -15,7 +15,10 @@ stats.init();
 let moduleName = 'monolith';
 
 //list of modules to output logs for STDOUT
-const DEBUG_MODULES = ['ai'];
+const DEBUG_MODULES = ['chunk', 'ai'];
+console.log('=========================');
+console.log('DEBUGGING MODULES:', DEBUG_MODULES);
+console.log('=========================');
 
 exports.setModule = (name: string) => {
 	moduleName = name;
@@ -93,9 +96,9 @@ module.exports.info = (info, body, silent) => {
 	} else if(!DEBUG_MODULES.includes(moduleName)) {
 		return;
 	} else if(body) {
-		console.log("INFO: " + dateFormat(timestamp) + ": " + info + " : " + moduleName);
+		console.log("INFO:", dateFormat(timestamp), ":", info, ":", body, ":", moduleName);
 	} else {
-		console.log("INFO: " + dateFormat(timestamp) + ": " + info);
+		console.log("INFO:", dateFormat(timestamp), ":", info, ":", body);
 	}
 };
 
@@ -130,7 +133,7 @@ function verifyTrack(name: string, kargs: ? Object) {
 function track(name: string, kargs: ? Object) {
 	kargs = kargs || {};
 	for(let key of Object.keys(kargs)) {
-		if(!kargs[key]) { //delete null fields
+		if(kargs[key] == null) { //delete null fields
 			delete kargs[key];
 		}
 	}

@@ -7,10 +7,13 @@
 import db from '../db/db';
 import env from '../config/env';
 import logger from '../util/logger';
+import Hat from 'hat';
 import Chunk from '../map/chunk';
 import helper from '../util/socketFilter';
 import grpc from 'grpc';
 import { Context } from 'node-context';
+
+const requests = {};
 
 const chunkService = grpc.load(__dirname + '/../../protos/chunk.proto').chunk;
 
@@ -24,6 +27,7 @@ exports.init = async() => {
 	server.start();
 
 	console.log('Map GRPC server started');
+	setInterval(logRequests, 5000);
 
 	process.on('exit', () => {
 		//GRPC likes to hang and prevent a proper shutdown for some reason
@@ -33,11 +37,31 @@ exports.init = async() => {
 	return;
 }
 
+function logRequests() {
+	logger.info('chunk_requests', { count: Object.keys(requests).length });
+}
+
 async function getChunk(call, callback) {
-	const request = call.request;
-	const mapName = request.mapName;
-	const x = parseInt(request.x);
-	const y = parseInt(request.y);
+	const uuid = Hat();
+	try {
+		const ctx = new Context({ uuid, timeout: 1000 });
+		requests[uuid] = ctx;
+		const request = call.request;
+		const mapName = request.mapName;
+		const x = parseInt(request.x);
+		const y = parseInt(request.y);
+		const chunk: Chunk = await fetchOrGenChunk(ctx, mapName, x, y);
+		callback(null, chunk);
+	} catch(err) {
+		logger.error(err);
+		callback(err);
+	} finally {
+		delete requests[uuid];
+	}
+}
+
+async function fetchOrGenChunk(ctx: Context, mapName: string, x: number, y: number): Promise < Chunk > {
+	console.log(mapName, x, y);
 	let map = await db.map.getMap(mapName);
 
 	let localChunk = await map.fetchOrGenChunk(x, y);
@@ -51,6 +75,5 @@ async function getChunk(call, callback) {
 	for(let i = 0; i < chunk.grid.length; i++) {
 		chunk.grid[i] = { items: chunk.grid[i] };
 	}
-	chunk = helper.sanitizeChunk(chunk);
-	callback(null, chunk);
+	return helper.sanitizeChunk(chunk);
 }

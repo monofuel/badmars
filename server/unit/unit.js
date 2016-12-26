@@ -792,10 +792,17 @@ export default class Unit {
 		}
 		// other should be a database document for a unit (or another unit)
 	clone(other: any) {
-		_.cloneDeep(this, other);
+		for(let key in other) {
+			// $FlowFixMe: hiding this issue for now
+			this[key] = _.cloneDeep(other[key]);
+		}
+
 
 		const stats = this.getTypeInfo();
-		_.cloneDeep(this, stats);
+		for(let key in stats) {
+			// $FlowFixMe: hiding this issue for now
+			this[key] = _.assign(this[key], stats[key]);
+		}
 	}
 
 

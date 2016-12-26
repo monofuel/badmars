@@ -94,6 +94,7 @@ func main() {
 
 func prepareEnv() {
 
+	defaultEnv("NODE_ENV", "dev")
 	defaultEnv("BADMARS_DB", "localhost")
 	defaultEnv("AI_HOST", "localhost")
 	defaultEnv("MAP_HOST", "localhost")

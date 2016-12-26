@@ -133,22 +133,22 @@ export default class Chunk {
 
 				if(resourceAlea() < map.settings.ironChance) {
 					//console.log('spawning iron');
-					let unit = new Unit('iron', map, x, y);
+					let unit: Unit = new Unit('iron', map, x, y);
 					unit = await map.spawnUnitWithoutTileCheck(unit);
 					if(!unit) {
 						logger.info('failed to spawn iron');
 					} else {
-						self.resources[unit.tileHash[0]] = unit.uuid;
+						self.resources[unit.location.hash[0]] = unit.uuid;
 					}
 
 				} else if(resourceAlea() < map.settings.oilChance) {
 					//console.log('spawning oil');
-					let unit = new Unit('oil', map, x, y);
+					let unit: Unit = new Unit('oil', map, x, y);
 					unit = await map.spawnUnitWithoutTileCheck(unit);
 					if(!unit) {
 						logger.info('failed to spawn oil');
 					} else {
-						self.resources[unit.tileHash[0]] = unit.uuid;
+						self.resources[unit.location.hash[0]] = unit.uuid;
 					}
 				}
 			}

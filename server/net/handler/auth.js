@@ -27,7 +27,7 @@ function mountUserHandlers(client) {
 
 }
 
-module.exports = (client, data) => {
+module.exports = (ctx: Context, client, data) => {
 
 	if(!data.planet) { //TODO change from planet to map
 		client.sendError('login', 'specify a planet');

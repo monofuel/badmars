@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -13,6 +13,7 @@ import Chunk from './chunk';
 import PlanetLoc from "./planetloc";
 import { LAND } from './tiletypes';
 import Unit from '../unit/unit';
+import Context from 'node-context';
 
 import grpc from 'grpc';
 
@@ -75,7 +76,7 @@ export default class Map {
 		this.chunkCacheMap = {};
 	}
 
-	async getChunk(x, y) {
+	async getChunk(x: number, y: number) {
 		x = parseInt(x);
 		y = parseInt(y);
 		const self = this;
@@ -115,7 +116,7 @@ export default class Map {
 		});
 	}
 
-	async fetchOrGenChunk(x, y) {
+	async fetchOrGenChunk(x: number, y: number) {
 
 		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
 		let cacheChunk = this.getChunkFromCache(x + ':' + y);
@@ -136,7 +137,7 @@ export default class Map {
 		return chunk;
 	}
 
-	addChunkToCache(chunk) {
+	addChunkToCache(chunk: Chunk) {
 		let profile = logger.startProfile('addChunkToCache');
 		let entry = {
 			chunk,
@@ -158,11 +159,11 @@ export default class Map {
 		logger.endProfile(profile);
 	}
 
-	getChunkFromCache(hash) {
+	getChunkFromCache(hash: ChunkHash) {
 		return this.chunkCacheMap[hash];
 	}
 
-	async getLocFromHash(hash) {
+	async getLocFromHash(hash: TileHash) {
 		let x = hash.split(':')[0];
 		let y = hash.split(':')[1];
 		return await this.getLoc(x, y);
@@ -308,9 +309,9 @@ export default class Map {
 		}
 	}
 
-	async spawnUser(client) {
+	async spawnUser(ctx: Context, client: Client) {
 		//find a spawn location
-		let chunk = await this.findSpawnLocation();
+		let chunk: Chunk = await this.findSpawnLocation(ctx);
 
 		//spawn units for them on the chunk
 		let unitsToSpawn = [
@@ -369,7 +370,7 @@ export default class Map {
 
 	//find random spawn locations, looking farther away depending on how many attempts tried
 	//returns a chunk of all free tiles
-	async findSpawnLocation(attempts) {
+	async findSpawnLocation(ctx: Context, attempts) {
 		attempts = attempts || 0;
 
 		var direction = Math.random() * attempts * 50; //1magic number
@@ -384,7 +385,7 @@ export default class Map {
 		if(isValid) {
 			return tile.chunk;
 		} else {
-			return await this.findSpawnLocation(attempts + 1);
+			return await this.findSpawnLocation(ctx, attempts + 1);
 		}
 	}
 
