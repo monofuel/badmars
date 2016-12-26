@@ -18,7 +18,7 @@ async function actionable(unit: Unit, map: Map): Promise < boolean > {
 
 //pass in the unit to update
 //returns true if the unit was updated
-async function simulate(unit, map) {
+async function simulate(unit: Unit, map: Map) {
 	if(unit.ghosting || !unit.construction) {
 		return false;
 	}

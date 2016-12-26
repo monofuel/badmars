@@ -298,17 +298,11 @@ export default class Map {
 		return(await this.unitsTileCheck(tile, false)).length === 0;
 	}
 
-	async unitsTileCheck(tile: PlanetLoc, includeGhosts: ? boolean): Array < Unit > {
+	async unitsTileCheck(tile: PlanetLoc, includeGhosts: ? boolean): Promise < Array < Unit >> {
 		//const units = await tile.chunk.getUnits(tile.hash);
 		let units = await db.units[this.name].getUnitsAtTile(tile.hash);
 		if(!includeGhosts) {
-			var unitsToReturn = [];
-			for(let unit of units) {
-				if(!unit.ghosting) {
-					unitsToReturn.push(unit);
-				}
-			}
-			return unitsToReturn;
+			return _.filter(units, (unit) => { return !unit.details.ghosting });
 		} else {
 			return units;
 		}

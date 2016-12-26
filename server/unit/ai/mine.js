@@ -22,7 +22,7 @@ async function actionable(unit: Unit, map: Map): Promise < boolean > {
 
 async function simulate(unit: Unit, map: Map) {
 	if(!unit.storage) {
-		return;
+		return; // shouldn't happen after actionable() check
 	}
 
 	if(unit.storage.resourceCooldown > 0) {

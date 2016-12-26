@@ -29,11 +29,13 @@ class AStarPath {
 		this.end = end;
 		this.unit = unit;
 		if(!this.start || !this.end || this.start.map !== this.end.map) {
-			console.log('invalid start and end points');
-			console.log(new Error().stack);
-			console.log(this.start.toString());
-			console.log(this.end.toString());
+			return logger.errorWithInfo('invalid start and end points', {
+				start: start,
+				end: end,
+				unit: unit
+			})
 		}
+		this.current = start;
 		this.map = this.start.map;
 		this.current = this.start;
 

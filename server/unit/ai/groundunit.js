@@ -17,7 +17,7 @@ async function actionable(unit: Unit, map: Map): Promise < boolean > {
 	return false;
 }
 
-async function simulate(unit, map) {
+async function simulate(unit: Unit, map: Map) {
 
 	if(await unit.tickMovement()) {
 		//console.log('movement cooldown: ' + unit.movementCooldown);
