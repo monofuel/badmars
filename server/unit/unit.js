@@ -35,7 +35,7 @@ export default class Unit {
 
 	//components
 	details: {
-		type: string,
+		type: UnitType,
 		size: number,
 		buildTime: number,
 		cost: number,
@@ -64,6 +64,7 @@ export default class Unit {
 		pathAttemptAttempts: number,
 		isPathing: boolean,
 		pathUpdate: number,
+		destination: ? TileHash,
 		transferGoal: Object, // TODO why is this an object
 	}
 	attack: ? {
@@ -80,6 +81,10 @@ export default class Unit {
 		maxFuel: number,
 		transferRange: number,
 		resourceCooldown: number,
+		transferGoal: ? {
+			iron: ? number,
+			fuel: ? number
+		}
 	}
 	graphical: ? {
 		model: string,
@@ -91,7 +96,7 @@ export default class Unit {
 	construct: ? {
 		types: Array < string > ,
 		constructing: number,
-		factoryQueue: Array < string > ,
+		factoryQueue: Array < FactoryOrder > ,
 	}
 
 

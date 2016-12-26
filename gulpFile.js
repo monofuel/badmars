@@ -4,27 +4,50 @@ const source = require('vinyl-source-stream');
 const buffer = require('vinyl-buffer');
 const uglify = require('gulp-uglify');
 
+const SERVER_MODULES = [
+	'ai',
+	'chunk',
+	'commander',
+	'net',
+	'pathfinder',
+	'simulate',
+	'validator'
+];
+
 gulp.task('client', function () {
 
-    return browserify({entries: './client/badmars-v1/client.js', debug: true})
-        .transform("babelify")
-        .bundle()
-        .pipe(source('badmars-v1.js'))
-        .pipe(buffer())
-        .pipe(uglify())
-        .pipe(gulp.dest('./server/public/js/badmars/'))
+	return browserify({ entries: './client/badmars-v1/client.js', debug: true })
+		.transform("babelify")
+		.bundle()
+		.pipe(source('badmars-v1.js'))
+		.pipe(buffer())
+		.pipe(uglify())
+		.pipe(gulp.dest('./server/public/js/badmars/'));
 });
 
 gulp.task('dashboard', function () {
 
-    return browserify({entries: './dashboard-frontend/js/index.jsx', debug: true})
-        .transform("babelify")
-        .bundle()
-        .pipe(source('index.js'))
-        .pipe(buffer())
-        .pipe(uglify())
-        .pipe(gulp.dest('./dashboard-frontend/public/js/'))
+	return browserify({ entries: './dashboard-frontend/js/index.jsx', debug: true })
+		.transform("babelify")
+		.bundle()
+		.pipe(source('index.js'))
+		.pipe(buffer())
+		.pipe(uglify())
+		.pipe(gulp.dest('./dashboard-frontend/public/js/'));
 });
 
+gulp.task('ai', function () {
+	return browserifyServerModule('ai');
+})
 
-gulp.task('default',['client','dashboard']);
+function browserifyServerModule(name) {
+	return browserify({ entries: './server/' + name + '.js', debug: true })
+		.transform("babelify")
+		.bundle()
+		.pipe(source(name + '.js'))
+		.pipe(buffer())
+		.pipe(uglify())
+		.pipe(gulp.dest('/build/'))
+}
+
+gulp.task('default', ['client', 'dashboard']);

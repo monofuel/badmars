@@ -22,7 +22,7 @@ export default {
 	movementAttemptLimit: parseInt(process.env.MOVEMENT_ATTEMPT_LIMIT) || 3,
 	pathComplexityLimit: parseInt(process.env.PATH_COMPLEXITY_LIMIT) || 100,
 	chunkCacheLimit: parseInt(process.env.CHUNK_CACHE_LIMIT) || 5000,
-	resourceTicks: parseInt(proces.senv.RESOURCE_TICKS) || 10;
+	resourceTicks: parseInt(process.env.RESOURCE_TICKS) || 10,
 
 	dbHost: process.env.BADMARS_DB || 'localhost',
 	database: process.env.BADMARS_DATABASE || 'badmars',

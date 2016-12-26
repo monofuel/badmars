@@ -25,6 +25,12 @@ type UnitMap = {
   [key: UUID]: Unit
 }
 
+type FactoryOrder = {
+	uuid: UUID,
+	type: UnitType,
+	cost: number,
+	remaining: number
+}
 
 declare interface Init {
 	init(): Promise < void > ;

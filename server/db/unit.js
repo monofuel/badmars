@@ -56,7 +56,7 @@ class DBunit {
 			});
 	}
 
-	listunits() {
+	listUnits() {
 		let profile = logger.startProfile('listunits');
 		return this.table.coerceTo('array').run(this.conn).then((array) => {
 			logger.endProfile(profile);

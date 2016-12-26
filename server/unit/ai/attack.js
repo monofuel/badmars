@@ -18,20 +18,28 @@ async function actionable(unit: Unit, map: Map): Promise < boolean > {
 
 async function simulate(unit: Unit, map: Map) {
 
-	if(unit.fireCooldown) {
-		await unit.tickFireCooldown();
-		return true;
+	//TODO allow force attacking a specific enemy
+	const enemy = await map.getNearestEnemy(unit);
+
+	if(!enemy) {
+		return;
 	}
 
-	if(unit.destination) {
-		return false;
+	if(!unit.attack) {
+		return; // shouldn't happen after actionable() check
 	}
-	//get nearest enemy
-	//TODO allow attacking a specific enemy
-	let enemy = await map.getNearestEnemy(unit);
-	if(enemy && enemy.distance(unit) <= unit.range) {
+	// flow complains about unit.attack after awaits
+	const range = unit.attack.range;
+	const damage = unit.attack.damage;
+
+	if(unit.attack.fireCooldown !== 0) {
+		await unit.tickFireCooldown();
+		return;
+	}
+
+	if(enemy && enemy.distance(unit) <= range) {
 		await unit.armFireCooldown();
-		await enemy.takeDamage(unit.firePower);
+		await enemy.takeDamage(damage);
 		if(enemy.health === 0) {
 			logger.info('gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
 			console.log('enemy killed, deleting');

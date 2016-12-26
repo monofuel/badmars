@@ -28,14 +28,15 @@ class AStarPath {
 		this.start = start;
 		this.end = end;
 		this.unit = unit;
-		if(!this.start || !this.end || this.start.map !== this.end.map) {
+		this.current = start;
+		if(!this.start || !this.end || !this.current || this.start.map !== this.end.map) {
 			return logger.errorWithInfo('invalid start and end points', {
 				start: start,
 				end: end,
 				unit: unit
 			})
 		}
-		this.current = start;
+
 		this.map = this.start.map;
 		this.current = this.start;
 
@@ -111,6 +112,9 @@ class AStarPath {
 			//we're done, save this path
 			this.path.push(this.current);
 			while(!this.start.equals(this.current)) {
+				if(!this.current.prev) {
+					throw new Error('bad pathfinder state, no previous tile');
+				}
 				this.current = this.current.prev;
 				this.path.push(this.current);
 			}

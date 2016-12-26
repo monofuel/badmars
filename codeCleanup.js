@@ -40,6 +40,7 @@ function main() {
 	count += checkRequires();
 	count += noStrict();
 	count += nojsimport();
+	//count += letType();
 
 	console.log('=============================');
 	console.log(count + ' issues detected');
@@ -132,6 +133,29 @@ function nojsimport() {
 		if(badLines.length !== 0) {
 			console.log('=============================');
 			console.log('import file with .js, not needed');
+			console.log(file);
+			_.each(badLines, (line) => console.log(line));
+			count += badLines.length;
+		}
+	});
+	return count;
+}
+
+function letType() {
+	let count = 0;
+	// typing variables are optional, however enforce them anyway
+	recurseDir('./', ['.js'], (file) => {
+		const badLines = [];
+		const re = /(var|const|let)[^:]*;/g
+		const contents = fs.readFileSync(file, 'utf8').toString().split('\n');
+		_.each(contents, (line, index) => {
+			if(re.test(line)) {
+				badLines.push(index + ': ' + line);
+			}
+		});
+		if(badLines.length !== 0) {
+			console.log('=============================');
+			console.log('please type your variables');
 			console.log(file);
 			_.each(badLines, (line) => console.log(line));
 			count += badLines.length;

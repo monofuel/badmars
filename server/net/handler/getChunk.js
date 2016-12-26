@@ -35,4 +35,3 @@ async function getChunk(client, data) {
 };
 
 module.exports = getChunk;
-hunk;

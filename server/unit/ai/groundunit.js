@@ -11,6 +11,7 @@ import logger from '../../util/logger';
 import DIRECTION from '../../map/directions';
 import Unit from '../unit';
 import Map from '../../map/map';
+import PlanetLoc from '../../map/planetloc';
 
 async function actionable(unit: Unit, map: Map): Promise < boolean > {
 	//TODO return if we can move or not
@@ -23,44 +24,54 @@ async function simulate(unit: Unit, map: Map) {
 		//console.log('movement cooldown: ' + unit.movementCooldown);
 		return true;
 	}
+	if(!unit.movable || !unit.storage) {
+		return;
+	}
 
-	if(!unit.path || unit.path.length === 0 || !unit.destination) {
+	if(!unit.path || unit.movable.path.length === 0 || !unit.destination) {
 
 		//check if they are trying to transfer resources.
 		//if they are, do it.
 		if(!unit.transferGoal || !unit.transferGoal.uuid || (unit.transferGoal.iron || 0 === 0 && unit.transferGoal.oil || 0 === 0)) {
-			if(unit.type === 'transport') {
+			if(unit.details.type === 'transport') {
 				//wake up nearby ghost builders
 				console.log('waking builders');
-				let units = await map.getNearbyUnitsFromChunk(unit.chunkHash[0]);
-				for(let nearby of units) {
-					if(nearby.type === 'builder') {
-						await nearby.updateUnit({ awake: true });
+				let units: Array < Unit > = await map.getNearbyUnitsFromChunk(unit.location.chunkHash[0]);
+				for(let nearby: Unit of units) {
+					if(nearby.details.type === 'builder') {
+						await nearby.update({ awake: true });
 					}
 				}
 			}
 
 			return false;
 		}
-		let transferUnit = await db.units[map.name].getUnit(unit.transferGoal.uuid);
+		let transferUnit: Unit = await db.units[map.name].getUnit(unit.transferGoal.uuid);
 		//1.01 is 1 for the unit, + 0.01 for float fudge factor (ffffffffffff)
-		if(transferUnit.distance(unit) > Math.max(unit.size, transferUnit.size) + 1.05) {
+		if(transferUnit.distance(unit) > Math.max(unit.details.size, transferUnit.details.size) + 1.05) {
 			//if it is not nearby, keep pathing.
 			console.log('PATHFINDING CLOSER TO TRANSFER UNIT');
-			let center = await map.getLoc(transferUnit.x, transferUnit.y);
-			let tile = await map.getNearestFreeTile(center, unit, true);
+			let tiles: Array < PlanetLoc > = await transferUnit.getLocs();
+			let tile = await map.getNearestFreeTile(tiles[0], unit, true);
 			unit.setDestination(tile.x, tile.y);
 
 			return false;
 		}
 
+		if(!unit.movable || !unit.storage || !unit.storage.transferGoal || !transferUnit.storage) {
+			return;
+		}
+
 		//otherwise we are close enough to transfer
-		let ironGoal = unit.transferGoal.iron;
-		let fuelGoal = unit.transferGoal.fuel;
+		let ironGoal = unit.storage.transferGoal.iron || 0;
+		let fuelGoal = unit.storage.transferGoal.fuel || 0;
 		console.log('TRANSFERING ', ironGoal, fuelGoal);
 
+		if(!unit.movable || !unit.storage || !unit.storage.transferGoal || !transferUnit.storage) {
+			return;
+		}
 		if(ironGoal > 0) {
-			ironGoal = Math.min(ironGoal, transferUnit.iron, unit.ironStorage - unit.iron);
+			ironGoal = Math.min(ironGoal, transferUnit.storage.iron, unit.storage.maxIron - unit.storage.iron);
 			//transfering from transferUnit to unit
 			if(ironGoal !== 0 && await transferUnit.takeIron(ironGoal)) {
 				console.log('PULLED IRON');
@@ -79,7 +90,7 @@ async function simulate(unit: Unit, map: Map) {
 		} else if(ironGoal < 0) {
 			//transfering from unit to transferUnit
 			ironGoal = -ironGoal;
-			ironGoal = Math.min(ironGoal, unit.iron, transferUnit.ironStorage - transferUnit.iron);
+			ironGoal = Math.min(ironGoal, unit.storage.iron, transferUnit.storage.maxIron - transferUnit.storage.iron);
 			//transfering from transferUnit to unit
 			if(ironGoal !== 0 && await unit.takeIron(ironGoal)) {
 				console.log('PULLED IRON');
@@ -97,12 +108,15 @@ async function simulate(unit: Unit, map: Map) {
 			}
 		}
 
-
 		console.log('updating transfer goal');
 		unit.setTransferGoal(transferUnit.uuid, 0, fuelGoal);
 
+		if(!unit.movable || !unit.storage || !unit.storage.transferGoal || !transferUnit.storage) {
+			return;
+		}
+
 		if(fuelGoal > 0) {
-			fuelGoal = Math.min(fuelGoal, transferUnit.fuel, unit.fuelStorage - unit.fuel);
+			fuelGoal = Math.min(fuelGoal, transferUnit.storage.fuel, unit.storage.maxFuel - unit.storage.fuel);
 			//transfering from transferUnit to unit
 			if(fuelGoal !== 0 && await transferUnit.takeFuel(fuelGoal)) {
 				console.log('PULLED FUEL');
@@ -121,7 +135,7 @@ async function simulate(unit: Unit, map: Map) {
 		} else if(fuelGoal < 0) {
 			//transfering from unit to transferUnit
 			fuelGoal = -fuelGoal;
-			fuelGoal = Math.min(fuelGoal, unit.fuel, transferUnit.fuelStorage - transferUnit.fuel);
+			fuelGoal = Math.min(fuelGoal, unit.storage.fuel, transferUnit.storage.maxFuel - transferUnit.storage.fuel);
 			//transfering from transferUnit to unit
 			if(fuelGoal !== 0 && await unit.takeFuel(fuelGoal)) {
 				console.log('PULLED FUEL');
@@ -142,19 +156,27 @@ async function simulate(unit: Unit, map: Map) {
 		await unit.clearTransferGoal();
 		return true;
 	}
-
-	let start = await map.getLoc(unit.x, unit.y);
-	let destinationX = unit.destination.split(":")[0];
-	let destinationY = unit.destination.split(":")[1];
+	if(!unit.movable.destination) {
+		return;
+	}
+	let destinationHash = unit.movable.destination;
+	let start = await map.getLoc(unit.location.x, unit.location.y);
+	let destinationX = destinationHash.split(":")[0];
+	let destinationY = destinationHash.split(":")[1];
 	let end = await map.getLoc(destinationX, destinationY);
-
-	let dir = DIRECTION.getTypeFromName(unit.path.shift());
+	if(!unit.movable) {
+		return;
+	}
+	let dir = DIRECTION.getTypeFromName(unit.movable.path.shift());
 	let nextTile = await start.getDirTile(dir);
 	//console.log(start.toString());
 	//console.log(nextTile.toString());
 	if(await unit.moveToTile(nextTile)) {
 		//console.log('updating path');
-		await unit.setPath(unit.path);
+		if(!unit.movable) {
+			return;
+		}
+		await unit.setPath(unit.movable.path);
 	} else {
 		unit.addPathAttempt();
 		//console.log('move halted');

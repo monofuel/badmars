@@ -388,12 +388,12 @@ export default class Map {
 		}
 	}
 
-	async getNearbyUnitsFromChunkWithTileRange(chunkHash, tileRange) {
+	async getNearbyUnitsFromChunkWithTileRange(chunkHash, tileRange): Promise < Array < Unit >> {
 		let chunkRange = tileRange / this.settings.chunkSize;
 		return await this.getNearbyUnitsFromChunk(chunkHash, chunkRange);
 	}
 
-	async getNearbyUnitsFromChunk(chunkHash, chunkRange) {
+	async getNearbyUnitsFromChunk(chunkHash, chunkRange): Promise < Array < Unit >> {
 		if(!chunkRange) {
 			chunkRange = env.chunkExamineRange;
 		}
@@ -401,7 +401,7 @@ export default class Map {
 		return await this.getUnitsAtChunks(chunkHashes);
 	}
 
-	async getUnitsAtChunks(chunkHashes) {
+	async getUnitsAtChunks(chunkHashes): Promise < Array < Unit >> {
 		let units = [];
 		for(let chunkHash of chunkHashes) {
 			let x = chunkHash.split(':')[0];

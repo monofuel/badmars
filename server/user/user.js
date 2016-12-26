@@ -5,6 +5,7 @@
 //	Licensed under included modified BSD license
 
 import db from '../db/db';
+import logger from '../util/logger';
 import hat from 'hat';
 import _ from 'lodash';
 
@@ -13,18 +14,14 @@ class User {
 	color: string;
 	apiKey: string;
 
-	constructor(userName: ? string, color : ? string) {
+	constructor(username: ? string, color : ? string) {
 		if(!username || !color) {
-			return; // empty constructor for DB
+			return logger.errorWithInfo('invalid new user', { username, color });
 		}
-		this.name = userName;
+		this.name = username;
 		//uuid is set by DB
 		this.apiKey = hat();
 		this.color = color;
-	}
-
-	save() {
-		return db.user.saveUser(this);
 	}
 	clone(object) {
 		_.cloneDeep(this, object);

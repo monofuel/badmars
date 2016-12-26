@@ -26,8 +26,10 @@ class PlanetLoc {
 	tileType: TileCode;
 
 	// temp storage used by pathfinder
+	//TODO these should not be here
 	prev: ? PlanetLoc;
 	realCost: number;
+	cost: number;
 
 	constructor(map: Map, chunk: Chunk, x: number, y: number) {
 		if(!map) {

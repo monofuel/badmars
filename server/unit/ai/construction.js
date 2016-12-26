@@ -10,6 +10,7 @@ import logger from '../../util/logger';
 
 import Unit from '../unit';
 import Map from '../../map/map';
+import UnitStat from '../unitStat';
 
 async function actionable(unit: Unit, map: Map): Promise < boolean > {
 	//TODO return if we can build or not
@@ -19,58 +20,78 @@ async function actionable(unit: Unit, map: Map): Promise < boolean > {
 //pass in the unit to update
 //returns true if the unit was updated
 async function simulate(unit: Unit, map: Map) {
-	if(unit.ghosting || !unit.construction) {
+	if(unit.details.ghosting || !unit.construction) {
 		return false;
+	}
+	if(unit.movable) {
+		switch(unit.movable.layer) {
+		case 'ground':
+			return simulateGround(unit, map);
+		default:
+			logger.errorWithInfo("unsupported constructor", {
+				uuid: unit.uuid,
+				type: unit.details.type,
+				layer: unit.movable.layer
+			});
+		}
+		return simulateGround(unit, map);
 	}
 
-	switch(unit.movementType) {
-	case 'ground':
-		return simulateGround(unit, map);
-	case 'building':
+	if(unit.stationary) {
 		return simulateBuilding(unit, map);
-	default:
-		console.info('unknown constructor', { name: unit.type });
-		return false;
 	}
+
+	logger.errorWithInfo("constructor not movable or stationary", {
+		uuid: unit.uuid,
+		type: unit.details.type
+	});
 }
 
-async function simulateBuilding(unit, map) {
-
-	//no units left to build
-	if(!unit.factoryQueue || unit.factoryQueue.length === 0) {
-		return false;
+async function simulateBuilding(unit: Unit, map: Map): Promise < void > {
+	if(!unit.construct) {
+		return;
 	}
-	console.log('simulating factory');
-	let newUnitType = unit.factoryQueue[0].type;
-	let unitInfo = unit.getTypeInfo(newUnitType);
+	const queue = unit.construct.factoryQueue;
+	//no units left to build
+	if(!queue || queue.length === 0) {
+		return;
+	}
+
+	let newUnitType: UnitType = queue[0].type;
+	let unitInfo: UnitStat = unit.getTypeInfo(newUnitType);
 	console.log('building: ' + newUnitType);
 
-	if(unit.factoryQueue[0].cost > 0) {
-		if(await map.pullIron(unit, unit.factoryQueue[0].cost)) {
+	if(queue[0].cost > 0) {
+		if(await map.pullIron(unit, queue[0].cost)) {
 			console.log('paying for unit');
-			unit.factoryQueue[0].cost = 0;
+			queue[0].cost = 0;
 
-			await unit.updateUnit({
-				factoryQueue: unit.factoryQueue
+			//TODO this should not be called from outside unit
+			await unit.update({
+				construct: {
+					factoryQueue: queue
+				}
 			});
 		} else {
 			console.log('not enough resources');
 		}
 	}
-	if(unit.factoryQueue[0].cost === 0) {
-		if(unit.factoryQueue[0].remaining > 0) {
-			unit.factoryQueue[0].remaining--;
-			await unit.updateUnit({
-				factoryQueue: unit.factoryQueue
+	if(queue[0].cost === 0) {
+		if(queue[0].remaining > 0) {
+			queue[0].remaining--;
+			await unit.update({
+				construct: {
+					factoryQueue: queue
+				}
 			});
 		} else {
-			let newUnitData = await unit.popFactoryOrder();
+			let newUnitData: FactoryOrder = await unit.popFactoryOrder();
 			console.log(newUnitData);
-			let tile = await map.getLoc(unit.x, unit.y);
+			let tile = await map.getLoc(unit.location.x, unit.location.y);
 			let newTile = await map.getNearestFreeTile(tile);
 
 			//if spawn fails, should re-try with a new location
-			let result = await map.factoryMakeUnit(newUnitType, unit.owner, newTile.x, newTile.y);
+			let result = await map.factoryMakeUnit(newUnitType, unit.details.owner, newTile.x, newTile.y);
 			if(result) {
 				console.log('factory created ', newUnitType);
 			} else {
@@ -79,25 +100,28 @@ async function simulateBuilding(unit, map) {
 		}
 	}
 
-	return true;
+	return;
 }
 
 
 //TODO
 //not tested yet
-async function simulateGround(unit, map) {
+async function simulateGround(unit: Unit, map: Map) {
+	if(!unit.construct || !unit.storage) {
+		return;
+	}
 	console.log('simulating constructor');
-	let nearestGhost = null;
-	let units = await map.getNearbyUnitsFromChunk(unit.chunkHash[0]);
+	let nearestGhost: ? Unit = null;
+	let units: Array < Unit > = await map.getNearbyUnitsFromChunk(unit.location.chunkHash[0]);
 	map.sortByNearestUnit(units, unit);
 
 	for(let nearbyUnit of units) {
-		if(!nearbyUnit.ghosting) {
+		if(!nearbyUnit.details.ghosting) {
 			continue;
 		}
 
 		//1.01 is 1 for the unit, + 0.01 for float fudge factor (ffffffffffff)
-		if(nearbyUnit.distance(unit) < nearbyUnit.size + 1.05) {
+		if(nearbyUnit.distance(unit) < nearbyUnit.details.size + 1.05) {
 			nearestGhost = nearbyUnit;
 			break;
 		}
@@ -105,29 +129,32 @@ async function simulateGround(unit, map) {
 
 	if(!nearestGhost) {
 		//if there is no ghost next to this unit, find one.
-		for(let nearbyUnit of units) {
-			if(!nearbyUnit.ghosting) {
-				continue;
+		for(let nearbyUnit: Unit of units) {
+			if(!nearbyUnit.details.ghosting) {
+				return;
 			}
-			if(nearbyUnit.owner !== unit.owner) {
-				continue;
+			if(nearbyUnit.details.owner !== unit.details.owner) {
+				return;
 			}
 
-			let center = await map.getLoc(nearbyUnit.x, nearbyUnit.y);
+			let center = await map.getLoc(nearbyUnit.location.x, nearbyUnit.location.y);
 			let tile = await map.getNearestFreeTile(center, unit, true);
 
 			//check if there are resources within range
 			let iron_available = 0;
-			for(let nearbyUnit2 of units) {
-				let distance = nearbyUnit2.distance(center);
-				if(distance > unit.transferRange && distance > nearbyUnit2.transferRange) {
-					continue;
+			units.forEach((nearbyUnit2: Unit) => {
+				let distance = nearbyUnit2.distance(nearbyUnit);
+				if(!nearbyUnit2.storage || !unit.storage) {
+					return;
 				}
-				iron_available += nearbyUnit2.iron;
-			}
-			if(iron_available > nearbyUnit.cost) {
+				if(distance > unit.storage.transferRange && distance > nearbyUnit2.storage.transferRange) {
+					return;
+				}
+				iron_available += nearbyUnit2.storage.iron;
+			});
+			if(iron_available > nearbyUnit.details.cost) {
 				console.log('iron available', iron_available);
-				console.log('unit cost', nearbyUnit.cost);
+				console.log('unit cost', nearbyUnit.details.cost);
 				unit.setDestination(tile.x, tile.y);
 				console.log('builder pathing to ghost');
 				return true;
@@ -136,14 +163,14 @@ async function simulateGround(unit, map) {
 			}
 		}
 
-		return false;
+		return;
 	}
 
-	if(await map.pullIron(unit, nearestGhost.cost)) {
+	if(await map.pullIron(unit, nearestGhost.details.cost)) {
 		console.log('paying for building');
 		//TODO builder should halt and spend time building
 		//should also make sure the area is clear
-		let result = await nearestGhost.updateUnit({ ghosting: false, awake: true });
+		let result = await nearestGhost.update({ details: { ghosting: false }, awake: true });
 		return true;
 	}
 }
