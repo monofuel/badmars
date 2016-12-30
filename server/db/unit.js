@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -18,25 +18,25 @@ class DBunit {
 	conn: r.Connection;
 	mapName: string;
 	table: r.Table;
+	tableName: string,
 
-	constructor(connection, mapName) {
-		this.conn = connection;
-		this.mapName = mapName;
-	}
+		constructor(connection: r.Connection, mapName: string) {
+			this.conn = connection;
+			this.mapName = mapName;
+			tihs.tableName = mapName + "_unit";
+		}
 
-	async init() {
-		var tableName = this.mapName + "_unit";
+	async init(): Promise < void > {
 		var self = this;
-		//r.tableDrop(tableName).run(self.conn);
 
 		const tableList: Array < string > = await r.tableList().run(self.conn)
-		if(!tableList.includes(tableName)) {
+		if(!tableList.includes(self.tableName)) {
 			console.log('creating unit table for ' + self.mapName);
-			await r.tableCreate(tableName, {
+			await r.tableCreate(self.tableName, {
 				primaryKey: 'uuid'
 			}).run(self.conn);
 		}
-		this.table = r.table(tableName);
+		this.table = r.table(self.tableName);
 
 		let indexList = await this.table.indexList().run(self.conn);
 		if(!indexList.includes('location.hash')) {
@@ -47,35 +47,35 @@ class DBunit {
 		}
 		if(!indexList.includes('location.chunkHash')) {
 			console.log("adding location chunk hash index");
-			await r.table(tableName).indexCreate("location.chunkHash", {
+			await r.table(self.tableName).indexCreate("location.chunkHash", {
 				multi: true
 			}).run(self.conn);
 		}
 
 		if(!indexList.includes('details.lastTick')) {
 			console.log("adding lastTick index");
-			await r.table(tableName).indexCreate("details.lastTick").run(self.conn);
+			await r.table(self.tableName).indexCreate("details.lastTick").run(self.conn);
 		}
 
 		if(!indexList.includes('awake')) {
 			console.log("adding awake index");
-			await r.table(tableName).indexCreate("awake").run(self.conn);
+			await r.table(self.tableName).indexCreate("awake").run(self.conn);
 		}
 		let spareIndices = [];
-		do {
-			await this.table.indexWait();
-			indexList = await this.table.indexList().run(self.conn);
-			spareIndices = _.remove(indexList, (e) => { return !VALID_INDICES.includes(e) })
-			for(let index of spareIndices) {
-				await this.table.indexDrop(index).run(self.conn);
-			}
-		} while (spareIndices > 0);
+
+		await this.table.indexWait();
+		indexList = await this.table.indexList().run(self.conn);
+		spareIndices = _.remove(indexList, (e) => { return !VALID_INDICES.includes(e) })
+		for(let index of spareIndices) {
+			await this.table.indexDrop(index).run(self.conn);
+		}
 	}
 
-	listUnits() {
+	listUnits(ctx: Context) {
 		let profile = logger.startProfile('listUnits');
 		return this.table.coerceTo('array').run(this.conn).then((array) => {
 			logger.endProfile(profile);
+			logger.checkContext(ctx, 'listUnits()');
 			return array;
 		});
 	}

@@ -163,13 +163,13 @@ export default class Map {
 		return this.chunkCacheMap[hash];
 	}
 
-	async getLocFromHash(hash: TileHash) {
+	async getLocFromHash(ctx: Context, hash: TileHash) {
 		let x = parseInt(hash.split(':')[0]);
 		let y = parseInt(hash.split(':')[1]);
-		return await this.getLoc(x, y);
+		return await this.getLoc(ctx, x, y);
 	}
 
-	async getLoc(x: number, y: number): Promise < PlanetLoc > {
+	async getLoc(ctx: Context, x: number, y: number): Promise < PlanetLoc > {
 		var real_x = Math.floor(x);
 		var real_y = Math.floor(y);
 		var chunkX = Math.floor(real_x / this.settings.chunkSize);
@@ -189,46 +189,47 @@ export default class Map {
 		//console.log("local: " + local_x + ":" + local_y);
 
 		let chunk: Chunk = await this.getChunk(chunkX, chunkY);
-
+		logger.checkContext(ctx, 'getLoc()');
 		return new PlanetLoc(this, chunk, real_x, real_y);
 	}
-	async factoryMakeUnit(unitType: string, owner: string, x: number, y: number) {
+	async factoryMakeUnit(ctx: Context, unitType: string, owner: string, x: number, y: number) {
 		let newUnit = new Unit(unitType, this, x, y);
 		newUnit.owner = owner;
 		newUnit.ghosting = false;
-		return await this.spawnUnit(newUnit);
+		return await this.spawnUnit(ctx, newUnit);
 	}
 
-	async spawnUnit(newUnit: Unit): Promise < ? Unit > {
+	async spawnUnit(ctx: Context, newUnit: Unit): Promise < ? Unit > {
 		console.log('spawning unit: ' + newUnit.details.type);
 		for(let loc of await newUnit.getLocs()) {
-			if(!await this.checkValidForUnit(loc, newUnit)) {
+			if(!await this.checkValidForUnit(ctx, loc, newUnit)) {
 				return null;
 			} else {
 				//console.log('valid tile for unit: ' + tileHash);
 			}
 		}
-		const unit = await this.spawnAndValidate(newUnit);
-
+		const unit = await this.spawnAndValidate(ctx, newUnit);
+		logger.checkContext(ctx, 'spawnUnit()');
 		return unit;
 	}
 
 	//to be used when spawning units on chunks that are not yet generated
 	//this prevents a loop of trying to validate against a chunk that
 	//is not yet generated (hence infinite loop)
-	async spawnUnitWithoutTileCheck(newUnit: Unit): Promise < Unit > {
+	async spawnUnitWithoutTileCheck(ctx: Context, newUnit: Unit): Promise < Unit > {
 		console.log('force spawning unit: ' + newUnit.details.type);
-		return db.units[this.name].addUnit(newUnit);
+		return db.units[this.name].addUnit(ctx, newUnit);
 	}
-	async spawnAndValidate(newUnit: Unit): Promise < ? Unit > {
-		const unit = await db.units[this.name].addUnit(newUnit);
-		const success = await unit.addToChunks();
+	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise < ? Unit > {
+		const unit = await db.units[this.name].addUnit(ctx, newUnit);
+		const success = await unit.addToChunks(ctx);
 		if(!success) {
 			console.log("spawn collision");
 			await unit.delete();
 			return null;
 		}
 		await unit.validate();
+		logger.checkContext(ctx, 'spawnAndvalidate()');
 		return unit;
 	}
 
@@ -373,14 +374,16 @@ export default class Map {
 	async findSpawnLocation(ctx: Context, attempts: ? number) {
 		attempts = attempts || 0;
 
+		logger.checkContext(ctx, 'finding spawn location');
+
 		var direction = Math.random() * attempts * 50; //1magic number
 		var rotation = Math.random() * Math.PI * 2; //random value between 0 and 2PI
 
 		var x = direction * Math.cos(rotation);
 		var y = direction * Math.sin(rotation);
 
-		let tile = await this.getLoc(x, y);
-		let isValid = await this.validChunkForSpawn(tile.chunk);
+		let tile = await this.getLoc(ctx, x, y);
+		let isValid = await this.validChunkForSpawn(ctx, tile.chunk);
 
 		if(isValid) {
 			return tile.chunk;
@@ -733,7 +736,7 @@ export default class Map {
 		let unitsOnTile: Array < Unit > = await this.unitsTileCheck(center, includeGhosts);
 		let unitTile: PlanetLoc = center;
 		if(unit) {
-			unitTile = await this.getLoc(unit.x, unit.y);
+			unitTile = await this.getLoc(ctx, unit.x, unit.y);
 		}
 
 		//check if the tile we are checking is already free
