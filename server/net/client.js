@@ -109,6 +109,10 @@ class Client {
 			this.sendError('invalid', 'invalid request');
 			return;
 		}
+		if (typeof this.handlers[data.type] !== 'function') {
+			console.log('bad handler for',data.type,typeof this.handlers[data.type]);
+			return;
+		}
 		this.handlers[data.type](ctx, this, data);
 	}
 

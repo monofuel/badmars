@@ -177,6 +177,9 @@ export async function clearSpareIndices(table: r.Table, validIndices: Array<stri
 }
 
 export async function startDBCall(ctx: Context, name: string): Promise<DBCall> {
+	if (!ctx) {
+		throw new Error('missing context');
+	}
 	return new DBCall(ctx, name);
 }
 
