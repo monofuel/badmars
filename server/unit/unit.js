@@ -105,14 +105,14 @@ export default class Unit {
 	constructor(unitType: ? string, map : ? Map, x : number = 0, y: number = 0) {
 
 		//unit will be blank, and should be filled by .clone()
-		if(!unitType || !map) {
+		if (!unitType || !map) {
 			return;
 		}
 
 		// start off with loading type information
 		// to decide what components we will initialize
 		const unitStats = db.unitStats[map.name].get(unitType);
-		if(!unitStats) {
+		if (!unitStats) {
 			logger.info('unit stat missing', { unitType });
 			throw new Error('unit stats missing');
 		}
@@ -139,10 +139,10 @@ export default class Unit {
 		let hash = [];
 		let chunkHash = [];
 		this.details.lastTick = 0;
-		if(this.details.size === 1) {
+		if (this.details.size === 1) {
 			hash = [x + ":" + y];
 			chunkHash = [chunkX + ":" + chunkY];
-		} else if(this.details.size === 3) {
+		} else if (this.details.size === 3) {
 			//TODO multi-chunk should have all chunks listed
 			chunkHash = [chunkX + ":" + chunkY];
 			hash = [
@@ -166,20 +166,20 @@ export default class Unit {
 
 		//------------------
 		// construct init
-		if(this.construct) {
+		if (this.construct) {
 			this.construct.constructing = 0;
 			this.construct.factoryQueue = [];
 		}
 
 		//------------------
 		// attack init
-		if(this.attack) {
+		if (this.attack) {
 			this.attack.fireCooldown = 0;
 		}
 
 		//------------------
 		// storage init
-		if(this.storage) {
+		if (this.storage) {
 			this.storage.resourceCooldown = 0;
 			this.storage.iron = 0;
 			this.storage.fuel = 0;
@@ -187,7 +187,7 @@ export default class Unit {
 
 		//------------------
 		// movable init
-		if(this.movable) {
+		if (this.movable) {
 			this.movable.movementCooldown = 0;
 			this.movable.path = [];
 			this.movable.pathAttempts = 0;
@@ -214,12 +214,12 @@ export default class Unit {
 
 		//------------------
 		//iron and oil should always be off
-		if(this.details.type === 'oil' || this.details.type === 'iron') {
+		if (this.details.type === 'oil' || this.details.type === 'iron') {
 			return self.update({ awake: false });
 		}
 
 		//ghosting units don't need to be awake
-		if(self.ghosting) {
+		if (self.ghosting) {
 			return self.update({ awake: false });
 		}
 
@@ -228,32 +228,32 @@ export default class Unit {
 		// see what actions are possible
 		const profile = logger.startProfile('unit_AI');
 
-		if(this.details.type === 'mine') {
-			actionPromises.push(mineAI.actionable(self, map)
+		if (this.details.type === 'mine') {
+			actionPromises.push(mineAI.actionable(ctx, self, map)
 				.then((result: boolean) => {
 					actionable.mineAI = true;
 				}));
 		}
 
-		if(this.movable) {
-			switch(this.movable.layer) {
+		if (this.movable) {
+			switch (this.movable.layer) {
 			case 'ground':
-				actionPromises.push(groundUnitAI.actionable(self, map)
+				actionPromises.push(groundUnitAI.actionable(ctx, self, map)
 					.then((result: boolean) => {
 						actionable.groundUnitAI = true;
 					}));
 			}
 		}
 
-		if(this.attack) {
-			actionPromises.push(attackAI.actionable(self, map)
+		if (this.attack) {
+			actionPromises.push(attackAI.actionable(ctx, self, map)
 				.then((result: boolean) => {
 					actionable.attackAI = true;
 				}));
 		}
 
-		if(this.construct) {
-			actionPromises.push(constructionAI.actionable(self, map)
+		if (this.construct) {
+			actionPromises.push(constructionAI.actionable(ctx, self, map)
 				.then((result: boolean) => {
 					actionable.constructionAI = true;
 				}));
@@ -264,15 +264,15 @@ export default class Unit {
 		//------------------
 		// actionable map is filled out
 		// pick an action to perform
-		if(actionable.mineAI) {
-			await mineAI.simulate(this, map);
-		} else if(actionable.constructionAI) {
+		if (actionable.mineAI) {
+			await mineAI.simulate(ctx, this, map);
+		} else if (actionable.constructionAI) {
 			//TODO constructionAI should be performed if factoryqueue is ticking
-			await constructionAI.simulate(this, map);
-		} else if(actionable.attackAI) {
-			await attackAI.simulate(this, map);
-		} else if(actionable.groundUnitAI) {
-			await groundUnitAI.simulate(this, map);
+			await constructionAI.simulate(ctx, this, map);
+		} else if (actionable.attackAI) {
+			await attackAI.simulate(ctx, this, map);
+		} else if (actionable.groundUnitAI) {
+			await groundUnitAI.simulate(ctx, this, map);
 		} else { // if no action is performed
 			logger.info('sleeping unit');
 			await self.update({ awake: false });
@@ -301,7 +301,7 @@ export default class Unit {
 	}
 
 	async takeIron(amount) {
-		if(!this.storage) {
+		if (!this.storage) {
 			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
 		}
 		let table = db.units[this.location.map].getTable();
@@ -316,15 +316,15 @@ export default class Unit {
 			)
 		}, { returnChanges: true }).run(conn);
 
-		if(!this.storage) {
+		if (!this.storage) {
 			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
 		}
 
-		if(delta.replaced === 0) {
+		if (delta.replaced === 0) {
 			return false;
 		} else {
 			this.storage.iron -= amount;
-			if(this.storage.iron != delta.changes[0].new_val.storage.iron) {
+			if (this.storage.iron != delta.changes[0].new_val.storage.iron) {
 				console.log('IRON UPDATE FAIL');
 				console.log(delta.changes[0].new_val);
 				logger.errorWithInfo("failed to update iron", { uuid: this.uuid, type: this.details.type, amount });
@@ -334,7 +334,7 @@ export default class Unit {
 	}
 
 	async takeFuel(amount) {
-		if(!this.storage) {
+		if (!this.storage) {
 			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
 		}
 		let table = db.units[this.location.map].getTable();
@@ -345,15 +345,15 @@ export default class Unit {
 			)
 		}, { returnChanges: true }).run(conn);
 
-		if(!this.storage) {
+		if (!this.storage) {
 			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
 		}
 
-		if(delta.replaced === 0) {
+		if (delta.replaced === 0) {
 			return false;
 		} else {
 			this.storage.fuel -= amount;
-			if(this.storage.fuel != delta.changes[0].new_val.storage.fuel) {
+			if (this.storage.fuel != delta.changes[0].new_val.storage.fuel) {
 				logger.errorWithInfo("failed to update fuel", { uuid: this.uuid, type: this.details.type, amount });
 			}
 			return true;
@@ -366,22 +366,22 @@ export default class Unit {
 
 	//returns the amount that actually could be deposited
 	async addIron(amount: number): Promise < * > {
-		if(!this.storage) {
+		if (!this.storage) {
 			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
 		}
 
 		const max = this.storage.maxIron - this.storage.iron;
 
-		if(max <= 0) {
+		if (max <= 0) {
 			return 0;
 		}
-		if(amount > max) {
+		if (amount > max) {
 			this.storage.iron += max;
 			await db.units[this.location.map]
 				.updateUnit(this.uuid, { storage: { iron: r.row('storage.iron').default(0).add(max) } });
 			return max;
 		}
-		if(amount <= max) {
+		if (amount <= max) {
 			this.storage.iron += amount;
 			await db.units[this.location.map]
 				.updateUnit(this.uuid, { storage: { iron: r.row('storage.iron').default(0).add(amount) } });
@@ -391,19 +391,19 @@ export default class Unit {
 
 	//returns the amount that actually could be deposited
 	async addFuel(amount: number): Promise < * > {
-		if(!this.storage) {
+		if (!this.storage) {
 			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
 		}
 		const max = this.storage.maxFuel - this.storage.fuel;
-		if(max <= 0) {
+		if (max <= 0) {
 			return 0;
 		}
-		if(amount > max) {
+		if (amount > max) {
 			this.storage.fuel += max;
 			await db.units[this.location.map].updateUnit(this.uuid, { storage: { fuel: r.row('storage.fuel').default(0).add(max) } });
 			return max;
 		}
-		if(amount <= max) {
+		if (amount <= max) {
 			this.storage.fuel += amount;
 			await db.units[this.location.map].updateUnit(this.uuid, { storage: { fuel: r.row('storage.fuel').default(0).add(amount) } });
 			return amount;
@@ -412,12 +412,12 @@ export default class Unit {
 
 	async addFactoryOrder(unitType) {
 
-		if(!this.construct) {
+		if (!this.construct) {
 			return logger.errorWithInfo("unit cannot construct", { uuid: this.uuid, type: this.details.type });
 		}
 
 		const stats = db.unitStats[this.location.map].get(unitType);
-		if(!stats) {
+		if (!stats) {
 			return logger.errorWithInfo("cannot add invalid factory order", { uuid: this.uuid, type: unitType });
 		}
 
@@ -432,7 +432,7 @@ export default class Unit {
 	}
 
 	async popFactoryOrder(): Object {
-		if(!this.construct) {
+		if (!this.construct) {
 			return logger.errorWithInfo("unit cannot construct", { uuid: this.uuid, type: this.details.type });
 		}
 		const queue = this.construct.factoryQueue;
@@ -446,15 +446,15 @@ export default class Unit {
 	}
 
 	async addPathAttempt() {
-		if(!this.movable) {
+		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
 		this.movable.pathAttempts++;
 
-		if(this.movable.pathAttempts > env.movementAttemptLimit) {
+		if (this.movable.pathAttempts > env.movementAttemptLimit) {
 			const movable = { pathAttempts: this.movable.pathAttempts };
 			await this.update({ movable });
-		} else if(this.movable.pathAttemptAttempts > 2) {
+		} else if (this.movable.pathAttemptAttempts > 2) {
 			//totally give up on pathing
 			await this.clearDestination();
 		} else {
@@ -470,7 +470,7 @@ export default class Unit {
 
 	}
 	async setTransferGoal(uuid: UUID, iron: number, fuel: number) {
-		if(!this.movable) {
+		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
@@ -484,7 +484,7 @@ export default class Unit {
 	}
 
 	async clearTransferGoal() {
-		if(!this.movable) {
+		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
@@ -494,7 +494,7 @@ export default class Unit {
 	}
 
 	async setDestination(x: number, y: number) {
-		if(!this.movable) {
+		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
 		let hash = x + ":" + y;
@@ -503,7 +503,7 @@ export default class Unit {
 	}
 
 	async setPath(path: Array < any > ) {
-		if(!this.movable) {
+		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = { path: path, isPathing: false };
@@ -511,7 +511,7 @@ export default class Unit {
 	}
 
 	async clearDestination() {
-		if(!this.movable) {
+		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
@@ -524,7 +524,7 @@ export default class Unit {
 	}
 
 	async tickMovement() {
-		if(!this.movable) {
+		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
@@ -534,7 +534,7 @@ export default class Unit {
 	}
 
 	async tickFireCooldown() {
-		if(!this.attack) {
+		if (!this.attack) {
 			return logger.errorWithInfo("unit can't attack", { uuid: this.uuid, type: this.details.type });
 		}
 		const attack = {
@@ -544,7 +544,7 @@ export default class Unit {
 	}
 
 	async armFireCooldown() {
-		if(!this.attack) {
+		if (!this.attack) {
 			return logger.errorWithInfo("unit can't attack", { uuid: this.uuid, type: this.details.type });
 		}
 		const attack = {
@@ -554,32 +554,32 @@ export default class Unit {
 	}
 
 	async takeDamage(dmg: number) {
-		if(this.details.maxHealth === 0) {
+		if (this.details.maxHealth === 0) {
 			return logger.errorWithInfo("non-attackable unit attacked", { uuid: this.uuid, type: this.details.type });
 		}
 		const details = {
 			health: this.details.health - dmg
 		}
-		if(details.health < 0) {
+		if (details.health < 0) {
 			details.health = 0;
 		}
 		await this.update({ details, awake: true });
 	}
 
-	async moveToTile(tile: PlanetLoc) {
-		if(!this.movable) {
+	async moveToTile(ctx: Context, tile: PlanetLoc) {
+		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
-		if(this.details.size !== 1) {
+		if (this.details.size !== 1) {
 			return logger.errorWithInfo("moving is not supported for large units", { uuid: this.uuid, type: this.details.type });
 		}
-		const hasMoved = await tile.chunk.moveUnit(this, tile);
+		const hasMoved = await tile.chunk.moveUnit(ctx, this, tile);
 
-		if(!this.movable) {
+		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
 
-		if(hasMoved) {
+		if (hasMoved) {
 			const location = {
 				x: tile.x,
 				y: tile.y,
@@ -613,7 +613,7 @@ export default class Unit {
 		//TODO split up async and sync validation work
 	}
 	async validate() {
-		if(!env.debug) {
+		if (!env.debug) {
 			return;
 		}
 		await this.refresh();
@@ -622,46 +622,46 @@ export default class Unit {
 			throw new Error(this.uuid + ': ' + reason);
 		}
 
-		if(!this.uuid) {
+		if (!this.uuid) {
 			invalid('missing uuid');
 		}
-		if(!this.details.type) {
+		if (!this.details.type) {
 			invalid('missing type');
 		}
 		//TODO verify type is a valid type
-		if(!this.location.map) {
+		if (!this.location.map) {
 			invalid('missing map name');
 		}
-		if(!this.details.owner &&
+		if (!this.details.owner &&
 			this.details.type !== 'oil' &&
 			this.details.type !== 'iron') {
 			invalid('missing owner');
 		}
 
 		//TODO verify map is valid
-		if(this.location.chunkX == null) {
+		if (this.location.chunkX == null) {
 			invalid('invalid chunkX: ' + this.location.chunkY);
 		}
-		if(this.location.chunkY == null) {
+		if (this.location.chunkY == null) {
 			invalid('invalid chunkY: ' + this.location.chunkY);
 		}
 
 		const chunks = await this.getChunks();
 		chunks.forEach((chunk) => {
-			if(!chunk) {
+			if (!chunk) {
 				invalid('chunk missing for unit');
 			}
 		});
 
-		if(this.location.x == null) {
+		if (this.location.x == null) {
 			invalid('invalid x: ' + this.location.x);
 		}
-		if(this.location.y == null) {
+		if (this.location.y == null) {
 			invalid('invalid y: ' + this.location.y);
 		}
 
-		for(const tileHash of this.location.hash) {
-			if(tileHash.split(':').length != 2) {
+		for (const tileHash of this.location.hash) {
+			if (tileHash.split(':').length != 2) {
 				invalid("bad tileHash: " + tileHash);
 			}
 			const x = tileHash.split(':')[0];
@@ -670,14 +670,14 @@ export default class Unit {
 		}
 
 		const planetLocs = await this.getLocs();
-		for(const loc of planetLocs) {
+		for (const loc of planetLocs) {
 			await loc.validate();
 		}
 
 		const map = await this.getMap()
-		for(let unitTile of this.location.hash) {
+		for (let unitTile of this.location.hash) {
 			//skip this check for resources
-			if(this.details.type === 'oil' || this.details.type === 'iron') {
+			if (this.details.type === 'oil' || this.details.type === 'iron') {
 				break;
 			}
 
@@ -685,7 +685,7 @@ export default class Unit {
 			const chunk = tile.chunk;
 			const unitMap = await chunk.getUnitsMap(unitTile);
 
-			if(!unitMap[this.uuid]) {
+			if (!unitMap[this.uuid]) {
 				console.log(chunk.units)
 				invalid('unit ' + this.uuid + ' missing from hash: ' + unitTile)
 					/*
@@ -755,17 +755,17 @@ export default class Unit {
 	async addToChunks(): Promise < Success > {
 		const locs = await this.getLocs();
 		let success = true;
-		for(const loc of locs) {
+		for (const loc of locs) {
 			let added;
-			if(this.details.type === 'oil' || this.details.type === 'iron') {
+			if (this.details.type === 'oil' || this.details.type === 'iron') {
 				added = await loc.chunk.addResource(this.uuid, loc.hash);
 			} else {
 				added = await loc.chunk.addUnit(this.uuid, loc.hash);
-				if(!added) {
+				if (!added) {
 					console.log('loc.chunk.addUnit failed', loc.hash);
 				}
 			}
-			if(!added) {
+			if (!added) {
 				success = false;
 			}
 		}
@@ -775,12 +775,12 @@ export default class Unit {
 	async clearFromChunks(): Promise < Success > {
 		const locs = await this.getLocs();
 		let success = true;
-		for(const loc of locs) {
+		for (const loc of locs) {
 			const removed = await loc.chunk.clearUnit(this.uuid, loc.hash);
-			if(!removed) {
+			if (!removed) {
 				console.log('loc.chunk.clear failed', loc.hash);
 			}
-			if(!removed) {
+			if (!removed) {
 				success = false;
 			}
 		}
@@ -788,24 +788,38 @@ export default class Unit {
 	}
 
 	async getMap(): Promise < Map > {
-			return await db.map.getMap(this.location.map);
-		}
-		// other should be a database document for a unit (or another unit)
+		return await db.map.getMap(this.location.map);
+	}
+
+	// other should be a database document for a unit (or another unit)
 	clone(other: any) {
-		for(let key in other) {
+		for (let key in other) {
 			// $FlowFixMe: hiding this issue for now
 			this[key] = _.cloneDeep(other[key]);
 		}
 
 
 		const stats = this.getTypeInfo();
-		for(let key in stats) {
+		for (let key in stats) {
 			// $FlowFixMe: hiding this issue for now
 			this[key] = _.assign(this[key], stats[key]);
 		}
 	}
 
-
+	// this function is to work around flow complaining about possibly null values
+	// returned object is a reference to the component on this object, and can be modified.
+	// typing info is not preserved when fetching components, unfortunately
+	// design pattern is to get the components you want at the start of a function
+	// this makes flow happy as then things don't break if a component disappears
+	// after an await (however that should probably never happen)
+	getComponent(comp: string): Object {
+		// $FlowFixMe:
+		const compObject = this[comp];
+		if (!compObject) {
+			logger.errorWithInfo('bad component', { comp, uuid: this.uuid, type: this.details.type });
+		}
+		return compObject;
+	}
 
 	getTypeInfo() {
 		return db.unitStats[this.location.map].get(this.details.type);

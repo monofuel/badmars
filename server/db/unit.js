@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import _ from 'lodash';
-import { Context } from 'node-context';
+import Context from 'node-context';
 import r from 'rethinkdb';
 import Unit from '../unit/unit';
 import db from "./db";
@@ -14,195 +14,118 @@ import logger from '../util/logger';
 
 const VALID_INDICES = ['location.chunkHash', 'location.hash', 'details.lastTick', 'awake'];
 
-class DBunit {
+export default class DBunit {
 	conn: r.Connection;
 	mapName: string;
 	table: r.Table;
-	tableName: string,
+	tableName: string;
 
-		constructor(connection: r.Connection, mapName: string) {
-			this.conn = connection;
-			this.mapName = mapName;
-			tihs.tableName = mapName + "_unit";
-		}
-
-	async init(): Promise < void > {
-		var self = this;
-
-		const tableList: Array < string > = await r.tableList().run(self.conn)
-		if(!tableList.includes(self.tableName)) {
-			console.log('creating unit table for ' + self.mapName);
-			await r.tableCreate(self.tableName, {
-				primaryKey: 'uuid'
-			}).run(self.conn);
-		}
-		this.table = r.table(self.tableName);
-
-		let indexList = await this.table.indexList().run(self.conn);
-		if(!indexList.includes('location.hash')) {
-			console.log("adding location hash index");
-			await this.table.indexCreate("location.hash", {
-				multi: true
-			}).run(self.conn);
-		}
-		if(!indexList.includes('location.chunkHash')) {
-			console.log("adding location chunk hash index");
-			await r.table(self.tableName).indexCreate("location.chunkHash", {
-				multi: true
-			}).run(self.conn);
-		}
-
-		if(!indexList.includes('details.lastTick')) {
-			console.log("adding lastTick index");
-			await r.table(self.tableName).indexCreate("details.lastTick").run(self.conn);
-		}
-
-		if(!indexList.includes('awake')) {
-			console.log("adding awake index");
-			await r.table(self.tableName).indexCreate("awake").run(self.conn);
-		}
-		let spareIndices = [];
-
-		await this.table.indexWait();
-		indexList = await this.table.indexList().run(self.conn);
-		spareIndices = _.remove(indexList, (e) => { return !VALID_INDICES.includes(e) })
-		for(let index of spareIndices) {
-			await this.table.indexDrop(index).run(self.conn);
-		}
+	constructor(connection: r.Connection, mapName: string) {
+		this.conn = connection;
+		this.mapName = mapName;
+		this.tableName = mapName + "_unit";
 	}
 
-	listUnits(ctx: Context) {
-		let profile = logger.startProfile('listUnits');
-		return this.table.coerceTo('array').run(this.conn).then((array) => {
-			logger.endProfile(profile);
-			logger.checkContext(ctx, 'listUnits()');
-			return array;
-		});
+	async init(): Promise < void > {
+		this.table = await db.safeCreateTable(this.tableName, 'uuid');
+		await db.safeCreateIndex(this.table, 'location.hash', true);
+		await db.safeCreateIndex(this.table, 'location.chunkHash', true);
+		await db.safeCreateIndex(this.table, 'details.lastIndex');
+		await db.safeCreateIndex(this.table, 'awake');
+		await db.clearSpareIndices(this.table, VALID_INDICES);
+
 	}
 
 	async listPlayersUnits(ctx: Context, owner: string): Promise < Array < Unit >> {
-		const profile = logger.startProfile('listPlayersUnits');
+		const call = await db.startDBCall(ctx);
 		const cursor = await this.table.filter(r.row('owner').eq(owner)).run(this.conn);
-		logger.checkContext(ctx, 'list players units');
 		const units = await this.loadUnitsCursor(cursor);
-		logger.endProfile(profile);
+		await call.end();
 		return units;
 	}
 
-	async addUnit(unit) {
-		let profile = logger.startProfile('addUnit');
+	async addUnit(ctx: Context, unit: Unit) {
+		const call = await db.startDBCall(ctx);
 		let delta = await this.table.insert(unit, {
 			returnChanges: true
 		}).run(this.conn);
-		logger.endProfile(profile);
+		await call.end();
 		return await this.loadUnit(delta.changes[0].new_val);
 	}
 
-	async getUnit(uuid) {
-		let profile = logger.startProfile('getUnit');
+	async getUnit(ctx: Context, uuid: UUID) {
+		const call = await db.startDBCall(ctx);
 		let doc = await this.table.get(uuid).run(this.conn);
-		if(!doc) {
+		if (!doc) {
 			console.log('unit not found: ', uuid);
 		}
-		logger.endProfile(profile);
+		await call.end();
 		return this.loadUnit(doc);
 	}
-	async getUnits(uuids) {
-		let profile = logger.startProfile('getUnits');
+	async getUnits(ctx: Context, uuids: Array < UUID > ) {
+		const call = await db.startDBCall(ctx);
 		const promises = [];
-		for(const uuid of uuids) {
+		for (const uuid of uuids) {
 			promises.push(this.table.get(uuid).run(this.conn));
 		}
 		const docs = await Promise.all(promises);
+		await call.check();
 		const units = await this.loadUnits(docs);
-		logger.endProfile(profile);
+		await call.end();
 		return units;
 	}
 
-	async getUnitsMap(uuids: Array < UUID > ): Promise < UnitMap > {
-		const profile = logger.startProfile('getUnits');
+	async getUnitsMap(ctx: Context, uuids: Array < UUID > ): Promise < UnitMap > {
+		const call = await db.startDBCall(ctx);
 		const promises = [];
-		for(const uuid of uuids) {
+		for (const uuid of uuids) {
 			promises.push(this.table.get(uuid).run(this.conn));
 		}
 		const unitDocs = await Promise.all(promises);
+		await call.check();
 		const unitMap = {};
-		for(let doc of unitDocs) {
+		for (let doc of unitDocs) {
 			const unit = new Unit();
 			unit.clone(doc);
 			unitMap[unit.uuid] = unit;
 		}
-		logger.endProfile(profile);
+		await call.end();
 		return unitMap;
 	}
 
-	async updateUnit(uuid, patch) {
-		let profile = logger.startProfile('updateUnit');
+	async updateUnit(ctx: Context, uuid: UUID, patch: Object) {
+		const call = await db.startDBCall(ctx);
 		let result = await this.table.get(uuid).update(patch).run(this.conn);
-		logger.endProfile(profile);
+		await call.end();
 		return result;
 	}
 
-	async saveUnit(unit) {
-		let profile = logger.startProfile('saveUnit');
+	async saveUnit(ctx: Context, unit: Unit) {
+		const call = await db.startDBCall(ctx);
 		let result = await this.table.get(unit.uuid).update(unit).run(this.conn);
-		logger.endProfile(profile);
+		await call.end();
 		return result;
 
 	};
 
-	async deleteUnit(uuid) {
-		return await this.table.get(uuid).delete().run(this.conn);
+	async deleteUnit(ctx: Context, uuid: UUID) {
+		const call = await db.startDBCall(ctx);
+		await this.table.get(uuid).delete().run(this.conn);
+		await call.end();
 	}
 
-	getUnitAtTile(hash) {
-
-		//TODO find all uses of this function and remove it
-		console.log('depreciated');
-		console.log((new Error()).stack);
-
-		var self = this;
-		return this.table.getAll(hash, {
-			index: "tileHash"
-		}).coerceTo('array').run(this.conn).then((docs) => {
-			var doc = docs[0];
-			if(docs.length > 1) {
-				console.log('error: multiple units at tile');
-			}
-			if(!doc) {
-				return null;
-			}
-			return self.loadUnit(doc);
-
-		});
-	}
-
-	async getUnitsAtTile(hash): Promise < Array < Unit >> {
-		let profile = logger.startProfile('getunitsAtTile');
-		let docs = await this.table.getAll(hash, {
-			index: "tileHash"
-		}).coerceTo('array').run(this.conn);
-
-		let units = [];
-		for(let doc of docs) {
-			units.push(await this.loadUnit(doc));
-		}
-		logger.endProfile(profile);
-		return units;
-	}
-
-	async getUnitsAtChunk(x, y) {
-		let profile = logger.startProfile('getunitsAtChunk');
-		var hash = x + ":" + y;
-		var unitDocs = await this.table.getAll(hash, {
+	async getUnitsAtChunk(ctx: Context, x: number, y: number) {
+		const call = await db.startDBCall(ctx);
+		const hash = x + ":" + y;
+		const unitDocs = await this.table.getAll(hash, {
 			index: "chunkHash"
 		}).coerceTo('array').run(this.conn);
-
-		var units = [];
-		for(let doc of unitDocs) {
+		await call.check();
+		const units: Array < Unit > = [];
+		for (let doc: Object of unitDocs) {
 			units.push(await this.loadUnit(doc));
 		}
-		logger.endProfile(profile);
+		await call.end();
 		return units;
 
 	}
@@ -216,16 +139,16 @@ class DBunit {
 		return Promise.all(units);
 	}
 
-	async loadUnitsCursor(cursor): Promise < Array < Unit >> {
+	async loadUnitsCursor(cursor: r.Cursor): Promise < Array < Unit >> {
 		const units = [];
 		await cursor.each((err, doc) => {
-			if(err) {
+			if (err) {
 				throw err;
 			}
 			units.push(this.loadUnit(doc));
 		}).catch((err) => {
 			//dumb rethinkDB bug
-			if(err.message === 'No more rows in the cursor.') {
+			if (err.message === 'No more rows in the cursor.') {
 				return;
 			}
 			throw err;
@@ -234,32 +157,31 @@ class DBunit {
 		return Promise.all(units);
 	}
 
-	async loadUnit(doc) {
-		if(!doc) {
-			return null;
+	async loadUnit(doc: Object): Promise < Unit > {
+		if (!doc) {
+			throw new Error('loadUnit called for null document');
 		}
-		let profile = logger.startProfile('loadUnit');
-		let unit = new Unit();
+		const profile = logger.startProfile('loadUnit');
+		const unit = new Unit();
 		unit.clone(doc);
 		logger.endProfile(profile);
 		return unit;
 	}
 
-	addFactoryOrder(uuid, order) {
-		return this.table.get(uuid).update({
+	async addFactoryOrder(ctx: Context, uuid: UUID, order: FactoryOrder): Promise < void > {
+		const call = await db.startDBCall(ctx);
+		await this.table.get(uuid).update({
 			factoryQueue: r.row('factoryQueue').append(order),
 			awake: true
 		}).run(this.conn);
+		await call.end();
+
 	}
 
-	//would be nice if i could combine
-	//pathlistener and getunprocessed into one step
-	//atm pathlistener will trigger a check to fetch unprocessed
-	//and unprocessed atomicly picks off a unit
-	registerPathListener(func) {
-		return this.table.filter(r.row.hasFields('destination'))
-			.filter(r.row('isPathing').eq(false))
-			.filter(r.row('path').eq([]))
+	registerPathListener(func: Function) {
+		this.table.filter(r.row.hasFields('location.destination'))
+			.filter(r.row('location.isPathing').eq(false))
+			.filter(r.row('location.path').eq([]))
 			.changes().run(this.conn).then((cursor) => {
 				cursor.each(func);
 			})
@@ -267,13 +189,13 @@ class DBunit {
 
 	async getUnprocessedPath() {
 
-		let result = await this.table.filter(r.row.hasFields('destination'))
-			.filter(r.row('isPathing').eq(false))
-			.filter(r.row('path').eq([]))
+		let result = await this.table.filter(r.row.hasFields('location.destination'))
+			.filter(r.row('location.isPathing').eq(false))
+			.filter(r.row('location.path').eq([]))
 			.limit(env.pathChunks)
 			.update((unit) => {
 				return r.branch(
-					unit('isPathing').eq(false), { isPathing: true, pathUpdate: Date.now() }, {}
+					unit('location.isPathing').eq(false), { location: { isPathing: true, pathUpdate: Date.now() } }, {}
 				)
 			}, {
 				durability: 'hard',
@@ -282,7 +204,7 @@ class DBunit {
 		return result;
 	}
 
-	getUnprocessedUnits(tick) {
+	getUnprocessedUnits(tick: number): Promise < Array < Unit >> {
 		return this.table.getAll(true, {
 			index: 'awake'
 		}).filter(r.row('lastTick').lt(tick)).limit(env.unitProcessChunks).update((unit) => {
@@ -292,12 +214,12 @@ class DBunit {
 		}, {
 			returnChanges: true
 		}).run(this.conn).then((delta) => {
-			if(!delta.changes || delta.changes.length === 0) {
+			if (!delta.changes || delta.changes.length === 0) {
 
 				return [];
 			}
 			var units = [];
-			for(let i = 0; i < delta.changes.length; i++) {
+			for (let i = 0; i < delta.changes.length; i++) {
 				var newunit = delta.changes[i].new_val;
 				var oldunit = delta.changes[i].old_val;
 
@@ -310,7 +232,7 @@ class DBunit {
 		});
 	}
 
-	async getUnprocessedUnitKeys(tick) {
+	async getUnprocessedUnitKeys(tick: number): Promise < Array < UUID >> {
 		return this.table.getAll(true, {
 				index: 'awake'
 			}).filter(r.row('lastTick').lt(tick))
@@ -320,17 +242,16 @@ class DBunit {
 			.run(this.conn);
 	}
 
-	async claimUnitTick(ctx: Context, uuid: UUID, tick: number) {
-		const profile = logger.startProfile('claimUnitTick');
+	async claimUnitTick(ctx: Context, uuid: UUID, tick: number): Promise < ? Unit > {
+		const call = await db.startDBCall(ctx);
 		const delta = await this.table.get(uuid).update((unit) => {
 			return r.branch(
 				unit('lastTick').ne(tick), { lastTick: tick }, {}
 			)
 		}, { returnChanges: true }).run(this.conn);
-		logger.endProfile(profile);
-		logger.checkContext(ctx, 'claim unit tick');
+		await call.end();
 
-		if(!delta.changes || delta.changes.length !== 1) {
+		if (!delta.changes || delta.changes.length !== 1) {
 			return null;
 		}
 		let properunit = new Unit();
@@ -338,7 +259,7 @@ class DBunit {
 		return properunit;
 	}
 
-	async countUnprocessedUnits(tick) {
+	async countUnprocessedUnits(tick: number): Promise < number > {
 		//new units will have lastTick set to 0. we do not want this in the 'unprocessed' count
 		//however we still want to process them next tick.
 		return await this.table.getAll(true, {
@@ -346,17 +267,17 @@ class DBunit {
 		}).filter(r.row('lastTick').lt(tick - 1).and(r.row('lastTick').gt(0))).count().run(this.conn);
 	}
 
-	countAllUnits() {
+	countAllUnits(): Promise < number > {
 		return this.table.count().run(this.conn);
 	}
 
-	countAwakeUnits() {
+	countAwakeUnits(): Promise < number > {
 		return this.table.getAll(true, {
 			index: 'awake'
 		}).count().run(this.conn);
 	}
 
-	registerListener(func) {
+	registerListener(func: Function) {
 		this.table.changes().run(this.conn).then((cursor) => {
 			cursor.each(func);
 		});
@@ -364,13 +285,10 @@ class DBunit {
 
 
 	//these should never get used.
-	getTable() {
+	getTable(): r.Table {
 		return this.table;
 	}
-	getConn() {
+	getConn(): r.Connection {
 		return this.conn;
 	}
 }
-
-
-module.exports = DBunit;

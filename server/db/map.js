@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -7,85 +7,86 @@
 import Map from '../map/map';
 
 import r from 'rethinkdb';
+import db from './db';
 import logger from '../util/logger';
+import Context from 'node-context';
 
-const mapCache = {};
+class DBMap {
+	mapCache: Object;
+	conn: r.Connection;
+	table: r.Table;
+	tableName: string;
 
-var conn;
-var table;
-
-exports.init = (connection) => {
-	conn = connection;
-	return r.tableList().run(conn)
-		.then((tableList) => {
-			if(tableList.indexOf('map') == -1) {
-				console.log('creating map table');
-				return r.tableCreate('map', { primaryKey: 'name' }).run(conn);
-			}
-		}).then(() => {
-			table = r.table('map');
-		});
-};
-
-exports.listNames = async() => {
-	return table.getField('name').coerceTo('array').run(conn);
-};
-
-exports.getMap = async function getMap(name) {
-	if(!name) {
-		throw new Error('missing map name');
-	}
-	let profile = logger.startProfile('getMap');
-	if(mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/ ) {
-		logger.addSumStat('mapCacheHit', 1);
-		logger.endProfile(profile);
-		return mapCache[name].map;
-	} else {
-		logger.addSumStat('mapCacheMissOrRefresh', 1);
+	constructor() {
+		this.mapCache = {};
+		this.tableName = 'map';
 	}
 
-	let doc = await table.get(name).run(conn);
-	if(!doc) {
-		return null;
-	}
-	var map = new Map();
-	map.clone(doc);
-	mapCache[name] = {
-		lastUpdate: Date.now(),
-		map: map
+	async init(conn: r.Connection) {
+		this.conn = conn;
+		this.table = await db.safeCreateTable(this.tableName, 'name');
 	};
 
-	logger.endProfile(profile);
-	return map;
-};
+	async listNames() {
+		return table.getField('name').coerceTo('array').run(conn);
+	};
 
-exports.registerListener = (name, func) => {
-	table.get(name).changes().run(conn).then((cursor) => {
-		cursor.each(func);
-	});
-};
+	async getMap(ctx: Context, name: string): Promise<?Map> {
+		const call = await db.startDBCall(ctx);
+		if(this.mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/ ) {
+			logger.addSumStat('mapCacheHit', 1);
+			await call.end();
+			return this.mapCache[name].map;
+		} else {
+			logger.addSumStat('mapCacheMissOrRefresh', 1);
+		}
 
-exports.listNames = () => {
-	return table.getField('name').run(conn).then((cursor) => {
-		return cursor.toArray();
-	});
-};
+		let doc = await this.table.get(name).run(this.conn);
+		if(!doc) {
+			return null;
+		}
+		var map = new Map();
+		map.clone(doc);
+		this.mapCache[name] = {
+			lastUpdate: Date.now(),
+			map: map
+		};
 
-exports.saveMap = (map) => {
-	return table.get(map.name).update(map).run(conn);
-};
-exports.createMap = (map) => {
-	return table.insert(map, { conflict: "error" }).run(conn);
-};
+		await call.end();
+		return map;
+	};
 
-exports.updateMap = async(name, patch) => {
-	return await table.get(name).update(patch).run(conn);
-};
+	async registerListener(name: string, func: Function) {
+		this.table.get(name).changes().run(this.conn).then((cursor) => {
+			cursor.each(func);
+		});
+	};
 
-exports.removeMap = (name) => {
-	return table.get(name).delete().run(conn);
-};
+	async listNames() {
+		return this.table.getField('name').run(this.conn).then((cursor) => {
+			return cursor.toArray();
+		});
+	};
 
-exports.createRandomMap = (name) => {
-	return exports.createMap(new Map(name));
-};
+	async saveMap(map: Map) {
+		return this.table.get(map.name).update(map).run(this.conn);
+	};
+	async createMap(map: Map) {
+		return this.table.insert(map, { conflict: "error" }).run(this.conn);
+	};
+
+	async updateMap(name: string, patch: Object) {
+		return await this.table.get(name).update(patch).run(this.conn);
+	};
+
+	async removeMap(name: string) {
+		return this.table.get(name).delete().run(this.conn);
+	};
+
+	async createRandomMap(name) {
+		return exports.createMap(new Map(name));
+	};
+}
+
+const map = new Map();
+export default map;

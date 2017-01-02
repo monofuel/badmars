@@ -6,6 +6,7 @@
 
 import { getTypeName } from './tiletypes';
 import DIRECTION from '../map/directions';
+import Context from 'node-context';
 
 import env from '../config/env';
 import Map from './map';
@@ -27,7 +28,7 @@ class PlanetLoc {
 
 	// temp storage used by pathfinder
 	//TODO these should not be here
-	prev: ? PlanetLoc;
+	prev: ?PlanetLoc;
 	realCost: number;
 	cost: number;
 
@@ -90,29 +91,29 @@ class PlanetLoc {
 		}
 		return line;
 	}
-	async N() {
-		return await this.map.getLoc(this.x, this.y + 1);
+	async N(ctx: Context) {
+		return await this.map.getLoc(ctx,this.x, this.y + 1);
 	}
-	async S() {
-		return await this.map.getLoc(this.x, this.y - 1);
+	async S(ctx: Context) {
+		return await this.map.getLoc(ctx,this.x, this.y - 1);
 	}
-	async E() {
-		return await this.map.getLoc(this.x + 1, this.y);
+	async E(ctx: Context) {
+		return await this.map.getLoc(ctx,this.x + 1, this.y);
 	}
-	async W() {
-		return await this.map.getLoc(this.x - 1, this.y);
+	async W(ctx: Context) {
+		return await this.map.getLoc(ctx,this.x - 1, this.y);
 	}
 
-	async getDirTile(dir) {
+	async getDirTile(ctx: Context, dir) {
 		switch(dir) {
 		case DIRECTION.N:
-			return await this.N();
+			return await this.N(ctx);
 		case DIRECTION.S:
-			return await this.S();
+			return await this.S(ctx);
 		case DIRECTION.E:
-			return await this.E();
+			return await this.E(ctx);
 		case DIRECTION.W:
-			return await this.W();
+			return await this.W(ctx);
 		case DIRECTION.C:
 		default:
 			return this;

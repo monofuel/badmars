@@ -13,12 +13,12 @@ import Unit from '../unit';
 import Map from '../../map/map';
 import PlanetLoc from '../../map/planetloc';
 
-async function actionable(unit: Unit, map: Map): Promise < boolean > {
+async function actionable(ctx: Context, unit: Unit, map: Map): Promise < boolean > {
 	//TODO return if we can move or not
 	return false;
 }
 
-async function simulate(unit: Unit, map: Map) {
+async function simulate(ctx: Context, unit: Unit, map: Map) {
 
 	if(await unit.tickMovement()) {
 		//console.log('movement cooldown: ' + unit.movementCooldown);
@@ -36,7 +36,7 @@ async function simulate(unit: Unit, map: Map) {
 			if(unit.details.type === 'transport') {
 				//wake up nearby ghost builders
 				console.log('waking builders');
-				let units: Array < Unit > = await map.getNearbyUnitsFromChunk(unit.location.chunkHash[0]);
+				let units: Array < Unit > = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
 				for(let nearby: Unit of units) {
 					if(nearby.details.type === 'builder') {
 						await nearby.update({ awake: true });
@@ -52,7 +52,7 @@ async function simulate(unit: Unit, map: Map) {
 			//if it is not nearby, keep pathing.
 			console.log('PATHFINDING CLOSER TO TRANSFER UNIT');
 			let tiles: Array < PlanetLoc > = await transferUnit.getLocs();
-			let tile = await map.getNearestFreeTile(tiles[0], unit, true);
+			let tile = await map.getNearestFreeTile(ctx, tiles[0], unit, true);
 			unit.setDestination(tile.x, tile.y);
 
 			return false;
@@ -160,10 +160,10 @@ async function simulate(unit: Unit, map: Map) {
 		return;
 	}
 	let destinationHash = unit.movable.destination;
-	let start = await map.getLoc(unit.location.x, unit.location.y);
-	let destinationX = destinationHash.split(":")[0];
-	let destinationY = destinationHash.split(":")[1];
-	let end = await map.getLoc(destinationX, destinationY);
+	let start = await map.getLoc(ctx, unit.location.x, unit.location.y);
+	let destinationX = parseInt(destinationHash.split(":")[0]);
+	let destinationY = parseInt(destinationHash.split(":")[1]);
+	let end = await map.getLoc(ctx, destinationX, destinationY);
 	if(!unit.movable) {
 		return;
 	}
@@ -171,7 +171,7 @@ async function simulate(unit: Unit, map: Map) {
 	let nextTile = await start.getDirTile(dir);
 	//console.log(start.toString());
 	//console.log(nextTile.toString());
-	if(await unit.moveToTile(nextTile)) {
+	if(await unit.moveToTile(ctx, nextTile)) {
 		//console.log('updating path');
 		if(!unit.movable) {
 			return;

@@ -43,12 +43,12 @@ class AStarPath {
 		this.cost = 0;
 		this.path = [];
 	}
-	async generate() {
+	async generate(ctx: Context) {
 		this.open = [
-      await this.map.getLoc(this.start.x + 1, this.start.y),
-      await this.map.getLoc(this.start.x - 1, this.start.y),
-      await this.map.getLoc(this.start.x, this.start.y + 1),
-      await this.map.getLoc(this.start.x, this.start.y - 1)
+      await this.map.getLoc(ctx,this.start.x + 1, this.start.y),
+      await this.map.getLoc(ctx,this.start.x - 1, this.start.y),
+      await this.map.getLoc(ctx,this.start.x, this.start.y + 1),
+      await this.map.getLoc(ctx,this.start.x, this.start.y - 1)
     ];
 
 		this.closed = [this.start];
@@ -65,7 +65,7 @@ class AStarPath {
 		} while (result !== 'complete');
 	}
 
-	async searchNext() {
+	async searchNext(ctx: Context) {
 
 		this.cost++;
 
@@ -123,7 +123,7 @@ class AStarPath {
 		}
 
 		//check if the tile is open and passable
-		let isValid = await this.map.checkValidForUnit(this.current, this.unit, true);
+		let isValid = await this.map.checkValidForUnit(ctx, this.current, this.unit, true);
 		if(!isValid) {
 			//console.log('not passible for unit');
 			return 'continue';

@@ -11,15 +11,15 @@ import logger from '../../util/logger';
 import Unit from '../unit';
 import Map from '../../map/map';
 
-async function actionable(unit: Unit, map: Map): Promise < boolean > {
+async function actionable(ctx: Context, unit: Unit, map: Map): Promise < boolean > {
 	//TODO return if we can attack or not
 	return false;
 }
 
-async function simulate(unit: Unit, map: Map) {
+async function simulate(ctx: Context, unit: Unit, map: Map) {
 
 	//TODO allow force attacking a specific enemy
-	const enemy = await map.getNearestEnemy(unit);
+	const enemy = await map.getNearestEnemy(ctx, unit);
 
 	if(!enemy) {
 		return;
