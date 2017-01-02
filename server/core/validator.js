@@ -44,7 +44,7 @@ exports.init = async() => {
 async function validateUnits(mapName: string) {
 	console.log('validating units');
 	let counter = 0;
-	//TODO should rename listUnits to just list (and friends)
+	//TODO should rename listUnits to just list (and friends)``
 	const promises = [];
 	await db.units[mapName].each((unit) => {
 		counter++;

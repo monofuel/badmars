@@ -30,7 +30,7 @@ export default class DBunit {
 		this.table = await safeCreateTable(this.tableName, 'uuid');
 		await safeCreateIndex(this.table, 'location.hash', true);
 		await safeCreateIndex(this.table, 'location.chunkHash', true);
-		await safeCreateIndex(this.table, 'details.lastIndex');
+		await safeCreateIndex(this.table, 'details.lastTick');
 		await safeCreateIndex(this.table, 'awake');
 		await clearSpareIndices(this.table, VALID_INDICES);
 	}

@@ -154,8 +154,13 @@ export async function safeCreateIndex(table: r.Table, name: string, multi?: bool
 	const indexList = await table.indexList().run(conn);
 	if (multi) {
 		if (!indexList.includes(name)) {
-			console.log('adding', name, 'index to', table.name);
+			console.log('adding', name, 'index');
 			await table.indexCreate(name, { multi }).run(conn);
+		}
+	} else {
+		if (!indexList.includes(name)) {
+			console.log('adding', name, 'index');
+			await table.indexCreate(name).run(conn);
 		}
 	}
 }

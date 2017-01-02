@@ -21,10 +21,10 @@ async function init() {
 
 	await registerListeners();
 
-	let maps = await db.map.listNames();
+	let maps: Array<string> = await db.map.listNames();
 
-	for(let mapName of maps) {
-		while(await process(ctx, mapName));
+	for(let mapName: string of maps) {
+		while(await process(mapName));
 		//process(mapName);
 	}
 
@@ -43,7 +43,7 @@ function registerListeners() {
 	});
 }
 
-function pathfind(err, delta) {
+function pathfind(err: Error, delta: Object) {
 	if(err) {
 		logger.error(err);
 	}
@@ -59,6 +59,7 @@ function pathfind(err, delta) {
 async function process(mapName: string) {
 	//TODO fix this stuff
 	//doesn't work properly with multiple pathfinding services.
+	console.log('process',mapName);
 	let results = await db.units[mapName].getUnprocessedPath();
 	//console.log(results);
 

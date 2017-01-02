@@ -5,8 +5,6 @@
 //	Licensed under included modified BSD license
 
 import env from '../config/env';
-import logger from './logger';
-
 type statMap = {
 	[key: string]: Array<number>
 }
@@ -77,6 +75,7 @@ exports.addSumStat = (key: string, value: number) => {
 
 
 function reportStats() {
+	const logger = require('./logger'); // cyclical dependency issue
 	const stats: Object = {};
 	for(let key: string of Object.keys(avgStats)) {
 		const array: Array<number> = avgStats[key];
