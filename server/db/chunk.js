@@ -8,7 +8,7 @@ import r from 'rethinkdb';
 import Logger from '../util/logger';
 import Chunk from '../map/chunk';
 import Context from 'node-context';
-import db from "./db";
+import {safeCreateTable, safeCreateIndex, startDBCall} from './db';
 
 class DBChunk {
 	conn: r.Connection;
@@ -22,7 +22,7 @@ class DBChunk {
 	}
 
 	async init() {
-		this.table = await db.safeCreateTable(this.tableName, 'hash');
+		this.table = await safeCreateTable(this.tableName, 'hash');
 	}
 
 	async each(func: Function) {
@@ -32,7 +32,7 @@ class DBChunk {
 				throw err;
 			}
 			var chunk = new Chunk();
-			chunk.clone(chunk);
+			chunk.clone(doc);
 			func(chunk);
 		}).catch((err) => {
 			//dumb rethinkdb bug
@@ -44,7 +44,7 @@ class DBChunk {
 	}
 
 	async getChunk(ctx: Context, x: number, y: number): Promise<?Chunk> {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'getChunk');
 		const doc = await this.table.get(x + ":" + y).run(this.conn);
 		await call.end();
 		if (!doc) {
@@ -55,27 +55,27 @@ class DBChunk {
 		return chunk;
 	}
 	async update(ctx: Context, hash: ChunkHash, patch: any): Promise<Object> {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'updateChunk');
 		const result = await this.table.get(hash).update(patch, { returnChanges: true }).run(this.conn);
 		await call.end();
 		return result;
 	}
 
 	async saveChunk(ctx: Context, chunk: Chunk): Promise<void> {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'saveChunk');
 		await this.table.insert(chunk, { conflict: "replace" }).run(this.conn);
 		await call.end();
 	}
 
 	async setUnit(ctx: Context, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise <Success> {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'setUnit');
 		const result = await this.setEntity(ctx, chunk, uuid, 'units', tileHash);
 		await call.end();
 		return result;
 	}
 
 	async setResource(ctx: Context, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise <Success> {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'setResource');
 		const result = await this.setEntity(ctx, chunk, uuid, 'resources', tileHash);
 		await call.end();
 		return result;

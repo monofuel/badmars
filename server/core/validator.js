@@ -15,6 +15,7 @@ import Context from 'node-context';
 var maps = [];
 
 exports.init = async() => {
+	const ctx = new Context();
 	if(process.argv.length > 2) {
 		maps = process.argv.slice(2, process.argv.length);
 	} else {
@@ -26,8 +27,8 @@ exports.init = async() => {
 	console.log('starting validation');
 	console.log('-------------------------------');
 
-	for(var mapName of maps) {
-		const map = await db.map.getMap(mapName);
+	for(var mapName: string of maps) {
+		const map = await db.map.getMap(ctx, mapName);
 		if(!map) {
 			console.log("no such map");
 			process.exit(-1);
@@ -44,26 +45,24 @@ async function validateUnits(mapName: string) {
 	console.log('validating units');
 	let counter = 0;
 	//TODO should rename listUnits to just list (and friends)
-	const unitList = await db.units[mapName].listUnits();
-	for(const unitDoc of unitList) {
+	const promises = [];
+	await db.units[mapName].each((unit) => {
 		counter++;
-		const unit = new Unit();
-		unit.clone(unitDoc);
-		await unit.validate();
-	}
+		promises.push(unit.validate());
+	});
+	Promise.all(promises);
 	console.log('units validated: ', counter);
 }
 
 async function validateChunks(mapName: string) {
 	console.log('validating chunks');
 	let counter = 0;
-	const chunkList = await db.chunks[mapName].list();
-	for(const chunkDoc of chunkList) {
+	const promises = [];
+	await db.chunks[mapName].each((chunk) => {
 		counter++;
-		const chunk = new Chunk();
-		chunk.clone(chunkDoc);
-		await chunk.validate();
-	};
+		promises.push(chunk.validate());
+	});
+	Promise.all(promises);
 	console.log('chunks validated: ', counter);
 }
 

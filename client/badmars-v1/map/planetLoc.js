@@ -192,7 +192,10 @@ export class PlanetLoc {
 	 * @param  {PlanetLoc} Location to compare to
 	 * @return {boolean}   Equality
 	 */
-	equals(otherLoc: PlanetLoc): boolean {
+	equals(otherLoc: ?PlanetLoc): boolean {
+		if (!otherLoc) {
+			return false;
+		}
 		return (otherLoc.real_x == this.real_x &&
 			otherLoc.real_y == this.real_y &&
 			otherLoc.planet == this.planet);

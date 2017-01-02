@@ -7,7 +7,7 @@
 import Map from '../map/map';
 
 import r from 'rethinkdb';
-import db from './db';
+import {safeCreateTable, safeCreateIndex, startDBCall} from './db';
 import logger from '../util/logger';
 import Context from 'node-context';
 
@@ -24,15 +24,15 @@ class DBMap {
 
 	async init(conn: r.Connection) {
 		this.conn = conn;
-		this.table = await db.safeCreateTable(this.tableName, 'name');
+		this.table = await safeCreateTable(this.tableName, 'name');
 	};
 
 	async listNames() {
 		return table.getField('name').coerceTo('array').run(conn);
 	};
 
-	async getMap(ctx: Context, name: string): Promise<?Map> {
-		const call = await db.startDBCall(ctx);
+	async getMap(ctx: Context, name: string): Promise<Map> {
+		const call = await startDBCall(ctx,'getMap');
 		if(this.mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/ ) {
 			logger.addSumStat('mapCacheHit', 1);
 			await call.end();
@@ -43,7 +43,7 @@ class DBMap {
 
 		let doc = await this.table.get(name).run(this.conn);
 		if(!doc) {
-			return null;
+			throw new Error('map missing');
 		}
 		var map = new Map();
 		map.clone(doc);
@@ -84,9 +84,9 @@ class DBMap {
 	};
 
 	async createRandomMap(name: string) {
-		return exports.createMap(new Map(name));
+		return this.createMap(new Map(name));
 	};
 }
 
-const map = new Map();
+const map = new DBMap();
 export default map;

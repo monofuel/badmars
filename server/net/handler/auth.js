@@ -36,7 +36,7 @@ module.exports = async (ctx: Context, client: Client, data: Object) => {
 		client.sendError('login', 'invalid username');
 	}
 	console.log(data.planet);
-	return db.map.getMap(data.planet).then((planet) => {
+	return db.map.getMap(ctx,data.planet).then((planet) => {
 		if(!planet) {
 			throw new Error("planet doesn't exist");
 		}

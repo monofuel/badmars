@@ -8,9 +8,9 @@ import _ from 'lodash';
 import Context from 'node-context';
 import r from 'rethinkdb';
 import Unit from '../unit/unit';
-import db from "./db";
 import env from '../config/env';
 import logger from '../util/logger';
+import {safeCreateTable, safeCreateIndex, startDBCall, clearSpareIndices} from './db';
 
 const VALID_INDICES = ['location.chunkHash', 'location.hash', 'details.lastTick', 'awake'];
 
@@ -26,18 +26,35 @@ export default class DBunit {
 		this.tableName = mapName + "_unit";
 	}
 
-	async init(): Promise < void > {
-		this.table = await db.safeCreateTable(this.tableName, 'uuid');
-		await db.safeCreateIndex(this.table, 'location.hash', true);
-		await db.safeCreateIndex(this.table, 'location.chunkHash', true);
-		await db.safeCreateIndex(this.table, 'details.lastIndex');
-		await db.safeCreateIndex(this.table, 'awake');
-		await db.clearSpareIndices(this.table, VALID_INDICES);
-
+	async init(): Promise<void> {
+		this.table = await safeCreateTable(this.tableName, 'uuid');
+		await safeCreateIndex(this.table, 'location.hash', true);
+		await safeCreateIndex(this.table, 'location.chunkHash', true);
+		await safeCreateIndex(this.table, 'details.lastIndex');
+		await safeCreateIndex(this.table, 'awake');
+		await clearSpareIndices(this.table, VALID_INDICES);
 	}
 
-	async listPlayersUnits(ctx: Context, owner: string): Promise < Array < Unit >> {
-		const call = await db.startDBCall(ctx);
+	async each(func: Function) {
+		const cursor = await this.table.run(this.conn);
+		await cursor.each((err, doc) => {
+			if (err) {
+				throw err;
+			}
+			const unit = new Unit();
+			unit.clone(doc);
+			func(unit);
+		}).catch((err) => {
+			//dumb rethinkdb bug
+			if (err.message === 'No more rows in the cursor.') {
+				return;
+			}
+			throw err;
+		});
+	}
+
+	async listPlayersUnits(ctx: Context, owner: string): Promise<Array<Unit>> {
+		const call = await startDBCall(ctx,'listPlayersUnits');
 		const cursor = await this.table.filter(r.row('details.owner').eq(owner)).run(this.conn);
 		const units = await this.loadUnitsCursor(cursor);
 		await call.end();
@@ -45,7 +62,7 @@ export default class DBunit {
 	}
 
 	async addUnit(ctx: Context, unit: Unit) {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'addUnit');
 		let delta = await this.table.insert(unit, {
 			returnChanges: true
 		}).run(this.conn);
@@ -54,7 +71,7 @@ export default class DBunit {
 	}
 
 	async getUnit(ctx: Context, uuid: UUID) {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'getUnit');
 		let doc = await this.table.get(uuid).run(this.conn);
 		if (!doc) {
 			console.log('unit not found: ', uuid);
@@ -63,7 +80,7 @@ export default class DBunit {
 		return this.loadUnit(doc);
 	}
 	async getUnits(ctx: Context, uuids: Array < UUID > ) {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'getUnits');
 		const promises = [];
 		for (const uuid of uuids) {
 			promises.push(this.table.get(uuid).run(this.conn));
@@ -76,7 +93,7 @@ export default class DBunit {
 	}
 
 	async getUnitsMap(ctx: Context, uuids: Array < UUID > ): Promise < UnitMap > {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'getUnitsMap');
 		const promises = [];
 		for (const uuid of uuids) {
 			promises.push(this.table.get(uuid).run(this.conn));
@@ -94,14 +111,14 @@ export default class DBunit {
 	}
 
 	async updateUnit(ctx: Context, uuid: UUID, patch: Object) {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'updateUnit');
 		let result = await this.table.get(uuid).update(patch).run(this.conn);
 		await call.end();
 		return result;
 	}
 
 	async saveUnit(ctx: Context, unit: Unit) {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'saveUnit');
 		let result = await this.table.get(unit.uuid).update(unit).run(this.conn);
 		await call.end();
 		return result;
@@ -109,13 +126,13 @@ export default class DBunit {
 	};
 
 	async deleteUnit(ctx: Context, uuid: UUID) {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'deleteUnit');
 		await this.table.get(uuid).delete().run(this.conn);
 		await call.end();
 	}
 
 	async getUnitsAtChunk(ctx: Context, x: number, y: number) {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'getUnitsAtChunk');
 		const hash = x + ":" + y;
 		const unitDocs = await this.table.getAll(hash, {
 			index: "chunkHash"
@@ -169,7 +186,7 @@ export default class DBunit {
 	}
 
 	async addFactoryOrder(ctx: Context, uuid: UUID, order: FactoryOrder): Promise<void> {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'addFactoryOrder');
 		await this.table.get(uuid).update({
 			factoryQueue: r.row('factoryQueue').append(order),
 			awake: true
@@ -243,7 +260,7 @@ export default class DBunit {
 	}
 
 	async claimUnitTick(ctx: Context, uuid: UUID, tick: number): Promise < ? Unit > {
-		const call = await db.startDBCall(ctx);
+		const call = await startDBCall(ctx,'claimUnitTick');
 		const delta = await this.table.get(uuid).update((unit) => {
 			return r.branch(
 				unit('details.lastTick').ne(tick), { details:{lastTick: tick} }, {}

@@ -8,7 +8,7 @@ require("babel-register");
 require("babel-polyfill");
 
 var env = require('./config/env.js');
-var db = require('./db/db.js');
+const db = require('./db/db').db;
 var logger = require('./util/logger.js');
 var commands = require('./util/commands.js');
 var chunk = require('./core/chunk.js');

@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import db from './db';
+import {safeCreateTable, safeCreateIndex, startDBCall} from './db';
 import logger from '../util/logger';
 import User from '../user/user';
 
@@ -20,7 +20,7 @@ class DBChat {
 
 	async init(conn: r.Connection) {
 		this.conn = conn;
-		this.table = await db.safeCreateTable(this.tableName);
+		this.table = await safeCreateTable(this.tableName);
 	}
 
 	async watchChat(func: Function) {

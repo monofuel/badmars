@@ -7,7 +7,7 @@
 
 import _ from 'lodash';
 
-import db from '../db/db';
+import {db} from '../db/db';
 import env from '../config/env';
 import logger from '../util/logger';
 

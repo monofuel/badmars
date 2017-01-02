@@ -5,8 +5,8 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import db from './db';
 import logger from '../util/logger';
+import {safeCreateTable, safeCreateIndex, startDBCall} from './db';
 
 class DBEvent {
 	conn: r.Connection;
@@ -19,15 +19,21 @@ class DBEvent {
 
 	async init(conn: r.Connection) {
 		this.conn = conn;
-		this.table = await db.safeCreateTable(this.tableName);
+		this.table = await safeCreateTable(this.tableName);
 	}
 
 	async addEvent(object: Object) {
 		if (!this.table) {
-			console.log('event fired before connected to DB:',object);
+			//console.log('event fired before connected to DB:',object);
 			return;
 		}
 		await this.table.insert(object).run(this.conn);
+	}
+
+	async watchEvents(func: Function) {
+		this.table.changes().run(this.conn).then((cursor) => {
+			cursor.each(func);
+		});
 	}
 }
 

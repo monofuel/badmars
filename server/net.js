@@ -10,7 +10,7 @@ require("babel-polyfill");
 //usually either for development or if we are just running on 1 process.
 
 var env = require('./config/env.js');
-var db = require('./db/db.js');
+const db = require('./db/db').db;
 var logger = require('./util/logger.js');
 var net = require('./core/net.js');
 var figlet = require('figlet');

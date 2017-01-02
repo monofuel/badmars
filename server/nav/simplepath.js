@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../db/db';
+import {db} from '../db/db';
 import env from '../config/env';
 import logger from '../util/logger';
 import Map from '../map/map';

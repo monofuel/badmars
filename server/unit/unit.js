@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb'; //TODO should not be imported in this file
-import db from '../db/db';
+import {db} from '../db/db';
 import fs from 'fs';
 import logger from '../util/logger';
 import _ from 'lodash';
@@ -787,8 +787,8 @@ export default class Unit {
 		return success;
 	}
 
-	async getMap(): Promise < Map > {
-		return await db.map.getMap(this.location.map);
+	async getMap(ctx: Context): Promise<Map> {
+		return await db.map.getMap(ctx,this.location.map);
 	}
 
 	// other should be a database document for a unit (or another unit)

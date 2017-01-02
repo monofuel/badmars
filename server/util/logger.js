@@ -8,13 +8,10 @@ import request from 'request';
 import os from 'os';
 import env from '../config/env';
 import stats from './stats';
-import db from '../db/db';
 import Context from 'node-context';
 stats.init();
 
 let moduleName = 'monolith';
-
-console.log('db|',db);
 
 //list of modules to output logs for STDOUT
 const DEBUG_MODULES = ['chunk', 'ai'];
@@ -124,6 +121,8 @@ function verifyTrack(name: string, kargs: ? Object) {
 
 
 function track(name: string, kargs: ? Object) {
+	//TODO solve this more elgantly with avoiding cyclical dependencies
+	const {db} = require('../db/db');
 	kargs = kargs || {};
 	for(let key of Object.keys(kargs)) {
 		if(kargs[key] == null) { //delete null fields

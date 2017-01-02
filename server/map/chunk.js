@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../db/db';
+import {db} from '../db/db';
 import env from "../config/env";
 import logger from '../util/logger';
 
@@ -415,7 +415,7 @@ export default class Chunk {
 	getUnitDB(): DBUnit {
 		return db.units[this.map];
 	}
-	getMap(): Map {
-		return db.map.getMap(this.map);
+	async getMap(ctx: Context): Promise<Map> {
+		return db.map.getMap(ctx, this.map);
 	}
 }
