@@ -10,9 +10,6 @@ import helper from '../util/helper';
 import r from 'rethinkdb';
 import _ from 'lodash';
 
-import DBMap from './map';
-import DBChat from './chat';
-import DBEvent from './event';
 import DBChunk from './chunk';
 import DBUnit from './unit';
 import DBUnitStat from './unitStat';
@@ -35,9 +32,11 @@ class DB {
 		this.chunks = {};
 		this.units = {};
 		this.unitStats = {};
+		console.log(this.event);
 	}
 
 	async init() {
+		console.log("DB_INIT");
 		const options: {
 			host: string,
 			db: string,
@@ -172,10 +171,9 @@ class DB {
 	}
 }
 
-const db = new DB();
-export default db;
+module.exports = new DB();
 
-export class DBCall {
+class DBCall {
 	profile: ProfileKey;
 	name: string;
 	ctx: Context;

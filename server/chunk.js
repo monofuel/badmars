@@ -19,7 +19,6 @@ logger.setModule('chunk');
 
 function init() {
 	logger.info("start begin");
-
 	db.init()
 	.then(chunk.init)
 	.then(() => {

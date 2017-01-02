@@ -14,13 +14,15 @@ stats.init();
 
 let moduleName = 'monolith';
 
+console.log('db|',db);
+
 //list of modules to output logs for STDOUT
 const DEBUG_MODULES = ['chunk', 'ai'];
 console.log('=========================');
 console.log('DEBUGGING MODULES:', DEBUG_MODULES);
 console.log('=========================');
 
-exports.setModule = (name: string) => {
+function setModule(name: string) {
 	moduleName = name;
 };
 
@@ -40,14 +42,6 @@ function unhandled(err) {
 };
 
 //==================================================================
-// stat functions
-
-exports.addAverageStat = stats.addAverageStat;
-exports.addSumStat = stats.addSumStat;
-exports.startProfile = stats.startProfile;
-exports.endProfile = stats.endProfile;
-
-//==================================================================
 // logging methods
 
 function handleError(err: Error) {
@@ -59,15 +53,14 @@ function handleError(err: Error) {
 		timestamp: Date.now()
 	});
 };
-module.exports.error = handleError;
 
 //throw a generic error message, but log specific information for debugging
-module.exports.errorWithInfo = (msg: string, details: Object) => {
+function errorWithInfo(msg: string, details: Object) {
 	exports.info(msg, details);
 	throw new Error(msg);
 }
 
-module.exports.requestInfo = (info: string, req: Object) => {
+function requestInfo(info: string, req: Object) {
 	var timestamp = new Date();
 	req.user = req.user || {};
 	track(info, {
@@ -86,7 +79,7 @@ module.exports.requestInfo = (info: string, req: Object) => {
 
 };
 
-module.exports.info = (info: string, body?: Object, silent?: boolean) => {
+function info(info: string, body?: Object, silent?: boolean) {
 	let timestamp = new Date();
 	body = body || {};
 	body.timestamp = timestamp.getTime();
@@ -143,7 +136,6 @@ function track(name: string, kargs: ? Object) {
 	kargs.hostname = os.hostname();
 	kargs.env = env.envType;
 	verifyTrack(name, kargs);
-
 	db.event.addEvent(kargs);
 	/*
 	request({
@@ -155,4 +147,17 @@ function track(name: string, kargs: ? Object) {
 			console.log(error);
 		}
 	});*/
+}
+
+module.exports = {
+	checkContext,
+	info,
+	setModule,
+	error: handleError,
+	requestInfo,
+	errorWithInfo,
+	addAverageStat: stats.addAverageStat,
+	addSumStat: stats.addSumStat,
+	startProfile: stats.startProfile,
+	endProfile: stats.endProfile,
 }

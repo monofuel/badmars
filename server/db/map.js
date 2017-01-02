@@ -83,7 +83,7 @@ class DBMap {
 		return this.table.get(name).delete().run(this.conn);
 	};
 
-	async createRandomMap(name) {
+	async createRandomMap(name: string) {
 		return exports.createMap(new Map(name));
 	};
 }

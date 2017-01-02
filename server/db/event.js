@@ -23,9 +23,12 @@ class DBEvent {
 	}
 
 	async addEvent(object: Object) {
+		if (!this.table) {
+			console.log('event fired before connected to DB:',object);
+			return;
+		}
 		await this.table.insert(object).run(this.conn);
 	}
 }
 
-const event = new DBEvent();
-export default event;
+module.exports = new DBEvent();
