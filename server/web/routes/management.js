@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -11,9 +11,7 @@ import env from '../../config/env';
 import logger from '../../util/logger';
 import db from '../../db/db';
 
-const router = express.Router();
-
-module.exports = (app) => {
+export default function route(app: express) {
 	app.get('/management/pull', (req, res) => {
 		logger.requestInfo("GET /management/pull", req);
 		exec('sh update.sh', (err, stdout, stderr) => {

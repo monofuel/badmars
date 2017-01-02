@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -287,7 +287,7 @@ export default class Unit {
 	//---------------------------------------------------------------------------
 
 
-	async update(patch) {
+	async update(ctx: Context, patch: Object) {
 		//TODO also update this object
 		//assume the object will be awake, unless we are setting it false
 		patch.awake = patch.awake || patch.awake === undefined;
@@ -300,7 +300,7 @@ export default class Unit {
 		return db.units[this.location.map].deleteUnit(this.uuid);
 	}
 
-	async takeIron(amount) {
+	async takeIron(amount: number) {
 		if (!this.storage) {
 			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
 		}
@@ -333,7 +333,7 @@ export default class Unit {
 		}
 	}
 
-	async takeFuel(amount) {
+	async takeFuel(amount: number) {
 		if (!this.storage) {
 			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
 		}
@@ -410,7 +410,7 @@ export default class Unit {
 		}
 	}
 
-	async addFactoryOrder(unitType) {
+	async addFactoryOrder(unitType: UnitType) {
 
 		if (!this.construct) {
 			return logger.errorWithInfo("unit cannot construct", { uuid: this.uuid, type: this.details.type });
@@ -431,7 +431,7 @@ export default class Unit {
 
 	}
 
-	async popFactoryOrder(): Object {
+	async popFactoryOrder(ctx: Context): Object {
 		if (!this.construct) {
 			return logger.errorWithInfo("unit cannot construct", { uuid: this.uuid, type: this.details.type });
 		}
@@ -440,12 +440,12 @@ export default class Unit {
 		const construct = {
 			factoryQueue: queue
 		};
-		await this.update({ construct });
+		await this.update(ctx, { construct });
 
 		return order;
 	}
 
-	async addPathAttempt() {
+	async addPathAttempt(ctx: Context) {
 		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
@@ -453,7 +453,7 @@ export default class Unit {
 
 		if (this.movable.pathAttempts > env.movementAttemptLimit) {
 			const movable = { pathAttempts: this.movable.pathAttempts };
-			await this.update({ movable });
+			await this.update(ctx, { movable });
 		} else if (this.movable.pathAttemptAttempts > 2) {
 			//totally give up on pathing
 			await this.clearDestination();
@@ -465,11 +465,11 @@ export default class Unit {
 				path: [],
 				pathAttemptAttempts: this.movable.pathAttemptAttempts++
 			};
-			this.update({ movable });
+			this.update(ctx, { movable });
 		}
 
 	}
-	async setTransferGoal(uuid: UUID, iron: number, fuel: number) {
+	async setTransferGoal(ctx: Context, uuid: UUID, iron: number, fuel: number) {
 		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
@@ -480,37 +480,37 @@ export default class Unit {
 				fuel: fuel
 			}
 		}
-		return this.update({ movable });
+		return this.update(ctx, { movable });
 	}
 
-	async clearTransferGoal() {
+	async clearTransferGoal(ctx: Context) {
 		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
 			transferGoal: {}
 		}
-		return this.update({ movable });
+		return this.update(ctx, { movable });
 	}
 
-	async setDestination(x: number, y: number) {
+	async setDestination(ctx: Context, x: number, y: number) {
 		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
 		let hash = x + ":" + y;
 		const movable = { destination: hash, isPathing: false, path: [] };
-		return await this.update({ movable });
+		return await this.update(ctx, { movable });
 	}
 
-	async setPath(path: Array < any > ) {
+	async setPath(ctx: Context, path: Array < any > ) {
 		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = { path: path, isPathing: false };
-		return await this.update({ movable })
+		return await this.update(ctx, { movable })
 	}
 
-	async clearDestination() {
+	async clearDestination(ctx: Context) {
 		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
@@ -520,40 +520,40 @@ export default class Unit {
 			path: [],
 			pathAttemptAttempts: 0
 		}
-		return this.update({ movable });
+		return this.update(ctx, { movable });
 	}
 
-	async tickMovement() {
+	async tickMovement(ctx: Context) {
 		if (!this.movable) {
 			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
 			movementCooldown: this.movable.movementCooldown--
 		}
-		return await this.update({ movable });
+		return await this.update(ctx, { movable });
 	}
 
-	async tickFireCooldown() {
+	async tickFireCooldown(ctx: Context) {
 		if (!this.attack) {
 			return logger.errorWithInfo("unit can't attack", { uuid: this.uuid, type: this.details.type });
 		}
 		const attack = {
 			fireCooldown: this.attack.fireCooldown--
 		};
-		await this.update({ attack });
+		await this.update(ctx, { attack });
 	}
 
-	async armFireCooldown() {
+	async armFireCooldown(ctx: Context) {
 		if (!this.attack) {
 			return logger.errorWithInfo("unit can't attack", { uuid: this.uuid, type: this.details.type });
 		}
 		const attack = {
 			fireCooldown: this.attack.fireRate
 		};
-		await this.update({ attack });
+		await this.update(ctx, { attack });
 	}
 
-	async takeDamage(dmg: number) {
+	async takeDamage(ctx: Context, dmg: number) {
 		if (this.details.maxHealth === 0) {
 			return logger.errorWithInfo("non-attackable unit attacked", { uuid: this.uuid, type: this.details.type });
 		}
@@ -563,7 +563,7 @@ export default class Unit {
 		if (details.health < 0) {
 			details.health = 0;
 		}
-		await this.update({ details, awake: true });
+		await this.update(ctx, { details, awake: true });
 	}
 
 	async moveToTile(ctx: Context, tile: PlanetLoc) {
@@ -592,7 +592,7 @@ export default class Unit {
 				movementCooldown: this.movable.speed
 			}
 
-			await this.update({ location, movable });
+			await this.update(ctx, { location, movable });
 		} else {
 			console.log('movement blocked');
 		}

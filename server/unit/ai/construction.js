@@ -66,7 +66,7 @@ async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise < v
 			queue[0].cost = 0;
 
 			//TODO this should not be called from outside unit
-			await unit.update({
+			await unit.update(ctx, {
 				construct: {
 					factoryQueue: queue
 				}
@@ -78,7 +78,7 @@ async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise < v
 	if(queue[0].cost === 0) {
 		if(queue[0].remaining > 0) {
 			queue[0].remaining--;
-			await unit.update({
+			await unit.update(ctx, {
 				construct: {
 					factoryQueue: queue
 				}
@@ -154,7 +154,7 @@ async function simulateGround(ctx: Context, unit: Unit, map: Map) {
 			if(iron_available > nearbyUnit.details.cost) {
 				console.log('iron available', iron_available);
 				console.log('unit cost', nearbyUnit.details.cost);
-				unit.setDestination(tile.x, tile.y);
+				unit.setDestination(ctx, tile.x, tile.y);
 				console.log('builder pathing to ghost');
 				return true;
 			} else {
@@ -169,7 +169,7 @@ async function simulateGround(ctx: Context, unit: Unit, map: Map) {
 		console.log('paying for building');
 		//TODO builder should halt and spend time building
 		//should also make sure the area is clear
-		let result = await nearestGhost.update({ details: { ghosting: false }, awake: true });
+		let result = await nearestGhost.update(ctx, { details: { ghosting: false }, awake: true });
 		return true;
 	}
 }

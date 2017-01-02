@@ -1,11 +1,11 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
 import mongoose from 'mongoose';
-module.exports = (authConn) => {
+module.exports = (authConn: mongoose.Connection) => {
 	var UserSchema = new mongoose.Schema({
 		username: String,
 		admin: {

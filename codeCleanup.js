@@ -40,7 +40,7 @@ function main() {
 	count += checkRequires();
 	count += noStrict();
 	count += nojsimport();
-	count += letType();
+	//count += letType();
 
 	console.log('=============================');
 	console.log(count + ' issues detected');
@@ -60,7 +60,7 @@ function checkFlowAnnotation() {
 			console.log(file)
 			console.log('found: ', firstLine);
 			count++;
-		} else if(STRICT && firstLine !== '/* @flow weak */') {
+		} else if(STRICT && firstLine === '/* @flow weak */') {
 			console.log('=============================');
 			console.log('file is weakly flowtyped');
 			console.log(file);

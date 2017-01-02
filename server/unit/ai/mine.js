@@ -27,10 +27,10 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 
 	if(unit.storage.resourceCooldown > 0) {
 		unit.storage.resourceCooldown--;
-		await unit.update({ storage: { resourceCooldown: unit.storage.resourceCooldown } });
+		await unit.update(ctx, { storage: { resourceCooldown: unit.storage.resourceCooldown } });
 	}
 	if(unit.storage.resourceCooldown === 0) {
-		await unit.update({ storage: { resourceCooldown: env.resourceTicks } });
+		await unit.update(ctx, { storage: { resourceCooldown: env.resourceTicks } });
 
 		let tile: PlanetLoc = await map.getLocFromHash(ctx, unit.location.hash[0]);
 		let unitsAtTile: Array < Unit > = await map.unitsTileCheck(tile);

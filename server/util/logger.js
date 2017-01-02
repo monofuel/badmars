@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -67,7 +67,7 @@ module.exports.errorWithInfo = (msg: string, details: Object) => {
 	throw new Error(msg);
 }
 
-module.exports.requestInfo = (info, req) => {
+module.exports.requestInfo = (info: string, req: Object) => {
 	var timestamp = new Date();
 	req.user = req.user || {};
 	track(info, {
@@ -86,7 +86,7 @@ module.exports.requestInfo = (info, req) => {
 
 };
 
-module.exports.info = (info, body, silent) => {
+module.exports.info = (info: string, body?: Object, silent?: boolean) => {
 	let timestamp = new Date();
 	body = body || {};
 	body.timestamp = timestamp.getTime();

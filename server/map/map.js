@@ -194,8 +194,8 @@ export default class Map {
 	}
 	async factoryMakeUnit(ctx: Context, unitType: string, owner: string, x: number, y: number) {
 		let newUnit = new Unit(unitType, this, x, y);
-		newUnit.owner = owner;
-		newUnit.ghosting = false;
+		newUnit.details.owner = owner;
+		newUnit.details.ghosting = false;
 		return await this.spawnUnit(ctx, newUnit);
 	}
 
@@ -335,16 +335,26 @@ export default class Map {
 
 				let unit = new Unit(unitType, this, x, y);
 				if (unitType !== 'iron' && unitType !== 'oil') {
-					unit.owner = client.user.uuid;
+					unit.details.owner = client.user.uuid;
+				}
+				let unitStorage: ?Object = null;
+				if (unit.storage) {
+					unitStorage = unit.getComponent('storage');
 				}
 				switch (unitType) {
 				case 'storage':
-					unit.fuel = 1000;
-					unit.iron = 1000;
+					if (!unitStorage) {
+						throw new Error('storage unit missing storage');
+					}
+					unitStorage.fuel = 1000;
+					unitStorage.iron = 1000;
 					break;
 				case 'tank':
 				case 'builder':
-					unit.fuel = 50;
+					if (!unitStorage) {
+						throw new Error('builder unit missing storage');
+					}
+					unitStorage.fuel = 50;
 					break;
 				}
 
@@ -353,7 +363,7 @@ export default class Map {
 					console.log('spawned ' + unitType + ' for player ' + client.username);
 					if (unitType === 'iron' || unitType === 'oil') {
 						let mine = new Unit('mine', this, x, y);
-						mine.owner = client.user.uuid;
+						mine.details.owner = client.user.uuid;
 						console.log('spawned mine for player ' + client.username);
 						if (!await this.spawnUnit(ctx, mine)) {
 							console.log('spawning mine failed');
@@ -534,7 +544,7 @@ export default class Map {
 			}
 			console.log('pulling: ' + pulled);
 			let success = await unit.takeIron(ctx, pulled);
-			console.log('success: ' + success + ' : ' + pulled);
+			console.log('success:', success, ':', pulled);
 			if (success) {
 				pulledMap[unit.uuid] = pulled;
 				console.log('pulled :' + pulled);

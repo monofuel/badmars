@@ -39,7 +39,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 				let units: Array < Unit > = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
 				for(let nearby: Unit of units) {
 					if(nearby.details.type === 'builder') {
-						await nearby.update({ awake: true });
+						await nearby.update(ctx, { awake: true });
 					}
 				}
 			}
@@ -53,7 +53,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 			console.log('PATHFINDING CLOSER TO TRANSFER UNIT');
 			let tiles: Array < PlanetLoc > = await transferUnit.getLocs();
 			let tile = await map.getNearestFreeTile(ctx, tiles[0], unit, true);
-			unit.setDestination(tile.x, tile.y);
+			unit.setDestination(ctx, tile.x, tile.y);
 
 			return false;
 		}
@@ -109,7 +109,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 		}
 
 		console.log('updating transfer goal');
-		unit.setTransferGoal(transferUnit.uuid, 0, fuelGoal);
+		unit.setTransferGoal(ctx, transferUnit.uuid, 0, fuelGoal);
 
 		if(!unit.movable || !unit.storage || !unit.storage.transferGoal || !transferUnit.storage) {
 			return;
@@ -176,7 +176,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 		if(!unit.movable) {
 			return;
 		}
-		await unit.setPath(unit.movable.path);
+		await unit.setPath(ctx, unit.movable.path);
 	} else {
 		unit.addPathAttempt();
 		//console.log('move halted');

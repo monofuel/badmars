@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -10,9 +10,7 @@ import env from '../../config/env';
 import logger from '../../util/logger';
 import db from '../../db/db';
 
-const router = express.Router();
-
-module.exports = (app) => {
+export default function route(app: express) {
 	app.get('/', (req, res) => {
 		logger.requestInfo("GET /", req);
 		db.map.listNames().then((list) => {
@@ -25,8 +23,8 @@ module.exports = (app) => {
 
 	app.get('/badMars_v1', (req, res) => {
 
-		var serverAddress = env.wsServer;
-		var port = env.wsPublicPort;
+		const serverAddress: string = env.wsServer;
+		const port: string = env.wsPublicPort;
 
 		res.render('pages/badmars_v1', {
 			user: req.user,

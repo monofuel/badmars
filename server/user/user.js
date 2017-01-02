@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -23,7 +23,7 @@ class User {
 		this.apiKey = hat();
 		this.color = color;
 	}
-	clone(other) {
+	clone(other: Object) {
 		for(let key in other) {
 			// $FlowFixMe: hiding this issue for now
 			this[key] = _.cloneDeep(other[key]);

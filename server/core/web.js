@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -11,10 +11,11 @@ import db from '../db/db';
 import env from '../config/env';
 import logger from '../util/logger';
 
-import { Context } from 'node-context';
+import mainRoute from '../web/routes/main';
+import managementRoute from '../web/routes/management';
 
 exports.init = () => {
-	var app = express();
+	const app: express = express();
 
 	app.set('view engine', 'ejs');
 	app.set('trust proxy', true); //for accurate logs running behind a proxy
@@ -22,8 +23,8 @@ exports.init = () => {
 	app.use(express.static(path.join(__dirname, '/../public')));
 	app.set('views', __dirname + '/../web/views');
 
-	require('../web/routes/main')(app);
-	require('../web/routes/management')(app);
+	mainRoute(app);
+	managementRoute(app);
 
 	return new Promise((resolve, reject) => {
 		var server = app.listen(env.wwwPort, () => {

@@ -1,10 +1,12 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
 import env from '../config/env';
+import Unit from '../unit/unit';
+import Chunk from '../map/chunk';
 
 const unitKeyWhitelist = [
 	'x',
@@ -24,13 +26,14 @@ const unitKeyWhitelist = [
 	'owner'
 ]
 
-module.exports.sanitizeUnit = function sanitizeUnit(unit) {
+module.exports.sanitizeUnit = function sanitizeUnit(unit: Unit) {
 
 	//TODO sanitized based on if user owns the unit
 
 	//whitelist
 	let sanitized = {}
 	for(let key of unitKeyWhitelist) {
+		// $FlowFixMe: hiding this issue for now
 		sanitized[key] = unit[key];
 	}
 	return sanitized;
@@ -46,7 +49,7 @@ const chunkKeyWhitelist = [
 	'chunkSize'
 ];
 
-module.exports.sanitizeChunk = function sanitizeChunk(chunk) {
+module.exports.sanitizeChunk = function sanitizeChunk(chunk: Object) {
 
 	//whitelist
 	let sanitized = {}

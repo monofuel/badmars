@@ -38,7 +38,7 @@ export default class DBunit {
 
 	async listPlayersUnits(ctx: Context, owner: string): Promise < Array < Unit >> {
 		const call = await db.startDBCall(ctx);
-		const cursor = await this.table.filter(r.row('owner').eq(owner)).run(this.conn);
+		const cursor = await this.table.filter(r.row('details.owner').eq(owner)).run(this.conn);
 		const units = await this.loadUnitsCursor(cursor);
 		await call.end();
 		return units;
@@ -130,7 +130,7 @@ export default class DBunit {
 
 	}
 
-	async loadUnits(unitsList: Array < Object > ): Promise < Array < Unit >> {
+	async loadUnits(unitsList: Array <Object> ): Promise <Array<Unit>> {
 		const units = [];
 		_.each(unitsList, (doc) => {
 			units.push(this.loadUnit(doc));
@@ -139,7 +139,7 @@ export default class DBunit {
 		return Promise.all(units);
 	}
 
-	async loadUnitsCursor(cursor: r.Cursor): Promise < Array < Unit >> {
+	async loadUnitsCursor(cursor: r.Cursor): Promise <Array<Unit>> {
 		const units = [];
 		await cursor.each((err, doc) => {
 			if (err) {
@@ -157,7 +157,7 @@ export default class DBunit {
 		return Promise.all(units);
 	}
 
-	async loadUnit(doc: Object): Promise < Unit > {
+	async loadUnit(doc: Object): Promise <Unit> {
 		if (!doc) {
 			throw new Error('loadUnit called for null document');
 		}
@@ -168,7 +168,7 @@ export default class DBunit {
 		return unit;
 	}
 
-	async addFactoryOrder(ctx: Context, uuid: UUID, order: FactoryOrder): Promise < void > {
+	async addFactoryOrder(ctx: Context, uuid: UUID, order: FactoryOrder): Promise<void> {
 		const call = await db.startDBCall(ctx);
 		await this.table.get(uuid).update({
 			factoryQueue: r.row('factoryQueue').append(order),
@@ -204,12 +204,12 @@ export default class DBunit {
 		return result;
 	}
 
-	getUnprocessedUnits(tick: number): Promise < Array < Unit >> {
+	getUnprocessedUnits(tick: number): Promise <Array<Unit>> {
 		return this.table.getAll(true, {
 			index: 'awake'
-		}).filter(r.row('lastTick').lt(tick)).limit(env.unitProcessChunks).update((unit) => {
+		}).filter(r.row('details.lastTick').lt(tick)).limit(env.unitProcessChunks).update((unit) => {
 			return r.branch(
-				unit('lastTick').ne(tick), { lastTick: tick }, {}
+				unit('details.lastTick').ne(tick), { details: {lastTick: tick} }, {}
 			)
 		}, {
 			returnChanges: true
@@ -232,10 +232,10 @@ export default class DBunit {
 		});
 	}
 
-	async getUnprocessedUnitKeys(tick: number): Promise < Array < UUID >> {
+	async getUnprocessedUnitKeys(tick: number): Promise <Array<UUID>> {
 		return this.table.getAll(true, {
 				index: 'awake'
-			}).filter(r.row('lastTick').lt(tick))
+			}).filter(r.row('details.lastTick').lt(tick))
 			.limit(env.unitProcessChunks)
 			.pluck('uuid')
 			.coerceTo('array')
@@ -246,7 +246,7 @@ export default class DBunit {
 		const call = await db.startDBCall(ctx);
 		const delta = await this.table.get(uuid).update((unit) => {
 			return r.branch(
-				unit('lastTick').ne(tick), { lastTick: tick }, {}
+				unit('details.lastTick').ne(tick), { details:{lastTick: tick} }, {}
 			)
 		}, { returnChanges: true }).run(this.conn);
 		await call.end();
@@ -264,7 +264,7 @@ export default class DBunit {
 		//however we still want to process them next tick.
 		return await this.table.getAll(true, {
 			index: 'awake'
-		}).filter(r.row('lastTick').lt(tick - 1).and(r.row('lastTick').gt(0))).count().run(this.conn);
+		}).filter(r.row('details.lastTick').lt(tick - 1).and(r.row('details.lastTick').gt(0))).count().run(this.conn);
 	}
 
 	countAllUnits(): Promise < number > {

@@ -60,13 +60,15 @@ async function getChunk(call, callback) {
 	}
 }
 
-async function fetchOrGenChunk(ctx: Context, mapName: string, x: number, y: number): Promise < Chunk > {
+// returns a special object for GPRC
+// we have to fiddle with the 2d array for GPRC
+async function fetchOrGenChunk(ctx: Context, mapName: string, x: number, y: number): Promise <Object> {
 	console.log(mapName, x, y);
 	let map = await db.map.getMap(mapName);
 
 	let localChunk = await map.fetchOrGenChunk(x, y);
 
-	let chunk = new Chunk();
+	const chunk: Object = new Chunk();
 	chunk.clone(localChunk);
 
 	for(let i = 0; i < chunk.navGrid.length; i++) {
