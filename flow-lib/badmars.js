@@ -12,6 +12,7 @@ type Tick = number;
 type UnitType = string;
 type TileCode = 0 | 1 | 2 | 3;
 type TileType = 'land' | 'cliff' | 'water' | 'coast' | 'unknown';
+type Dir = Symbol;
 
 type ProfileKey = string;
 type MovementLayer = string;

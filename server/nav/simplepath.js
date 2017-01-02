@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -18,7 +18,7 @@ class SimplePath {
 	start: PlanetLoc;
 	end: PlanetLoc;
 	map: Map;
-	constructor(start, end) {
+	constructor(start: PlanetLoc, end: PlanetLoc) {
 		this.start = start;
 		this.end = end;
 		if(!this.start || !this.end || this.start.map !== this.end.map) {

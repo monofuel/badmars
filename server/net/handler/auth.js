@@ -27,7 +27,7 @@ function mountUserHandlers(client) {
 
 }
 
-module.exports = (ctx: Context, client, data) => {
+module.exports = async (ctx: Context, client: Client, data: Object) => {
 
 	if(!data.planet) { //TODO change from planet to map
 		client.sendError('login', 'specify a planet');
@@ -36,7 +36,7 @@ module.exports = (ctx: Context, client, data) => {
 		client.sendError('login', 'invalid username');
 	}
 	console.log(data.planet);
-	db.map.getMap(data.planet).then((planet) => {
+	return db.map.getMap(data.planet).then((planet) => {
 		if(!planet) {
 			throw new Error("planet doesn't exist");
 		}

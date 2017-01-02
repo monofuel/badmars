@@ -62,19 +62,8 @@ export default class DBUnitStat {
 		this.tableName = this.mapName + "_unitStats";
 	}
 
-	async init(): Promise < void > {
-		const self = this;
-
-		const tableList: Array < string > = await r.tableList().run(self.conn);
-
-		if(tableList.indexOf(self.tableName) === -1) {
-			console.log('creating unit table for ' + self.mapName);
-			await self.createTable();
-		} else {
-			// if we ever change indexes, add code to change them
-		}
-
-		self.table = r.table(self.tableName);
+	async init(): Promise <void> {
+		this.table = await db.safeCreateTable(this.tableName);
 		await loadDefaults();
 
 		fs.watchFile(UNIT_STAT_FILE, async() => {

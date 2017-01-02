@@ -60,7 +60,7 @@ class Client {
 		}, KEEP_ALIVE);
 	}
 
-	send(type, data) {
+	send(type: string, data?: Object) {
 		if(!this.ws) return;
 		data = data || {};
 		data.type = type;
@@ -72,7 +72,7 @@ class Client {
 		}
 	}
 
-	sendError(type, errMsg) {
+	sendError(type: string, errMsg: string) {
 		console.log('client error: ' + type);
 		try {
 			this.ws.send(JSON.stringify({
@@ -134,7 +134,7 @@ class Client {
 	}
 
 	//TODO also handle player list updates
-	handleUnitUpdate(err, delta) {
+	handleUnitUpdate(err: Error, delta: Object) {
 		if(!delta.new_val) {
 			if(delta.old_val) {
 				//TODO update client for new 'kill' system.
@@ -169,10 +169,10 @@ class Client {
 		}
 	}
 
-	handleEvents(err, data) {
+	handleEvents(err: Error, data: Object) {
 		if(err) {
 			console.log('event handler error');
-			console.log(err);
+			console.error(err);
 			return;
 		}
 
@@ -206,7 +206,7 @@ class Client {
 		}
 	}
 
-	handleChat(err, data) {
+	handleChat(err: Error, data: Object) {
 		if(err) {
 			console.log('chat handler error');
 			console.log(err);

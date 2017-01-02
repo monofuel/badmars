@@ -1,11 +1,11 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
 import { getTypeName } from './tiletypes';
-import DIRECTION from '../map/directions';
+import Direction from '../map/directions';
 import Context from 'node-context';
 
 import env from '../config/env';
@@ -76,7 +76,7 @@ class PlanetLoc {
 
 	}
 
-	distance(tile) {
+	distance(tile: PlanetLoc) {
 		var deltaX = Math.abs(this.x - tile.x);
 		var deltaY = Math.abs(this.y - tile.y);
 
@@ -104,17 +104,17 @@ class PlanetLoc {
 		return await this.map.getLoc(ctx,this.x - 1, this.y);
 	}
 
-	async getDirTile(ctx: Context, dir) {
+	async getDirTile(ctx: Context, dir: Dir) {
 		switch(dir) {
-		case DIRECTION.N:
+		case Direction.N:
 			return await this.N(ctx);
-		case DIRECTION.S:
+		case Direction.S:
 			return await this.S(ctx);
-		case DIRECTION.E:
+		case Direction.E:
 			return await this.E(ctx);
-		case DIRECTION.W:
+		case Direction.W:
 			return await this.W(ctx);
-		case DIRECTION.C:
+		case Direction.C:
 		default:
 			return this;
 		}
@@ -166,7 +166,7 @@ class PlanetLoc {
 
 	}
 
-	equals(otherLoc) {
+	equals(otherLoc: PlanetLoc) {
 		if(!otherLoc || !otherLoc.map) return false;
 		return(otherLoc.x === this.x &&
 			otherLoc.y === this.y &&

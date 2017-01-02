@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -24,4 +24,12 @@ export function getTypeName(type: TileCode): TileType {
 	default:
 		return 'unknown';
 	}
+}
+
+export default {
+	LAND,
+	CLIFF,
+	WATER,
+	COAST,
+	getTypeName
 }

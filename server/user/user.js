@@ -10,6 +10,7 @@ import hat from 'hat';
 import _ from 'lodash';
 
 class User {
+	uuid: string; //filled by database
 	name: string;
 	color: string;
 	apiKey: string;

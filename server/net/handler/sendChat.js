@@ -7,11 +7,12 @@
 import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
+import User from '../../user/user';
 
 const DEFAULT_CHANNEL = 'global';
 
-module.exports = async(ctx: Context, client, data) => {
-	let user = client.user;
+module.exports = async(ctx: Context,client: Client, data: Object) => {
+	let user: User = client.user;
 	if(!data.text) {
 		client.sendError('sendChat', 'no text set');
 		return;

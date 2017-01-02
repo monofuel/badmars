@@ -1,34 +1,31 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-const TABLE_NAME = 'event';
-
 import r from 'rethinkdb';
-
 import db from './db';
 import logger from '../util/logger';
 
-var conn = null;
-var table = null;
+class DBEvent {
+	conn: r.Connection;
+	table: r.Table;
+	tableName: string;
 
-exports.init = async(connection) => {
-	conn = connection;
-	await db.safeCreateTable(TABLE_NAME);
-	table = r.table(TABLE_NAME);
-}
-
-exports.watchEvents = async(func) => {
-	table.changes().run(conn).then((cursor) => {
-		cursor.each(func);
-	});
-}
-
-exports.addEvent = async(object) => {
-	if(!table) { //in case we try to log an event before db is ready
-		return;
+	constructor() {
+		this.tableName = 'event';
 	}
-	await table.insert(object).run(conn);
+
+	async init(conn: r.Connection) {
+		this.conn = conn;
+		this.table = await db.safeCreateTable(this.tableName);
+	}
+
+	async addEvent(object: Object) {
+		await this.table.insert(object).run(this.conn);
+	}
 }
+
+const event = new DBEvent();
+export default event;

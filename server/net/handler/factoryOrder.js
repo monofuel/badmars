@@ -10,7 +10,7 @@ import logger from '../../util/logger';
 
 // https://www.youtube.com/watch?v=80DtQD5BQ_A
 
-async function factoryOrder(ctx: Context, client, data) {
+async function factoryOrder(ctx: Context, client: Client, data: Object) {
 	console.log(data);
 	if(!data.factory) {
 		return client.sendError('factoryOrder', 'no factory specified');

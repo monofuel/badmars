@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -154,7 +154,7 @@ class AStarPath {
 		//TODO implement this
 	}
 
-	async getNext(tile) {
+	async getNext(tile: PlanetLoc) {
 
 		if(tile === null) {
 			return DIRECTION.C;

@@ -8,7 +8,7 @@ import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
 
-async function transferResource(ctx: Context, client, data) {
+async function transferResource(ctx: Context, client: Client, data: Object) {
 	console.log(data);
 	if(!data.source) {
 		return client.sendError('transferResource', 'missing source');

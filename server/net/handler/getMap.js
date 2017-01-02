@@ -8,7 +8,7 @@ import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
 
-async function getMap(ctx: Context, client, data) {
+async function getMap(ctx: Context, client: Client, data: Object) {
 	client.send('map', { map: client.planet });
 
 	let userList = await db.user.listAllSanitizedUsers();

@@ -1,4 +1,4 @@
-/* @flow weak */
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -6,71 +6,70 @@
 
 import r from 'rethinkdb';
 import User from '../user/user';
+import db from './db';
 
-var conn;
-var table;
+class DBUser {
+	conn: r.Connection;
+	table: r.Table;
+	tableName: string;
 
-exports.init = (connection) => {
-	conn = connection;
+	constructor() {
+		this.tableName = 'user';
+	}
 
-	return r.tableList().run(conn)
-		.then((tableList) => {
-			if(tableList.indexOf('user') == -1) {
-				console.log('creating user table');
-				return r.tableCreate('user', {
-					primaryKey: 'uuid'
-				}).run(conn).then(() => {
-					return r.table('user').indexCreate("name").run(conn);
-				});
-			}
-		}).then(() => {
-			table = r.table('user');
+	async init(conn: r.Connection) {
+		this.conn = conn;
+		this.table = await db.safeCreateTable(this.tableName,'uuid');
+		await db.safeCreateIndex(this.table, 'name');
+	};
+
+	async listAllSanitizedUsers() {
+		return this.table.run(this.conn).then((cursor) => {
+			return cursor.toArray().then((list) => {
+				var sanitized = [];
+				for(var user of list) {
+					sanitized.push({
+						uuid: user.uuid,
+						name: user.name,
+						color: user.color
+					});
+				}
+				return sanitized;
+			});
 		});
-};
+	};
 
-exports.listAllSanitizedUsers = () => {
-	return table.run(conn).then((cursor) => {
-		return cursor.toArray().then((list) => {
-			var sanitized = [];
-			for(var user of list) {
-				sanitized.push({
-					uuid: user.uuid,
-					name: user.name,
-					color: user.color
-				});
+	async getUser(name: string) {
+		return this.table.getAll(name, {
+			index: "name"
+		}).coerceTo('array').run(this.conn).then((docs) => {
+			var doc = docs[0];
+			if(!doc) {
+				return null;
 			}
-			return sanitized;
+			var user = new User();
+			user.clone(doc);
+			return user;
 		});
-	});
-};
+	};
 
-exports.getUser = (name) => {
-	return table.getAll(name, {
-		index: "name"
-	}).coerceTo('array').run(conn).then((docs) => {
-		var doc = docs[0];
-		if(!doc) {
-			return null;
-		}
-		var user = new User();
-		user.clone(doc);
-		return user;
-	});
-};
+	async createUser(name: string, color: string) {
+		var user = new User(name, color);
+		return this.table.insert(user, {
+			conflict: "error",
+			returnChanges: true
+		}).run(this.conn);
+	};
 
-exports.createUser = (name, color) => {
-	var user = new User(name, color);
-	return table.insert(user, {
-		conflict: "error",
-		returnChanges: true
-	}).run(conn);
-};
+	async updateUser(name: string, patch: Object) {
+		let result = await this.table.getAll(name, { index: 'name' }).update(patch).run(this.conn);
+		return result;
+	}
 
-exports.updateUser = async(name, patch) => {
-	let result = await table.getAll(name, { index: 'name' }).update(patch).run(conn);
-	return result;
+	async deleteUser(name: string) {
+		return this.table.getAll(name, { index: 'name' }).delete().run(this.conn);
+	}
 }
 
-exports.deleteUser = async(name) => {
-	return table.getAll(name, { index: 'name' }).delete().run(conn)
-}
+const user = new DBUser();
+export default user;
