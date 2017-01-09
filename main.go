@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	bmdb "github.com/monofuel/badmars/rethink"
-	. "github.com/monofuel/badmars/util"
+	bmdb "github.com/monofuel/badmars/server/go/rethink"
+	. "github.com/monofuel/badmars/server/go/util"
 )
 
 var env []string

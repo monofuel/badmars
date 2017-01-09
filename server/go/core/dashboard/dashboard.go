@@ -19,7 +19,7 @@ import (
 )
 
 var dashboardPort = os.Getenv("DASHBOARD_PORT")
-var templates = template.Must(template.ParseFiles("dashboard-frontend/public/index.html"))
+var templates = template.Must(template.ParseFiles("public/dashboard/index.html"))
 
 func init() {
 	fmt.Println("handling configuration")

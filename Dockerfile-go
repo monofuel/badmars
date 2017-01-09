@@ -9,7 +9,7 @@ RUN tar -xf go1.7.4.linux-amd64.tar.gz
 RUN mv go goroot
 RUN rm go1.7.4.linux-amd64.tar.gz
 
-ENV PATH="/goroot/bin:${PATH}"
+ENV PATH="/goroot/bin:/go/bin:${PATH}"
 RUN export PATH="/goroot/bin:$PATH"
 ENV GOPATH="/go"
 RUN export GOPATH=/go
@@ -30,3 +30,5 @@ RUN go build -o bin/simulate server/go/core/simulate/simulate.go
 RUN go build -o bin/dashboard server/go/core/dashboard/dashboard.go
 
 EXPOSE 8090
+
+ENV BADMARS_DB rethinkdb

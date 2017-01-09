@@ -4,16 +4,17 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-go
-    command: gin server/go/simulate/simulate.go
+    command: go run server/go/core/simulate/simulate.go
     volumes:
       - ./server:/go/src/github.com/monofuel/badmars/server
     links:
       - rethinkdb
+      - ai
   dashboard:
     build:
       context: .
       dockerfile: Dockerfile-go
-    command: gin server/go/dashboard/dashboard.go
+    command: go run server/go/core/dashboard/dashboard.go
     volumes:
       - ./server:/go/src/github.com/monofuel/badmars/server
     links:
