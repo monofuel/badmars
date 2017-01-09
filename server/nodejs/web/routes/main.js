@@ -21,12 +21,12 @@ export default function route(app: express) {
 		});
 	});
 
-	app.get('/badMars_v1', (req, res) => {
+	app.get('/badmars', (req, res) => {
 
 		const serverAddress: string = env.wsServer;
 		const port: string = env.wsPublicPort;
 
-		res.render('pages/badmars_v1', {
+		res.render('pages/badmars', {
 			user: req.user,
 			server: serverAddress,
 			port: port

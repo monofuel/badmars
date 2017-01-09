@@ -1,25 +1,22 @@
-run: client server check
-	go run main.go
+#files have been moved and this makefile doesn't entirely work anymore
 
-server: goSetup
-	go get
-	go fmt
-	go build
+#run: client server check
+#	go run main.go
 
 grpc:
-	protoc -I protos protos/master.proto --go_out=plugins=grpc:service/master
-	protoc -I protos protos/chunk.proto --go_out=plugins=grpc:service/chunk
-	protoc -I protos protos/ai.proto --go_out=plugins=grpc:service/ai
+	protoc -I server/protos server/protos/master.proto --go_out=plugins=grpc:server/go/service/master
+	protoc -I server/protos server/protos/chunk.proto --go_out=plugins=grpc:server/go/service/chunk
+	protoc -I server/protos server/protos/ai.proto --go_out=plugins=grpc:server/go/service/ai
 
 
 client:
-	BABEL_ENV=production gulp
+	BABEL_ENV=production gulp client
 
 watchClient:
-	 watchify ./client/badmars-v1/client.js -t babelify -p livereactload -o ./server/public/js/badmars/badmars.js
+	 watchify ./client/badmars/client.js -t babelify -p livereactload -o ./public/badmars/js/badmars.js
 
 watchDashboard:
-	 watchify dashboard-frontend/js/index.jsx -t babelify -p livereactload -o ./dashboard-frontend/public/js/index.js
+	 watchify ./client/dashboard/index.jsx -t babelify -p livereactload -o ./public/dashboard/js/index.js
 
 check:
 	go vet .
@@ -30,12 +27,10 @@ test:
 	go test -cover
 
 goSetup:
-	go get
-	cd core/simulate && go get
-	cd core/dashboard && go get
+	cd server/go/core/simulate && go get
+	cd server/go/core/dashboard && go get
 
 setup: goSetup
 	npm install
-	cd client && make copy
 
-saferun: setup run
+#saferun: setup run

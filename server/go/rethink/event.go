@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	. "github.com/monofuel/badmars/util"
+	. "github.com/monofuel/badmars/server/go/util"
 	r "gopkg.in/dancannon/gorethink.v2"
 )
 

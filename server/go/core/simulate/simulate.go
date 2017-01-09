@@ -12,11 +12,11 @@ import (
 
 	"google.golang.org/grpc"
 
-	bmdb "github.com/monofuel/badmars/rethink"
-	"github.com/monofuel/badmars/rethink/planetdb"
-	"github.com/monofuel/badmars/rethink/unitdb"
-	"github.com/monofuel/badmars/service/ai"
-	. "github.com/monofuel/badmars/util"
+	bmdb "github.com/monofuel/badmars/server/go/rethink"
+	"github.com/monofuel/badmars/server/go/rethink/planetdb"
+	"github.com/monofuel/badmars/server/go/rethink/unitdb"
+	"github.com/monofuel/badmars/server/go/service/ai"
+	. "github.com/monofuel/badmars/server/go/util"
 )
 
 var aiHost string

@@ -20,8 +20,8 @@ exports.init = () => {
 	app.set('view engine', 'ejs');
 	app.set('trust proxy', true); //for accurate logs running behind a proxy
 
-	app.use(express.static(path.join(__dirname, '/../public')));
-	app.set('views', __dirname + '/../web/views');
+	app.use(express.static(path.join(__dirname, '../../../public/badmars')));
+	app.set('views', path.join(__dirname,'../web/views'));
 
 	mainRoute(app);
 	managementRoute(app);

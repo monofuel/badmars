@@ -1,7 +1,7 @@
 package unitdb
 
 import (
-	. "github.com/monofuel/badmars/util"
+	. "github.com/monofuel/badmars/server/go/util"
 )
 
 type Detail struct {

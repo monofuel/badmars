@@ -1,8 +1,76 @@
 version: '2'
 services:
+  simulate:
+    build:
+      context: .
+      dockerfile: Dockerfile-go
+    command: gin server/go/simulate/simulate.go
+    volumes:
+      - ./server:/go/src/github.com/monofuel/badmars/server
+    links:
+      - rethinkdb
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile-go
+    command: gin server/go/dashboard/dashboard.go
+    volumes:
+      - ./server:/go/src/github.com/monofuel/badmars/server
+    links:
+      - rethinkdb
+    ports:
+      - '8090:8090'
   chunk:
     build: .
+    command: bash -c 'cd server/nodejs && nodemon -L chunk.js'
     volumes:
-      - ./bin:/badmars/bin
+      - ./server:/badmars/server
+    links:
+      - rethinkdb
+  ai:
+    build: .
+    command: bash -c 'cd server/nodejs && nodemon -L ai.js'
+    volumes:
+      - ./server:/badmars/server
+    links:
+      - rethinkdb
+      - chunk
+  pathfinder:
+    build: .
+    command: bash -c 'cd server/nodejs && nodemon -L pathfinder.js'
+    volumes:
+      - ./server:/badmars/server
+    links:
+      - rethinkdb
+      - chunk
+  validator:
+    build: .
+    command: bash -c 'cd server/nodejs && nodemon -L validator.js'
+    volumes:
+      - ./server:/badmars/server
+    links:
+      - rethinkdb
+      - chunk
+  web:
+    build: .
+    command: bash -c 'cd server/nodejs && nodemon -L web.js & make watchClient'
+    volumes:
+      - ./server:/badmars/server
+      - ./client:/badmars/client
+    ports:
+      - "3002:3002"
+    links:
+      - rethinkdb
+  net:
+    build: .
+    command: bash -c 'cd server/nodejs && nodemon -L net.js'
+    volumes:
+      - ./server:/badmars/server
+    ports:
+      - "7005:7005"
+    links:
+      - rethinkdb
   rethinkdb:
     image: rethinkdb
+    ports:
+      - "8080:8080"

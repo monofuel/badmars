@@ -3,7 +3,7 @@ package unitdb
 import (
 	"fmt"
 
-	"github.com/monofuel/badmars/rethink"
+	"github.com/monofuel/badmars/server/go/rethink"
 	r "gopkg.in/dancannon/gorethink.v2"
 )
 

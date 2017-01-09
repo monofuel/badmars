@@ -1,0 +1,32 @@
+FROM debian:stretch
+
+RUN apt-get update
+RUN apt-get install make wget git --assume-yes
+RUN apt-get install protobuf-compiler golang-goprotobuf-dev --assume-yes
+
+RUN wget https://storage.googleapis.com/golang/go1.7.4.linux-amd64.tar.gz
+RUN tar -xf go1.7.4.linux-amd64.tar.gz
+RUN mv go goroot
+RUN rm go1.7.4.linux-amd64.tar.gz
+
+ENV PATH="/goroot/bin:${PATH}"
+RUN export PATH="/goroot/bin:$PATH"
+ENV GOPATH="/go"
+RUN export GOPATH=/go
+RUN mkdir $GOPATH
+ENV GOROOT="/goroot"
+RUN export GOROOT=/goroot
+
+RUN go get github.com/codegangsta/gin
+
+ADD . /go/src/github.com/monofuel/badmars
+
+WORKDIR /go/src/github.com/monofuel/badmars
+
+RUN make grpc
+RUN make goSetup
+
+RUN go build -o bin/simulate server/go/core/simulate/simulate.go
+RUN go build -o bin/dashboard server/go/core/dashboard/dashboard.go
+
+EXPOSE 8090

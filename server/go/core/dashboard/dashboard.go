@@ -12,10 +12,10 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	bmdb "github.com/monofuel/badmars/rethink"
-	bmError "github.com/monofuel/badmars/rethink/error"
-	"github.com/monofuel/badmars/rethink/event"
-	. "github.com/monofuel/badmars/util"
+	bmdb "github.com/monofuel/badmars/server/go/rethink"
+	bmError "github.com/monofuel/badmars/server/go/rethink/error"
+	"github.com/monofuel/badmars/server/go/rethink/event"
+	. "github.com/monofuel/badmars/server/go/util"
 )
 
 var dashboardPort = os.Getenv("DASHBOARD_PORT")
@@ -47,8 +47,8 @@ func registerHandlers() {
 	r.Methods("GET").Path("/").Handler(AppHandler(rootHandler))
 	r.Methods("GET").Path("/serverErrors").Handler(AppHandler(serverErrorHandler))
 	r.Methods("GET").Path("/serverProfiler").Handler(AppHandler(profileHandler))
-	jsFs := http.FileServer(http.Dir("dashboard-frontend/public/js"))
-	cssFs := http.FileServer(http.Dir("dashboard-frontend/public/css"))
+	jsFs := http.FileServer(http.Dir("public/dashboard/js"))
+	cssFs := http.FileServer(http.Dir("public/dashboard/css"))
 	r.Methods("GET").PathPrefix("/js/").Handler(http.StripPrefix("/js", jsFs))
 	r.Methods("GET").PathPrefix("/css/").Handler(http.StripPrefix("/css", cssFs))
 
