@@ -2,7 +2,7 @@ const gulp = require('gulp');
 const browserify = require('browserify');
 const source = require('vinyl-source-stream');
 const buffer = require('vinyl-buffer');
-const uglify = require('gulp-uglify');
+const _ = require('lodash');
 
 const SERVER_MODULES = [
 	'ai',
@@ -10,44 +10,42 @@ const SERVER_MODULES = [
 	'commander',
 	'net',
 	'pathfinder',
-	'simulate',
 	'validator'
 ];
 
 gulp.task('client', function () {
 
-	return browserify({ entries: './client/badmars-v1/client.js', debug: true })
+	return browserify({ entries: './client/badmars/client.js', debug: true })
 		.transform("babelify")
 		.bundle()
-		.pipe(source('badmars-v1.js'))
+		.pipe(source('badmars.js'))
 		.pipe(buffer())
-		.pipe(uglify())
-		.pipe(gulp.dest('./server/public/js/badmars/'));
+		.pipe(gulp.dest('./public/badmars/js/'));
 });
 
 gulp.task('dashboard', function () {
 
-	return browserify({ entries: './dashboard-frontend/js/index.jsx', debug: true })
+	return browserify({ entries: './client/dashboard/index.jsx', debug: true })
 		.transform("babelify")
 		.bundle()
 		.pipe(source('index.js'))
 		.pipe(buffer())
-		.pipe(uglify())
-		.pipe(gulp.dest('./dashboard-frontend/public/js/'));
+		.pipe(gulp.dest('./public/dashboard/js/'));
 });
 
-gulp.task('ai', function () {
-	return browserifyServerModule('ai');
+SERVER_MODULES.forEach((mod) => {
+	gulp.task(mod, function () {
+		return browserifyServerModule(mod);
+	})
 })
 
 function browserifyServerModule(name) {
-	return browserify({ entries: './server/' + name + '.js', debug: true })
+	return browserify({ entries: './server/nodejs/' + name + '.js', debug: true })
 		.transform("babelify")
 		.bundle()
 		.pipe(source(name + '.js'))
 		.pipe(buffer())
-		.pipe(uglify())
-		.pipe(gulp.dest('/build/'))
+		.pipe(gulp.dest('/bin/'))
 }
 
-gulp.task('default', ['client', 'dashboard']);
+gulp.task('default', _.concat(['client', 'dashboard'], SERVER_MODULES));

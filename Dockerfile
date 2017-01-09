@@ -2,11 +2,19 @@ FROM node:argon
 
 RUN npm install -g gulp
 
-COPY . /badmars
+RUN mkdir /badmars
+ADD ./package.json badmars/
+WORKDIR /badmars
 
-WORKDIR /badmars/server
+RUN npm install
+
+ADD . /badmars
+
+RUN gulp
+
+VOLUME ["/badmars/bin"]
+
 EXPOSE 3002
-
 
 ENV BADMARS_DB rethinkdb
 ENV BADMARS_WS_PUBLIC_PORT 31085

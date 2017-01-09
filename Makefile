@@ -16,7 +16,7 @@ client:
 	BABEL_ENV=production gulp
 
 watchClient:
-	 watchify ./client/badmars-v1/client.js -t babelify -p livereactload -o ./server/public/js/badmars/badmars-v1.js
+	 watchify ./client/badmars-v1/client.js -t babelify -p livereactload -o ./server/public/js/badmars/badmars.js
 
 watchDashboard:
 	 watchify dashboard-frontend/js/index.jsx -t babelify -p livereactload -o ./dashboard-frontend/public/js/index.js
