@@ -1,8 +1,7 @@
 version: '2'
+
 services:
-  chunk:
+  app:
     build: .
-    volumes:
-      - ./bin:/badmars/bin
   rethinkdb:
     image: rethinkdb
