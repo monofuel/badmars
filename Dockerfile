@@ -12,8 +12,6 @@ ADD . /badmars
 
 RUN gulp
 
-VOLUME ["/badmars/bin"]
-
 EXPOSE 3002
 
 ENV BADMARS_DB rethinkdb
