@@ -4,7 +4,6 @@ import type Unit from '../server/unit/unit';
 import type Client from '../server/net/client';
 import type Context from 'node-context';
 
-
 type UUID = string;
 type TileHash = string;
 type ChunkHash = string;
