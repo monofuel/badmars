@@ -9,4 +9,4 @@
   - ai
   - validator
   steps:
-  -command: flow check
+  - command: flow check
