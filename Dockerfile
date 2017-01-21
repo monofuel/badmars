@@ -1,6 +1,6 @@
 FROM node:argon
 
-RUN npm install -g gulp nodemon watchify
+RUN npm install -g gulp nodemon watchify flow-bin
 
 RUN mkdir /badmars
 ADD ./package.json badmars/

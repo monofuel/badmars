@@ -1,6 +1,4 @@
 - type: parallel
   steps:
-    - service: web
-      command: echo noop
-    - service: net
-      command: echo noop
+    - service: web net chunk pathfinder dashboard simulate ai validator
+      command: flow check
