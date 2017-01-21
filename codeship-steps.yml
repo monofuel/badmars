@@ -1,12 +1,12 @@
 - type: parallel
+  services:
+  - web
+  - net
+  - chunk
+  - pathfinder
+  - dashboard
+  - simulate
+  - ai
+  - validator
   steps:
-    - services:
-      - web
-      - net
-      - chunk
-      - pathfinder
-      - dashboard
-      - simulate
-      - ai
-      service: validator
-      command: flow check
+  -command: flow check
