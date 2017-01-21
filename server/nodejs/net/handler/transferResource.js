@@ -7,6 +7,8 @@
 import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
+import Context from 'node-context';
+import Client from '../client';
 
 async function transferResource(ctx: Context, client: Client, data: Object) {
 	console.log(data);
@@ -20,8 +22,8 @@ async function transferResource(ctx: Context, client: Client, data: Object) {
 		return client.sendError('transferResource', 'missing resource (iron and or fuel)');
 	}
 
-	let sourceUnit = await db.units[client.planet.name].getUnit(data.source);
-	let destUnit = await db.units[client.planet.name].getUnit(data.dest);
+	let sourceUnit = await db.units[client.planet.name].getUnit(ctx, data.source);
+	let destUnit = await db.units[client.planet.name].getUnit(ctx, data.dest);
 
 	if(!sourceUnit || sourceUnit.owner !== client.user.uuid) {
 		return client.sendError('transferResource', 'source unit is not yours');
@@ -32,7 +34,7 @@ async function transferResource(ctx: Context, client: Client, data: Object) {
 
 	let map = client.map;
 
-	let tile = await map.getLoc(destUnit.x, destUnit.y);
+	let tile = await map.getLoc(ctx, destUnit.x, destUnit.y);
 	sourceUnit.setTransferGoal(destUnit.uuid, data.iron || 0, data.fuel || 0);
 
 	client.send('transferResource');

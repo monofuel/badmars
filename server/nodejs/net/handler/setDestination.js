@@ -7,8 +7,10 @@
 import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
+import Context from 'node-context';
+import Client from '../client';
 
-async function setDestination(ctx: Context, client: Client, data: Object) {
+async function setDestination(ctx: Context, client: Client, data: Object): Promise<void> {
 	if(!data.unitId) {
 		return client.sendError('setDestination', 'no unit specified');
 	}

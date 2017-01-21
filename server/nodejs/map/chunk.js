@@ -7,6 +7,7 @@
 import {db} from '../db/db';
 import env from "../config/env";
 import logger from '../util/logger';
+import Context from 'node-context';
 
 import r from 'rethinkdb';
 import SimplexNoise from 'simplex-noise';
@@ -59,7 +60,7 @@ export default class Chunk {
 	async generate(ctx: Context) {
 		//console.log('generating chunk ' + this.hash);
 		var self = this;
-		let map = await this.getMap();
+		let map = await this.getMap(ctx);
 
 		var waterFudge = 0.15;
 		var smoothness = 4.5;
@@ -393,11 +394,7 @@ export default class Chunk {
 		this.clone(fresh);
 	}
 
-	async getMap(): Promise < Map > {
-		return db.map.getMap(this.map);
-	}
-
-	async getTiles(ctx: Context): Promise < Array < PlanetLoc >> {
+	async getTiles(ctx: Context): Promise <Array<PlanetLoc>> {
 		const map = await this.getMap(ctx, this.map);
 		var tiles = [];
 		for (let i = 0; i < this.chunkSize; i++) {

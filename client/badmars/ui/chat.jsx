@@ -64,11 +64,10 @@ export default class Chat extends React.Component {
 				recentChat.push(line);
 			}
 		});
-
 		return (
 			<Well id="chatWell" style={chatWellStyle}>
-				<span style={{display: 'flex',minHeight:'34px'}}f>
-					<Input
+				<span style={{display: 'flex',minHeight:'34px'}}>
+					<input
 						type="text"
 						style={{marginBottom: '0px',flex:'1',marginRight:'2px'}}
 						value={sendText}

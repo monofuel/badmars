@@ -27,7 +27,7 @@ exports.init = async() => {
 	server.start();
 
 	console.log('Map GRPC server started');
-	setInterval(logRequests, 5000);
+	setInterval(logRequests, 6 * 1000);
 
 	process.on('exit', () => {
 		//GRPC likes to hang and prevent a proper shutdown for some reason

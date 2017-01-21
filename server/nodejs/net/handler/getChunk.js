@@ -8,8 +8,10 @@ import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
 import filter from '../../util/socketFilter';
+import Context from 'node-context';
+import Client from '../client';
 
-async function getChunk(ctx: Context,client: Client, data: Object) {
+async function getChunk(ctx: Context, client: Client, data: Object) {
 	var x = data.x || 0;
 	var y = data.y || 0;
 

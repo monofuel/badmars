@@ -8,6 +8,7 @@ import env from '../config/env';
 import logger from '../util/logger';
 import grpc from 'grpc';
 import context from 'node-context';
+import Unit from '../unit/unit';
 
 const AI = grpc.load(__dirname + '/../../protos/ai.proto').ai;
 

@@ -7,8 +7,10 @@
 import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
+import Client from '../client';
+import Context from 'node-context';
 
-function mountUserHandlers(client) {
+function mountUserHandlers(client: Client) {
 	client.handlers['getPlayers'] = require('./getPlayers.js');
 	client.handlers['getUnits'] = require('./getUnits.js');
 	client.handlers['getMap'] = require('./getMap.js');

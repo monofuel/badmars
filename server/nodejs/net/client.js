@@ -15,6 +15,7 @@ import Map from '../map/map';
 import filter from '../util/socketFilter';
 import Context from 'node-context';
 import hat from 'hat';
+import User from '../user/user';
 
 const KEEP_ALIVE = 5000;
 
@@ -29,6 +30,9 @@ class Client {
 	keepAlive: number;
 	map: Map;
 	unitStatWatcher: any;
+	planet: Map;
+	user: User;
+	username: string;
 
 	constructor(ws: WebSocket) {
 		this.ws = ws;

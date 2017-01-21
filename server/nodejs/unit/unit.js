@@ -203,7 +203,7 @@ export default class Unit {
 		//------------------
 		// init
 		this.awake = false;
-		const map = await this.getMap();
+		const map = await this.getMap(ctx);
 		const actionPromises = [];
 		const actionable = {
 			mineAI: false,
@@ -215,12 +215,12 @@ export default class Unit {
 		//------------------
 		//iron and oil should always be off
 		if (this.details.type === 'oil' || this.details.type === 'iron') {
-			return self.update({ awake: false });
+			return self.update(ctx, { awake: false });
 		}
 
 		//ghosting units don't need to be awake
 		if (self.ghosting) {
-			return self.update({ awake: false });
+			return self.update(ctx, { awake: false });
 		}
 
 		//------------------
@@ -275,7 +275,7 @@ export default class Unit {
 			await groundUnitAI.simulate(ctx, this, map);
 		} else { // if no action is performed
 			logger.info('sleeping unit');
-			await self.update({ awake: false });
+			await self.update(ctx, { awake: false });
 		}
 
 		logger.endProfile(profile);
@@ -612,7 +612,7 @@ export default class Unit {
 	async validateSync() {
 		//TODO split up async and sync validation work
 	}
-	async validate() {
+	async validate(ctx: Context) {
 		if (!env.debug) {
 			return;
 		}
@@ -646,7 +646,7 @@ export default class Unit {
 			invalid('invalid chunkY: ' + this.location.chunkY);
 		}
 
-		const chunks = await this.getChunks();
+		const chunks = await this.getChunks(ctx);
 		chunks.forEach((chunk) => {
 			if (!chunk) {
 				invalid('chunk missing for unit');
@@ -674,16 +674,16 @@ export default class Unit {
 			await loc.validate();
 		}
 
-		const map = await this.getMap()
+		const map = await this.getMap(ctx)
 		for (let unitTile of this.location.hash) {
 			//skip this check for resources
 			if (this.details.type === 'oil' || this.details.type === 'iron') {
 				break;
 			}
 
-			const tile = await map.getLocFromHash(unitTile);
+			const tile = await map.getLocFromHash(ctx, unitTile);
 			const chunk = tile.chunk;
-			const unitMap = await chunk.getUnitsMap(unitTile);
+			const unitMap = await chunk.getUnitsMap(ctx, unitTile);
 
 			if (!unitMap[this.uuid]) {
 				console.log(chunk.units)
@@ -725,23 +725,23 @@ export default class Unit {
 		}
 	}
 
-	async getLocs(): Promise < Array < PlanetLoc >> {
-		const promises: Array < Promise < PlanetLoc >> = [];
-		const map = await this.getMap();
+	async getLocs(ctx: Context): Promise <Array<PlanetLoc>> {
+		const promises: Array <Promise<PlanetLoc>> = [];
+		const map = await this.getMap(ctx);
 		this.location.hash.forEach((hash) => {
-			const x = hash.split(':')[0];
-			const y = hash.split(':')[1];
-			promises.push(map.getLoc(x, y));
+			const x = Number(hash.split(':')[0]);
+			const y = Number(hash.split(':')[1]);
+			promises.push(map.getLoc(ctx, x, y));
 		});
 		return Promise.all(promises);
 	}
-	async getChunks(): Promise < Array < Chunk >> {
-		const promises: Array < Promise < Chunk >> = [];
-		const map = await this.getMap();
+	async getChunks(ctx: Context): Promise < Array < Chunk >> {
+		const promises: Array <Promise<Chunk>> = [];
+		const map = await this.getMap(ctx);
 		this.location.chunkHash.forEach((hash) => {
-			const x = hash.split(':')[0];
-			const y = hash.split(':')[1];
-			promises.push(map.getChunk(x, y));
+			const x = Number(hash.split(':')[0]);
+			const y = Number(hash.split(':')[1]);
+			promises.push(map.getChunk(ctx, x, y));
 		});
 		return Promise.all(promises);
 	}
@@ -752,15 +752,15 @@ export default class Unit {
 	//fixing chunks. units are not quite so easy.
 
 	//is failing sometimes for factories- hint to a bigger issue
-	async addToChunks(): Promise < Success > {
-		const locs = await this.getLocs();
+	async addToChunks(ctx: Context): Promise <Success> {
+		const locs = await this.getLocs(ctx);
 		let success = true;
 		for (const loc of locs) {
 			let added;
 			if (this.details.type === 'oil' || this.details.type === 'iron') {
-				added = await loc.chunk.addResource(this.uuid, loc.hash);
+				added = await loc.chunk.addResource(ctx, this.uuid, loc.hash);
 			} else {
-				added = await loc.chunk.addUnit(this.uuid, loc.hash);
+				added = await loc.chunk.addUnit(ctx, this.uuid, loc.hash);
 				if (!added) {
 					console.log('loc.chunk.addUnit failed', loc.hash);
 				}
@@ -772,8 +772,8 @@ export default class Unit {
 		return success;
 	}
 
-	async clearFromChunks(): Promise < Success > {
-		const locs = await this.getLocs();
+	async clearFromChunks(ctx: Context): Promise <Success> {
+		const locs = await this.getLocs(ctx);
 		let success = true;
 		for (const loc of locs) {
 			const removed = await loc.chunk.clearUnit(this.uuid, loc.hash);

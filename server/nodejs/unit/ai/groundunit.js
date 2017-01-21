@@ -7,6 +7,7 @@
 import {db} from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
+import Context from 'node-context';
 
 import DIRECTION from '../../map/directions';
 import Unit from '../unit';

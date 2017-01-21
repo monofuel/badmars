@@ -29,9 +29,12 @@ export class StatsMonitor {
 		this.mbStats.domElement.style.left = '160px';
 		this.mbStats.domElement.style.bottom = '0px';
 
-		document.body.appendChild(this.fpsStats.domElement);
-		document.body.appendChild(this.msStats.domElement);
-		document.body.appendChild(this.mbStats.domElement);
+		const body = document.body;
+		if (body) {
+			body.appendChild(this.fpsStats.domElement);
+			body.appendChild(this.msStats.domElement);
+			body.appendChild(this.mbStats.domElement);
+		}
 
 		console.log('stats monitor loaded');
 	}

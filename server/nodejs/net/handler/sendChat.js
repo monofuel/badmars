@@ -8,6 +8,8 @@ import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
 import User from '../../user/user';
+import Context from 'node-context';
+import Client from '../client';
 
 const DEFAULT_CHANNEL = 'global';
 

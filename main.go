@@ -112,14 +112,14 @@ func defaultEnv(key string, defaultValue string) {
 
 func startNodeModule(name string) error {
 	if hotReload && !Contains(hotReloadBlacklist, name) {
-		return startProgram("nodemon", "./server/", fmt.Sprintf("%s.js", name))
+		return startProgram("nodemon", "./server/nodejs/", fmt.Sprintf("%s.js", name))
 	} else {
-		return startProgram("node", "./server/", name)
+		return startProgram("node", "./server/nodejs/", name)
 	}
 }
 
 func startGoModule(name string) error {
-	err := buildGoModule(name, fmt.Sprintf("./core/%s/%s.go", name, name))
+	err := buildGoModule(name, fmt.Sprintf("./server/go/core/%s/%s.go", name, name))
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func buildGoModule(name string, source string) error {
 }
 
 func startProgram(name string, path string, args ...string) error {
-	fmt.Printf("starting %s", name)
+	fmt.Printf("starting %s with path %s\n", name, path)
 	if len(args) > 0 {
 		fmt.Printf(" with args %v\n", args)
 	} else {
@@ -147,7 +147,6 @@ func startProgram(name string, path string, args ...string) error {
 	if err != nil {
 		return err
 	}
-
 	cmd := exec.Command(prog, args...)
 	cmd.Env = env
 	cmd.Dir = path

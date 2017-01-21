@@ -43,6 +43,10 @@ export class Display {
 		}
 
 		var panel = document.getElementById('threePanel');
+		if (!panel) {
+			console.error('missing threePanel');
+			return;
+		}
 		console.log('threePanel is ', panel.offsetWidth, panel.offsetHeight);
 
 		this.renderer = new THREE.WebGLRenderer({

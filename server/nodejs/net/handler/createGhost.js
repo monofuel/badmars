@@ -8,6 +8,8 @@ import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
 import Unit from '../../unit/unit';
+import Context from 'node-context';
+import Client from '../client';
 
 // https://www.youtube.com/watch?v=PK-tVTsSKpw
 
@@ -25,19 +27,19 @@ async function createGhost(ctx: Context, client: Client, data: Object) {
 		//TODO validate the unit type
 		//maybe this logic should be moved into map
 		let unit = new Unit(data.unitType, map, data.location[0], data.location[1]);
-		unit.ghosting = true;
-		unit.owner = client.user.uuid;
-		let success = await map.spawnUnit(unit);
+		unit.details.ghosting = true;
+		unit.details.owner = client.user.uuid;
+		let success = await map.spawnUnit(ctx, unit);
 
 		if(success) {
 			console.log('new ghost unit');
 			client.send('createGhost');
 
 			//wake up nearby ghost builders
-			let units = await map.getNearbyUnitsFromChunk(unit.chunkHash[0]);
-			for(let nearby of units) {
+			let units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
+			for(let nearby: Unit of units) {
 				if(nearby.type === 'builder') {
-					nearby.updateUnit({ awake: true });
+					nearby.update(ctx, { awake: true });
 				}
 			}
 

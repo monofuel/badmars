@@ -14,6 +14,7 @@ import PlanetLoc from "./planetloc";
 import { LAND } from './tiletypes';
 import Unit from '../unit/unit';
 import Context from 'node-context';
+import Client from '../net/client';
 
 import grpc from 'grpc';
 
@@ -310,7 +311,7 @@ export default class Map {
 		}
 	}
 
-	async spawnUser(ctx: Context, client: Client) {
+	async spawnUser(ctx: Context, client: Client): Promise<void> {
 		//find a spawn location
 		let chunk: Chunk = await this.findSpawnLocation(ctx);
 

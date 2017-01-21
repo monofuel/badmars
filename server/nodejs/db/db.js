@@ -8,6 +8,7 @@ import env from '../config/env';
 import helper from '../util/helper';
 import r from 'rethinkdb';
 import _ from 'lodash';
+import Context from 'node-context';
 
 import DBChunk from './chunk';
 import DBUnit from './unit';
@@ -129,7 +130,7 @@ class DBCall {
 // this function does a db-side check for table existance before
 // creation, and also adds some jitter
 export async function safeCreateTable(tableName: string, primaryKey? :string): r.Table {
-	await helper.sleep(5000 * Math.random());
+	await helper.sleep(20000 * Math.random());
 	let results;
 	if (primaryKey) {
 		results = await r.tableList().contains(tableName).do((exists) => {

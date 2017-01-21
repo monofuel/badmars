@@ -272,9 +272,9 @@ window.onload = function () {
 			}
 		}
 	};
-
-	document.body.addEventListener('keydown',keyDownHandler);
-
+	if (document.body) {
+		document.body.addEventListener('keydown',keyDownHandler);
+	}
 	 let keyUpHandler: EventHandler = (key: any): void => {
 		if (checkMenuFocus()) {
 			return;
@@ -285,9 +285,9 @@ window.onload = function () {
 			keysDown.splice(index, 1);
 		}
 	};
-
-	document.body.addEventListener('keyup',keyUpHandler);
-
+		if (document.body) {
+		document.body.addEventListener('keyup',keyUpHandler);
+	}
 	//block right click menu in-game
 
 	let contextMenuHandler: EventHandler = (event: any): boolean => {
@@ -297,8 +297,9 @@ window.onload = function () {
 		}
 		return true;
 	};
-	document.body.addEventListener('contextmenu',contextMenuHandler);
-
+		if (document.body) {
+		document.body.addEventListener('contextmenu',contextMenuHandler);
+	}
 	let mouseMoveHandler: EventHandler = (event: any): void => {
 		if (isMouseDown) {
 			//event.preventDefault();
@@ -314,8 +315,9 @@ window.onload = function () {
 				return;
 		}
 	};
-	document.body.addEventListener('mousemove',mouseMoveHandler);
-
+		if (document.body) {
+		document.body.addEventListener('mousemove',mouseMoveHandler);
+	}
 	let mouseDownHandler: EventHandler = (event: any) => {
 		switch (event.button) {
 			case LEFT_MOUSE:
@@ -330,9 +332,9 @@ window.onload = function () {
 				break;
 		}
 	};
-
-	document.body.addEventListener('mousedown',mouseDownHandler);
-
+	if (document.body) {
+		document.body.addEventListener('mousedown',mouseDownHandler);
+	}
 	let mouseUpHandler: EventHandler = (event: any) => {
 		//event.preventDefault();
 		setTimeout(() => { //hacky fix to make sure this always runs after hud onmouseup
@@ -434,7 +436,9 @@ window.onload = function () {
 			}
 		},0);
 	};
-	document.body.addEventListener('mouseup', mouseUpHandler,false);
+	if (document.body) {
+		document.body.addEventListener('mouseup', mouseUpHandler,false);
+	}
 };
 
 function logicLoop() {
