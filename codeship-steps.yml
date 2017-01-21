@@ -9,4 +9,5 @@
       - simulate
       - ai
       - validator
+      service: validator
       command: flow check
