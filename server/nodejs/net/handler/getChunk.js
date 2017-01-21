@@ -10,6 +10,7 @@ import logger from '../../util/logger';
 import filter from '../../util/socketFilter';
 import Context from 'node-context';
 import Client from '../client';
+import Chunk from '../../map/chunk';
 
 async function getChunk(ctx: Context, client: Client, data: Object) {
 	var x = data.x || 0;
@@ -17,7 +18,7 @@ async function getChunk(ctx: Context, client: Client, data: Object) {
 
 	let unitsOnly = data.unitsOnly;
 
-	let chunk = await client.planet.getChunk(x, y);
+	let chunk: Chunk = await client.planet.getChunk(ctx, x, y);
 	if(!unitsOnly) {
 		client.send('chunk', { chunk: filter.sanitizeChunk(chunk) });
 	}

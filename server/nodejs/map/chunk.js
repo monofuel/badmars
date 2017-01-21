@@ -187,7 +187,7 @@ export default class Chunk {
 
 	}
 
-	async getUnits(ctx: Context): Promise < Array < Unit >> {
+	async getUnits(ctx: Context): Promise <Array<Unit>> {
 
 		await this.refresh(ctx);
 		const unitUuids = _.union(_.map(this.resources), _.map(this.units), _.map(this.airUnits));

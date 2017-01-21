@@ -36,7 +36,7 @@ const defaultSettings = {
 	oilChance: 0.0015
 };
 
-function containsTile(list, tile) {
+function containsTile(list, tile): boolean {
 	for (let item of list) {
 		if (item.equals(tile)) {
 			return true;
@@ -58,9 +58,9 @@ export default class Map {
 	settings: Object;
 	lastTickTimestamp: number;
 	lastTick: number;
-	users: Array < any > ;
+	users: Array <any> ;
 	seed: number;
-	chunkCache: Array < CacheChunk > ;
+	chunkCache: Array <CacheChunk> ;
 	chunkCacheMap: ChunkCacheMap;
 
 	constructor(name: ? string) {
@@ -77,11 +77,11 @@ export default class Map {
 		this.chunkCacheMap = {};
 	}
 
-	async getChunk(x: number, y: number) {
+	async getChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
 		x = parseInt(x);
 		y = parseInt(y);
 		const self = this;
-
+		logger.checkContext(ctx, 'getChunk');
 		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
 		let cacheChunk = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
@@ -93,8 +93,10 @@ export default class Map {
 
 		return await new Promise((resolve, reject) => {
 			let profile = logger.startProfile('getChunk');
+			logger.checkContext(ctx, 'getChunkGrpc');
 			return mapClient.getChunk({ mapName: this.name, x, y }, (err: Error, response: ChunkProto) => {
 				logger.endProfile(profile);
+				logger.checkContext(ctx, 'getChunkGrpcReturn');
 				if (err) {
 					logger.error(err);
 					return reject(err);
@@ -113,11 +115,11 @@ export default class Map {
 		}).catch((err) => {
 			console.log('failed to get chunk, retrying');
 			helper.sleep(50);
-			return self.getChunk(x, y);
+			return self.getChunk(ctx, x, y);
 		});
 	}
 
-	async fetchOrGenChunk(x: number, y: number) {
+	async fetchOrGenChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
 
 		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
 		let cacheChunk = this.getChunkFromCache(x + ':' + y);
@@ -189,7 +191,7 @@ export default class Map {
 		//console.log("chunk: " + chunkX + ":" + chunkY);
 		//console.log("local: " + local_x + ":" + local_y);
 
-		let chunk: Chunk = await this.getChunk(chunkX, chunkY);
+		let chunk: Chunk = await this.getChunk(ctx, chunkX, chunkY);
 		logger.checkContext(ctx, 'getLoc()');
 		return new PlanetLoc(this, chunk, real_x, real_y);
 	}
