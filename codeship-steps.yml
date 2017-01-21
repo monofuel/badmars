@@ -3,4 +3,4 @@
     - service: web
       command: echo noop
     - service: net
-      command: echo noop]
+      command: echo noop
