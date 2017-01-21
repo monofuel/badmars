@@ -21,7 +21,7 @@ watchDashboard:
 check:
 	go vet .
 	flow check
-	node codeCleanup.sh
+	node_modules/eslint/bin/eslint.js -c .eslintrc.json server/
 
 test:
 	go test -cover

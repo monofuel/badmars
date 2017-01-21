@@ -10,7 +10,8 @@
     "type": "git",
     "url": "git+https://github.com/monofuel/badMars-JS.git"
   },
-  "author": "",
+  "author": "monofuel",
+	"eslintConfig":".eslintrc.json",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/monofuel/badMars-JS/issues"
