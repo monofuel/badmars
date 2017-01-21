@@ -1,0 +1,6 @@
+- type: parallel
+  steps:
+    - service: web
+      command: echo noop
+    - service: net
+      command: echo noop]
