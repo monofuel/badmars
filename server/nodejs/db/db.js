@@ -25,8 +25,7 @@ const unitStats = {};
 let logger;
 
 
-async function init() {
-	console.log('DB_INIT');
+async function init(): Promise<void> {
 	logger = require('../util/logger');
 	const options: {
 		host: string,
@@ -50,15 +49,14 @@ async function init() {
 	try {
 		conn = await r.connect(options);
 	} catch (err) {
-		logger.error(err);
-		console.log('failed to connect to DB, retrying in 5 seconds');
+		logger.error(err, 'failed to connect to DB, retrying in 5 seconds');
 		await helper.sleep(5000);
 		return exports.init();
 	}
 	const dbList = await r.dbList().run(conn);
 
 	if (dbList.indexOf('badmars') == -1) {
-		console.log('creating database');
+		logger.info('creating database');
 		await r.dbCreate('badmars').run(conn);
 	}
 
@@ -74,26 +72,26 @@ async function init() {
 	const mapNames = await map.listNames();
 
 	//console.log('preparing chunks');
-	var chunkPromises = [];
-	for (var name of mapNames) {
-		var chunk = new DBChunk(conn, name);
+	const chunkPromises = [];
+	for (const name of mapNames) {
+		const chunk = new DBChunk(conn, name);
 		chunkPromises.push(chunk.init());
 		this.chunks[name] = chunk;
 	}
 	await Promise.all(chunkPromises);
 
 	//console.log('preparing units');
-	var unitPromises = [];
-	for (var name of mapNames) {
-		var unit = new DBUnit(conn, name);
+	const unitPromises = [];
+	for (const name of mapNames) {
+		const unit = new DBUnit(conn, name);
 		unitPromises.push(unit.init());
 		this.units[name] = unit;
 	}
 	await Promise.all(unitPromises);
 
-	var unitStatPromises = [];
-	for (var name of mapNames) {
-		var unitStat = new DBUnitStat(conn, name);
+	const unitStatPromises = [];
+	for (const name of mapNames) {
+		const unitStat = new DBUnitStat(conn, name);
 		unitStatPromises.push(unitStat.init());
 		this.unitStats[name] = unitStat;
 	}
@@ -103,7 +101,7 @@ async function init() {
 	//console.log('created map testmap');
 }
 
-export async function close() {
+export async function close(): Promise<void> {
 	return this.conn.close();
 }
 
@@ -117,10 +115,10 @@ class DBCall {
 		this.profile = logger.startProfile(this.name);
 		logger.checkContext(this.ctx, this.name);
 	}
-	async check() {
+	async check(): Promise<void> {
 		logger.checkContext(this.ctx, this.name);
 	}
-	async end() {
+	async end(): Promise<void> {
 		logger.endProfile(this.profile);
 		logger.checkContext(this.ctx, this.name);
 	}
@@ -130,46 +128,46 @@ class DBCall {
 // this function does a db-side check for table existance before
 // creation, and also adds some jitter
 export async function safeCreateTable(tableName: string, primaryKey?: string): r.Table {
-	await helper.sleep(20000 * Math.random());
+	await helper.sleep(20 * 1000 * Math.random());
 	let results;
 	if (primaryKey) {
-		results = await r.tableList().contains(tableName).do((exists) => {
+		results = await r.tableList().contains(tableName).do((exists: boolean): any => {
 			return r.branch(exists, {
 				table_created: 0
 			}, r.tableCreate(tableName, { primaryKey }));
 		}).run(conn);
 	} else {
-		results = await r.tableList().contains(tableName).do((exists) => {
+		results = await r.tableList().contains(tableName).do((exists: boolean): any => {
 			return r.branch(exists, {
 				table_created: 0
 			}, r.tableCreate(tableName));
 		}).run(conn);
 	}
 	if (results.table_created) {
-		console.log('created table:' + tableName);
+		logger.info('created table:' + tableName);
 	}
 	return r.table(tableName);
 }
 
-export async function safeCreateIndex(table: r.Table, name: string, multi?: boolean) {
+export async function safeCreateIndex(table: r.Table, name: string, multi?: boolean): Promise<void> {
 	const indexList = await table.indexList().run(conn);
 	if (multi) {
 		if (!indexList.includes(name)) {
-			console.log('adding', name, 'index');
+			logger.info('adding ' + name + ' index');
 			await table.indexCreate(name, { multi }).run(conn);
 		}
 	} else {
 		if (!indexList.includes(name)) {
-			console.log('adding', name, 'index');
+			logger.info('adding ' + name + ' index');
 			await table.indexCreate(name).run(conn);
 		}
 	}
 }
 
-export async function clearSpareIndices(table: r.Table, validIndices: Array<string> ) {
+export async function clearSpareIndices(table: r.Table, validIndices: Array<string>): Promise<void> {
 	await table.indexWait();
-	const indexList = await table.indexList().run(conn);
-	const spareIndices = _.remove(indexList, (e) => {
+	const indexList: Array<string> = await table.indexList().run(conn);
+	const spareIndices = _.remove(indexList, (e: string): boolean => {
 		return !validIndices.includes(e);
 	});
 	for (const index: string of spareIndices) {
@@ -185,7 +183,7 @@ export async function startDBCall(ctx: Context, name: string): Promise<DBCall> {
 }
 
 
-export default {
+const db = {
 	init,
 	close,
 	map,
@@ -196,3 +194,5 @@ export default {
 	unitStats,
 	event,
 };
+
+export default db;

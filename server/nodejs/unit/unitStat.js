@@ -56,7 +56,7 @@ export default class UnitStat {
 		if(!env.debug) {
 			return;
 		}
-		_.map(Object.keys(this), (key) => {
+		_.map(Object.keys(this), (key: string) => {
 			if(key !== 'type' && !_.includes(ALL_COMPONENTS, key)) {
 				throw new Error('invalid component named ' + key);
 			}
@@ -90,7 +90,7 @@ export default class UnitStat {
 		if(typeof this.details.maxHealth !== 'number') {
 			throwError('invalid max health');
 		}
-		_.map(this.details, (value, key) => {
+		_.map(this.details, (value: any, key: string) => {
 			if(!_.includes(DETAIL_FIELDS, key)) {
 				throwError('bad detail field ' + key);
 			}
@@ -110,7 +110,7 @@ export default class UnitStat {
 				throwError('invalid transferRange');
 			}
 
-			_.map(this.storage, (value, key) => {
+			_.map(this.storage, (value: any, key: string) => {
 				if(!_.includes(STORAGE_FIELDS, key)) {
 					throwError('bad storage field ' + key);
 				}
@@ -129,7 +129,7 @@ export default class UnitStat {
 				throwError('invalid movement speed');
 			}
 
-			_.map(this.movable, (value, key) => {
+			_.map(this.movable, (value: any, key: string) => {
 				if(!_.includes(MOVABLE_FIELDS, key)) {
 					throwError('bad movable field ' + key);
 				}
@@ -146,7 +146,7 @@ export default class UnitStat {
 			if(this.attack.layers.length === 0) {
 				throwError('attack has to have layers');
 			}
-			_.each(this.attack.layers, (layer) => {
+			_.each(this.attack.layers, (layer: TileType) => {
 				if(!_.includes(VALID_LAYERS, layer)) {
 					throwError('invalid layer ' + layer);
 				}
@@ -160,7 +160,7 @@ export default class UnitStat {
 			if(typeof this.attack.damage !== 'number') {
 				throwError('attack damage needs to be a number');
 			}
-			_.map(this.attack, (value, key) => {
+			_.map(this.attack, (value: any, key: string) => {
 				if(!_.includes(ATTACK_FIELDS, key)) {
 					throwError('bad attack field ' + key);
 				}
@@ -176,7 +176,7 @@ export default class UnitStat {
 				throwError('invalid stationary layer');
 			}
 
-			_.map(this.stationary, (value, key) => {
+			_.map(this.stationary, (value: any, key: string) => {
 				if(!_.includes(STATIONARY_FIELDS, key)) {
 					throwError('bad stationary field ' + key);
 				}
@@ -192,7 +192,7 @@ export default class UnitStat {
 				throwError('construct.types needs to be an array');
 			}
 
-			_.map(this.construct, (value, key) => {
+			_.map(this.construct, (value: any, key: string) => {
 				if(!_.includes(CONSTRUCT_FIELDS, key)) {
 					throwError('bad construct field ' + key);
 				}
@@ -219,7 +219,7 @@ export default class UnitStat {
 			if(typeof this.graphical.scale !== 'number') {
 				throwError('model scale needs to be a number');
 			}
-			_.map(this.graphical, (value, key) => {
+			_.map(this.graphical, (value: any, key: string) => {
 				if(!_.includes(GRAPHICAL_FIELDS, key)) {
 					throwError('bad graphical field ' + key);
 				}
@@ -228,7 +228,7 @@ export default class UnitStat {
 
 	}
 
-	async validateAsync() {
+	async validateAsync(): Promise<void> {
 		if(!env.debug) {
 			return;
 		}

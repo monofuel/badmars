@@ -6,7 +6,7 @@
 
 import mongoose from 'mongoose';
 export default (authConn: mongoose.Connection) => {
-	var UserSchema = new mongoose.Schema({
+	const UserSchema = new mongoose.Schema({
 		username: String,
 		admin: {
 			type: Boolean,

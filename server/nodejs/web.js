@@ -16,7 +16,7 @@ logger.setModule('web');
 function init() {
 	logger.info('start begin');
 
-	var startupPromises = [];
+	const startupPromises = [];
 	startupPromises.push(db.init());
 	startupPromises.push(web.init());
 	Promise.all(startupPromises)

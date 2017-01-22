@@ -21,13 +21,13 @@ exports.init = () => {
 //==================================================================
 // dev methods
 
-var Unit = require('../unit/unit.js');
+const Unit = require('../unit/unit.js');
 
 vorpal.command('test', 'does SOMETHING')
 	.action(() => {
 		//today it makes a unit
-		var unit = new Unit('tank');
-		db.units['testplanet'].addUnit(unit).then((delta) => {
+		const unit = new Unit('tank');
+		db.units['testplanet'].addUnit(unit).then((delta: Unit) => {
 			console.log(delta);
 		});
 
@@ -37,26 +37,26 @@ vorpal.command('test', 'does SOMETHING')
 // map methods
 
 vorpal.command('listmaps', 'list all created maps')
-	.action(() => {
-		return db.map.listNames().then((names) => {
+	.action((): Promise<void> => {
+		return db.map.listNames().then((names: Array<string>) => {
 			console.log(names);
 		});
 	});
 
 vorpal.command('removemap <name>', 'remove a specific map')
 	.autocomplete({
-		data: () => {
+		data: (): Promise<Array<string>> => {
 			return db.map.listNames();
 		}
 	})
-	.action((args) => {
+	.action((args: object): Promise<void> => {
 		return db.map.removeMap(args.name).then(() => {
 			console.log('success');
 		});
 	});
 
 vorpal.command('createmap <name>', 'create a new random map')
-	.action((args) => {
+	.action((args: object): Promise<void> => {
 		return db.map.createRandomMap(args.name).then(() => {
 			console.log('created map ' + args.name);
 		});
@@ -66,20 +66,20 @@ vorpal.command('createmap <name>', 'create a new random map')
 //==================================================================
 // user methods
 vorpal.command('createuser <name> [apikey]', 'create a user account with an api key')
-	.action((args) => {
-		return db.user.createUser(args.name, '0xffffff').then((result) => {
+	.action((args: object): Promise<void> => {
+		return db.user.createUser(args.name, '0xffffff').then((result: object): Promise<void> => {
 			if(result.inserted !== 1) {
 				throw new Error('failed to create user');
 			}
 			if(args.apikey) {
 				return db.user.updateUser(args.name, { apiKey: args.apikey });
 			}
-		}).then((result) => {
+		}).then((result: object) => {
 			console.log(result);
 		});
 	});
 
 vorpal.command('removeuser <name>', 'remove all accounts with a given name')
-	.action((args) => {
+	.action((args: object): Promise<void> => {
 		return db.user.deleteUser(args.name);
 	});

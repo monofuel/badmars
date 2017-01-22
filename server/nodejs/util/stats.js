@@ -5,25 +5,25 @@
 //	Licensed under included modified BSD license
 
 import env from '../config/env';
-type statMap = {
+type StatMapType = {
 	[key: string]: Array<number>
-}
+};
 
-let avgStats: statMap = {};
-let sumStats: statMap = {};
+let avgStats: StatMapType = {};
+let sumStats: StatMapType = {};
 
-type Profile = {
+type ProfileType = {
 	name: string,
 	key: ProfileKey,
 	startTime: number,
 	endTime ?: number,
 	delta ?: number
-}
+};
 
-var runningProfiles: {
-	[key: ProfileKey]: Profile
+const runningProfiles: {
+	[key: ProfileKey]: ProfileType
 } = {};
-var profileCount: {
+let profileCount: {
 	[key: string]: number
 } = {};
 
@@ -43,7 +43,7 @@ exports.startProfile = (name: string): ProfileKey => {
 };
 exports.endProfile = (key: ProfileKey) => {
 
-	const profileRun: Profile = runningProfiles[key];
+	const profileRun: ProfileType = runningProfiles[key];
 	const name: string = profileRun.name;
 	profileRun.endTime = (new Date()).getTime();
 	profileRun.delta = profileRun.endTime - profileRun.startTime;

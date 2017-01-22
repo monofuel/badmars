@@ -24,9 +24,10 @@ const unitKeyWhitelist = [
 	'owner'
 ];
 
-module.exports.sanitizeUnit = function sanitizeUnit(unit: Unit) {
+module.exports.sanitizeUnit = function sanitizeUnit(unit: Unit): Object {
 
 	//TODO sanitized based on if user owns the unit
+	//TODO this needs to be re-written for unit changes
 
 	//whitelist
 	const sanitized = {};
@@ -47,7 +48,7 @@ const chunkKeyWhitelist = [
 	'chunkSize'
 ];
 
-module.exports.sanitizeChunk = function sanitizeChunk(chunk: Object) {
+module.exports.sanitizeChunk = function sanitizeChunk(chunk: Object): Object {
 
 	//whitelist
 	const sanitized = {};

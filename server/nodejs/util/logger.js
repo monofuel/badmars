@@ -28,7 +28,7 @@ function setModule(name: string) {
 process.on('uncaughtException', unhandled);
 process.on('unhandledRejection', unhandled);
 
-function unhandled(err) {
+function unhandled(err: Error) {
 	console.log('uncaught error');
 	console.error(err.stack);
 	try {
@@ -43,9 +43,9 @@ function unhandled(err) {
 //==================================================================
 // logging methods
 
-function handleError(err: Error) {
-	var timestamp = new Date();
-	console.log(dateFormat(timestamp) + ' : ' + err.stack);
+function handleError(err: Error, msg?: string) {
+	const timestamp = new Date();
+	console.log(dateFormat(timestamp) + ' : ' + (msg ? msg : err.stack));
 	track('error', {
 		message: err.message,
 		stack: err.stack,
@@ -60,7 +60,7 @@ function errorWithInfo(msg: string, details: Object) {
 }
 
 function requestInfo(info: string, req: Object) {
-	var timestamp = new Date();
+	const timestamp = new Date();
 	req.user = req.user || {};
 	track(info, {
 		ip: req.ip,
@@ -105,7 +105,7 @@ function checkContext(ctx: Context, msg: string) {
 }
 exports.checkContext = checkContext;
 
-function dateFormat(date: Date) {
+function dateFormat(date: Date): string {
 	return date.getMonth() + '/' + date.getDate() + ' ' + date.getHours() + ':' + date.getMinutes();
 }
 
@@ -124,7 +124,7 @@ function verifyTrack(name: string, kargs: ? Object) {
 
 function track(name: string, kargs: ? Object) {
 	//TODO solve this more elgantly with avoiding cyclical dependencies
-	const {db} = require('../db/db');
+	const db = require('../db/db');
 	kargs = kargs || {};
 	for(const key of Object.keys(kargs)) {
 		if(kargs[key] == null) { //delete null fields
@@ -137,6 +137,7 @@ function track(name: string, kargs: ? Object) {
 	kargs.hostname = os.hostname();
 	kargs.env = env.envType;
 	verifyTrack(name, kargs);
+	// $FlowFixMe: hiding this issue for now
 	db.event.addEvent(kargs);
 	/*
 	request({
