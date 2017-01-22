@@ -8,7 +8,6 @@ import WebSocket from 'ws';
 import _ from 'lodash';
 
 import db from '../db/db';
-import env from '../config/env';
 import logger from '../util/logger';
 import authHandler from '../net/handler/auth';
 import Map from '../map/map';
@@ -19,14 +18,14 @@ import User from '../user/user';
 
 const KEEP_ALIVE = 5000;
 
-type HandlerMap = {
+type HandlerMapType = {
 	[string]: NetHandler
-}
+};
 
 class Client {
 	ws: WebSocket;
 	auth: boolean;
-	handlers: HandlerMap;
+	handlers: HandlerMapType;
 	keepAlive: number;
 	map: Map;
 	unitStatWatcher: any;
@@ -40,12 +39,10 @@ class Client {
 		this.handlers = {};
 		this.handlers['login'] = authHandler;
 
-		var self = this;
-
-		ws.on('message', (msg) => {
-			self.handleFromClient(msg);
+		ws.on('message', (msg: string) => {
+			this.handleFromClient(msg);
 		});
-		ws.on('error', (err) => {
+		ws.on('error', (err: Error) => {
 			logger.error(err);
 		});
 
@@ -77,7 +74,7 @@ class Client {
 	}
 
 	sendError(type: string, errMsg: string) {
-		console.log('client error: ' + type);
+		logger.info('client error', {errMsg, type});
 		try {
 			this.ws.send(JSON.stringify({
 				type: type,
@@ -114,30 +111,27 @@ class Client {
 			return;
 		}
 		if (typeof this.handlers[data.type] !== 'function') {
-			console.log('bad handler for',data.type,typeof this.handlers[data.type]);
+			logger.errorWithInfo('bad handler',{ handle: data.type, type: typeof this.handlers[data.type]});
 			return;
 		}
 		this.handlers[data.type](ctx, this, data);
 	}
 
 	registerUnitListener() {
-		var self = this;
-		db.units[this.map.name].registerListener((err, delta) => {
-			self.handleUnitUpdate(err, delta);
+		db.units[this.map.name].registerListener((err: Error, delta: Object) => {
+			this.handleUnitUpdate(err, delta);
 		});
 	}
 
 	registerEventHandler() {
-		var self = this;
-		db.event.watchEvents((err, delta) => {
-			self.handleEvents(err, delta);
+		db.event.watchEvents((err: Error, delta: Object) => {
+			this.handleEvents(err, delta);
 		});
 	}
 
 	registerChatHandler() {
-		var self = this;
-		db.chat.watchChat((err, delta) => {
-			self.handleChat(err, delta);
+		db.chat.watchChat((err: Error, delta: Object) => {
+			this.handleChat(err, delta);
 		});
 	}
 
@@ -179,8 +173,7 @@ class Client {
 
 	handleEvents(err: Error, data: Object) {
 		if(err) {
-			console.log('event handler error');
-			console.error(err);
+			logger.error(err);
 			return;
 		}
 
@@ -193,31 +186,28 @@ class Client {
 
 		switch(gameEvent.type) {
 		case 'attack':
-			console.log('attack event');
 			if(!gameEvent.enemyId) {
-				console.log('invalid attack event:' + gameEvent.id);
+				logger.errorWithInfo('invalid event', { id: gameEvent.id, type: gameEvent.type});
 			}
 			if(!gameEvent.unitId) {
-				console.log('invalid attack event:' + gameEvent.id);
+				logger.errorWithInfo('invalid event', { id: gameEvent.id, type: gameEvent.type});
 			}
 			this.send('attack', { enemyId: gameEvent.enemyId, unitId: gameEvent.unitId });
 			break;
 		case 'kill':
-			console.log('kill event');
 			if(!gameEvent.unitId) {
-				console.log('invalid kill event:' + gameEvent.id);
+				logger.errorWithInfo('invalid event', { id: gameEvent.id, type: gameEvent.type});
 			}
 			this.send('attack', { unitId: gameEvent.unitId });
 			break;
 		default:
-			console.log('unhandled game event: ' + gameEvent.type);
+			logger.errorWithInfo('invalid event', { id: gameEvent.id, type: gameEvent.type});
 		}
 	}
 
 	handleChat(err: Error, data: Object) {
 		if(err) {
-			console.log('chat handler error');
-			console.log(err);
+			logger.error(err,'chat handler error');
 			return;
 		}
 		this.send('chat', data.new_val);

@@ -4,7 +4,6 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
 import Context from 'node-context';
@@ -12,12 +11,12 @@ import Context from 'node-context';
 import Unit from '../unit';
 import Map from '../../map/map';
 
-async function actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
+async function actionable(): Promise<boolean> {
 	//TODO return if we can attack or not
 	return false;
 }
 
-async function simulate(ctx: Context, unit: Unit, map: Map) {
+async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 
 	//TODO allow force attacking a specific enemy
 	const enemy = await map.getNearestEnemy(ctx, unit);
@@ -43,20 +42,17 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 		await enemy.takeDamage(damage);
 		if(enemy.health === 0) {
 			logger.info('gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
-			console.log('enemy killed, deleting');
 			enemy.delete();
 			logger.info('gameEvent', { type: 'kill', unitId: enemy.uuid });
 		} else {
 			logger.info('gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
 		}
-		return true;
+		return;
 	} else if(enemy && enemy.distance(unit) < env.attackMoveRange) {
-		console.log('enemy nearby, but not in range');
 		//TODO move to attack them, then return to position
-		return false;
+		return;
 	}
-	console.log('no enemies nearby');
-	return false;
+	return;
 }
 
 export default {
