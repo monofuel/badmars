@@ -19,7 +19,7 @@
 						"tab"
 				],
 				"linebreak-style": "off",
-        "no-var": "error",
+				"no-var": "error",
 				"prefer-const": "error",
 				"quotes": [
 						"error",

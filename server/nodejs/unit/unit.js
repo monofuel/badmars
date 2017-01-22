@@ -17,6 +17,7 @@ import attackAI from './ai/attack';
 import constructionAI from './ai/construction';
 import mineAI from './ai/mine';
 
+import UnitStat from './unitStat';
 import Map from '../map/map';
 import Chunk from '../map/chunk';
 import PlanetLoc from '../map/planetloc';
@@ -318,21 +319,19 @@ export default class Unit {
 		} else {
 			this.storage.iron -= amount;
 			if (this.storage.iron != delta.changes[0].new_val.storage.iron) {
-				console.log('IRON UPDATE FAIL');
-				console.log(delta.changes[0].new_val);
 				logger.errorWithInfo('failed to update iron', { uuid: this.uuid, type: this.details.type, amount });
 			}
 			return true;
 		}
 	}
 
-	async takeFuel(amount: number) {
+	async takeFuel(amount: number): Promise<Success> {
 		if (!this.storage) {
 			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
 		const table = db.units[this.location.map].getTable();
 		const conn = db.units[this.location.map].getConn();
-		const delta = await table.get(this.uuid).update((self) => {
+		const delta = await table.get(this.uuid).update((self: any): any => {
 			return r.branch(
 				self('storage.fuel').ge(amount), { storage: { fuel: self('storage.fuel').sub(amount) } }, {}
 			);
@@ -403,7 +402,7 @@ export default class Unit {
 		}
 	}
 
-	async addFactoryOrder(unitType: UnitType) {
+	async addFactoryOrder(unitType: UnitType): Promise<void> {
 
 		if (!this.construct) {
 			return logger.errorWithInfo('unit cannot construct', { uuid: this.uuid, type: this.details.type });
@@ -419,7 +418,7 @@ export default class Unit {
 			type: unitType,
 			cost: stats.details.cost
 		};
-		console.log('pushing onto queue:', order);
+
 		return await db.units[this.location.map].addFactoryOrder(this.uuid, order);
 
 	}
@@ -438,9 +437,10 @@ export default class Unit {
 		return order;
 	}
 
-	async addPathAttempt(ctx: Context) {
+	async addPathAttempt(ctx: Context): Promise<void> {
 		if (!this.movable) {
-			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
+			logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
+			return;
 		}
 		this.movable.pathAttempts++;
 
@@ -462,7 +462,7 @@ export default class Unit {
 		}
 
 	}
-	async setTransferGoal(ctx: Context, uuid: UUID, iron: number, fuel: number) {
+	async setTransferGoal(ctx: Context, uuid: UUID, iron: number, fuel: number): Promise<void> {
 		if (!this.movable) {
 			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -476,7 +476,7 @@ export default class Unit {
 		return this.update(ctx, { movable });
 	}
 
-	async clearTransferGoal(ctx: Context) {
+	async clearTransferGoal(ctx: Context): Promise<void> {
 		if (!this.movable) {
 			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -486,7 +486,7 @@ export default class Unit {
 		return this.update(ctx, { movable });
 	}
 
-	async setDestination(ctx: Context, x: number, y: number) {
+	async setDestination(ctx: Context, x: number, y: number): Promise<void> {
 		if (!this.movable) {
 			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -495,7 +495,7 @@ export default class Unit {
 		return await this.update(ctx, { movable });
 	}
 
-	async setPath(ctx: Context, path: Array<any> ) {
+	async setPath(ctx: Context, path: Array<any>): Promise<void> {
 		if (!this.movable) {
 			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -503,7 +503,7 @@ export default class Unit {
 		return await this.update(ctx, { movable });
 	}
 
-	async clearDestination(ctx: Context) {
+	async clearDestination(ctx: Context): Promise<void> {
 		if (!this.movable) {
 			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -516,7 +516,7 @@ export default class Unit {
 		return this.update(ctx, { movable });
 	}
 
-	async tickMovement(ctx: Context) {
+	async tickMovement(ctx: Context): Promise<void> {
 		if (!this.movable) {
 			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -526,7 +526,7 @@ export default class Unit {
 		return await this.update(ctx, { movable });
 	}
 
-	async tickFireCooldown(ctx: Context) {
+	async tickFireCooldown(ctx: Context): Promise<void> {
 		if (!this.attack) {
 			return logger.errorWithInfo('unit can\'t attack', { uuid: this.uuid, type: this.details.type });
 		}
@@ -536,7 +536,7 @@ export default class Unit {
 		await this.update(ctx, { attack });
 	}
 
-	async armFireCooldown(ctx: Context) {
+	async armFireCooldown(ctx: Context): Promise<void> {
 		if (!this.attack) {
 			return logger.errorWithInfo('unit can\'t attack', { uuid: this.uuid, type: this.details.type });
 		}
@@ -546,7 +546,7 @@ export default class Unit {
 		await this.update(ctx, { attack });
 	}
 
-	async takeDamage(ctx: Context, dmg: number) {
+	async takeDamage(ctx: Context, dmg: number): Promise<void> {
 		if (this.details.maxHealth === 0) {
 			return logger.errorWithInfo('non-attackable unit attacked', { uuid: this.uuid, type: this.details.type });
 		}
@@ -559,7 +559,7 @@ export default class Unit {
 		await this.update(ctx, { details, awake: true });
 	}
 
-	async moveToTile(ctx: Context, tile: PlanetLoc) {
+	async moveToTile(ctx: Context, tile: PlanetLoc): Promise<boolean> {
 		if (!this.movable) {
 			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -586,13 +586,11 @@ export default class Unit {
 			};
 
 			await this.update(ctx, { location, movable });
-		} else {
-			console.log('movement blocked');
 		}
 		return hasMoved;
 	}
 
-	distance(unit: Unit) {
+	distance(unit: Unit): number {
 		const deltaX = Math.abs(this.location.x - unit.location.x);
 		const deltaY = Math.abs(this.location.y - unit.location.y);
 		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
@@ -602,16 +600,17 @@ export default class Unit {
 	// helpers
 	//---------------------------------------------------------------------------
 
-	async validateSync() {
+	async validateSync(): Promise<void> {
 		//TODO split up async and sync validation work
 	}
-	async validate(ctx: Context) {
+
+	async validate(ctx: Context): Promise<void> {
 		if (!env.debug) {
 			return;
 		}
 		await this.refresh();
 
-		const invalid = (reason) => {
+		const invalid = (reason: string) => {
 			throw new Error(this.uuid + ': ' + reason);
 		};
 
@@ -639,8 +638,8 @@ export default class Unit {
 			invalid('invalid chunkY: ' + this.location.chunkY);
 		}
 
-		const chunks = await this.getChunks(ctx);
-		chunks.forEach((chunk) => {
+		const chunks: Array<Chunk> = await this.getChunks(ctx);
+		chunks.forEach((chunk: Chunk) => {
 			if (!chunk) {
 				invalid('chunk missing for unit');
 			}
@@ -657,8 +656,8 @@ export default class Unit {
 			if (tileHash.split(':').length != 2) {
 				invalid('bad tileHash: ' + tileHash);
 			}
-			const x = tileHash.split(':')[0];
-			const y = tileHash.split(':')[1];
+			Number(tileHash.split(':')[0]);
+			Number(tileHash.split(':')[1]);
 
 		}
 
@@ -679,7 +678,7 @@ export default class Unit {
 			const unitMap = await chunk.getUnitsMap(ctx, unitTile);
 
 			if (!unitMap[this.uuid]) {
-				console.log(chunk.units);
+				//console.log(chunk.units);
 				invalid('unit ' + this.uuid + ' missing from hash: ' + unitTile);
 					/*
 					console.log('fixing');
@@ -720,8 +719,8 @@ export default class Unit {
 
 	async getLocs(ctx: Context): Promise<Array<PlanetLoc>> {
 		const promises: Array<Promise<PlanetLoc>> = [];
-		const map = await this.getMap(ctx);
-		this.location.hash.forEach((hash) => {
+		const map: Map = await this.getMap(ctx);
+		this.location.hash.forEach((hash: TileHash) => {
 			const x = Number(hash.split(':')[0]);
 			const y = Number(hash.split(':')[1]);
 			promises.push(map.getLoc(ctx, x, y));
@@ -730,8 +729,8 @@ export default class Unit {
 	}
 	async getChunks(ctx: Context): Promise<Array<Chunk>> {
 		const promises: Array<Promise<Chunk>> = [];
-		const map = await this.getMap(ctx);
-		this.location.chunkHash.forEach((hash) => {
+		const map: Map = await this.getMap(ctx);
+		this.location.chunkHash.forEach((hash: TileHash) => {
 			const x = Number(hash.split(':')[0]);
 			const y = Number(hash.split(':')[1]);
 			promises.push(map.getChunk(ctx, x, y));
@@ -755,7 +754,7 @@ export default class Unit {
 			} else {
 				added = await loc.chunk.addUnit(ctx, this.uuid, loc.hash);
 				if (!added) {
-					console.log('loc.chunk.addUnit failed', loc.hash);
+					logger.info('loc.chunk.addUnit failed ' + loc.hash);
 				}
 			}
 			if (!added) {
@@ -771,7 +770,7 @@ export default class Unit {
 		for (const loc of locs) {
 			const removed = await loc.chunk.clearUnit(this.uuid, loc.hash);
 			if (!removed) {
-				console.log('loc.chunk.clear failed', loc.hash);
+				logger.info('loc.chunk.clear failed ' + loc.hash);
 			}
 			if (!removed) {
 				success = false;
@@ -814,11 +813,11 @@ export default class Unit {
 		return compObject;
 	}
 
-	getTypeInfo() {
+	async getTypeInfo(): Promise<UnitStat> {
 		return db.unitStats[this.location.map].get(this.details.type);
 	}
 
-	async refresh() {
+	async refresh(): Promise<void> {
 		const fresh = await db.units[this.location.map].getUnit(this.uuid);
 		this.clone(fresh);
 	}

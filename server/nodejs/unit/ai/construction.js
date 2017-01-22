@@ -4,25 +4,22 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../../db/db';
-import env from '../../config/env';
 import logger from '../../util/logger';
 import Context from 'node-context';
 
 import Unit from '../unit';
 import Map from '../../map/map';
-import UnitStat from '../unitStat';
 
-async function actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
+async function actionable(): Promise<boolean> {
 	//TODO return if we can build or not
 	return false;
 }
 
 //pass in the unit to update
 //returns true if the unit was updated
-async function simulate(ctx: Context, unit: Unit, map: Map) {
+async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	if(unit.details.ghosting || !unit.construction) {
-		return false;
+		return;
 	}
 	if(unit.movable) {
 		switch(unit.movable.layer) {
@@ -58,12 +55,11 @@ async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<voi
 	}
 
 	const newUnitType: UnitType = queue[0].type;
-	const unitInfo: UnitStat = unit.getTypeInfo(newUnitType);
-	console.log('building: ' + newUnitType);
+	//const unitInfo: UnitStat = await unit.getTypeInfo(newUnitType);
+	logger.info('building: ' + newUnitType);
 
 	if(queue[0].cost > 0) {
 		if(await map.pullIron(ctx, unit, queue[0].cost)) {
-			console.log('paying for unit');
 			queue[0].cost = 0;
 
 			//TODO this should not be called from outside unit
@@ -72,8 +68,6 @@ async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<voi
 					factoryQueue: queue
 				}
 			});
-		} else {
-			console.log('not enough resources');
 		}
 	}
 	if(queue[0].cost === 0) {
@@ -85,17 +79,18 @@ async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<voi
 				}
 			});
 		} else {
-			const newUnitData: FactoryOrder = await unit.popFactoryOrder();
-			console.log(newUnitData);
+			await unit.popFactoryOrder();
 			const tile = await map.getLoc(ctx, unit.location.x, unit.location.y);
 			const newTile = await map.getNearestFreeTile(ctx, tile);
+			if (!newTile) {
+				logger.errorWithInfo('failed to find open tile', {uuid: unit.uuid});
+				return;
+			}
 
 			//if spawn fails, should re-try with a new location
 			const result = await map.factoryMakeUnit(ctx, newUnitType, unit.details.owner, newTile.x, newTile.y);
-			if(result) {
-				console.log('factory created ', newUnitType);
-			} else {
-				console.log('factory failed to create ', newUnitType);
+			if(!result) {
+				logger.errorWithInfo('factory failed to create unit', {newUnitType, uuid: unit.uuid});
 			}
 		}
 	}
@@ -106,11 +101,10 @@ async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<voi
 
 //TODO
 //not tested yet
-async function simulateGround(ctx: Context, unit: Unit, map: Map) {
+async function simulateGround(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	if(!unit.construct || !unit.storage) {
 		return;
 	}
-	console.log('simulating constructor');
 	let nearestGhost: ? Unit = null;
 	const units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
 	map.sortByNearestUnit(units, unit);
@@ -153,13 +147,8 @@ async function simulateGround(ctx: Context, unit: Unit, map: Map) {
 				iron_available += nearbyUnit2.storage.iron;
 			});
 			if(iron_available > nearbyUnit.details.cost) {
-				console.log('iron available', iron_available);
-				console.log('unit cost', nearbyUnit.details.cost);
 				unit.setDestination(ctx, tile.x, tile.y);
-				console.log('builder pathing to ghost');
-				return true;
-			} else {
-				console.log('not enough resources near ghost');
+				return;
 			}
 		}
 
@@ -167,11 +156,10 @@ async function simulateGround(ctx: Context, unit: Unit, map: Map) {
 	}
 
 	if(await map.pullIron(ctx, unit, nearestGhost.details.cost)) {
-		console.log('paying for building');
 		//TODO builder should halt and spend time building
 		//should also make sure the area is clear
-		const result = await nearestGhost.update(ctx, { details: { ghosting: false }, awake: true });
-		return true;
+		await nearestGhost.update(ctx, { details: { ghosting: false }, awake: true });
+		return;
 	}
 }
 
