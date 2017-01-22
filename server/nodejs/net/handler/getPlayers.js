@@ -14,6 +14,6 @@ async function getPlayers(ctx: Context, client: Client, data: Object): Promise<v
 	db.user.listAllSanitizedUsers().then((users) => {
 		client.send('players', { players: users });
 	});
-};
+}
 
 module.exports = getPlayers;

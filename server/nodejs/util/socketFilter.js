@@ -24,20 +24,20 @@ const unitKeyWhitelist = [
 	'destination',
 	'ghosting',
 	'owner'
-]
+];
 
 module.exports.sanitizeUnit = function sanitizeUnit(unit: Unit) {
 
 	//TODO sanitized based on if user owns the unit
 
 	//whitelist
-	let sanitized = {}
-	for(let key of unitKeyWhitelist) {
+	const sanitized = {};
+	for(const key of unitKeyWhitelist) {
 		// $FlowFixMe: hiding this issue for now
 		sanitized[key] = unit[key];
 	}
 	return sanitized;
-}
+};
 
 const chunkKeyWhitelist = [
 	'x',
@@ -52,9 +52,9 @@ const chunkKeyWhitelist = [
 module.exports.sanitizeChunk = function sanitizeChunk(chunk: Object) {
 
 	//whitelist
-	let sanitized = {}
-	for(let key of chunkKeyWhitelist) {
+	const sanitized = {};
+	for(const key of chunkKeyWhitelist) {
 		sanitized[key] = chunk[key];
 	}
 	return sanitized;
-}
+};

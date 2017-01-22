@@ -51,4 +51,4 @@ export default {
 	C,
 	getTypeName,
 	getTypeFromName
-}
+};

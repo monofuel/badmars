@@ -26,7 +26,7 @@ let logger;
 
 
 async function init() {
-	console.log("DB_INIT");
+	console.log('DB_INIT');
 	logger = require('../util/logger');
 	const options: {
 		host: string,
@@ -101,7 +101,7 @@ async function init() {
 
 	await this.map.createRandomMap('testmap');
 	//console.log('created map testmap');
-};
+}
 
 export async function close() {
 	return this.conn.close();
@@ -123,26 +123,26 @@ class DBCall {
 	async end() {
 		logger.endProfile(this.profile);
 		logger.checkContext(this.ctx, this.name);
-	};
+	}
 }
 
 // rethinkdb does not atomically create tables
 // this function does a db-side check for table existance before
 // creation, and also adds some jitter
-export async function safeCreateTable(tableName: string, primaryKey? :string): r.Table {
+export async function safeCreateTable(tableName: string, primaryKey?: string): r.Table {
 	await helper.sleep(20000 * Math.random());
 	let results;
 	if (primaryKey) {
 		results = await r.tableList().contains(tableName).do((exists) => {
 			return r.branch(exists, {
 				table_created: 0
-			}, r.tableCreate(tableName, { primaryKey }))
+			}, r.tableCreate(tableName, { primaryKey }));
 		}).run(conn);
 	} else {
 		results = await r.tableList().contains(tableName).do((exists) => {
 			return r.branch(exists, {
 				table_created: 0
-			}, r.tableCreate(tableName))
+			}, r.tableCreate(tableName));
 		}).run(conn);
 	}
 	if (results.table_created) {
@@ -170,9 +170,9 @@ export async function clearSpareIndices(table: r.Table, validIndices: Array<stri
 	await table.indexWait();
 	const indexList = await table.indexList().run(conn);
 	const spareIndices = _.remove(indexList, (e) => {
-		return !validIndices.includes(e)
-	})
-	for (let index: string of spareIndices) {
+		return !validIndices.includes(e);
+	});
+	for (const index: string of spareIndices) {
 		await table.indexDrop(index).run(conn);
 	}
 }

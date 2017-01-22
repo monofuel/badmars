@@ -21,19 +21,19 @@ async function init() {
 
 	await registerListeners();
 
-	let maps: Array<string> = await db.map.listNames();
+	const maps: Array<string> = await db.map.listNames();
 
-	for(let mapName: string of maps) {
+	for(const mapName: string of maps) {
 		while(await process(mapName));
 		//process(mapName);
 	}
 
-};
+}
 exports.init = init;
 
 function registerListeners() {
 	db.map.listNames().then((names) => {
-		for(let name of names) {
+		for(const name of names) {
 			if(registeredMaps.indexOf(name) === -1) {
 				registeredMaps.push(name);
 				db.units[name].registerPathListener(pathfind);
@@ -60,7 +60,7 @@ async function process(mapName: string) {
 	//TODO fix this stuff
 	//doesn't work properly with multiple pathfinding services.
 	console.log('process',mapName);
-	let results = await db.units[mapName].getUnprocessedPath();
+	const results = await db.units[mapName].getUnprocessedPath();
 	//console.log(results);
 
 	//TODO this logic should probably be in db/units.js
@@ -68,7 +68,7 @@ async function process(mapName: string) {
 		return false;
 	}
 
-	for(let delta of results.changes) {
+	for(const delta of results.changes) {
 		if(delta.new_val) {
 			await processUnit(delta.new_val);
 		}
@@ -78,7 +78,7 @@ async function process(mapName: string) {
 }
 
 async function processUnit(unitDoc: Object) {
-	let unit = await new Unit();
+	const unit = await new Unit();
 	unit.clone(unitDoc);
 	const ctx = new Context();
 
@@ -88,18 +88,18 @@ async function processUnit(unitDoc: Object) {
 
 	console.log('pathing for unit ' + unit.type);
 	//console.log(unit);
-	let map = await db.map.getMap(ctx, unit.map);
+	const map = await db.map.getMap(ctx, unit.map);
 
-	let start = await map.getLoc(ctx, unit.x, unit.y);
+	const start = await map.getLoc(ctx, unit.x, unit.y);
 	if(!unit.destination) {
 		return;
 	}
-	let destinationX = unit.destination.split(":")[0];
-	let destinationY = unit.destination.split(":")[1];
-	let dest = await map.getLoc(ctx, destinationX, destinationY);
+	const destinationX = unit.destination.split(':')[0];
+	const destinationY = unit.destination.split(':')[1];
+	const dest = await map.getLoc(ctx, destinationX, destinationY);
 
 	//if the destination is covered, get the nearest valid point.
-	let end = await map.getNearestFreeTile(ctx, dest, unit, false);
+	const end = await map.getNearestFreeTile(ctx, dest, unit, false);
 	if (!end) {
 		throw new Error('no nearby free tile?');
 	}
@@ -112,17 +112,17 @@ async function processUnit(unitDoc: Object) {
 		return;
 	}
 
-	let pathfinder = new AStarPath(start, end, unit);
+	const pathfinder = new AStarPath(start, end, unit);
 
 	if(pathfinder.generate) {
 		//console.log('generating path');
 		await pathfinder.generate();
 	}
-	let path = [];
-	let dir = await pathfinder.getNext(start);
+	const path = [];
+	const dir = await pathfinder.getNext(start);
 	let nextTile = start;
 	do {
-		let dir = await pathfinder.getNext(nextTile);
+		const dir = await pathfinder.getNext(nextTile);
 		//console.log('dir:' + DIRECTION.getTypeName(dir));
 		nextTile = await nextTile.getDirTile(ctx, dir);
 		path.push(DIRECTION.getTypeName(dir));
@@ -132,5 +132,5 @@ async function processUnit(unitDoc: Object) {
 	} while (true);
 
 	await unit.setPath(path);
-	await unit.updateUnit({ destination: end.x + ":" + end.y });
+	await unit.updateUnit({ destination: end.x + ':' + end.y });
 }

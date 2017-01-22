@@ -18,27 +18,27 @@ const MOVABLE_FIELDS = ['layer', 'speed'];
 const ATTACK_FIELDS = ['layers', 'range', 'damage', 'fireRate'];
 const STORAGE_FIELDS = ['maxIron', 'maxFuel', 'transferRange'];
 const STATIONARY_FIELDS = ['layer'];
-const CONSTRUCT_FIELDS = ['types']
+const CONSTRUCT_FIELDS = ['types'];
 const GRAPHICAL_FIELDS = ['model', 'scale'];
 
 const VALID_LAYERS = ['ground', 'air', 'water'];
 
 const REQUIRED_COMPONENTS = {
-	"details": [],
-	"graphical": []
+	'details': [],
+	'graphical': []
 };
 
 const COMPONENT_DEFAULTS = {
-	"details": {
-		"size": 0,
-		"buildTime": 0,
-		"cost": 0,
-		"maxHealth": 0
+	'details': {
+		'size': 0,
+		'buildTime': 0,
+		'cost': 0,
+		'maxHealth': 0
 	},
-	"storage": {
-		"maxIron": 0,
-		"maxFuel": 0,
-		"transferRange": 0,
+	'storage': {
+		'maxIron': 0,
+		'maxFuel': 0,
+		'transferRange': 0,
 	}
 };
 
@@ -68,12 +68,12 @@ export default class UnitStat {
 			if(key !== 'type' && !_.includes(ALL_COMPONENTS, key)) {
 				throw new Error('invalid component named ' + key);
 			}
-		})
+		});
 
 		const self = this;
 
 		function throwError(msg: string) {
-			throw new Error(msg + " for " + self.details.type);
+			throw new Error(msg + ' for ' + self.details.type);
 		}
 
 		//==============================
@@ -100,7 +100,7 @@ export default class UnitStat {
 		}
 		_.map(this.details, (value, key) => {
 			if(!_.includes(DETAIL_FIELDS, key)) {
-				throwError("bad detail field " + key);
+				throwError('bad detail field ' + key);
 			}
 		});
 
@@ -120,7 +120,7 @@ export default class UnitStat {
 
 			_.map(this.storage, (value, key) => {
 				if(!_.includes(STORAGE_FIELDS, key)) {
-					throwError("bad storage field " + key);
+					throwError('bad storage field ' + key);
 				}
 			});
 		}
@@ -139,7 +139,7 @@ export default class UnitStat {
 
 			_.map(this.movable, (value, key) => {
 				if(!_.includes(MOVABLE_FIELDS, key)) {
-					throwError("bad movable field " + key);
+					throwError('bad movable field ' + key);
 				}
 			});
 		}
@@ -170,7 +170,7 @@ export default class UnitStat {
 			}
 			_.map(this.attack, (value, key) => {
 				if(!_.includes(ATTACK_FIELDS, key)) {
-					throwError("bad attack field " + key);
+					throwError('bad attack field ' + key);
 				}
 			});
 		}
@@ -186,7 +186,7 @@ export default class UnitStat {
 
 			_.map(this.stationary, (value, key) => {
 				if(!_.includes(STATIONARY_FIELDS, key)) {
-					throwError("bad stationary field " + key);
+					throwError('bad stationary field ' + key);
 				}
 			});
 		}
@@ -207,23 +207,23 @@ export default class UnitStat {
 
 		if(this.graphical) {
 			if(!this.graphical.model) {
-				throwError("model is missing");
+				throwError('model is missing');
 			}
 			if(typeof this.graphical.model !== 'string') {
-				throwError("model is invalid");
+				throwError('model is invalid');
 			}
 			if(!this.graphical.model.includes('.obj')) {
-				throwError("only OBJ is supported");
+				throwError('only OBJ is supported');
 			}
 			if(!this.graphical.scale) {
-				throwError("model scale is missing");
+				throwError('model scale is missing');
 			}
 			if(typeof this.graphical.scale !== 'number') {
 				throwError('model scale needs to be a number');
 			}
 			_.map(this.graphical, (value, key) => {
 				if(!_.includes(GRAPHICAL_FIELDS, key)) {
-					throwError("bad graphical field " + key);
+					throwError('bad graphical field ' + key);
 				}
 			});
 		}
@@ -235,7 +235,7 @@ export default class UnitStat {
 			return;
 		}
 
-		this.validateSync()
+		this.validateSync();
 
 		//do async validation work
 

@@ -21,7 +21,7 @@ class DBUser {
 		this.conn = conn;
 		this.table = await safeCreateTable(this.tableName,'uuid');
 		await safeCreateIndex(this.table, 'name');
-	};
+	}
 
 	async listAllSanitizedUsers() {
 		return this.table.run(this.conn).then((cursor) => {
@@ -37,11 +37,11 @@ class DBUser {
 				return sanitized;
 			});
 		});
-	};
+	}
 
 	async getUser(name: string) {
 		return this.table.getAll(name, {
-			index: "name"
+			index: 'name'
 		}).coerceTo('array').run(this.conn).then((docs) => {
 			var doc = docs[0];
 			if(!doc) {
@@ -51,18 +51,18 @@ class DBUser {
 			user.clone(doc);
 			return user;
 		});
-	};
+	}
 
 	async createUser(name: string, color: string) {
 		var user = new User(name, color);
 		return this.table.insert(user, {
-			conflict: "error",
+			conflict: 'error',
 			returnChanges: true
 		}).run(this.conn);
-	};
+	}
 
 	async updateUser(name: string, patch: Object) {
-		let result = await this.table.getAll(name, { index: 'name' }).update(patch).run(this.conn);
+		const result = await this.table.getAll(name, { index: 'name' }).update(patch).run(this.conn);
 		return result;
 	}
 

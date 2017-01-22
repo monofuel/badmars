@@ -18,10 +18,8 @@
 						"error",
 						"tab"
 				],
-				"linebreak-style": [
-						"error",
-						"unix"
-				],
+				"linebreak-style": "off",
+        "prefer-const": "error",
 				"quotes": [
 						"error",
 						"single"

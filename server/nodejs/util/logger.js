@@ -21,7 +21,7 @@ console.log('=========================');
 
 function setModule(name: string) {
 	moduleName = name;
-};
+}
 
 process.on('uncaughtException', unhandled);
 process.on('unhandledRejection', unhandled);
@@ -36,7 +36,7 @@ function unhandled(err) {
 	}
 	console.log('uncaught exception, bailing out');
 	process.exit(1);
-};
+}
 
 //==================================================================
 // logging methods
@@ -49,7 +49,7 @@ function handleError(err: Error) {
 		stack: err.stack,
 		timestamp: Date.now()
 	});
-};
+}
 
 //throw a generic error message, but log specific information for debugging
 function errorWithInfo(msg: string, details: Object) {
@@ -66,18 +66,18 @@ function requestInfo(info: string, req: Object) {
 	});
 	if(req.ip) {
 		if(req.isAuthenticated && req.isAuthenticated()) {
-			console.log("INFO: " + dateFormat(timestamp) + ": " + info + " FROM: " + req.ip + " USER: " + req.user.username);
+			console.log('INFO: ' + dateFormat(timestamp) + ': ' + info + ' FROM: ' + req.ip + ' USER: ' + req.user.username);
 		} else {
-			console.log("INFO: " + dateFormat(timestamp) + ": " + info + " FROM: " + req.ip);
+			console.log('INFO: ' + dateFormat(timestamp) + ': ' + info + ' FROM: ' + req.ip);
 		}
 	} else {
-		console.log("INFO: " + dateFormat(timestamp) + ": " + info);
+		console.log('INFO: ' + dateFormat(timestamp) + ': ' + info);
 	}
 
-};
+}
 
 function info(info: string, body?: Object, silent?: boolean) {
-	let timestamp = new Date();
+	const timestamp = new Date();
 	body = body || {};
 	body.timestamp = timestamp.getTime();
 	track(info, body);
@@ -86,11 +86,11 @@ function info(info: string, body?: Object, silent?: boolean) {
 	} else if(!DEBUG_MODULES.includes(moduleName)) {
 		return;
 	} else if(body) {
-		console.log("INFO:", dateFormat(timestamp), ":", info, ":", body, ":", moduleName);
+		console.log('INFO:', dateFormat(timestamp), ':', info, ':', body, ':', moduleName);
 	} else {
-		console.log("INFO:", dateFormat(timestamp), ":", info, ":", body);
+		console.log('INFO:', dateFormat(timestamp), ':', info, ':', body);
 	}
-};
+}
 
 //==================================================================
 // functions
@@ -104,11 +104,11 @@ function checkContext(ctx: Context, msg: string) {
 exports.checkContext = checkContext;
 
 function dateFormat(date: Date) {
-	return date.getMonth() + "/" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes();
+	return date.getMonth() + '/' + date.getDate() + ' ' + date.getHours() + ':' + date.getMinutes();
 }
 
 function verifyTrack(name: string, kargs: ? Object) {
-	for(let key in kargs) {
+	for(const key in kargs) {
 		if(typeof kargs[key] == 'object') {
 			console.log('invalid element ' + key + ' on ' + name);
 			delete kargs[key];
@@ -124,13 +124,13 @@ function track(name: string, kargs: ? Object) {
 	//TODO solve this more elgantly with avoiding cyclical dependencies
 	const {db} = require('../db/db');
 	kargs = kargs || {};
-	for(let key of Object.keys(kargs)) {
+	for(const key of Object.keys(kargs)) {
 		if(kargs[key] == null) { //delete null fields
 			delete kargs[key];
 		}
 	}
-	name = name.replace(/ /g, "_").replace(/:/g, " ");
-	kargs.name = "server_" + name;
+	name = name.replace(/ /g, '_').replace(/:/g, ' ');
+	kargs.name = 'server_' + name;
 	kargs.module = moduleName;
 	kargs.hostname = os.hostname();
 	kargs.env = env.envType;
@@ -159,4 +159,4 @@ module.exports = {
 	addSumStat: stats.addSumStat,
 	startProfile: stats.startProfile,
 	endProfile: stats.endProfile,
-}
+};

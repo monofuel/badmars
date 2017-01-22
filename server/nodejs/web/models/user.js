@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import mongoose from 'mongoose';
-module.exports = (authConn: mongoose.Connection) => {
+export default (authConn: mongoose.Connection) => {
 	var UserSchema = new mongoose.Schema({
 		username: String,
 		admin: {
@@ -27,4 +27,4 @@ module.exports = (authConn: mongoose.Connection) => {
 	});
 
 	authConn.model('User', UserSchema);
-}
+};

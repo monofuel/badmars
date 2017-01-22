@@ -42,7 +42,7 @@ class PlanetLoc {
 		this.x = Math.floor(x);
 		this.y = Math.floor(y);
 		this.map = map;
-		this.hash = x + ":" + y;
+		this.hash = x + ':' + y;
 		this.chunk = chunk;
 
 		this.local_x = this.x - (chunk.x * chunk.chunkSize);
@@ -60,14 +60,14 @@ class PlanetLoc {
 		//console.log("x: " + this.x + ", y: " + this.y + " chunkx: " + this.chunk.x + ", chunky: " + this.chunk.y + " localx: " + this.local_x + " localy: " + this.local_y);
 
 		if(!this.chunk) {
-			console.log("tile on not loaded chunk: " + this.x + "," + this.y);
+			console.log('tile on not loaded chunk: ' + this.x + ',' + this.y);
 			console.log('chunk hash: ' + chunk.hash);
 			return;
 		}
 
 		if(this.local_x > this.chunk.navGrid.length || this.local_y > this.chunk.navGrid[0].length) {
 			console.log('invalid chunk');
-			console.log("x: " + this.x + ", y: " + this.y + " chunkx: " + this.chunk.x + ", chunky: " + this.chunk.y + " localx: " + this.local_x + " localy: " + this.local_y);
+			console.log('x: ' + this.x + ', y: ' + this.y + ' chunkx: ' + this.chunk.x + ', chunky: ' + this.chunk.y + ' localx: ' + this.local_x + ' localy: ' + this.local_y);
 
 			console.log((new Error()).stack);
 		}
@@ -83,11 +83,11 @@ class PlanetLoc {
 		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 	}
 	toString() {
-		var line = "x: " + this.x;
-		line += ", y: " + this.y;
-		line += ", type: " + getTypeName(this.tileType);
+		var line = 'x: ' + this.x;
+		line += ', y: ' + this.y;
+		line += ', type: ' + getTypeName(this.tileType);
 		if(this.map) {
-			line += ", map: " + this.map.name;
+			line += ', map: ' + this.map.name;
 		}
 		return line;
 	}
@@ -127,7 +127,7 @@ class PlanetLoc {
 		}
 		const invalid = (reason) => {
 			throw new Error(this.hash + ': ' + reason);
-		}
+		};
 		if(this.x == null) {
 			invalid('bad x value:' + this.x);
 		}

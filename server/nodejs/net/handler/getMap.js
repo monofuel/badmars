@@ -13,7 +13,7 @@ import Client from '../client';
 async function getMap(ctx: Context, client: Client, data: Object) {
 	client.send('map', { map: client.planet });
 
-	let userList = await db.user.listAllSanitizedUsers();
+	const userList = await db.user.listAllSanitizedUsers();
 	client.send('players', { players: userList });
 
 	//TODO: be more intelligent on this. only send chunks where the owner has units at
@@ -30,6 +30,6 @@ async function getMap(ctx: Context, client: Client, data: Object) {
 			}
 		}
 	}*/
-};
+}
 
 module.exports = getMap;

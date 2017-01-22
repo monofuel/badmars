@@ -21,7 +21,7 @@ exports.init = async() => {
 	} else {
 		maps = await db.map.listNames();
 	}
-	console.log("checking maps", maps)
+	console.log('checking maps', maps);
 
 	console.log('-------------------------------');
 	console.log('starting validation');
@@ -30,7 +30,7 @@ exports.init = async() => {
 	for(var mapName: string of maps) {
 		const map = await db.map.getMap(ctx, mapName);
 		if(!map) {
-			console.log("no such map");
+			console.log('no such map');
 			process.exit(-1);
 		}
 		await validateUnits(mapName);
@@ -39,7 +39,7 @@ exports.init = async() => {
 	}
 
 	process.exit();
-}
+};
 
 async function validateUnits(mapName: string) {
 	console.log('validating units');
@@ -70,14 +70,14 @@ async function validateChunks(mapName: string) {
 async function checkUnitLocations(mapName: string) {
 	const unitList = await db.units[mapName].listUnits();
 	const tileMap = {};
-	for(let unit of unitList) {
+	for(const unit of unitList) {
 		if(!unit.tileHash) {
 			throw new Error('unit missing tile: ' + unit.uuid);
 		}
 		if(unit.type === 'iron' || unit.type === 'oil') {
 			continue;
 		}
-		for(let tileHash of unit.tileHash) {
+		for(const tileHash of unit.tileHash) {
 			if(tileMap[tileHash]) {
 				throw new Error('conflicting tile location:' + tileHash);
 			}
@@ -86,7 +86,7 @@ async function checkUnitLocations(mapName: string) {
 	}
 	const chunkTileMap = {};
 	const chunks = await db.chunks[mapName].listChunks();
-	for(let chunk of chunks) {
+	for(const chunk of chunks) {
 		_.each(chunk.units, (uuid, tileHash) => {
 			if(chunkTileMap[tileHash]) {
 				console.log('chunk', chunk.hash);

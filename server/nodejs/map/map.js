@@ -10,7 +10,7 @@ import logger from '../util/logger';
 import helper from '../util/helper';
 import env from '../config/env';
 import Chunk from './chunk';
-import PlanetLoc from "./planetloc";
+import PlanetLoc from './planetloc';
 import { LAND } from './tiletypes';
 import Unit from '../unit/unit';
 import Context from 'node-context';
@@ -37,7 +37,7 @@ const defaultSettings = {
 };
 
 function containsTile(list, tile): boolean {
-	for (let item of list) {
+	for (const item of list) {
 		if (item.equals(tile)) {
 			return true;
 		}
@@ -58,9 +58,9 @@ export default class Map {
 	settings: Object;
 	lastTickTimestamp: number;
 	lastTick: number;
-	users: Array <any> ;
+	users: Array<any> ;
 	seed: number;
-	chunkCache: Array <CacheChunk> ;
+	chunkCache: Array<CacheChunk> ;
 	chunkCacheMap: ChunkCacheMap;
 
 	constructor(name: ? string) {
@@ -83,7 +83,7 @@ export default class Map {
 		const self = this;
 		logger.checkContext(ctx, 'getChunk');
 		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
-		let cacheChunk = this.getChunkFromCache(x + ':' + y);
+		const cacheChunk = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
 			logger.addSumStat('cacheChunkHit', 1);
 			return cacheChunk;
@@ -92,7 +92,7 @@ export default class Map {
 		}
 
 		return await new Promise((resolve, reject) => {
-			let profile = logger.startProfile('getChunk');
+			const profile = logger.startProfile('getChunk');
 			logger.checkContext(ctx, 'getChunkGrpc');
 			return mapClient.getChunk({ mapName: this.name, x, y }, (err: Error, response: ChunkProto) => {
 				logger.endProfile(profile);
@@ -101,7 +101,7 @@ export default class Map {
 					logger.error(err);
 					return reject(err);
 				}
-				let chunk = new Chunk();
+				const chunk = new Chunk();
 				chunk.clone(response);
 				for (let i = 0; i < chunk.navGrid.length; i++) {
 					chunk.navGrid[i] = response.navGrid[i].items;
@@ -122,7 +122,7 @@ export default class Map {
 	async fetchOrGenChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
 
 		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
-		let cacheChunk = this.getChunkFromCache(x + ':' + y);
+		const cacheChunk = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
 			logger.addSumStat('cacheChunkHit', 1);
 			return cacheChunk;
@@ -141,15 +141,15 @@ export default class Map {
 	}
 
 	addChunkToCache(chunk: Chunk) {
-		let profile = logger.startProfile('addChunkToCache');
-		let entry = {
+		const profile = logger.startProfile('addChunkToCache');
+		const entry = {
 			chunk,
 			timestamp: Date.now()
-		}
+		};
 
 		//clear old entries from cache
 		while (this.chunkCache.length > env.chunkCacheLimit) {
-			let oldChunk = this.chunkCache.shift();
+			const oldChunk = this.chunkCache.shift();
 			delete this.chunkCacheMap[oldChunk.chunk.hash];
 		}
 		this.chunkCache.push(entry);
@@ -157,7 +157,7 @@ export default class Map {
 
 		//sort latest to oldest
 		this.chunkCache.sort((a, b) => {
-			return b.timestamp - a.timestamp
+			return b.timestamp - a.timestamp;
 		});
 		logger.endProfile(profile);
 	}
@@ -167,12 +167,12 @@ export default class Map {
 	}
 
 	async getLocFromHash(ctx: Context, hash: TileHash) {
-		let x = parseInt(hash.split(':')[0]);
-		let y = parseInt(hash.split(':')[1]);
+		const x = parseInt(hash.split(':')[0]);
+		const y = parseInt(hash.split(':')[1]);
 		return await this.getLoc(ctx, x, y);
 	}
 
-	async getLoc(ctx: Context, x: number, y: number): Promise < PlanetLoc > {
+	async getLoc(ctx: Context, x: number, y: number): Promise<PlanetLoc> {
 		var real_x = Math.floor(x);
 		var real_y = Math.floor(y);
 		var chunkX = Math.floor(real_x / this.settings.chunkSize);
@@ -191,20 +191,20 @@ export default class Map {
 		//console.log("chunk: " + chunkX + ":" + chunkY);
 		//console.log("local: " + local_x + ":" + local_y);
 
-		let chunk: Chunk = await this.getChunk(ctx, chunkX, chunkY);
+		const chunk: Chunk = await this.getChunk(ctx, chunkX, chunkY);
 		logger.checkContext(ctx, 'getLoc()');
 		return new PlanetLoc(this, chunk, real_x, real_y);
 	}
 	async factoryMakeUnit(ctx: Context, unitType: string, owner: string, x: number, y: number) {
-		let newUnit = new Unit(unitType, this, x, y);
+		const newUnit = new Unit(unitType, this, x, y);
 		newUnit.details.owner = owner;
 		newUnit.details.ghosting = false;
 		return await this.spawnUnit(ctx, newUnit);
 	}
 
-	async spawnUnit(ctx: Context, newUnit: Unit): Promise < ? Unit > {
+	async spawnUnit(ctx: Context, newUnit: Unit): Promise<? Unit> {
 		console.log('spawning unit: ' + newUnit.details.type);
-		for (let loc of await newUnit.getLocs()) {
+		for (const loc of await newUnit.getLocs()) {
 			if (!await this.checkValidForUnit(ctx, loc, newUnit)) {
 				return null;
 			} else {
@@ -219,15 +219,15 @@ export default class Map {
 	//to be used when spawning units on chunks that are not yet generated
 	//this prevents a loop of trying to validate against a chunk that
 	//is not yet generated (hence infinite loop)
-	async spawnUnitWithoutTileCheck(ctx: Context, newUnit: Unit): Promise < Unit > {
+	async spawnUnitWithoutTileCheck(ctx: Context, newUnit: Unit): Promise<Unit> {
 		console.log('force spawning unit: ' + newUnit.details.type);
 		return db.units[this.name].addUnit(ctx, newUnit);
 	}
-	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise < ? Unit > {
+	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise<? Unit> {
 		const unit = await db.units[this.name].addUnit(ctx, newUnit);
 		const success = await unit.addToChunks(ctx);
 		if (!success) {
-			console.log("spawn collision");
+			console.log('spawn collision');
 			await unit.delete();
 			return null;
 		}
@@ -247,14 +247,14 @@ export default class Map {
 		if (!unit.details.size || unit.details.size === 1) {
 			units = await this.unitsTileCheck(await this.getLocFromHash(ctx, tile.hash), unit.details.ghosting);
 		} else {
-			let tilesToCheck = [
-				(tile.x - 1) + ":" + (tile.y - 1), (tile.x) + ":" + (tile.y - 1), (tile.x + 1) + ":" + (tile.y - 1),
-				(tile.x - 1) + ":" + (tile.y), (tile.x) + ":" + (tile.y), (tile.x + 1) + ":" + (tile.y),
-				(tile.x - 1) + ":" + (tile.y + 1), (tile.x) + ":" + (tile.y + 1), (tile.x + 1) + ":" + (tile.y + 1)
+			const tilesToCheck = [
+				(tile.x - 1) + ':' + (tile.y - 1), (tile.x) + ':' + (tile.y - 1), (tile.x + 1) + ':' + (tile.y - 1),
+				(tile.x - 1) + ':' + (tile.y), (tile.x) + ':' + (tile.y), (tile.x + 1) + ':' + (tile.y),
+				(tile.x - 1) + ':' + (tile.y + 1), (tile.x) + ':' + (tile.y + 1), (tile.x + 1) + ':' + (tile.y + 1)
 			];
-			for (let tileHash of tilesToCheck) {
-				let units2 = await this.unitsTileCheck(await this.getLocFromHash(ctx, tileHash), unit.details.ghosting);
-				for (let unit2 of units2) {
+			for (const tileHash of tilesToCheck) {
+				const units2 = await this.unitsTileCheck(await this.getLocFromHash(ctx, tileHash), unit.details.ghosting);
+				for (const unit2 of units2) {
 					units.push(unit2);
 				}
 			}
@@ -263,7 +263,7 @@ export default class Map {
 		if (unit.details.type === 'mine') {
 			console.log('checking mine');
 			let resource = false;
-			for (let unit2: Unit of units) {
+			for (const unit2: Unit of units) {
 				if (unit2.details.type === 'iron' || unit2.details.type === 'oil') {
 					console.log('found resource');
 					resource = true;
@@ -287,7 +287,7 @@ export default class Map {
 		}
 
 		if (ignoreAwake) {
-			for (let unit of units) {
+			for (const unit of units) {
 				if (!unit.awake && unit.movementType === 'groundUnit') {
 					return true;
 				}
@@ -303,11 +303,11 @@ export default class Map {
 		return (await this.unitsTileCheck(tile, false)).length === 0;
 	}
 
-	async unitsTileCheck(tile: PlanetLoc, includeGhosts: ? boolean): Promise < Array < Unit >> {
+	async unitsTileCheck(tile: PlanetLoc, includeGhosts: ? boolean): Promise<Array<Unit>> {
 		//const units = await tile.chunk.getUnits(tile.hash);
-		let units = await db.units[this.name].getUnitsAtTile(tile.hash);
+		const units = await db.units[this.name].getUnitsAtTile(tile.hash);
 		if (!includeGhosts) {
-			return _.filter(units, (unit) => { return !unit.details.ghosting });
+			return _.filter(units, (unit) => { return !unit.details.ghosting; });
 		} else {
 			return units;
 		}
@@ -315,10 +315,10 @@ export default class Map {
 
 	async spawnUser(ctx: Context, client: Client): Promise<void> {
 		//find a spawn location
-		let chunk: Chunk = await this.findSpawnLocation(ctx);
+		const chunk: Chunk = await this.findSpawnLocation(ctx);
 
 		//spawn units for them on the chunk
-		let unitsToSpawn = [
+		const unitsToSpawn = [
 			'storage', 'builder', 'builder', 'tank', 'tank', 'iron', 'oil'
 		];
 
@@ -326,7 +326,7 @@ export default class Map {
 			unitsToSpawn.push('tank');
 		}*/
 
-		for (let unitType of unitsToSpawn) {
+		for (const unitType of unitsToSpawn) {
 			while (true) {
 				let x = this.settings.chunkSize * Math.random();
 				let y = this.settings.chunkSize * Math.random();
@@ -336,7 +336,7 @@ export default class Map {
 				x = Math.round(x);
 				y = Math.round(y);
 
-				let unit = new Unit(unitType, this, x, y);
+				const unit = new Unit(unitType, this, x, y);
 				if (unitType !== 'iron' && unitType !== 'oil') {
 					unit.details.owner = client.user.uuid;
 				}
@@ -365,7 +365,7 @@ export default class Map {
 				if (await this.spawnUnit(ctx, unit)) {
 					console.log('spawned ' + unitType + ' for player ' + client.username);
 					if (unitType === 'iron' || unitType === 'oil') {
-						let mine = new Unit('mine', this, x, y);
+						const mine = new Unit('mine', this, x, y);
 						mine.details.owner = client.user.uuid;
 						console.log('spawned mine for player ' + client.username);
 						if (!await this.spawnUnit(ctx, mine)) {
@@ -395,8 +395,8 @@ export default class Map {
 		var x = direction * Math.cos(rotation);
 		var y = direction * Math.sin(rotation);
 
-		let tile = await this.getLoc(ctx, x, y);
-		let isValid = await this.validChunkForSpawn(ctx, tile.chunk);
+		const tile = await this.getLoc(ctx, x, y);
+		const isValid = await this.validChunkForSpawn(ctx, tile.chunk);
 
 		if (isValid) {
 			return tile.chunk;
@@ -405,27 +405,27 @@ export default class Map {
 		}
 	}
 
-	async getNearbyUnitsFromChunkWithTileRange(ctx: Context, chunkHash: ChunkHash, tileRange: number): Promise < Array < Unit >> {
-		let chunkRange = tileRange / this.settings.chunkSize;
+	async getNearbyUnitsFromChunkWithTileRange(ctx: Context, chunkHash: ChunkHash, tileRange: number): Promise<Array<Unit>> {
+		const chunkRange = tileRange / this.settings.chunkSize;
 		return await this.getNearbyUnitsFromChunk(ctx, chunkHash, chunkRange);
 	}
 
-	async getNearbyUnitsFromChunk(ctx: Context, chunkHash: ChunkHash, chunkRange: ? number): Promise < Array < Unit >> {
+	async getNearbyUnitsFromChunk(ctx: Context, chunkHash: ChunkHash, chunkRange: ? number): Promise<Array<Unit>> {
 		if (!chunkRange) {
 			chunkRange = env.chunkExamineRange;
 		}
-		let chunkHashes: Array < ChunkHash > = this.getNearbyChunkHashes(chunkHash, chunkRange);
+		const chunkHashes: Array<ChunkHash> = this.getNearbyChunkHashes(chunkHash, chunkRange);
 		return await this.getUnitsAtChunks(ctx, chunkHashes);
 	}
 
-	async getUnitsAtChunks(ctx: Context, chunkHashes: Array < ChunkHash > ): Promise < Array < Unit >> {
-		let units = [];
-		for (let chunkHash of chunkHashes) {
-			let x = parseInt(chunkHash.split(':')[0]);
-			let y = parseInt(chunkHash.split(':')[1]);
-			let chunk = await this.getChunk(ctx, x, y);
-			let chunkUnits = await chunk.getUnits(ctx);
-			for (let unit of chunkUnits) {
+	async getUnitsAtChunks(ctx: Context, chunkHashes: Array<ChunkHash> ): Promise<Array<Unit>> {
+		const units = [];
+		for (const chunkHash of chunkHashes) {
+			const x = parseInt(chunkHash.split(':')[0]);
+			const y = parseInt(chunkHash.split(':')[1]);
+			const chunk = await this.getChunk(ctx, x, y);
+			const chunkUnits = await chunk.getUnits(ctx);
+			for (const unit of chunkUnits) {
 				units.push(unit);
 			}
 		}
@@ -433,16 +433,16 @@ export default class Map {
 	}
 
 	getNearbyChunkHashes(chunkHash: string, range: number) {
-		let x = parseInt(chunkHash.split(':')[0]);
-		let y = parseInt(chunkHash.split(':')[1]);
+		const x = parseInt(chunkHash.split(':')[0]);
+		const y = parseInt(chunkHash.split(':')[1]);
 
 		var chunks = [];
 		for (let i = -range; i < range; i++) {
 			for (let j = -range; j < range; j++) {
 				if (Math.sqrt(i * i + j * j) < range) {
-					let chunkX = x + i;
-					let chunkY = y + j;
-					chunks.push(chunkX + ":" + chunkY);
+					const chunkX = x + i;
+					const chunkY = y + j;
+					chunks.push(chunkX + ':' + chunkY);
 				}
 			}
 		}
@@ -455,9 +455,9 @@ export default class Map {
 	async validChunkForSpawn(ctx: Context, chunk: Chunk) {
 		var self = this;
 
-		let nearbyUnits = await this.getNearbyUnitsFromChunkWithTileRange(ctx, chunk.hash, 32);
-		for (let unit: Unit of nearbyUnits) {
-			if (unit.details.owner !== "") {
+		const nearbyUnits = await this.getNearbyUnitsFromChunkWithTileRange(ctx, chunk.hash, 32);
+		for (const unit: Unit of nearbyUnits) {
+			if (unit.details.owner !== '') {
 				return false;
 			}
 		}
@@ -466,7 +466,7 @@ export default class Map {
 		return chunk.getTiles(ctx).then((tiles) => {
 			console.log('checking tile types');
 			var landTiles = 0;
-			for (let tile of tiles) {
+			for (const tile of tiles) {
 				if (tile.tileType === LAND) {
 					landTiles++;
 				}
@@ -477,11 +477,11 @@ export default class Map {
 				return false;
 			}
 			var unitTileChecks = [];
-			for (let tile of tiles) {
+			for (const tile of tiles) {
 				unitTileChecks.push(self.checkOpen(tile));
 			}
 			return Promise.all(unitTileChecks).then((tileChecks) => {
-				for (let valid of tileChecks) {
+				for (const valid of tileChecks) {
 					if (!valid) {
 						return false;
 					}
@@ -497,14 +497,14 @@ export default class Map {
 		const takerStorage = taker.getComponent('storage');
 
 		//TODO should calculate based on transfer range
-		let units: Array < Unit > = await this.getNearbyUnitsFromChunk(ctx, taker.location.chunkHash[0]);
+		const units: Array<Unit> = await this.getNearbyUnitsFromChunk(ctx, taker.location.chunkHash[0]);
 
 		this.sortByNearestUnit(units, taker);
 		this.sortBuildingsOverOther(units);
 
 		//first check if we can pull enough
 		let amountCanPull = 0;
-		for (let unit: Unit of units) {
+		for (const unit: Unit of units) {
 			if (!unit.storage) {
 				continue;
 			}
@@ -515,7 +515,7 @@ export default class Map {
 			if (unit.details.owner !== taker.details.owner) {
 				continue;
 			}
-			let distance = unit.distance(taker);
+			const distance = unit.distance(taker);
 
 			if (distance > unitStorage.transferRange && distance > takerStorage.transferRange) {
 				continue;
@@ -530,9 +530,9 @@ export default class Map {
 			return false;
 		}
 
-		let pulledMap = {};
+		const pulledMap = {};
 		//actually pull iron
-		for (let unit: Unit of units) {
+		for (const unit: Unit of units) {
 			if (unit.details.ghosting) {
 				continue;
 			}
@@ -541,12 +541,12 @@ export default class Map {
 			}
 			const unitStorage = unit.getComponent('storage');
 
-			let pulled = Math.min(unitStorage.iron, amount);
+			const pulled = Math.min(unitStorage.iron, amount);
 			if (pulled === 0) {
 				continue;
 			}
 			console.log('pulling: ' + pulled);
-			let success = await unit.takeIron(ctx, pulled);
+			const success = await unit.takeIron(ctx, pulled);
 			console.log('success:', success, ':', pulled);
 			if (success) {
 				pulledMap[unit.uuid] = pulled;
@@ -564,7 +564,7 @@ export default class Map {
 		if (amount > 0 && Object.keys(pulledMap).length > 0) {
 			console.log('failed, restoring iron:');
 			console.log(pulledMap);
-			for (let unit of units) {
+			for (const unit of units) {
 				if (pulledMap[unit.uuid]) {
 					await unit.addIron(pulledMap[unit.uuid]);
 				}
@@ -580,14 +580,14 @@ export default class Map {
 		console.log('pulling iron');
 		const takerStorage = taker.getComponent('storage');
 		//TODO should calculate based on transfer range
-		let units = await this.getNearbyUnitsFromChunk(ctx, taker.location.chunkHash[0]);
+		const units = await this.getNearbyUnitsFromChunk(ctx, taker.location.chunkHash[0]);
 
 		this.sortByNearestUnit(units, taker);
 		this.sortBuildingsOverOther(units);
 
 		//first check if we can pull enough
 		let amountCanPull = 0;
-		for (let unit: Unit of units) {
+		for (const unit: Unit of units) {
 			if (unit.ghosting) {
 				continue;
 			}
@@ -595,7 +595,7 @@ export default class Map {
 				continue;
 			}
 
-			let distance = unit.distance(taker);
+			const distance = unit.distance(taker);
 			if (!unit.storage) {
 				continue;
 			}
@@ -612,9 +612,9 @@ export default class Map {
 			return false;
 		}
 
-		let pulledMap = {};
+		const pulledMap = {};
 		//actually pull iron
-		for (let unit of units) {
+		for (const unit of units) {
 			if (unit.ghosting) {
 				continue;
 			}
@@ -622,11 +622,11 @@ export default class Map {
 				continue;
 			}
 			const unitStorage = unit.getComponent('storage');
-			let pulled = Math.min(unitStorage.iron, amount);
+			const pulled = Math.min(unitStorage.iron, amount);
 			if (pulled === 0) {
 				continue;
 			}
-			let success = await unit.takeFuel(pulled);
+			const success = await unit.takeFuel(pulled);
 			if (success) {
 				pulledMap[unit.uuid] = pulled;
 				console.log('pulled :' + pulled);
@@ -656,11 +656,11 @@ export default class Map {
 
 		const mineStorage = mine.getComponent('storage');
 		//TODO should calculate based on transfer range
-		let units: Array < Unit > = await this.getNearbyUnitsFromChunk(ctx, mine.location.chunkHash[0]);
+		const units: Array<Unit> = await this.getNearbyUnitsFromChunk(ctx, mine.location.chunkHash[0]);
 		this.sortByNearestUnit(units, mine);
 		this.sortBuildingsOverOther(units);
 
-		for (let unit: Unit of units) {
+		for (const unit: Unit of units) {
 			if (unit.details.ghosting) {
 				continue;
 			}
@@ -673,7 +673,7 @@ export default class Map {
 			if (unit.movable) {
 				continue;
 			}
-			let distance = unit.distance(mine);
+			const distance = unit.distance(mine);
 			if (!unit.storage) {
 				continue;
 			}
@@ -681,7 +681,7 @@ export default class Map {
 			if (distance > unitStorage.transferRange && distance > mineStorage.transferRange) {
 				continue;
 			}
-			let deposited = await unit.addIron(amount);
+			const deposited = await unit.addIron(amount);
 			amount = amount - deposited;
 			if (amount <= 0) {
 				break;
@@ -696,11 +696,11 @@ export default class Map {
 	async produceFuel(ctx: Context, mine: Unit, amount: number) {
 		const mineStorage = mine.getComponent('storage');
 		//TODO should calculate based on transfer range
-		let units: Array < Unit > = await this.getNearbyUnitsFromChunk(ctx, mine.location.chunkHash[0]);
+		const units: Array<Unit> = await this.getNearbyUnitsFromChunk(ctx, mine.location.chunkHash[0]);
 		this.sortByNearestUnit(units, mine);
 		this.sortBuildingsOverOther(units);
 
-		for (let unit: Unit of units) {
+		for (const unit: Unit of units) {
 			if (unit.ghosting) {
 				continue;
 			}
@@ -713,7 +713,7 @@ export default class Map {
 			if (unit.movable) {
 				continue;
 			}
-			let distance = unit.distance(mine);
+			const distance = unit.distance(mine);
 			if (!unit.storage) {
 				continue;
 			}
@@ -721,7 +721,7 @@ export default class Map {
 			if (distance > unitStorage.transferRange && distance > mineStorage.transferRange) {
 				continue;
 			}
-			let deposited = await unit.addFuel(amount);
+			const deposited = await unit.addFuel(amount);
 			amount = amount - deposited;
 			if (amount <= 0) {
 				break;
@@ -733,13 +733,13 @@ export default class Map {
 
 	}
 
-	sortByNearestUnit(units: Array < Unit > , unit: Unit) {
+	sortByNearestUnit(units: Array<Unit> , unit: Unit) {
 		units.sort((a: Unit, b: Unit) => {
 			return a.distance(unit) - b.distance(unit);
 		});
 	}
 
-	sortBuildingsOverOther(units: Array < Unit > ) {
+	sortBuildingsOverOther(units: Array<Unit> ) {
 		units.sort((a: Unit, b: Unit): number => {
 			if (a.stationary && b.movable) {
 				return -1;
@@ -760,7 +760,7 @@ export default class Map {
 	//TODO should have an option to find the tile that is nearest to the unit
 	//rather than to center (which it does now)
 	async getNearestFreeTile(ctx: Context, center: PlanetLoc, unit?: Unit, includeGhosts?: boolean): Promise<?PlanetLoc> {
-		let unitsOnTile: Array < Unit > = await this.unitsTileCheck(center, includeGhosts);
+		const unitsOnTile: Array<Unit> = await this.unitsTileCheck(center, includeGhosts);
 		let unitTile: PlanetLoc = center;
 		if (unit) {
 			unitTile = await this.getLoc(ctx, unit.location.x, unit.location.y);
@@ -772,7 +772,7 @@ export default class Map {
 		} else {
 			//check if the unit is already on this tile
 			if (unit) {
-				for (let unit2 of unitsOnTile) {
+				for (const unit2 of unitsOnTile) {
 					if (unit.uuid === unit2.uuid) {
 						return center;
 					}
@@ -780,20 +780,20 @@ export default class Map {
 			}
 		}
 
-		let open = [
+		const open = [
 			await this.getLoc(ctx, center.x + 1, center.y),
 			await this.getLoc(ctx, center.x - 1, center.y),
 			await this.getLoc(ctx, center.x, center.y - 1),
 			await this.getLoc(ctx, center.x, center.y + 1)
 		];
 
-		for (let tile of open) {
+		for (const tile of open) {
 			tile.cost = tile.distance(center);
 		}
-		let closed = [];
+		const closed = [];
 		let newOpened = [];
 		while (true) {
-			for (let newOpen of newOpened) {
+			for (const newOpen of newOpened) {
 				open.push(newOpen);
 			}
 			newOpened = [];
@@ -801,15 +801,15 @@ export default class Map {
 			open.sort((a, b) => {
 				return a.cost - b.cost;
 			});
-			for (let openTile of open) {
+			for (const openTile of open) {
 				if (containsTile(closed, openTile)) {
 					continue;
 				}
-				let unitsOnTile = await this.unitsTileCheck(openTile, includeGhosts);
-				for (let tileUnit of unitsOnTile) {
+				const unitsOnTile = await this.unitsTileCheck(openTile, includeGhosts);
+				for (const tileUnit of unitsOnTile) {
 					if (unit && unit.uuid === tileUnit.uuid) {
 						console.log(_.map(unitsOnTile, 'uuid'));
-						console.log('unit already at tile:' + openTile.hash)
+						console.log('unit already at tile:' + openTile.hash);
 						return openTile; //unit is already on tile
 					}
 				}
@@ -822,18 +822,18 @@ export default class Map {
 					continue;
 				}
 
-				console.log('found open tile')
+				console.log('found open tile');
 				return openTile;
 			}
-			for (let tile of open) {
+			for (const tile of open) {
 
-				let neighbors = [
+				const neighbors = [
 					await tile.N(),
 					await tile.S(),
 					await tile.E(),
 					await tile.W()
 				];
-				for (let neighbor of neighbors) {
+				for (const neighbor of neighbors) {
 					if (containsTile(open, neighbor) || containsTile(closed, neighbor)) {
 						continue;
 					}
@@ -845,10 +845,10 @@ export default class Map {
 	}
 
 	async getNearestEnemy(ctx: Context, unit: Unit, range?: number) {
-		let units = await this.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
+		const units = await this.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
 		this.sortByNearestUnit(units, unit);
 
-		for (let other: Unit of units) {
+		for (const other: Unit of units) {
 			if (other.details.owner && unit.details.owner !== other.details.owner) {
 				return other;
 			}
@@ -858,7 +858,7 @@ export default class Map {
 	}
 
 	getNearestGhost(unit: Unit) {
-		console.log("STUB: getNearestGhost");
+		console.log('STUB: getNearestGhost');
 		//similar to get nearest enemy
 		//TODO
 	}
@@ -868,10 +868,10 @@ export default class Map {
 	}
 
 	async advanceTick() {
-		let delta = Date.now() - this.lastTickTimestamp;
+		const delta = Date.now() - this.lastTickTimestamp;
 		//console.log('delta',delta);
 		if (delta < 1000 / env.ticksPerSec) {
-			let sleepTime = (1000 / env.ticksPerSec) - delta;
+			const sleepTime = (1000 / env.ticksPerSec) - delta;
 			//console.log('sleeping for ' + sleepTime);
 			//set a timeout to wait before response
 			await helper.sleep(sleepTime);
@@ -883,11 +883,11 @@ export default class Map {
 	}
 
 	save() {
-		console.log("SAVE MAP DANGEROUS");
+		console.log('SAVE MAP DANGEROUS');
 		return db.map.saveMap(this);
 	}
 	clone(object: any) {
-		for (let key in object) {
+		for (const key in object) {
 			// $FlowFixMe: hiding this issue for now
 			this[key] = _.cloneDeep(object[key]);
 		}

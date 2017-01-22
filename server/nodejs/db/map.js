@@ -25,11 +25,11 @@ class DBMap {
 	async init(conn: r.Connection) {
 		this.conn = conn;
 		this.table = await safeCreateTable(this.tableName, 'name');
-	};
+	}
 
 	async listNames() {
 		return table.getField('name').coerceTo('array').run(conn);
-	};
+	}
 
 	async getMap(ctx: Context, name: string): Promise<Map> {
 		const call = await startDBCall(ctx,'getMap');
@@ -41,7 +41,7 @@ class DBMap {
 			logger.addSumStat('mapCacheMissOrRefresh', 1);
 		}
 
-		let doc = await this.table.get(name).run(this.conn);
+		const doc = await this.table.get(name).run(this.conn);
 		if(!doc) {
 			throw new Error('map missing');
 		}
@@ -54,38 +54,38 @@ class DBMap {
 
 		await call.end();
 		return map;
-	};
+	}
 
 	async registerListener(name: string, func: Function) {
 		this.table.get(name).changes().run(this.conn).then((cursor) => {
 			cursor.each(func);
 		});
-	};
+	}
 
 	async listNames() {
 		return this.table.getField('name').run(this.conn).then((cursor) => {
 			return cursor.toArray();
 		});
-	};
+	}
 
 	async saveMap(map: Map) {
 		return this.table.get(map.name).update(map).run(this.conn);
-	};
+	}
 	async createMap(map: Map) {
-		return this.table.insert(map, { conflict: "error" }).run(this.conn);
-	};
+		return this.table.insert(map, { conflict: 'error' }).run(this.conn);
+	}
 
 	async updateMap(name: string, patch: Object) {
 		return await this.table.get(name).update(patch).run(this.conn);
-	};
+	}
 
 	async removeMap(name: string) {
 		return this.table.get(name).delete().run(this.conn);
-	};
+	}
 
 	async createRandomMap(name: string) {
 		return this.createMap(new Map(name));
-	};
+	}
 }
 
 const map = new DBMap();

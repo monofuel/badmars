@@ -12,7 +12,7 @@ import Context from 'node-context';
 import Unit from '../unit';
 import Map from '../../map/map';
 
-async function actionable(ctx: Context, unit: Unit, map: Map): Promise < boolean > {
+async function actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
 	//TODO return if we can attack or not
 	return false;
 }
@@ -62,4 +62,4 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 export default {
 	actionable,
 	simulate
-}
+};

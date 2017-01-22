@@ -35,7 +35,7 @@ exports.init = async() => {
 	});
 
 	return;
-}
+};
 
 function logRequests() {
 	logger.info('chunk_requests', { count: Object.keys(requests).length });
@@ -62,11 +62,11 @@ async function getChunk(call, callback) {
 
 // returns a special object for GPRC
 // we have to fiddle with the 2d array for GPRC
-async function fetchOrGenChunk(ctx: Context, mapName: string, x: number, y: number): Promise <Object> {
+async function fetchOrGenChunk(ctx: Context, mapName: string, x: number, y: number): Promise<Object> {
 	console.log(mapName, x, y);
-	let map = await db.map.getMap(ctx, mapName);
+	const map = await db.map.getMap(ctx, mapName);
 
-	let localChunk = await map.fetchOrGenChunk(ctx, x, y);
+	const localChunk = await map.fetchOrGenChunk(ctx, x, y);
 
 	const chunk: Object = new Chunk();
 	chunk.clone(localChunk);

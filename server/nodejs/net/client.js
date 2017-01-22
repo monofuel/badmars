@@ -155,11 +155,11 @@ class Client {
 			//TODO like seriously
 			//TODO this is awful
 
-			let newUnit = filter.sanitizeUnit(delta.new_val);
+			const newUnit = filter.sanitizeUnit(delta.new_val);
 
 			if(delta.old_val) {
 				//console.log('unit change');
-				let oldUnit = filter.sanitizeUnit(delta.old_val);
+				const oldUnit = filter.sanitizeUnit(delta.old_val);
 				if(!_.isEqual(newUnit, oldUnit)) {
 					//console.log('sending unit update');
 					//if (newUnit.iron != oldUnit.iron) {
@@ -186,7 +186,7 @@ class Client {
 
 		//console.log('recieving event');
 		//console.log(data.new_val);
-		let gameEvent = data.new_val;
+		const gameEvent = data.new_val;
 		if(gameEvent.name !== 'server_gameEvent') {
 			return;
 		}

@@ -27,6 +27,6 @@ async function getUnitStats(ctx: Context, client: Client, data: Object) {
 			client.send('unitStats', { units: unitStats });
 		});
 	}
-};
+}
 
 module.exports = getUnitStats;

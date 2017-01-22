@@ -18,13 +18,13 @@ async function setDestination(ctx: Context, client: Client, data: Object): Promi
 		return client.sendError('setDestination', 'no or invalid location set');
 	}
 
-	let unit = await db.units[client.planet.name].getUnit(data.unitId);
+	const unit = await db.units[client.planet.name].getUnit(data.unitId);
 	if(unit.owner !== client.user.uuid) {
 		return client.sendError('setDestination', 'not your unit');
 	}
 
 	try {
-		let success = await unit.setDestination(data.location[0], data.location[1]);
+		const success = await unit.setDestination(data.location[0], data.location[1]);
 
 		if(success) {
 			client.send('setDestination');
@@ -35,6 +35,6 @@ async function setDestination(ctx: Context, client: Client, data: Object): Promi
 		logger.error(err);
 		client.sendError('setDestination', 'server error');
 	}
-};
+}
 
 module.exports = setDestination;

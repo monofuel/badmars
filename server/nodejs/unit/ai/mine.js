@@ -13,12 +13,12 @@ import PlanetLoc from '../../map/planetloc';
 import Unit from '../unit';
 import Map from '../../map/map';
 
-async function actionable(ctx: Context, unit: Unit, map: Map): Promise < boolean > {
+async function actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
 	return Promise.resolve(
 		unit.details.type === 'mine' &&
 		!unit.details.ghosting &&
 		!!unit.storage
-	)
+	);
 }
 
 async function simulate(ctx: Context, unit: Unit, map: Map) {
@@ -33,11 +33,11 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 	if(unit.storage.resourceCooldown === 0) {
 		await unit.update(ctx, { storage: { resourceCooldown: env.resourceTicks } });
 
-		let tile: PlanetLoc = await map.getLocFromHash(ctx, unit.location.hash[0]);
-		let unitsAtTile: Array < Unit > = await map.unitsTileCheck(tile);
+		const tile: PlanetLoc = await map.getLocFromHash(ctx, unit.location.hash[0]);
+		const unitsAtTile: Array<Unit> = await map.unitsTileCheck(tile);
 		//get the iron or oil at the location
 		let resource: ? Unit = null;
-		for(let otherUnit of unitsAtTile) {
+		for(const otherUnit of unitsAtTile) {
 			if(otherUnit.details.type === 'iron' || otherUnit.details.type === 'oil') {
 				resource = otherUnit;
 			}
@@ -47,7 +47,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 			return logger.errorWithInfo('invalid mine without resource', {
 				type: unit.details.type,
 				hash: unit.location.hash
-			})
+			});
 		}
 		if(resource.details.type === 'iron') {
 			map.produceIron(ctx, unit, 10);
@@ -63,4 +63,4 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 export default {
 	actionable,
 	simulate
-}
+};

@@ -30,7 +30,7 @@ class DBChat {
 	}
 
 	async sendChat(user: User, text: string, channel: string) {
-		let object = {
+		const object = {
 			uuid: user.uuid,
 			channel,
 			text,

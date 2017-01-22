@@ -30,7 +30,7 @@ async function loadDefaults() {
 		_.map(stats, (unit: Object, type: string) => {
 			const unitStat = new UnitStat(type, unit);
 			try {
-				unitStat.validateSync()
+				unitStat.validateSync();
 			} catch(err) {
 				console.error('unit ' + type + ' failed to validate', err);
 			}
@@ -59,36 +59,36 @@ export default class DBUnitStat {
 	constructor(connection: r.Connection, mapName: string) {
 		this.conn = connection;
 		this.mapName = mapName;
-		this.tableName = this.mapName + "_unitStats";
+		this.tableName = this.mapName + '_unitStats';
 	}
 
-	async init(): Promise <void> {
+	async init(): Promise<void> {
 		this.table = await safeCreateTable(this.tableName);
 		await loadDefaults();
 
 		fs.watchFile(UNIT_STAT_FILE, async() => {
 			console.log('units.json updated, reloading');
 			await loadDefaults();
-		})
+		});
 
 		// TODO get all unit stats from database and put them into unitMap
 		// and add their types to unitsFromDatabase
 	}
 
-	createTable(): Promise < void > {
+	createTable(): Promise<void> {
 		const self = this;
 		return r.tableCreate(self.tableName, {
-				primaryKey: 'type'
-			}).run(self.conn)
+			primaryKey: 'type'
+		}).run(self.conn);
 			// no indexes for this tables
 	}
 
 	async getAll() {
-		let profile = logger.startProfile('listUnitStats');
-		return this.table.coerceTo('array').run(this.conn).then((array: Array < string > ) => {
+		const profile = logger.startProfile('listUnitStats');
+		return this.table.coerceTo('array').run(this.conn).then((array: Array<string> ) => {
 			logger.endProfile(profile);
 			return array;
-		})
+		});
 	}
 
 	get(type: string) {
@@ -97,8 +97,8 @@ export default class DBUnitStat {
 	}
 
 	async put(stat: UnitStat) {
-		let profile = logger.startProfile('saveUnitStat');
-		let result = await this.table.get(stat.details.type).update(stat).run(this.conn);
+		const profile = logger.startProfile('saveUnitStat');
+		const result = await this.table.get(stat.details.type).update(stat).run(this.conn);
 		logger.endProfile(profile);
 		return result;
 	}

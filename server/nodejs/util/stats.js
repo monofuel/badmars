@@ -16,8 +16,8 @@ type Profile = {
 	name: string,
 	key: ProfileKey,
 	startTime: number,
-	endTime ? : number,
-	delta ? : number
+	endTime ?: number,
+	delta ?: number
 }
 
 var runningProfiles: {
@@ -32,7 +32,7 @@ exports.init = () => {
 };
 
 exports.startProfile = (name: string): ProfileKey => {
-	let key: ProfileKey = name + Math.random();
+	const key: ProfileKey = name + Math.random();
 	runningProfiles[key] = {
 		name: name,
 		key: key,
@@ -40,11 +40,11 @@ exports.startProfile = (name: string): ProfileKey => {
 	};
 
 	return key;
-}
+};
 exports.endProfile = (key: ProfileKey) => {
 
-	let profileRun: Profile = runningProfiles[key];
-	let name: string = profileRun.name;
+	const profileRun: Profile = runningProfiles[key];
+	const name: string = profileRun.name;
 	profileRun.endTime = (new Date()).getTime();
 	profileRun.delta = profileRun.endTime - profileRun.startTime;
 	addAverageStat(profileRun.name, profileRun.delta);
@@ -54,14 +54,14 @@ exports.endProfile = (key: ProfileKey) => {
 	} else {
 		profileCount[name]++;
 	}
-}
+};
 
 function addAverageStat(key: string, value: number) {
 	if(!avgStats[key]) {
 		avgStats[key] = [];
 	}
 	avgStats[key].push(value);
-};
+}
 
 
 exports.addAverageStat = addAverageStat;
@@ -77,30 +77,30 @@ exports.addSumStat = (key: string, value: number) => {
 function reportStats() {
 	const logger = require('./logger'); // cyclical dependency issue
 	const stats: Object = {};
-	for(let key: string of Object.keys(avgStats)) {
+	for(const key: string of Object.keys(avgStats)) {
 		const array: Array<number> = avgStats[key];
 		let avg: number = 0;
-		for(let i of array) {
+		for(const i of array) {
 			avg += i;
 		}
 		avg /= array.length;
 		stats['avg-' + key] = avg;
 	}
 	avgStats = {};
-	for(let key: string of Object.keys(sumStats)) {
+	for(const key: string of Object.keys(sumStats)) {
 		const array: Array<number> = sumStats[key];
 		let avg: number = 0;
-		for(let i of array) {
+		for(const i of array) {
 			avg += i;
 		}
 		stats['sum-' + key] = avg;
 	}
 	sumStats = {};
 
-	for(let key: string of Object.keys(profileCount)) {
+	for(const key: string of Object.keys(profileCount)) {
 		stats['executions-' + key] = profileCount[key];
 	}
 	profileCount = {};
 
 	logger.info('stats', stats, true);
-};
+}

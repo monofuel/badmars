@@ -12,7 +12,7 @@ import db from '../../db/db';
 
 export default function route(app: express) {
 	app.get('/', (req, res) => {
-		logger.requestInfo("GET /", req);
+		logger.requestInfo('GET /', req);
 		db.map.listNames().then((list) => {
 			res.render('pages/index', {
 				worlds: list,
@@ -32,4 +32,4 @@ export default function route(app: express) {
 			port: port
 		});
 	});
-};
+}

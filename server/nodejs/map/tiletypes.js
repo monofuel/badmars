@@ -32,4 +32,4 @@ export default {
 	WATER,
 	COAST,
 	getTypeName
-}
+};

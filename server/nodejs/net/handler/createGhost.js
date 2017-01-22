@@ -21,23 +21,23 @@ async function createGhost(ctx: Context, client: Client, data: Object) {
 		return client.sendError('createGhost', 'no or invalid location set');
 	}
 
-	let map = client.map;
+	const map = client.map;
 
 	try {
 		//TODO validate the unit type
 		//maybe this logic should be moved into map
-		let unit = new Unit(data.unitType, map, data.location[0], data.location[1]);
+		const unit = new Unit(data.unitType, map, data.location[0], data.location[1]);
 		unit.details.ghosting = true;
 		unit.details.owner = client.user.uuid;
-		let success = await map.spawnUnit(ctx, unit);
+		const success = await map.spawnUnit(ctx, unit);
 
 		if(success) {
 			console.log('new ghost unit');
 			client.send('createGhost');
 
 			//wake up nearby ghost builders
-			let units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
-			for(let nearby: Unit of units) {
+			const units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
+			for(const nearby: Unit of units) {
 				if(nearby.type === 'builder') {
 					nearby.update(ctx, { awake: true });
 				}
@@ -50,6 +50,6 @@ async function createGhost(ctx: Context, client: Client, data: Object) {
 		logger.error(err);
 		client.sendError('createGhost', 'server error');
 	}
-};
+}
 
 module.exports = createGhost;

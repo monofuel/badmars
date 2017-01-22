@@ -4,7 +4,7 @@
 //	Licensed under included modified BSD license
 
 'use strict';
-require("babel-register");
+require('babel-register');
 
 var env = require('./config/env.js');
 const db = require('./db/db').db;

@@ -45,7 +45,7 @@ class DBChunk {
 
 	async getChunk(ctx: Context, x: number, y: number): Promise<?Chunk> {
 		const call = await startDBCall(ctx,'getChunk');
-		const doc = await this.table.get(x + ":" + y).run(this.conn);
+		const doc = await this.table.get(x + ':' + y).run(this.conn);
 		await call.end();
 		if (!doc) {
 			return null;
@@ -63,18 +63,18 @@ class DBChunk {
 
 	async saveChunk(ctx: Context, chunk: Chunk): Promise<void> {
 		const call = await startDBCall(ctx,'saveChunk');
-		await this.table.insert(chunk, { conflict: "replace" }).run(this.conn);
+		await this.table.insert(chunk, { conflict: 'replace' }).run(this.conn);
 		await call.end();
 	}
 
-	async setUnit(ctx: Context, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise <Success> {
+	async setUnit(ctx: Context, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<Success> {
 		const call = await startDBCall(ctx,'setUnit');
 		const result = await this.setEntity(ctx, chunk, uuid, 'units', tileHash);
 		await call.end();
 		return result;
 	}
 
-	async setResource(ctx: Context, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise <Success> {
+	async setResource(ctx: Context, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<Success> {
 		const call = await startDBCall(ctx,'setResource');
 		const result = await this.setEntity(ctx, chunk, uuid, 'resources', tileHash);
 		await call.end();
@@ -85,7 +85,7 @@ class DBChunk {
 	//note: layers must have different names than other values on chunk for now
 	async setEntity(ctx: Context, chunk: Chunk, uuid: UUID, layer: string, tileHash: TileHash): Promise<Success> {
 
-		let entityUpdate = {};
+		const entityUpdate = {};
 		entityUpdate[tileHash] = uuid; //copy to save to DB
 		// $FlowFixMe: layers should probably be in their own map that won't conflict
 		chunk[layer][tileHash] = uuid; //update the chunk we were given without doing a chunk.refresh()
@@ -93,13 +93,13 @@ class DBChunk {
 		//set the unit in the unit map in the DB without clobbering existing values.
 		//if the tileHash key is already set, that means another unit beat us to this
 		//location and we will be returning false.
-		let mergeObject = {}
+		const mergeObject = {};
 		mergeObject[layer] = entityUpdate;
 		const delta = await this.table.get(chunk.hash).update((self) => {
 			return r.branch(
 				self(layer).hasFields(tileHash), {},
 				self.merge(mergeObject)
-			)
+			);
 		}, { returnChanges: true }).run(this.conn);
 
 		//if the update was successful, then the unit is successfully set at the location

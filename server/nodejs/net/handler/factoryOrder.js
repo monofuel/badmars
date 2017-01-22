@@ -22,13 +22,13 @@ async function factoryOrder(ctx: Context, client: Client, data: Object) {
 		return client.sendError('factoryOrder', 'no unitTtype specified');
 	}
 
-	let unit = await db.units[client.planet.name].getUnit(data.factory);
+	const unit = await db.units[client.planet.name].getUnit(data.factory);
 	if(!unit || unit.owner !== client.user.uuid) {
 		return client.sendError('factoryOrder', 'not your unit');
 	}
 
 	try {
-		let success = await unit.addFactoryOrder(data.unitType);
+		const success = await unit.addFactoryOrder(data.unitType);
 
 		if(success) {
 			client.send('factoryOrder');
@@ -41,6 +41,6 @@ async function factoryOrder(ctx: Context, client: Client, data: Object) {
 		client.sendError('factoryOrder', 'server error');
 	}
 
-};
+}
 
 module.exports = factoryOrder;

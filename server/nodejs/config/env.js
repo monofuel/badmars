@@ -51,4 +51,4 @@ export default {
 		callbackURL: process.env.GOOGLE_OAUTH_CALLBACK,
 		secret: process.env.GOOGLE_OAUTH_SECRET,
 	},
-}
+};

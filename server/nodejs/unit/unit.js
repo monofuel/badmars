@@ -47,10 +47,10 @@ export default class Unit {
 		owner: string,
 	}
 	location: {
-		hash: Array < string > ,
+		hash: Array<string> ,
 		x: number,
 		y: number,
-		chunkHash: Array < string > ,
+		chunkHash: Array<string> ,
 		chunkX: number,
 		chunkY: number,
 		map: string,
@@ -59,7 +59,7 @@ export default class Unit {
 		layer: MovementLayer,
 		speed: number,
 		movementCooldown: number,
-		path: Array < any > , // TODO look up path type
+		path: Array<any> , // TODO look up path type
 		pathAttempts: number,
 		pathAttemptAttempts: number,
 		isPathing: boolean,
@@ -68,7 +68,7 @@ export default class Unit {
 		transferGoal: Object, // TODO why is this an object
 	}
 	attack: ? {
-		layers: Array < MovementLayer > ,
+		layers: Array<MovementLayer> ,
 		range: number,
 		damage: number,
 		fireRate: number,
@@ -94,15 +94,15 @@ export default class Unit {
 		layer: MovementLayer,
 	}
 	construct: ? {
-		types: Array < string > ,
+		types: Array<string> ,
 		constructing: number,
-		factoryQueue: Array < FactoryOrder > ,
+		factoryQueue: Array<FactoryOrder> ,
 	}
 
 
 	//constructor will be called with arguments when making a new unit
 	//constructor will be called without arguments when initializing from database (database does .clone())
-	constructor(unitType: ? string, map : ? Map, x : number = 0, y: number = 0) {
+	constructor(unitType: ? string, map: ? Map, x: number = 0, y: number = 0) {
 
 		//unit will be blank, and should be filled by .clone()
 		if (!unitType || !map) {
@@ -124,7 +124,7 @@ export default class Unit {
 		//------------------
 		// details init
 		this.details.ghosting = false;
-		this.details.owner = "";
+		this.details.owner = '';
 		this.details.health = this.details.maxHealth;
 
 		//------------------
@@ -140,15 +140,15 @@ export default class Unit {
 		let chunkHash = [];
 		this.details.lastTick = 0;
 		if (this.details.size === 1) {
-			hash = [x + ":" + y];
-			chunkHash = [chunkX + ":" + chunkY];
+			hash = [x + ':' + y];
+			chunkHash = [chunkX + ':' + chunkY];
 		} else if (this.details.size === 3) {
 			//TODO multi-chunk should have all chunks listed
-			chunkHash = [chunkX + ":" + chunkY];
+			chunkHash = [chunkX + ':' + chunkY];
 			hash = [
-				(x - 1) + ":" + (y - 1), (x) + ":" + (y - 1), (x + 1) + ":" + (y - 1),
-				(x - 1) + ":" + (y), (x) + ":" + (y), (x + 1) + ":" + (y),
-				(x - 1) + ":" + (y + 1), (x) + ":" + (y + 1), (x + 1) + ":" + (y + 1)
+				(x - 1) + ':' + (y - 1), (x) + ':' + (y - 1), (x + 1) + ':' + (y - 1),
+				(x - 1) + ':' + (y), (x) + ':' + (y), (x + 1) + ':' + (y),
+				(x - 1) + ':' + (y + 1), (x) + ':' + (y + 1), (x + 1) + ':' + (y + 1)
 			];
 		} else {
 			logger.errorWithInfo('invalid unit size', { type: unitType, size: this.details.size });
@@ -162,7 +162,7 @@ export default class Unit {
 			chunkX,
 			chunkY,
 			chunkHash
-		}
+		};
 
 		//------------------
 		// construct init
@@ -210,7 +210,7 @@ export default class Unit {
 			groundUnitAI: false,
 			constructionAI: false,
 			attackAI: false
-		}
+		};
 
 		//------------------
 		//iron and oil should always be off
@@ -302,22 +302,22 @@ export default class Unit {
 
 	async takeIron(amount: number) {
 		if (!this.storage) {
-			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
-		let table = db.units[this.location.map].getTable();
-		let conn = db.units[this.location.map].getConn();
-		let delta = await table.get(this.uuid).update((self) => {
+		const table = db.units[this.location.map].getTable();
+		const conn = db.units[this.location.map].getConn();
+		const delta = await table.get(this.uuid).update((self) => {
 			return r.branch(
 				self('storage.iron').ge(amount), {
 					storage: {
 						iron: self('storage.iron').sub(amount)
 					}
 				}, {}
-			)
+			);
 		}, { returnChanges: true }).run(conn);
 
 		if (!this.storage) {
-			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
 
 		if (delta.replaced === 0) {
@@ -327,7 +327,7 @@ export default class Unit {
 			if (this.storage.iron != delta.changes[0].new_val.storage.iron) {
 				console.log('IRON UPDATE FAIL');
 				console.log(delta.changes[0].new_val);
-				logger.errorWithInfo("failed to update iron", { uuid: this.uuid, type: this.details.type, amount });
+				logger.errorWithInfo('failed to update iron', { uuid: this.uuid, type: this.details.type, amount });
 			}
 			return true;
 		}
@@ -335,18 +335,18 @@ export default class Unit {
 
 	async takeFuel(amount: number) {
 		if (!this.storage) {
-			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
-		let table = db.units[this.location.map].getTable();
-		let conn = db.units[this.location.map].getConn();
-		let delta = await table.get(this.uuid).update((self) => {
+		const table = db.units[this.location.map].getTable();
+		const conn = db.units[this.location.map].getConn();
+		const delta = await table.get(this.uuid).update((self) => {
 			return r.branch(
 				self('storage.fuel').ge(amount), { storage: { fuel: self('storage.fuel').sub(amount) } }, {}
-			)
+			);
 		}, { returnChanges: true }).run(conn);
 
 		if (!this.storage) {
-			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
 
 		if (delta.replaced === 0) {
@@ -354,7 +354,7 @@ export default class Unit {
 		} else {
 			this.storage.fuel -= amount;
 			if (this.storage.fuel != delta.changes[0].new_val.storage.fuel) {
-				logger.errorWithInfo("failed to update fuel", { uuid: this.uuid, type: this.details.type, amount });
+				logger.errorWithInfo('failed to update fuel', { uuid: this.uuid, type: this.details.type, amount });
 			}
 			return true;
 		}
@@ -365,9 +365,9 @@ export default class Unit {
 	//we shouldn't be requiring rethink in this file
 
 	//returns the amount that actually could be deposited
-	async addIron(amount: number): Promise < * > {
+	async addIron(amount: number): Promise<*> {
 		if (!this.storage) {
-			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
 
 		const max = this.storage.maxIron - this.storage.iron;
@@ -390,9 +390,9 @@ export default class Unit {
 	}
 
 	//returns the amount that actually could be deposited
-	async addFuel(amount: number): Promise < * > {
+	async addFuel(amount: number): Promise<*> {
 		if (!this.storage) {
-			return logger.errorWithInfo("unit does not have storage", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
 		const max = this.storage.maxFuel - this.storage.fuel;
 		if (max <= 0) {
@@ -413,19 +413,19 @@ export default class Unit {
 	async addFactoryOrder(unitType: UnitType) {
 
 		if (!this.construct) {
-			return logger.errorWithInfo("unit cannot construct", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit cannot construct', { uuid: this.uuid, type: this.details.type });
 		}
 
 		const stats = db.unitStats[this.location.map].get(unitType);
 		if (!stats) {
-			return logger.errorWithInfo("cannot add invalid factory order", { uuid: this.uuid, type: unitType });
+			return logger.errorWithInfo('cannot add invalid factory order', { uuid: this.uuid, type: unitType });
 		}
 
-		let order = {
+		const order = {
 			remaining: stats.details.buildTime,
 			type: unitType,
 			cost: stats.details.cost
-		}
+		};
 		console.log('pushing onto queue:', order);
 		return await db.units[this.location.map].addFactoryOrder(this.uuid, order);
 
@@ -433,10 +433,10 @@ export default class Unit {
 
 	async popFactoryOrder(ctx: Context): Object {
 		if (!this.construct) {
-			return logger.errorWithInfo("unit cannot construct", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit cannot construct', { uuid: this.uuid, type: this.details.type });
 		}
 		const queue = this.construct.factoryQueue;
-		let order = queue.shift();
+		const order = queue.shift();
 		const construct = {
 			factoryQueue: queue
 		};
@@ -447,7 +447,7 @@ export default class Unit {
 
 	async addPathAttempt(ctx: Context) {
 		if (!this.movable) {
-			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		this.movable.pathAttempts++;
 
@@ -471,7 +471,7 @@ export default class Unit {
 	}
 	async setTransferGoal(ctx: Context, uuid: UUID, iron: number, fuel: number) {
 		if (!this.movable) {
-			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
 			transferGoal: {
@@ -479,63 +479,63 @@ export default class Unit {
 				iron: iron,
 				fuel: fuel
 			}
-		}
+		};
 		return this.update(ctx, { movable });
 	}
 
 	async clearTransferGoal(ctx: Context) {
 		if (!this.movable) {
-			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
 			transferGoal: {}
-		}
+		};
 		return this.update(ctx, { movable });
 	}
 
 	async setDestination(ctx: Context, x: number, y: number) {
 		if (!this.movable) {
-			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
-		let hash = x + ":" + y;
+		const hash = x + ':' + y;
 		const movable = { destination: hash, isPathing: false, path: [] };
 		return await this.update(ctx, { movable });
 	}
 
-	async setPath(ctx: Context, path: Array < any > ) {
+	async setPath(ctx: Context, path: Array<any> ) {
 		if (!this.movable) {
-			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = { path: path, isPathing: false };
-		return await this.update(ctx, { movable })
+		return await this.update(ctx, { movable });
 	}
 
 	async clearDestination(ctx: Context) {
 		if (!this.movable) {
-			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
 			destination: null,
 			isPathing: false,
 			path: [],
 			pathAttemptAttempts: 0
-		}
+		};
 		return this.update(ctx, { movable });
 	}
 
 	async tickMovement(ctx: Context) {
 		if (!this.movable) {
-			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
 			movementCooldown: this.movable.movementCooldown--
-		}
+		};
 		return await this.update(ctx, { movable });
 	}
 
 	async tickFireCooldown(ctx: Context) {
 		if (!this.attack) {
-			return logger.errorWithInfo("unit can't attack", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit can\'t attack', { uuid: this.uuid, type: this.details.type });
 		}
 		const attack = {
 			fireCooldown: this.attack.fireCooldown--
@@ -545,7 +545,7 @@ export default class Unit {
 
 	async armFireCooldown(ctx: Context) {
 		if (!this.attack) {
-			return logger.errorWithInfo("unit can't attack", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit can\'t attack', { uuid: this.uuid, type: this.details.type });
 		}
 		const attack = {
 			fireCooldown: this.attack.fireRate
@@ -555,11 +555,11 @@ export default class Unit {
 
 	async takeDamage(ctx: Context, dmg: number) {
 		if (this.details.maxHealth === 0) {
-			return logger.errorWithInfo("non-attackable unit attacked", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('non-attackable unit attacked', { uuid: this.uuid, type: this.details.type });
 		}
 		const details = {
 			health: this.details.health - dmg
-		}
+		};
 		if (details.health < 0) {
 			details.health = 0;
 		}
@@ -568,15 +568,15 @@ export default class Unit {
 
 	async moveToTile(ctx: Context, tile: PlanetLoc) {
 		if (!this.movable) {
-			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		if (this.details.size !== 1) {
-			return logger.errorWithInfo("moving is not supported for large units", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('moving is not supported for large units', { uuid: this.uuid, type: this.details.type });
 		}
 		const hasMoved = await tile.chunk.moveUnit(ctx, this, tile);
 
 		if (!this.movable) {
-			return logger.errorWithInfo("unit is not movable", { uuid: this.uuid, type: this.details.type });
+			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 
 		if (hasMoved) {
@@ -587,10 +587,10 @@ export default class Unit {
 				chunkY: tile.chunk.y,
 				hash: [tile.hash],
 				chunkHash: [tile.chunk.hash]
-			}
+			};
 			const movable = {
 				movementCooldown: this.movable.speed
-			}
+			};
 
 			await this.update(ctx, { location, movable });
 		} else {
@@ -600,8 +600,8 @@ export default class Unit {
 	}
 
 	distance(unit: Unit) {
-		let deltaX = Math.abs(this.location.x - unit.location.x);
-		let deltaY = Math.abs(this.location.y - unit.location.y);
+		const deltaX = Math.abs(this.location.x - unit.location.x);
+		const deltaY = Math.abs(this.location.y - unit.location.y);
 		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 	}
 
@@ -620,7 +620,7 @@ export default class Unit {
 
 		const invalid = (reason) => {
 			throw new Error(this.uuid + ': ' + reason);
-		}
+		};
 
 		if (!this.uuid) {
 			invalid('missing uuid');
@@ -662,7 +662,7 @@ export default class Unit {
 
 		for (const tileHash of this.location.hash) {
 			if (tileHash.split(':').length != 2) {
-				invalid("bad tileHash: " + tileHash);
+				invalid('bad tileHash: ' + tileHash);
 			}
 			const x = tileHash.split(':')[0];
 			const y = tileHash.split(':')[1];
@@ -674,8 +674,8 @@ export default class Unit {
 			await loc.validate();
 		}
 
-		const map = await this.getMap(ctx)
-		for (let unitTile of this.location.hash) {
+		const map = await this.getMap(ctx);
+		for (const unitTile of this.location.hash) {
 			//skip this check for resources
 			if (this.details.type === 'oil' || this.details.type === 'iron') {
 				break;
@@ -686,8 +686,8 @@ export default class Unit {
 			const unitMap = await chunk.getUnitsMap(ctx, unitTile);
 
 			if (!unitMap[this.uuid]) {
-				console.log(chunk.units)
-				invalid('unit ' + this.uuid + ' missing from hash: ' + unitTile)
+				console.log(chunk.units);
+				invalid('unit ' + this.uuid + ' missing from hash: ' + unitTile);
 					/*
 					console.log('fixing');
 					const success = await this.addToChunks();
@@ -725,8 +725,8 @@ export default class Unit {
 		}
 	}
 
-	async getLocs(ctx: Context): Promise <Array<PlanetLoc>> {
-		const promises: Array <Promise<PlanetLoc>> = [];
+	async getLocs(ctx: Context): Promise<Array<PlanetLoc>> {
+		const promises: Array<Promise<PlanetLoc>> = [];
 		const map = await this.getMap(ctx);
 		this.location.hash.forEach((hash) => {
 			const x = Number(hash.split(':')[0]);
@@ -735,8 +735,8 @@ export default class Unit {
 		});
 		return Promise.all(promises);
 	}
-	async getChunks(ctx: Context): Promise < Array < Chunk >> {
-		const promises: Array <Promise<Chunk>> = [];
+	async getChunks(ctx: Context): Promise<Array<Chunk>> {
+		const promises: Array<Promise<Chunk>> = [];
 		const map = await this.getMap(ctx);
 		this.location.chunkHash.forEach((hash) => {
 			const x = Number(hash.split(':')[0]);
@@ -752,7 +752,7 @@ export default class Unit {
 	//fixing chunks. units are not quite so easy.
 
 	//is failing sometimes for factories- hint to a bigger issue
-	async addToChunks(ctx: Context): Promise <Success> {
+	async addToChunks(ctx: Context): Promise<Success> {
 		const locs = await this.getLocs(ctx);
 		let success = true;
 		for (const loc of locs) {
@@ -772,7 +772,7 @@ export default class Unit {
 		return success;
 	}
 
-	async clearFromChunks(ctx: Context): Promise <Success> {
+	async clearFromChunks(ctx: Context): Promise<Success> {
 		const locs = await this.getLocs(ctx);
 		let success = true;
 		for (const loc of locs) {
@@ -793,14 +793,14 @@ export default class Unit {
 
 	// other should be a database document for a unit (or another unit)
 	clone(other: any) {
-		for (let key in other) {
+		for (const key in other) {
 			// $FlowFixMe: hiding this issue for now
 			this[key] = _.cloneDeep(other[key]);
 		}
 
 
 		const stats = this.getTypeInfo();
-		for (let key in stats) {
+		for (const key in stats) {
 			// $FlowFixMe: hiding this issue for now
 			this[key] = _.assign(this[key], stats[key]);
 		}

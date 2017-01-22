@@ -12,13 +12,13 @@ import logger from '../util/logger';
 exports.init = () => {
 	if(process.argv.length > 2) {
 		const commands = process.argv.slice(2, process.argv.length);
-		console.log("handling command:", commands.join(' '));
+		console.log('handling command:', commands.join(' '));
 		vorpal.exec(commands.join(' ')).then(process.exit);
 
 	} else {
 		vorpal.delimiter('badmars'.red + '$').show();
 	}
-}
+};
 
 //==================================================================
 // dev methods
@@ -78,10 +78,10 @@ vorpal.command('createuser <name> [apikey]', 'create a user account with an api 
 			}
 		}).then((result) => {
 			console.log(result);
-		})
+		});
 	});
 
 vorpal.command('removeuser <name>', 'remove all accounts with a given name')
 	.action((args, callback) => {
-		return db.user.deleteUser(args.name)
+		return db.user.deleteUser(args.name);
 	});

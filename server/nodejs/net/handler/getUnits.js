@@ -12,8 +12,8 @@ import Client from '../client';
 
 async function getUnits(ctx: Context, client: Client, data: Object): Promise<void> {
 	console.log('sending player their own units');
-	let units = await db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
+	const units = await db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
 	client.send('units', { units: units });
-};
+}
 
 module.exports = getUnits;

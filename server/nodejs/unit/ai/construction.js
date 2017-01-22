@@ -13,7 +13,7 @@ import Unit from '../unit';
 import Map from '../../map/map';
 import UnitStat from '../unitStat';
 
-async function actionable(ctx: Context, unit: Unit, map: Map): Promise < boolean > {
+async function actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
 	//TODO return if we can build or not
 	return false;
 }
@@ -29,7 +29,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 		case 'ground':
 			return simulateGround(ctx, unit, map);
 		default:
-			return logger.errorWithInfo("unsupported constructor", {
+			return logger.errorWithInfo('unsupported constructor', {
 				uuid: unit.uuid,
 				type: unit.details.type,
 				layer: unit.movable.layer
@@ -41,13 +41,13 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 		return simulateBuilding(ctx, unit, map);
 	}
 
-	logger.errorWithInfo("constructor not movable or stationary", {
+	logger.errorWithInfo('constructor not movable or stationary', {
 		uuid: unit.uuid,
 		type: unit.details.type
 	});
 }
 
-async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise < void > {
+async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	if(!unit.construct) {
 		return;
 	}
@@ -57,8 +57,8 @@ async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise < v
 		return;
 	}
 
-	let newUnitType: UnitType = queue[0].type;
-	let unitInfo: UnitStat = unit.getTypeInfo(newUnitType);
+	const newUnitType: UnitType = queue[0].type;
+	const unitInfo: UnitStat = unit.getTypeInfo(newUnitType);
 	console.log('building: ' + newUnitType);
 
 	if(queue[0].cost > 0) {
@@ -85,13 +85,13 @@ async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise < v
 				}
 			});
 		} else {
-			let newUnitData: FactoryOrder = await unit.popFactoryOrder();
+			const newUnitData: FactoryOrder = await unit.popFactoryOrder();
 			console.log(newUnitData);
-			let tile = await map.getLoc(ctx, unit.location.x, unit.location.y);
-			let newTile = await map.getNearestFreeTile(ctx, tile);
+			const tile = await map.getLoc(ctx, unit.location.x, unit.location.y);
+			const newTile = await map.getNearestFreeTile(ctx, tile);
 
 			//if spawn fails, should re-try with a new location
-			let result = await map.factoryMakeUnit(ctx, newUnitType, unit.details.owner, newTile.x, newTile.y);
+			const result = await map.factoryMakeUnit(ctx, newUnitType, unit.details.owner, newTile.x, newTile.y);
 			if(result) {
 				console.log('factory created ', newUnitType);
 			} else {
@@ -112,10 +112,10 @@ async function simulateGround(ctx: Context, unit: Unit, map: Map) {
 	}
 	console.log('simulating constructor');
 	let nearestGhost: ? Unit = null;
-	let units: Array < Unit > = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
+	const units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
 	map.sortByNearestUnit(units, unit);
 
-	for(let nearbyUnit of units) {
+	for(const nearbyUnit of units) {
 		if(!nearbyUnit.details.ghosting) {
 			continue;
 		}
@@ -129,7 +129,7 @@ async function simulateGround(ctx: Context, unit: Unit, map: Map) {
 
 	if(!nearestGhost) {
 		//if there is no ghost next to this unit, find one.
-		for(let nearbyUnit: Unit of units) {
+		for(const nearbyUnit: Unit of units) {
 			if(!nearbyUnit.details.ghosting) {
 				return;
 			}
@@ -137,13 +137,13 @@ async function simulateGround(ctx: Context, unit: Unit, map: Map) {
 				return;
 			}
 
-			let center = await map.getLoc(ctx, nearbyUnit.location.x, nearbyUnit.location.y);
-			let tile = await map.getNearestFreeTile(ctx, center, unit, true);
+			const center = await map.getLoc(ctx, nearbyUnit.location.x, nearbyUnit.location.y);
+			const tile = await map.getNearestFreeTile(ctx, center, unit, true);
 
 			//check if there are resources within range
 			let iron_available = 0;
 			units.forEach((nearbyUnit2: Unit) => {
-				let distance = nearbyUnit2.distance(nearbyUnit);
+				const distance = nearbyUnit2.distance(nearbyUnit);
 				if(!nearbyUnit2.storage || !unit.storage) {
 					return;
 				}
@@ -170,7 +170,7 @@ async function simulateGround(ctx: Context, unit: Unit, map: Map) {
 		console.log('paying for building');
 		//TODO builder should halt and spend time building
 		//should also make sure the area is clear
-		let result = await nearestGhost.update(ctx, { details: { ghosting: false }, awake: true });
+		const result = await nearestGhost.update(ctx, { details: { ghosting: false }, awake: true });
 		return true;
 	}
 }
@@ -178,4 +178,4 @@ async function simulateGround(ctx: Context, unit: Unit, map: Map) {
 export default {
 	actionable,
 	simulate
-}
+};

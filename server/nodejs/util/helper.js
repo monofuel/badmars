@@ -12,4 +12,4 @@ export async function sleep(time: number) {
 
 export default {
 	sleep
-}
+};

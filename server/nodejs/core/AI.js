@@ -13,7 +13,7 @@ import Unit from '../unit/unit';
 const AI = grpc.load(__dirname + '/../../protos/ai.proto').ai;
 
 exports.init = () => {
-	let server = new grpc.Server();
+	const server = new grpc.Server();
 	server.addProtoService(AI.AI.service, {
 		processUnit: GRPCProcessUnit
 	});
@@ -46,7 +46,7 @@ async function GRPCProcessUnit(call, callback: Function) {
 			throw new Error('unit missing');
 		}
 		await processUnit(ctx, unit);
-		logger.checkContext(ctx, "processing unit");
+		logger.checkContext(ctx, 'processing unit');
 
 		callback(null, { success: true });
 	} catch (err) {

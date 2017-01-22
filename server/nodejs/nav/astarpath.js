@@ -21,9 +21,9 @@ class AStarPath {
 	unit: Unit;
 	map: Map;
 	cost: number;
-	path: Array < PlanetLoc > ;
-	open: Array < PlanetLoc > ;
-	closed: Array < PlanetLoc > ;
+	path: Array<PlanetLoc> ;
+	open: Array<PlanetLoc> ;
+	closed: Array<PlanetLoc> ;
 
 	constructor(start: PlanetLoc, end: PlanetLoc, unit: Unit) {
 		this.start = start;
@@ -35,7 +35,7 @@ class AStarPath {
 				start: start,
 				end: end,
 				unit: unit
-			})
+			});
 		}
 
 		this.map = this.start.map;
@@ -46,11 +46,11 @@ class AStarPath {
 	}
 	async generate(ctx: Context) {
 		this.open = [
-      await this.map.getLoc(ctx,this.start.x + 1, this.start.y),
-      await this.map.getLoc(ctx,this.start.x - 1, this.start.y),
-      await this.map.getLoc(ctx,this.start.x, this.start.y + 1),
-      await this.map.getLoc(ctx,this.start.x, this.start.y - 1)
-    ];
+			await this.map.getLoc(ctx,this.start.x + 1, this.start.y),
+			await this.map.getLoc(ctx,this.start.x - 1, this.start.y),
+			await this.map.getLoc(ctx,this.start.x, this.start.y + 1),
+			await this.map.getLoc(ctx,this.start.x, this.start.y - 1)
+		];
 
 		this.closed = [this.start];
 		for(var tile of this.open) {
@@ -84,7 +84,7 @@ class AStarPath {
 				this.current = this.current.prev;
 				this.path.push(this.current);
 			}
-			console.log("complete path calculated: " + this.path.length);
+			console.log('complete path calculated: ' + this.path.length);
 
 			return 'complete';
 		}
@@ -124,13 +124,13 @@ class AStarPath {
 		}
 
 		//check if the tile is open and passable
-		let isValid = await this.map.checkValidForUnit(ctx, this.current, this.unit, true);
+		const isValid = await this.map.checkValidForUnit(ctx, this.current, this.unit, true);
 		if(!isValid) {
 			//console.log('not passible for unit');
 			return 'continue';
 		}
 
-		let neighbors = [
+		const neighbors = [
 	    await this.current.N(),
 	    await this.current.S(),
 	    await this.current.W(),
@@ -187,7 +187,7 @@ class AStarPath {
 }
 
 function contains(list, tile) {
-	for(let item of list) {
+	for(const item of list) {
 		if(item.equals(tile)) {
 			return true;
 		}

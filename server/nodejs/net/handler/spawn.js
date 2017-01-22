@@ -25,6 +25,6 @@ async function handleSpawn(ctx: Context, client: Client, data: Object): Promise<
 
 	client.send('spawn');
 	client.send('units', { units: units });
-};
+}
 
 module.exports = handleSpawn;

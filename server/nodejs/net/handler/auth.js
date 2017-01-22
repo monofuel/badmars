@@ -40,7 +40,7 @@ module.exports = async (ctx: Context, client: Client, data: Object) => {
 	console.log(data.planet);
 	return db.map.getMap(ctx,data.planet).then((planet) => {
 		if(!planet) {
-			throw new Error("planet doesn't exist");
+			throw new Error('planet doesn\'t exist');
 		}
 		console.log('user planet: ' + planet.name);
 		client.planet = planet; //TODO remove this when updated in other places
@@ -66,7 +66,7 @@ module.exports = async (ctx: Context, client: Client, data: Object) => {
 			//verify user against oath2
 			console.log('user doesnt exist');
 			if(!data.color) {
-				throw new Error("no hex color specified");
+				throw new Error('no hex color specified');
 			}
 			return db.user.createUser(data.username, data.color).then((result) => {
 				if(result.inserted == 1) {

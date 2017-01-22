@@ -15,7 +15,7 @@ class User {
 	color: string;
 	apiKey: string;
 
-	constructor(username: ? string, color : ? string) {
+	constructor(username: ? string, color: ? string) {
 		if(!username || !color) {
 			return; // load from DB
 		}
@@ -25,7 +25,7 @@ class User {
 		this.color = color;
 	}
 	clone(other: Object) {
-		for(let key in other) {
+		for(const key in other) {
 			// $FlowFixMe: hiding this issue for now
 			this[key] = _.cloneDeep(other[key]);
 		}

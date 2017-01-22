@@ -36,25 +36,25 @@ class SimplePath {
 		console.log(tile.toString());
 		console.log(this.end.toString());
 		if(tile.x < this.end.x) {
-			let nextTile = await this.map.getLoc(ctx,tile.x + 1, tile.y);
+			const nextTile = await this.map.getLoc(ctx,tile.x + 1, tile.y);
 			if(nextTile.tileType === LAND) {
 				return DIRECTION.E;
 			}
 		}
 		if(tile.x > this.end.x) {
-			let nextTile = await this.map.getLoc(ctx,tile.x - 1, tile.y);
+			const nextTile = await this.map.getLoc(ctx,tile.x - 1, tile.y);
 			if(nextTile.tileType === LAND) {
 				return DIRECTION.W;
 			}
 		}
 		if(tile.y < this.end.y) {
-			let nextTile = await this.map.getLoc(ctx,tile.x, tile.y + 1);
+			const nextTile = await this.map.getLoc(ctx,tile.x, tile.y + 1);
 			if(nextTile.tileType === LAND) {
 				return DIRECTION.N;
 			}
 		}
 		if(tile.y > this.end.y) {
-			let nextTile = await this.map.getLoc(ctx,tile.x, tile.y - 1);
+			const nextTile = await this.map.getLoc(ctx,tile.x, tile.y - 1);
 			if(nextTile.tileType === LAND) {
 				return DIRECTION.S;
 			}

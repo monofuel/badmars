@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import {db} from '../db/db';
-import env from "../config/env";
+import env from '../config/env';
 import logger from '../util/logger';
 import Context from 'node-context';
 
@@ -16,7 +16,7 @@ import Alea from 'alea';
 
 import { LAND, CLIFF, WATER, COAST } from './tiletypes';
 import Unit from '../unit/unit';
-import PlanetLoc from "./planetloc";
+import PlanetLoc from './planetloc';
 
 
 import DBChunk from '../db/chunk';
@@ -33,17 +33,17 @@ export default class Chunk {
 	y: number;
 	hash: string;
 	map: string;
-	grid: Array < Array < number >> ;
-	navGrid: Array < Array < TileCode >> ;
+	grid: Array<Array<number>> ;
+	navGrid: Array<Array<TileCode>> ;
 	chunkSize: number;
 	units: EntityMap;
 	resources: EntityMap;
 	airUnits: EntityMap;
 
-	constructor(x: ? number, y : ? number, map : ? string) {
+	constructor(x: ? number, y: ? number, map: ? string) {
 		this.x = parseInt(x) || 0;
 		this.y = parseInt(y) || 0;
-		this.hash = this.x + ":" + this.y;
+		this.hash = this.x + ':' + this.y;
 		this.map = map || 'undefined';
 		this.grid = []; //grid size should be chunkSize + 1
 		this.navGrid = []; //tile size should be chunkSize
@@ -60,7 +60,7 @@ export default class Chunk {
 	async generate(ctx: Context) {
 		//console.log('generating chunk ' + this.hash);
 		var self = this;
-		let map = await this.getMap(ctx);
+		const map = await this.getMap(ctx);
 
 		var waterFudge = 0.15;
 		var smoothness = 4.5;
@@ -71,10 +71,10 @@ export default class Chunk {
 		self.chunkSize = map.settings.chunkSize;
 		for (let i = 0; i < self.chunkSize + 1; i++) {
 			self.grid.push([]);
-			let x = (self.x * self.chunkSize) + i;
+			const x = (self.x * self.chunkSize) + i;
 			for (let j = 0; j < self.chunkSize + 1; j++) {
 				logger.checkContext(ctx, 'generating chunk tiles');
-				let y = (self.y * self.chunkSize) + j;
+				const y = (self.y * self.chunkSize) + j;
 				//dear god sorry this is so ugly, just porting over the same logic from the last generator that was on the client.
 				let height = bigNoiseGenerator.noise2D(x * map.settings.bigNoise, y * map.settings.bigNoise) * map.settings.bigNoiseScale;
 				height = height + medNoiseGenerator.noise2D(x * map.settings.medNoise, y * map.settings.medNoise) * map.settings.medNoiseScale;
@@ -106,7 +106,7 @@ export default class Chunk {
 				var avg = (corners[0] + corners[1] + corners[2] + corners[3]) / 4;
 
 				var type = LAND;
-				for (let k of corners) {
+				for (const k of corners) {
 					if (Math.abs(k - avg) > map.settings.cliffDelta) {
 						type = CLIFF;
 						break;
@@ -127,10 +127,10 @@ export default class Chunk {
 		//spawn resources
 		var resourceAlea = new Alea(map.seed * this.x * this.y);
 		for (let i = 0; i < self.chunkSize; i++) {
-			let x = (self.x * self.chunkSize) + i;
+			const x = (self.x * self.chunkSize) + i;
 			for (let j = 0; j < self.chunkSize; j++) {
 				logger.checkContext(ctx, 'generating chunk resources');
-				let y = (self.y * self.chunkSize) + j;
+				const y = (self.y * self.chunkSize) + j;
 
 				if (self.navGrid[i][j] != LAND) {
 					continue;
@@ -165,7 +165,7 @@ export default class Chunk {
 		await this.getChunkDB().saveChunk(ctx, this);
 	}
 
-	async getUnitsMap(ctx: Context, hash: TileHash): Promise < UnitMap > {
+	async getUnitsMap(ctx: Context, hash: TileHash): Promise<UnitMap> {
 		await this.refresh(ctx);
 		const uuids = [];
 		let uuid = this.units[hash];
@@ -187,7 +187,7 @@ export default class Chunk {
 
 	}
 
-	async getUnits(ctx: Context): Promise <Array<Unit>> {
+	async getUnits(ctx: Context): Promise<Array<Unit>> {
 
 		await this.refresh(ctx);
 		const unitUuids = _.union(_.map(this.resources), _.map(this.units), _.map(this.airUnits));
@@ -199,13 +199,13 @@ export default class Chunk {
 		//return await  db.units[this.map].getUnitsAtChunk(this.x,this.y);
 	}
 
-	async update(ctx: Context, patch: any): Promise < Object > {
+	async update(ctx: Context, patch: any): Promise<Object> {
 		return db.chunks[this.map].update(ctx, this.hash, patch);
 	}
 
 	//not fully working yet
 	//moveUnit tries to move a unit, and returns success
-	async moveUnit(ctx: Context, unit: Unit, newTile: PlanetLoc): Promise < Success > {
+	async moveUnit(ctx: Context, unit: Unit, newTile: PlanetLoc): Promise<Success> {
 		await this.refresh();
 		const oldTiles = await unit.getLocs();
 
@@ -229,7 +229,7 @@ export default class Chunk {
 
 	}
 
-	async clearUnit(uuid: UUID, tileHash: TileHash): Promise < Success > {
+	async clearUnit(uuid: UUID, tileHash: TileHash): Promise<Success> {
 		const table = db.chunks[this.map].getTable();
 		const conn = db.chunks[this.map].getConn();
 
@@ -256,7 +256,7 @@ export default class Chunk {
 		}
 	}
 
-	async addUnit(ctx: Context, uuid: UUID, tileHash: TileHash): Promise <Success> {
+	async addUnit(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<Success> {
 		const success = await this.getChunkDB().setUnit(ctx, this, uuid, tileHash);
 		if (!success) {
 			console.log('failed putting unit to chunk');
@@ -273,7 +273,7 @@ export default class Chunk {
 	}
 
 
-	async addResource(ctx: Context, uuid: UUID, tileHash: TileHash): Promise < Success > {
+	async addResource(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<Success> {
 		const success = await this.getChunkDB().setResource(ctx, this, uuid, tileHash);
 		if (!success) {
 			return false;
@@ -288,7 +288,7 @@ export default class Chunk {
 		return true;
 	}
 
-	async validate(): Promise < * > {
+	async validate(): Promise<*> {
 		if (!env.debug) {
 			return;
 		}
@@ -296,7 +296,7 @@ export default class Chunk {
 
 		const invalid = (reason) => {
 			throw new Error(this.hash + ': ' + reason);
-		}
+		};
 
 		if (this.x == null) {
 			invalid('bad chunk x');
@@ -307,7 +307,7 @@ export default class Chunk {
 		if (!this.hash) {
 			invalid('missing chunk hash');
 		}
-		if (this.hash.split(":").length !== 2) {
+		if (this.hash.split(':').length !== 2) {
 			invalid('bad chunk hash: ' + this.hash);
 		}
 		if (!this.map) {
@@ -332,7 +332,7 @@ export default class Chunk {
 				invalid('bad nav row length');
 			}
 		}
-		for (let tileHash of Object.keys(this.units)) {
+		for (const tileHash of Object.keys(this.units)) {
 			const uuid = this.units[tileHash];
 			const unit = await db.units[this.map].getUnit(uuid);
 			if (!unit) {
@@ -381,7 +381,7 @@ export default class Chunk {
 	}
 
 	clone(object: any) {
-		for (let key in object) {
+		for (const key in object) {
 			// $FlowFixMe: hiding this issue for now
 			this[key] = _.cloneDeep(object[key]);
 		}
@@ -394,7 +394,7 @@ export default class Chunk {
 		this.clone(fresh);
 	}
 
-	async getTiles(ctx: Context): Promise <Array<PlanetLoc>> {
+	async getTiles(ctx: Context): Promise<Array<PlanetLoc>> {
 		const map = await this.getMap(ctx, this.map);
 		var tiles = [];
 		for (let i = 0; i < this.chunkSize; i++) {

@@ -14,7 +14,7 @@ import Client from '../client';
 const DEFAULT_CHANNEL = 'global';
 
 module.exports = async(ctx: Context,client: Client, data: Object) => {
-	let user: User = client.user;
+	const user: User = client.user;
 	if(!data.text) {
 		client.sendError('sendChat', 'no text set');
 		return;
@@ -31,4 +31,4 @@ module.exports = async(ctx: Context,client: Client, data: Object) => {
 	//realtime system should send player their new chat message,
 	//no need to send success
 	//client.send('sendChat');
-}
+};

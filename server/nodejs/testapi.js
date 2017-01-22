@@ -4,10 +4,10 @@
 const _ = require('lodash');
 const WebSocket = require('ws');
 
-const SERVER_URL = "ws://localhost";
+const SERVER_URL = 'ws://localhost';
 const SERVER_PORT = 7005;
 
-var s = new WebSocket(SERVER_URL + ":" + SERVER_PORT);
+var s = new WebSocket(SERVER_URL + ':' + SERVER_PORT);
 var players = [];
 var units = [];
 var map;
