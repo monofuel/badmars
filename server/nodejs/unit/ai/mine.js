@@ -4,7 +4,6 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import {db} from '../../db/db';
 import env from '../../config/env';
 import logger from '../../util/logger';
 import Context from 'node-context';
@@ -13,7 +12,7 @@ import PlanetLoc from '../../map/planetloc';
 import Unit from '../unit';
 import Map from '../../map/map';
 
-async function actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
+async function actionable(ctx: Context, unit: Unit): Promise<boolean> {
 	return Promise.resolve(
 		unit.details.type === 'mine' &&
 		!unit.details.ghosting &&
@@ -21,7 +20,7 @@ async function actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> 
 	);
 }
 
-async function simulate(ctx: Context, unit: Unit, map: Map) {
+async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	if(!unit.storage) {
 		return; // shouldn't happen after actionable() check
 	}
@@ -57,7 +56,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map) {
 
 	}
 
-	return true;
+	return;
 }
 
 export default {

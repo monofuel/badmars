@@ -4,7 +4,6 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import {db} from '../db/db';
 import env from '../config/env';
 import logger from '../util/logger';
 import Map from '../map/map';
@@ -31,7 +30,7 @@ class AStarPath {
 		this.unit = unit;
 		this.current = start;
 		if(!this.start || !this.end || !this.current || this.start.map !== this.end.map) {
-			return logger.errorWithInfo('invalid start and end points', {
+			logger.errorWithInfo('invalid start and end points', {
 				start: start,
 				end: end,
 				unit: unit
@@ -44,7 +43,7 @@ class AStarPath {
 		this.cost = 0;
 		this.path = [];
 	}
-	async generate(ctx: Context) {
+	async generate(ctx: Context): Promise<void> {
 		this.open = [
 			await this.map.getLoc(ctx,this.start.x + 1, this.start.y),
 			await this.map.getLoc(ctx,this.start.x - 1, this.start.y),
@@ -53,7 +52,7 @@ class AStarPath {
 		];
 
 		this.closed = [this.start];
-		for(var tile of this.open) {
+		for(const tile of this.open) {
 			tile.cost = 1 + tile.distance(this.end);
 			tile.realCost = 1;
 			tile.prev = this.start;
@@ -66,11 +65,11 @@ class AStarPath {
 		} while (result !== 'complete');
 	}
 
-	async searchNext(ctx: Context) {
+	async searchNext(ctx: Context): Promise<string> {
 
 		this.cost++;
 
-		this.open.sort((a, b) => {
+		this.open.sort((a: PlanetLoc, b: PlanetLoc): number => {
 			return a.cost - b.cost;
 		});
 
@@ -84,7 +83,7 @@ class AStarPath {
 				this.current = this.current.prev;
 				this.path.push(this.current);
 			}
-			console.log('complete path calculated: ' + this.path.length);
+			logger.info('complete path calculated: ' + this.path.length);
 
 			return 'complete';
 		}
@@ -131,13 +130,13 @@ class AStarPath {
 		}
 
 		const neighbors = [
-	    await this.current.N(),
-	    await this.current.S(),
-	    await this.current.W(),
-	    await this.current.E()
-	  ];
+			await this.current.N(),
+			await this.current.S(),
+			await this.current.W(),
+			await this.current.E()
+		];
 
-		for(var tile of neighbors) {
+		for(const tile of neighbors) {
 			if(contains(this.closed, tile)) {
 				continue;
 			}
@@ -155,7 +154,7 @@ class AStarPath {
 		//TODO implement this
 	}
 
-	async getNext(tile: PlanetLoc) {
+	async getNext(tile: PlanetLoc): Promise<Symbol> {
 
 		if(tile === null) {
 			return DIRECTION.C;
@@ -186,8 +185,8 @@ class AStarPath {
 	}
 }
 
-function contains(list, tile) {
-	for(const item of list) {
+function contains(list: Array<PlanetLoc>, tile: PlanetLoc): boolean {
+	for(const item: PlanetLoc of list) {
 		if(item.equals(tile)) {
 			return true;
 		}
