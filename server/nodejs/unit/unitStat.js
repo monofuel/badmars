@@ -1,5 +1,4 @@
 /* @flow */
-
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
@@ -7,9 +6,7 @@
 
 import _ from 'lodash';
 
-import {db} from '../db/db';
 import env from '../config/env';
-import logger from '../util/logger';
 
 const ALL_COMPONENTS = ['details', 'movable', 'attack', 'storage', 'graphical', 'stationary', 'construct'];
 
@@ -22,11 +19,6 @@ const CONSTRUCT_FIELDS = ['types'];
 const GRAPHICAL_FIELDS = ['model', 'scale'];
 
 const VALID_LAYERS = ['ground', 'air', 'water'];
-
-const REQUIRED_COMPONENTS = {
-	'details': [],
-	'graphical': []
-};
 
 const COMPONENT_DEFAULTS = {
 	'details': {
@@ -199,6 +191,12 @@ export default class UnitStat {
 			if(!Array.isArray(this.construct.types)) {
 				throwError('construct.types needs to be an array');
 			}
+
+			_.map(this.construct, (value, key) => {
+				if(!_.includes(CONSTRUCT_FIELDS, key)) {
+					throwError('bad construct field ' + key);
+				}
+			});
 		}
 
 		//==============================

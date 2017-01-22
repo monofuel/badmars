@@ -4,8 +4,6 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import {db} from '../db/db';
-import logger from '../util/logger';
 import hat from 'hat';
 import _ from 'lodash';
 

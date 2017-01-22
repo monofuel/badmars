@@ -10,9 +10,9 @@ import { exec } from 'child_process';
 import logger from '../../util/logger';
 
 export default function route(app: express) {
-	app.get('/management/pull', (req, res) => {
+	app.get('/management/pull', (req: express.Request, res: express.Response) => {
 		logger.requestInfo('GET /management/pull', req);
-		exec('sh update.sh', (err) => {
+		exec('sh update.sh', (err: Error) => {
 			if(err) {
 				logger.error(err);
 			}

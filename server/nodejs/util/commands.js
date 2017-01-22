@@ -1,13 +1,11 @@
+/*eslint no-console: "off"*/
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import env from '../config/env';
 const vorpal = require('vorpal')();
-import colors from 'colors';
 import db from '../db/db';
-import logger from '../util/logger';
 
 exports.init = () => {
 	if(process.argv.length > 2) {
@@ -26,7 +24,7 @@ exports.init = () => {
 var Unit = require('../unit/unit.js');
 
 vorpal.command('test', 'does SOMETHING')
-	.action((args) => {
+	.action(() => {
 		//today it makes a unit
 		var unit = new Unit('tank');
 		db.units['testplanet'].addUnit(unit).then((delta) => {
@@ -39,7 +37,7 @@ vorpal.command('test', 'does SOMETHING')
 // map methods
 
 vorpal.command('listmaps', 'list all created maps')
-	.action((args) => {
+	.action(() => {
 		return db.map.listNames().then((names) => {
 			console.log(names);
 		});
@@ -51,14 +49,14 @@ vorpal.command('removemap <name>', 'remove a specific map')
 			return db.map.listNames();
 		}
 	})
-	.action((args, callback) => {
+	.action((args) => {
 		return db.map.removeMap(args.name).then(() => {
 			console.log('success');
 		});
 	});
 
 vorpal.command('createmap <name>', 'create a new random map')
-	.action((args, callback) => {
+	.action((args) => {
 		return db.map.createRandomMap(args.name).then(() => {
 			console.log('created map ' + args.name);
 		});
@@ -68,7 +66,7 @@ vorpal.command('createmap <name>', 'create a new random map')
 //==================================================================
 // user methods
 vorpal.command('createuser <name> [apikey]', 'create a user account with an api key')
-	.action((args, callback) => {
+	.action((args) => {
 		return db.user.createUser(args.name, '0xffffff').then((result) => {
 			if(result.inserted !== 1) {
 				throw new Error('failed to create user');
@@ -82,6 +80,6 @@ vorpal.command('createuser <name> [apikey]', 'create a user account with an api 
 	});
 
 vorpal.command('removeuser <name>', 'remove all accounts with a given name')
-	.action((args, callback) => {
+	.action((args) => {
 		return db.user.deleteUser(args.name);
 	});

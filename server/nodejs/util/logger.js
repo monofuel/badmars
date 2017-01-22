@@ -1,10 +1,12 @@
 /* @flow */
+/*eslint no-console: "off"*/
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import request from 'request';
+
+
 import os from 'os';
 import env from '../config/env';
 import stats from './stats';

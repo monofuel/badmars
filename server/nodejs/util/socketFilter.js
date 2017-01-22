@@ -4,9 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import env from '../config/env';
 import Unit from '../unit/unit';
-import Chunk from '../map/chunk';
 
 const unitKeyWhitelist = [
 	'x',

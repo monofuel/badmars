@@ -5,24 +5,17 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb'; //TODO should not be imported in this file
-import {db} from '../db/db';
-import fs from 'fs';
-import logger from '../util/logger';
 import _ from 'lodash';
-
 import Context from 'node-context';
 
+import db from '../db/db';
+import logger from '../util/logger';
 import env from '../config/env';
-
-import simplePath from '../nav/simplepath';
-import astarpath from '../nav/astarpath';
 
 import groundUnitAI from './ai/groundunit';
 import attackAI from './ai/attack';
 import constructionAI from './ai/construction';
 import mineAI from './ai/mine';
-
-import UnitStat from './unit';
 
 import Map from '../map/map';
 import Chunk from '../map/chunk';
@@ -198,7 +191,7 @@ export default class Unit {
 		}
 	}
 
-	async simulate(ctx: Context) {
+	async simulate(ctx: Context): Promise<void> {
 		//TODO pass context through stuff
 		//------------------
 		// init
@@ -231,7 +224,7 @@ export default class Unit {
 		if (this.details.type === 'mine') {
 			actionPromises.push(mineAI.actionable(ctx, self, map)
 				.then((result: boolean) => {
-					actionable.mineAI = true;
+					actionable.mineAI = result;
 				}));
 		}
 
@@ -240,7 +233,7 @@ export default class Unit {
 			case 'ground':
 				actionPromises.push(groundUnitAI.actionable(ctx, self, map)
 					.then((result: boolean) => {
-						actionable.groundUnitAI = true;
+						actionable.groundUnitAI = result;
 					}));
 			}
 		}
@@ -248,14 +241,14 @@ export default class Unit {
 		if (this.attack) {
 			actionPromises.push(attackAI.actionable(ctx, self, map)
 				.then((result: boolean) => {
-					actionable.attackAI = true;
+					actionable.attackAI = result;
 				}));
 		}
 
 		if (this.construct) {
 			actionPromises.push(constructionAI.actionable(ctx, self, map)
 				.then((result: boolean) => {
-					actionable.constructionAI = true;
+					actionable.constructionAI = result;
 				}));
 		}
 
@@ -287,7 +280,7 @@ export default class Unit {
 	//---------------------------------------------------------------------------
 
 
-	async update(ctx: Context, patch: Object) {
+	async update(ctx: Context, patch: Object): Promise<void> {
 		//TODO also update this object
 		//assume the object will be awake, unless we are setting it false
 		patch.awake = patch.awake || patch.awake === undefined;
@@ -295,18 +288,18 @@ export default class Unit {
 		this.validate();
 	}
 
-	async delete() {
+	async delete(): Promise<void> {
 		await this.clearFromChunks();
 		return db.units[this.location.map].deleteUnit(this.uuid);
 	}
 
-	async takeIron(amount: number) {
+	async takeIron(amount: number): Promise<Success> {
 		if (!this.storage) {
 			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
 		const table = db.units[this.location.map].getTable();
 		const conn = db.units[this.location.map].getConn();
-		const delta = await table.get(this.uuid).update((self) => {
+		const delta = await table.get(this.uuid).update((self: any): any => {
 			return r.branch(
 				self('storage.iron').ge(amount), {
 					storage: {

@@ -185,7 +185,7 @@ export async function startDBCall(ctx: Context, name: string): Promise<DBCall> {
 }
 
 
-export const db = {
+export default {
 	init,
 	close,
 	map,
@@ -196,4 +196,3 @@ export const db = {
 	unitStats,
 	event,
 };
-export default db;

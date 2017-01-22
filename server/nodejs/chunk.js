@@ -7,13 +7,9 @@
 require('babel-register');
 require('babel-polyfill');
 
-var env = require('./config/env.js');
-const db = require('./db/db').db;
-var logger = require('./util/logger.js');
-var commands = require('./util/commands.js');
-var chunk = require('./core/chunk.js');
-
-var figlet = require('figlet');
+const db = require('./db/db');
+const logger = require('./util/logger.js');
+const chunk = require('./core/chunk.js');
 
 logger.setModule('chunk');
 
@@ -23,7 +19,7 @@ function init() {
 	.then(chunk.init)
 	.then(() => {
 		logger.info('start complete');
-	}).catch((err) => {
+	}).catch((err: Error) => {
 		logger.error(err);
 		logger.info('start script caught error, exiting');
 	});

@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 export async function sleep(time: number) {
-	await new Promise((resolve, reject) => {
+	await new Promise((resolve) => {
 		setTimeout(resolve, time);
 	});
 }

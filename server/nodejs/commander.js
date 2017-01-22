@@ -6,11 +6,9 @@
 'use strict';
 require('babel-register');
 
-var env = require('./config/env.js');
 const db = require('./db/db').db;
-var logger = require('./util/logger.js');
-var commands = require('./util/commands.js');
-var figlet = require('figlet');
+const logger = require('./util/logger.js');
+const commands = require('./util/commands.js');
 
 
 
@@ -18,15 +16,15 @@ logger.setModule('commander');
 function init() {
 	logger.info('start begin');
 
-	var startupPromises = [];
+	const startupPromises = [];
 	startupPromises.push(db.init());
 	Promise.all(startupPromises)
 		.then(() => {
 			logger.info('start complete');
 			commands.init();
-		}).catch((err) => {
-			console.log(err.stack);
-			console.log('exiting badmars');
+		}).catch((err: Error) => {
+			logger.error(err);
+			logger.info('start script caught error, exiting');
 			process.exit();
 		});
 }

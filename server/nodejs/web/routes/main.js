@@ -11,9 +11,9 @@ import logger from '../../util/logger';
 import db from '../../db/db';
 
 export default function route(app: express) {
-	app.get('/', (req, res) => {
+	app.get('/', (req: express.Request, res: express.Response) => {
 		logger.requestInfo('GET /', req);
-		db.map.listNames().then((list) => {
+		db.map.listNames().then((list: Array<string>) => {
 			res.render('pages/index', {
 				worlds: list,
 				user: req.user
@@ -21,7 +21,7 @@ export default function route(app: express) {
 		});
 	});
 
-	app.get('/badmars', (req, res) => {
+	app.get('/badmars', (req: express.Request, res: express.Response) => {
 
 		const serverAddress: string = env.wsServer;
 		const port: string = env.wsPublicPort;

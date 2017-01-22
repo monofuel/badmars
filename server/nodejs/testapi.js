@@ -1,4 +1,5 @@
 //monofuel 2016
+/* eslint-disable */
 'use strict';
 
 const _ = require('lodash');
