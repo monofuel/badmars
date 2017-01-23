@@ -5,8 +5,7 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import {safeCreateTable, safeCreateIndex, startDBCall} from './db';
-import logger from '../util/logger';
+import {safeCreateTable} from './db';
 import User from '../user/user';
 
 class DBChat {
@@ -18,18 +17,18 @@ class DBChat {
 		this.tableName = 'chat';
 	}
 
-	async init(conn: r.Connection) {
+	async init(conn: r.Connection): Promise<void> {
 		this.conn = conn;
 		this.table = await safeCreateTable(this.tableName);
 	}
 
-	async watchChat(func: Function) {
-		this.table.changes().run(this.conn).then((cursor) => {
+	async watchChat(func: Function): Promise<void> {
+		this.table.changes().run(this.conn).then((cursor: any) => {
 			cursor.each(func);
 		});
 	}
 
-	async sendChat(user: User, text: string, channel: string) {
+	async sendChat(user: User, text: string, channel: string): Promise<void> {
 		const object = {
 			uuid: user.uuid,
 			channel,

@@ -5,10 +5,9 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import Logger from '../util/logger';
 import Chunk from '../map/chunk';
 import Context from 'node-context';
-import {safeCreateTable, safeCreateIndex, startDBCall} from './db';
+import {safeCreateTable, startDBCall} from './db';
 
 class DBChunk {
 	conn: r.Connection;
@@ -21,20 +20,20 @@ class DBChunk {
 		this.tableName = this.mapName + '_chunk';
 	}
 
-	async init() {
+	async init(): Promise<void> {
 		this.table = await safeCreateTable(this.tableName, 'hash');
 	}
 
-	async each(func: Function) {
+	async each(func: Function): Promise<void> {
 		const cursor = await this.table.run(this.conn);
-		await cursor.each((err, doc) => {
+		await cursor.each((err: Error, doc: Object) => {
 			if (err) {
 				throw err;
 			}
-			var chunk = new Chunk();
+			const chunk = new Chunk();
 			chunk.clone(doc);
 			func(chunk);
-		}).catch((err) => {
+		}).catch((err: Error) => {
 			//dumb rethinkdb bug
 			if (err.message === 'No more rows in the cursor.') {
 				return;
@@ -50,7 +49,7 @@ class DBChunk {
 		if (!doc) {
 			return null;
 		}
-		var chunk = new Chunk();
+		const chunk = new Chunk();
 		chunk.clone(doc);
 		return chunk;
 	}
@@ -95,7 +94,7 @@ class DBChunk {
 		//location and we will be returning false.
 		const mergeObject = {};
 		mergeObject[layer] = entityUpdate;
-		const delta = await this.table.get(chunk.hash).update((self) => {
+		const delta = await this.table.get(chunk.hash).update((self: any): any => {
 			return r.branch(
 				self(layer).hasFields(tileHash), {},
 				self.merge(mergeObject)
@@ -118,10 +117,10 @@ class DBChunk {
 	}
 
 	//these should never get used.
-	getTable() {
+	getTable(): r.Table {
 		return this.table;
 	}
-	getConn() {
+	getConn(): r.Connection {
 		return this.conn;
 	}
 }

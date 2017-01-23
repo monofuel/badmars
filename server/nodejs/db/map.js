@@ -7,7 +7,7 @@
 import Map from '../map/map';
 
 import r from 'rethinkdb';
-import {safeCreateTable, safeCreateIndex, startDBCall} from './db';
+import {safeCreateTable, startDBCall} from './db';
 import logger from '../util/logger';
 import Context from 'node-context';
 
@@ -22,13 +22,13 @@ class DBMap {
 		this.tableName = 'map';
 	}
 
-	async init(conn: r.Connection) {
+	async init(conn: r.Connection): Promise<void> {
 		this.conn = conn;
 		this.table = await safeCreateTable(this.tableName, 'name');
 	}
 
-	async listNames() {
-		return table.getField('name').coerceTo('array').run(conn);
+	async listNames(): Promise<Array<string>> {
+		return await this.table.getField('name').coerceTo('array').run(this.conn);
 	}
 
 	async getMap(ctx: Context, name: string): Promise<Map> {
@@ -45,7 +45,7 @@ class DBMap {
 		if(!doc) {
 			throw new Error('map missing');
 		}
-		var map = new Map();
+		const map = new Map();
 		map.clone(doc);
 		this.mapCache[name] = {
 			lastUpdate: Date.now(),
@@ -56,34 +56,28 @@ class DBMap {
 		return map;
 	}
 
-	async registerListener(name: string, func: Function) {
-		this.table.get(name).changes().run(this.conn).then((cursor) => {
+	async registerListener(name: string, func: Function): Promise<void> {
+		this.table.get(name).changes().run(this.conn).then((cursor: any): any => {
 			cursor.each(func);
 		});
 	}
 
-	async listNames() {
-		return this.table.getField('name').run(this.conn).then((cursor) => {
-			return cursor.toArray();
-		});
-	}
-
-	async saveMap(map: Map) {
+	async saveMap(map: Map): Promise<void> {
 		return this.table.get(map.name).update(map).run(this.conn);
 	}
-	async createMap(map: Map) {
+	async createMap(map: Map): Promise<Object> {
 		return this.table.insert(map, { conflict: 'error' }).run(this.conn);
 	}
 
-	async updateMap(name: string, patch: Object) {
+	async updateMap(name: string, patch: Object): Promise<void> {
 		return await this.table.get(name).update(patch).run(this.conn);
 	}
 
-	async removeMap(name: string) {
+	async removeMap(name: string): Promise<void> {
 		return this.table.get(name).delete().run(this.conn);
 	}
 
-	async createRandomMap(name: string) {
+	async createRandomMap(name: string): Promise<Object> {
 		return this.createMap(new Map(name));
 	}
 }

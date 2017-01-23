@@ -37,34 +37,36 @@ class DBUser {
 		return sanitized;
 	}
 
-	async getUser(name: string) {
+
+	async getUser(name: string): Promise<User> {
+		// TODO refactor this
 		return this.table.getAll(name, {
 			index: 'name'
-		}).coerceTo('array').run(this.conn).then((docs) => {
-			var doc = docs[0];
+		}).coerceTo('array').run(this.conn).then((docs: Array<Object>): ?User => {
+			const doc = docs[0];
 			if(!doc) {
 				return null;
 			}
-			var user = new User();
+			const user = new User();
 			user.clone(doc);
 			return user;
 		});
 	}
 
-	async createUser(name: string, color: string) {
-		var user = new User(name, color);
+	async createUser(name: string, color: string): Object {
+		const user = new User(name, color);
 		return this.table.insert(user, {
 			conflict: 'error',
 			returnChanges: true
 		}).run(this.conn);
 	}
 
-	async updateUser(name: string, patch: Object) {
+	async updateUser(name: string, patch: Object): Object {
 		const result = await this.table.getAll(name, { index: 'name' }).update(patch).run(this.conn);
 		return result;
 	}
 
-	async deleteUser(name: string) {
+	async deleteUser(name: string): Promise<void> {
 		return this.table.getAll(name, { index: 'name' }).delete().run(this.conn);
 	}
 }
