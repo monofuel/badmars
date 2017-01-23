@@ -5,7 +5,6 @@
 //	Licensed under included modified BSD license
 
 import db from '../../db/db';
-import env from '../../config/env';
 import logger from '../../util/logger';
 import Context from 'node-context';
 import Client from '../client';

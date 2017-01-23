@@ -6,7 +6,7 @@
 
 import r from 'rethinkdb';
 import User from '../user/user';
-import {safeCreateTable, safeCreateIndex, startDBCall} from './db';
+import {safeCreateTable, safeCreateIndex} from './db';
 
 class DBUser {
 	conn: r.Connection;
@@ -17,26 +17,24 @@ class DBUser {
 		this.tableName = 'user';
 	}
 
-	async init(conn: r.Connection) {
+	async init(conn: r.Connection): Promise<void> {
 		this.conn = conn;
 		this.table = await safeCreateTable(this.tableName,'uuid');
 		await safeCreateIndex(this.table, 'name');
 	}
 
-	async listAllSanitizedUsers() {
-		return this.table.run(this.conn).then((cursor) => {
-			return cursor.toArray().then((list) => {
-				var sanitized = [];
-				for(var user of list) {
-					sanitized.push({
-						uuid: user.uuid,
-						name: user.name,
-						color: user.color
-					});
-				}
-				return sanitized;
+	async listAllSanitizedUsers(): Promise<Array<Object>> {
+		const cursor = await this.table.run(this.conn);
+		const list = await cursor.toArray();
+		const sanitized = [];
+		for(const user of list) {
+			sanitized.push({
+				uuid: user.uuid,
+				name: user.name,
+				color: user.color
 			});
-		});
+		}
+		return sanitized;
 	}
 
 	async getUser(name: string) {

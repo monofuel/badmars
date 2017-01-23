@@ -9,6 +9,7 @@ import Direction from '../map/directions';
 import Context from 'node-context';
 
 import env from '../config/env';
+import logger from '../util/logger';
 import Map from './map';
 import Chunk from './chunk';
 
@@ -34,9 +35,7 @@ class PlanetLoc {
 
 	constructor(map: Map, chunk: Chunk, x: number, y: number) {
 		if(!map) {
-			console.log(this.toString());
-			console.log('invalid planetloc');
-			console.log(new Error().stack);
+			logger.errorWithInfo('invalid planetLoc', { x, y });
 		}
 
 		this.x = Math.floor(x);
@@ -60,30 +59,25 @@ class PlanetLoc {
 		//console.log("x: " + this.x + ", y: " + this.y + " chunkx: " + this.chunk.x + ", chunky: " + this.chunk.y + " localx: " + this.local_x + " localy: " + this.local_y);
 
 		if(!this.chunk) {
-			console.log('tile on not loaded chunk: ' + this.x + ',' + this.y);
-			console.log('chunk hash: ' + chunk.hash);
-			return;
+			logger.errorWithInfo('couldnt find chunk', { x, y, hash: chunk.hash });
 		}
 
 		if(this.local_x > this.chunk.navGrid.length || this.local_y > this.chunk.navGrid[0].length) {
-			console.log('invalid chunk');
-			console.log('x: ' + this.x + ', y: ' + this.y + ' chunkx: ' + this.chunk.x + ', chunky: ' + this.chunk.y + ' localx: ' + this.local_x + ' localy: ' + this.local_y);
-
-			console.log((new Error()).stack);
+			logger.errorWithInfo('invalid chunk', { x, y, chunkX: this.chunk.x, chunkY: this.chunk.y });
 		}
 
 		this.tileType = this.chunk.navGrid[this.local_x][this.local_y];
 
 	}
 
-	distance(tile: PlanetLoc) {
-		var deltaX = Math.abs(this.x - tile.x);
-		var deltaY = Math.abs(this.y - tile.y);
+	distance(tile: PlanetLoc): number {
+		const deltaX = Math.abs(this.x - tile.x);
+		const deltaY = Math.abs(this.y - tile.y);
 
 		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 	}
-	toString() {
-		var line = 'x: ' + this.x;
+	toString(): string {
+		let line = 'x: ' + this.x;
 		line += ', y: ' + this.y;
 		line += ', type: ' + getTypeName(this.tileType);
 		if(this.map) {
@@ -91,20 +85,20 @@ class PlanetLoc {
 		}
 		return line;
 	}
-	async N(ctx: Context) {
+	async N(ctx: Context): Promise<PlanetLoc> {
 		return await this.map.getLoc(ctx,this.x, this.y + 1);
 	}
-	async S(ctx: Context) {
+	async S(ctx: Context): Promise<PlanetLoc> {
 		return await this.map.getLoc(ctx,this.x, this.y - 1);
 	}
-	async E(ctx: Context) {
+	async E(ctx: Context): Promise<PlanetLoc> {
 		return await this.map.getLoc(ctx,this.x + 1, this.y);
 	}
-	async W(ctx: Context) {
+	async W(ctx: Context): Promise<PlanetLoc> {
 		return await this.map.getLoc(ctx,this.x - 1, this.y);
 	}
 
-	async getDirTile(ctx: Context, dir: Dir) {
+	async getDirTile(ctx: Context, dir: Dir): Promise<PlanetLoc> {
 		switch(dir) {
 		case Direction.N:
 			return await this.N(ctx);
@@ -121,11 +115,11 @@ class PlanetLoc {
 
 	}
 
-	async validate() {
+	validate() {
 		if(!env.debug) {
 			return;
 		}
-		const invalid = (reason) => {
+		const invalid = (reason: string) => {
 			throw new Error(this.hash + ': ' + reason);
 		};
 		if(this.x == null) {
@@ -166,7 +160,7 @@ class PlanetLoc {
 
 	}
 
-	equals(otherLoc: PlanetLoc) {
+	equals(otherLoc: PlanetLoc): boolean {
 		if(!otherLoc || !otherLoc.map) return false;
 		return(otherLoc.x === this.x &&
 			otherLoc.y === this.y &&

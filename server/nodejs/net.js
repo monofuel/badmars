@@ -10,15 +10,15 @@ require('babel-polyfill');
 //usually either for development or if we are just running on 1 process.
 
 const db = require('./db/db').db;
-var logger = require('./util/logger.js');
-var net = require('./core/net.js');
+const logger = require('./util/logger.js');
+const net = require('./core/net.js');
 
 logger.setModule('net');
 
 function init() {
 	logger.info('start begin');
 
-	var startupPromises = [];
+	const startupPromises = [];
 	startupPromises.push(db.init());
 	Promise.all(startupPromises)
         .then(() => {

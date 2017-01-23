@@ -5,13 +5,10 @@
 //	Licensed under included modified BSD license
 
 import db from '../../db/db';
-import env from '../../config/env';
-import logger from '../../util/logger';
 import Context from 'node-context';
 import Client from '../client';
 
-async function transferResource(ctx: Context, client: Client, data: Object) {
-	console.log(data);
+async function transferResource(ctx: Context, client: Client, data: Object): Promise<void> {
 	if(!data.source) {
 		return client.sendError('transferResource', 'missing source');
 	}
@@ -32,9 +29,6 @@ async function transferResource(ctx: Context, client: Client, data: Object) {
 		return client.sendError('transferResource', 'dest unit is not yours');
 	}
 
-	const map = client.map;
-
-	const tile = await map.getLoc(ctx, destUnit.x, destUnit.y);
 	sourceUnit.setTransferGoal(destUnit.uuid, data.iron || 0, data.fuel || 0);
 
 	client.send('transferResource');

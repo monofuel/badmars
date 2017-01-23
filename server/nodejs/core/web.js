@@ -7,14 +7,13 @@
 import express from 'express';
 import path from 'path';
 
-import db from '../db/db';
 import env from '../config/env';
 import logger from '../util/logger';
 
 import mainRoute from '../web/routes/main';
 import managementRoute from '../web/routes/management';
 
-exports.init = () => {
+export async function init(): Promise<void> {
 	const app: express = express();
 
 	app.set('view engine', 'ejs');
@@ -26,14 +25,14 @@ exports.init = () => {
 	mainRoute(app);
 	managementRoute(app);
 
-	return new Promise((resolve, reject) => {
-		var server = app.listen(env.wwwPort, () => {
+	return new Promise((resolve: Function) => {
+		const server = app.listen(env.wwwPort, () => {
 
-			var host = server.address().address;
-			var port = server.address().port;
+			const host = server.address().address;
+			const port = server.address().port;
 
-			console.log('Express listening at http://%s:%s', host, port);
+			logger.info('Express listening at http://%s:%s', host, port);
 			resolve();
 		});
 	});
-};
+}

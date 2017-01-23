@@ -5,18 +5,15 @@
 //	Licensed under included modified BSD license
 
 import db from '../db/db';
-import env from '../config/env';
 import logger from '../util/logger';
 import Unit from '../unit/unit';
-import SimplePath from '../nav/simplepath';
 import AStarPath from '../nav/astarpath';
 import DIRECTION from '../map/directions';
 import Context from 'node-context';
 
-var registeredMaps = [];
+const registeredMaps = [];
 
-async function init() {
-	const ctx = new Context();
+export async function init(): Promise<void> {
 	setInterval(registerListeners, 1000);
 
 	await registerListeners();
@@ -27,20 +24,16 @@ async function init() {
 		while(await process(mapName));
 		//process(mapName);
 	}
-
 }
-exports.init = init;
 
-function registerListeners() {
-	db.map.listNames().then((names) => {
-		for(const name of names) {
-			if(registeredMaps.indexOf(name) === -1) {
-				registeredMaps.push(name);
-				db.units[name].registerPathListener(pathfind);
-				console.log('registering for ' + name);
-			}
+async function registerListeners(): Promise<void> {
+	const names: Array<string> = await db.map.listNames();
+	for(const name of names) {
+		if(registeredMaps.indexOf(name) === -1) {
+			registeredMaps.push(name);
+			db.units[name].registerPathListener(pathfind);
 		}
-	});
+	}
 }
 
 function pathfind(err: Error, delta: Object) {
@@ -56,10 +49,9 @@ function pathfind(err: Error, delta: Object) {
 	process(delta.new_val.map);
 }
 
-async function process(mapName: string) {
+async function process(mapName: string): Promise<Success> {
 	//TODO fix this stuff
 	//doesn't work properly with multiple pathfinding services.
-	console.log('process',mapName);
 	const results = await db.units[mapName].getUnprocessedPath();
 	//console.log(results);
 
@@ -77,7 +69,7 @@ async function process(mapName: string) {
 	return true;
 }
 
-async function processUnit(unitDoc: Object) {
+async function processUnit(unitDoc: Object): Promise<void> {
 	const unit = await new Unit();
 	unit.clone(unitDoc);
 	const ctx = new Context();
@@ -85,9 +77,6 @@ async function processUnit(unitDoc: Object) {
 	if(unit.movementType !== 'ground') {
 		return;
 	}
-
-	console.log('pathing for unit ' + unit.type);
-	//console.log(unit);
 	const map = await db.map.getMap(ctx, unit.map);
 
 	const start = await map.getLoc(ctx, unit.x, unit.y);
@@ -103,9 +92,6 @@ async function processUnit(unitDoc: Object) {
 	if (!end) {
 		throw new Error('no nearby free tile?');
 	}
-	if(!dest.equals(end)) {
-		console.log('tweaking destination');
-	}
 
 	if(start.equals(end)) {
 		await unit.clearDestination();
@@ -119,7 +105,7 @@ async function processUnit(unitDoc: Object) {
 		await pathfinder.generate();
 	}
 	const path = [];
-	const dir = await pathfinder.getNext(start);
+
 	let nextTile = start;
 	do {
 		const dir = await pathfinder.getNext(nextTile);

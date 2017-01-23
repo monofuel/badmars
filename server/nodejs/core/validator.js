@@ -4,33 +4,26 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import _ from 'lodash';
 import db from '../db/db';
-import env from '../config/env';
 import logger from '../util/logger';
-import Unit from '../unit/unit';
-import Chunk from '../map/chunk';
+import type Unit from '../unit/unit';
+import type Chunk from '../map/chunk';
 
 import Context from 'node-context';
-var maps = [];
+let maps = [];
 
-exports.init = async() => {
+export async function init(): Promise<void> {
 	const ctx = new Context();
 	if(process.argv.length > 2) {
 		maps = process.argv.slice(2, process.argv.length);
 	} else {
 		maps = await db.map.listNames();
 	}
-	console.log('checking maps', maps);
 
-	console.log('-------------------------------');
-	console.log('starting validation');
-	console.log('-------------------------------');
-
-	for(var mapName: string of maps) {
+	for(const mapName: string of maps) {
 		const map = await db.map.getMap(ctx, mapName);
 		if(!map) {
-			console.log('no such map');
+			logger.info('no such map', { mapName });
 			process.exit(-1);
 		}
 		await validateUnits(mapName);
@@ -39,35 +32,33 @@ exports.init = async() => {
 	}
 
 	process.exit();
-};
+}
 
-async function validateUnits(mapName: string) {
-	console.log('validating units');
+async function validateUnits(mapName: string): Promise<void> {
 	let counter = 0;
 	//TODO should rename listUnits to just list (and friends)``
 	const promises = [];
-	await db.units[mapName].each((unit) => {
+	await db.units[mapName].each((unit: Unit) => {
 		counter++;
 		promises.push(unit.validate());
 	});
 	Promise.all(promises);
-	console.log('units validated: ', counter);
+	logger.info('units validated: ', { counter });
 }
 
-async function validateChunks(mapName: string) {
-	console.log('validating chunks');
+async function validateChunks(mapName: string): Promise<void> {
 	let counter = 0;
 	const promises = [];
-	await db.chunks[mapName].each((chunk) => {
+	await db.chunks[mapName].each((chunk: Chunk) => {
 		counter++;
 		promises.push(chunk.validate());
 	});
 	Promise.all(promises);
-	console.log('chunks validated: ', counter);
+	logger.info('chunks validated: ', { counter });
 }
 
 
-async function checkUnitLocations(mapName: string) {
+/*async function checkUnitLocations(mapName: string) {
 	const unitList = await db.units[mapName].listUnits();
 	const tileMap = {};
 	for(const unit of unitList) {
@@ -103,4 +94,4 @@ async function checkUnitLocations(mapName: string) {
 	  throw new Error('chunk unit lists are missing units');
 	}*/
 
-}
+//}

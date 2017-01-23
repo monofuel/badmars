@@ -5,12 +5,10 @@
 //	Licensed under included modified BSD license
 
 import db from '../../db/db';
-import env from '../../config/env';
-import logger from '../../util/logger';
 import Context from 'node-context';
 import Client from '../client';
 
-async function getMap(ctx: Context, client: Client, data: Object) {
+export default async function getMap(ctx: Context, client: Client): Promise<void> {
 	client.send('map', { map: client.planet });
 
 	const userList = await db.user.listAllSanitizedUsers();
@@ -31,5 +29,3 @@ async function getMap(ctx: Context, client: Client, data: Object) {
 		}
 	}*/
 }
-
-module.exports = getMap;

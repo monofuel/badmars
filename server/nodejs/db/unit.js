@@ -61,7 +61,7 @@ export default class DBunit {
 		return units;
 	}
 
-	async addUnit(ctx: Context, unit: Unit) {
+	async addUnit(ctx: Context, unit: Unit): Promise<Unit> {
 		const call = await startDBCall(ctx,'addUnit');
 		const delta = await this.table.insert(unit, {
 			returnChanges: true

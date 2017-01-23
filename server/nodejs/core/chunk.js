@@ -17,7 +17,7 @@ const requests = {};
 
 const chunkService = grpc.load(__dirname + '/../../protos/chunk.proto').chunk;
 
-exports.init = async() => {
+export async function init(): Promise<void> {
 	const server = new grpc.Server();
 	server.addProtoService(chunkService.Map.service, {
 		getChunk
@@ -26,7 +26,7 @@ exports.init = async() => {
 	server.bind('0.0.0.0:' + env.mapPort, grpc.ServerCredentials.createInsecure());
 	server.start();
 
-	console.log('Map GRPC server started');
+	logger.info('Map GRPC server started');
 	setInterval(logRequests, 6 * 1000);
 
 	process.on('exit', () => {
@@ -35,13 +35,13 @@ exports.init = async() => {
 	});
 
 	return;
-};
+}
 
 function logRequests() {
 	logger.info('chunk_requests', { count: Object.keys(requests).length });
 }
 
-async function getChunk(call, callback) {
+async function getChunk(call: grpc.Call, callback: Function): Promise<void> {
 	const uuid = Hat();
 	try {
 		const ctx = new Context({ uuid, timeout: 1000 });
@@ -63,7 +63,6 @@ async function getChunk(call, callback) {
 // returns a special object for GPRC
 // we have to fiddle with the 2d array for GPRC
 async function fetchOrGenChunk(ctx: Context, mapName: string, x: number, y: number): Promise<Object> {
-	console.log(mapName, x, y);
 	const map = await db.map.getMap(ctx, mapName);
 
 	const localChunk = await map.fetchOrGenChunk(ctx, x, y);

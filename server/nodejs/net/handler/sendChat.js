@@ -5,15 +5,13 @@
 //	Licensed under included modified BSD license
 
 import db from '../../db/db';
-import env from '../../config/env';
-import logger from '../../util/logger';
 import User from '../../user/user';
 import Context from 'node-context';
 import Client from '../client';
 
 const DEFAULT_CHANNEL = 'global';
 
-module.exports = async(ctx: Context,client: Client, data: Object) => {
+export default async function sendChat(ctx: Context,client: Client, data: Object): Promise<void> {
 	const user: User = client.user;
 	if(!data.text) {
 		client.sendError('sendChat', 'no text set');

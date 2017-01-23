@@ -31,7 +31,7 @@ exports.init = () => {
 	return;
 };
 
-async function GRPCProcessUnit(call, callback: Function) {
+async function GRPCProcessUnit(call: grpc.Call, callback: Function): Promise<void> {
 	const request = call.request;
 	const uuid = request.uuid;
 	const mapName = request.mapName;
@@ -55,7 +55,7 @@ async function GRPCProcessUnit(call, callback: Function) {
 	}
 }
 
-async function processUnit(ctx: context, unit: Unit) {
+async function processUnit(ctx: context, unit: Unit): Promise<void> {
 	//logger.addSumStat('unit_AI',1);
 	await unit.simulate(ctx);
 }

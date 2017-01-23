@@ -24,7 +24,7 @@ import DBUnit from '../db/unit';
 import Map from './map';
 
 
-type EntityMap = {
+type EntityMapType = {
 	[key: TileHash]: UUID
 };
 
@@ -36,9 +36,9 @@ export default class Chunk {
 	grid: Array<Array<number>> ;
 	navGrid: Array<Array<TileCode>> ;
 	chunkSize: number;
-	units: EntityMap;
-	resources: EntityMap;
-	airUnits: EntityMap;
+	units: EntityMapType;
+	resources: EntityMapType;
+	airUnits: EntityMapType;
 
 	constructor(x: ? number, y: ? number, map: ? string) {
 		this.x = parseInt(x) || 0;
@@ -57,20 +57,19 @@ export default class Chunk {
 
 	//TODO should be refactored neater
 	//the old server never actually did world generation and left it to the client.
-	async generate(ctx: Context) {
+	async generate(ctx: Context): Promise<void> {
 		//console.log('generating chunk ' + this.hash);
-		var self = this;
 		const map = await this.getMap(ctx);
 
-		var waterFudge = 0.15;
-		var smoothness = 4.5;
+		const waterFudge = 0.15;
+		const smoothness = 4.5;
 
-		var bigNoiseGenerator = new SimplexNoise(new Alea(map.seed));
-		var medNoiseGenerator = new SimplexNoise(new Alea(map.seed * 79)); //random prime provided by brian
-		var smallNoiseGenerator = new SimplexNoise(new Alea(map.seed * 13)); //random prime provided by kir
-		self.chunkSize = map.settings.chunkSize;
+		const bigNoiseGenerator = new SimplexNoise(new Alea(map.seed));
+		const medNoiseGenerator = new SimplexNoise(new Alea(map.seed * 79)); //random prime provided by brian
+		const smallNoiseGenerator = new SimplexNoise(new Alea(map.seed * 13)); //random prime provided by kir
+		this.chunkSize = map.settings.chunkSize;
 		for (let i = 0; i < self.chunkSize + 1; i++) {
-			self.grid.push([]);
+			this.grid.push([]);
 			const x = (self.x * self.chunkSize) + i;
 			for (let j = 0; j < self.chunkSize + 1; j++) {
 				logger.checkContext(ctx, 'generating chunk tiles');
@@ -84,7 +83,7 @@ export default class Chunk {
 					height = map.settings.waterHeight + waterFudge;
 				}
 				//@grid[x][y] = Math.round(point * smoothness) / smoothness
-				self.grid[i].push(Math.round(height * smoothness) / smoothness);
+				this.grid[i].push(Math.round(height * smoothness) / smoothness);
 			}
 		}
 
@@ -95,17 +94,17 @@ export default class Chunk {
 			self.navGrid.push([]);
 			for (let j = 0; j < self.chunkSize; j++) {
 				logger.checkContext(ctx, 'generating chunk types');
-				var corners = [
+				const corners = [
 					self.grid[i][j],
 					self.grid[i + 1][j],
 					self.grid[i][j + 1],
 					self.grid[i + 1][j + 1]
 				];
 
-				var underwater = 0;
-				var avg = (corners[0] + corners[1] + corners[2] + corners[3]) / 4;
+				let underwater = 0;
+				const avg = (corners[0] + corners[1] + corners[2] + corners[3]) / 4;
 
-				var type = LAND;
+				let type = LAND;
 				for (const k of corners) {
 					if (Math.abs(k - avg) > map.settings.cliffDelta) {
 						type = CLIFF;
@@ -125,7 +124,7 @@ export default class Chunk {
 		}
 		//-------------------------------------------------
 		//spawn resources
-		var resourceAlea = new Alea(map.seed * this.x * this.y);
+		const resourceAlea = new Alea(map.seed * this.x * this.y);
 		for (let i = 0; i < self.chunkSize; i++) {
 			const x = (self.x * self.chunkSize) + i;
 			for (let j = 0; j < self.chunkSize; j++) {
@@ -160,7 +159,7 @@ export default class Chunk {
 		}
 	}
 
-	async save(ctx: Context) {
+	async save(ctx: Context): Promise<void> {
 		await this.generate(ctx);
 		await this.getChunkDB().saveChunk(ctx, this);
 	}
@@ -216,13 +215,13 @@ export default class Chunk {
 		const newChunk = newTile.chunk;
 		await newChunk.refresh();
 		if (unit.uuid !== newChunk.units[newTile.hash]) {
-			console.log('wrong new position', newTile.hash, unit.uuid, newChunk.units[newTile.hash]);
+			logger.info('wrong new position', { hash: newTile.hash, uuid: unit.uuid, otherUuid: newChunk.units[newTile.hash] });
 			return false;
 		}
 
 		success = await oldTiles[0].chunk.clearUnit(unit.uuid, oldTiles[0].hash);
 		if (!success) {
-			console.log('failed clearing old position');
+			logger.info('failed clearing old position', { hash: newTile.hash });
 		}
 
 		return true;
@@ -236,8 +235,7 @@ export default class Chunk {
 		const unitUpdate = {};
 		unitUpdate[tileHash] = true;
 		if (this.units[tileHash] !== uuid) {
-			console.log('wrong unit at old tile!');
-			console.log('found ', this.units[tileHash], 'expected', uuid);
+			logger.info('wrong unit at old tile!', { found: this.units[tileHash], expected: uuid });
 		}
 		delete this.units[tileHash];
 
@@ -249,8 +247,7 @@ export default class Chunk {
 		} else {
 			const newChunk = delta.changes[0].new_val;
 			if (newChunk.units[tileHash] === uuid) {
-				console.log('unit did not get removed from position');
-				console.log('unit:', uuid, 'found:', newChunk.units[tileHash]);
+				logger.info('unit did not get removed from position', { uuid, found: newChunk.units[tileHash]});
 			}
 			return true;
 		}
@@ -259,15 +256,16 @@ export default class Chunk {
 	async addUnit(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<Success> {
 		const success = await this.getChunkDB().setUnit(ctx, this, uuid, tileHash);
 		if (!success) {
-			console.log('failed putting unit to chunk');
+			logger.info('failed putting unit to chunk');
 			return false;
 		}
 
 		await this.refresh(ctx);
 		if (uuid !== this.units[tileHash]) {
-			console.log('wrong new position', tileHash, 'expected', uuid, 'found', this.units[tileHash]);
+			logger.info('wrong new position');
+			/*console.log('wrong new position', tileHash, 'expected', uuid, 'found', this.units[tileHash]);
 			console.log('old', this.units);
-			console.log('new', this.units);
+			console.log('new', this.units);*/
 		}
 		return true;
 	}
@@ -280,21 +278,22 @@ export default class Chunk {
 		}
 		await this.refresh(ctx);
 		if (uuid !== this.resources[tileHash]) {
-			console.log('failed adding resource', tileHash, 'expected', uuid, 'found', this.resources[tileHash]);
+			logger.info('failed to add resource');
+			/*console.log('failed adding resource', tileHash, 'expected', uuid, 'found', this.resources[tileHash]);
 			console.log('new', this.resources);
 			console.log(tileHash, uuid);
-			console.log('chunkHash', this.hash);
+			console.log('chunkHash', this.hash);*/
 		}
 		return true;
 	}
 
-	async validate(): Promise<*> {
+	async validate(): Promise<void> {
 		if (!env.debug) {
 			return;
 		}
 		await this.refresh();
 
-		const invalid = (reason) => {
+		const invalid = (reason: string) => {
 			throw new Error(this.hash + ': ' + reason);
 		};
 
@@ -344,30 +343,30 @@ export default class Chunk {
 				}
 			}
 			if (!_.includes(unit.tileHash, tileHash)) {
-				console.log('unit doesn\'t agree with chunk location. chunk:' + tileHash + ' unit: ' + unit.tileHash);
-				console.log('removing unit from chunk (hope the unit was correct)');
+				//console.log('unit doesn\'t agree with chunk location. chunk:' + tileHash + ' unit: ' + unit.tileHash);
+				//console.log('removing unit from chunk (hope the unit was correct)');
 
 
 				const loc = await unit.getLoc();
 				await loc.chunk.refresh();
 				if (!this.equals(loc.chunk)) {
-					console.log('unit on wrong chunk');
+					invalid('unit on wrong chunk');
 				}
-				const success = await this.clearUnit(unit.uuid, tileHash);
+				/*const success = await this.clearUnit(unit.uuid, tileHash);
 				if (!success) {
 					console.log('failed to remove unit');
-				}
+				}*/
 			}
 		}
 
-		_.each(this.resources, (uuid, tileHash) => {
+		_.each(this.resources, (uuid: UUID, tileHash: TileHash) => {
 			const unit = db.units[this.map].getUnit(uuid);
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
 			}
 		});
 
-		_.each(this.airUnits, (uuid, tileHash) => {
+		_.each(this.airUnits, (uuid: UUID, tileHash: TileHash) => {
 			const unit = db.units[this.map].getUnit(uuid);
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
@@ -376,7 +375,7 @@ export default class Chunk {
 
 	}
 
-	equals(other: Chunk) {
+	equals(other: Chunk): boolean {
 		return this.hash === other.hash;
 	}
 
@@ -389,18 +388,18 @@ export default class Chunk {
 		this.y = parseInt(this.y);
 	}
 
-	async refresh(ctx: Context) {
+	async refresh(ctx: Context): Promise<void> {
 		const fresh = await db.chunks[this.map].getChunk(ctx, this.x, this.y);
 		this.clone(fresh);
 	}
 
 	async getTiles(ctx: Context): Promise<Array<PlanetLoc>> {
 		const map = await this.getMap(ctx, this.map);
-		var tiles = [];
+		const tiles = [];
 		for (let i = 0; i < this.chunkSize; i++) {
 			for (let j = 0; j < this.chunkSize; j++) {
-				var x = i + (this.x * this.chunkSize);
-				var y = j + (this.y * this.chunkSize);
+				const x = i + (this.x * this.chunkSize);
+				const y = j + (this.y * this.chunkSize);
 				tiles.push(new PlanetLoc(map, this, x, y));
 			}
 		}

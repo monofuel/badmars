@@ -9,8 +9,7 @@ import r from 'rethinkdb';
 import fs from 'fs';
 import jsonlint from 'jsonlint';
 
-import {safeCreateTable, safeCreateIndex, startDBCall} from './db';
-import env from '../config/env';
+import {safeCreateTable, startDBCall} from './db';
 import logger from '../util/logger';
 
 import UnitStat from '../unit/unitStat';
@@ -21,9 +20,8 @@ const unitsFromDatabase = [];
 const unitMap = {};
 
 //load all default stats from file
-async function loadDefaults() {
+async function loadDefaults(): Promise<void> {
 	const statsFile = fs.readFileSync(UNIT_STAT_FILE).toString();
-	let stats;
 	try {
 		// using jsonlint to give readable errors
 		const stats = jsonlint.parse(statsFile);
@@ -32,20 +30,16 @@ async function loadDefaults() {
 			try {
 				unitStat.validateSync();
 			} catch(err) {
-				console.error('unit ' + type + ' failed to validate', err);
+				logger.errorWithInfo('unit failed to validate', { err, type });
 			}
 			if(!unitsFromDatabase.includes(type)) {
 				unitMap[type] = unitStat;
 			}
 		});
 	} catch(err) {
-
-		console.log('====================');
-		console.log('failed to load unit definitions');
-		console.log('====================');
-		throw err;
+		logger.error(err, 'failed to load unit definitions');
 	}
-	console.log('Unit definitions loaded');
+	logger.info('Unit definitions loaded');
 }
 
 
@@ -66,8 +60,7 @@ export default class DBUnitStat {
 		this.table = await safeCreateTable(this.tableName);
 		await loadDefaults();
 
-		fs.watchFile(UNIT_STAT_FILE, async() => {
-			console.log('units.json updated, reloading');
+		fs.watchFile(UNIT_STAT_FILE, async(): Promise<void> => {
 			await loadDefaults();
 		});
 
@@ -83,24 +76,23 @@ export default class DBUnitStat {
 			// no indexes for this tables
 	}
 
-	async getAll() {
-		const profile = logger.startProfile('listUnitStats');
-		return this.table.coerceTo('array').run(this.conn).then((array: Array<string> ) => {
-			logger.endProfile(profile);
-			return array;
-		});
+	async getAll(ctx: Context): Promise<Array<UnitStat>> {
+		const call = await startDBCall(ctx, 'listUnitStats');
+		const array: Array<UnitStat> = await this.table.coerceTo('array').run(this.conn);
+		await call.end();
+		return array;
 	}
 
-	get(type: string) {
+	get(type: string): UnitStat {
 		//TODO update unitmap on db changes
 		return unitMap[type];
 	}
 
-	async put(stat: UnitStat) {
+	async put(stat: UnitStat): Promise<void> {
 		const profile = logger.startProfile('saveUnitStat');
-		const result = await this.table.get(stat.details.type).update(stat).run(this.conn);
+		await this.table.get(stat.details.type).update(stat).run(this.conn);
 		logger.endProfile(profile);
-		return result;
+		return;
 	}
 
 }

@@ -18,6 +18,7 @@
 						"error",
 						"tab"
 				],
+				"no-constant-condition": "off",
 				"linebreak-style": "off",
 				"no-var": "error",
 				"prefer-const": "error",

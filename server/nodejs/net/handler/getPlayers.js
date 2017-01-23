@@ -5,13 +5,12 @@
 //	Licensed under included modified BSD license
 
 import db from '../../db/db';
-import env from '../../config/env';
-import logger from '../../util/logger';
 import Context from 'node-context';
 import Client from '../client';
+import type User from '../../user/user';
 
-async function getPlayers(ctx: Context, client: Client, data: Object): Promise<void> {
-	db.user.listAllSanitizedUsers().then((users) => {
+async function getPlayers(ctx: Context, client: Client): Promise<void> {
+	db.user.listAllSanitizedUsers().then((users: Array<User>) => {
 		client.send('players', { players: users });
 	});
 }

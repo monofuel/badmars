@@ -4,17 +4,14 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../../db/db';
-import env from '../../config/env';
-import logger from '../../util/logger';
 import filter from '../../util/socketFilter';
 import Context from 'node-context';
 import Client from '../client';
 import Chunk from '../../map/chunk';
 
-async function getChunk(ctx: Context, client: Client, data: Object) {
-	var x = data.x || 0;
-	var y = data.y || 0;
+export default async function getChunk(ctx: Context, client: Client, data: Object): Promise<void> {
+	const x = data.x || 0;
+	const y = data.y || 0;
 
 	const unitsOnly = data.unitsOnly;
 
@@ -36,5 +33,3 @@ async function getChunk(ctx: Context, client: Client, data: Object) {
 		client.send('units', { units: sanitized });
 	}
 }
-
-module.exports = getChunk;
