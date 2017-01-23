@@ -10,7 +10,7 @@ import r from 'rethinkdb';
 import Unit from '../unit/unit';
 import env from '../config/env';
 import logger from '../util/logger';
-import {safeCreateTable, safeCreateIndex, startDBCall, clearSpareIndices} from './db';
+import {safeCreateTable, safeCreateIndex, startDBCall, clearSpareIndices} from './helper';
 
 const VALID_INDICES = ['location.chunkHash', 'location.hash', 'details.lastTick', 'awake'];
 
@@ -27,12 +27,12 @@ export default class DBunit {
 	}
 
 	async init(): Promise<void> {
-		this.table = await safeCreateTable(this.tableName, 'uuid');
-		await safeCreateIndex(this.table, 'location.hash', true);
-		await safeCreateIndex(this.table, 'location.chunkHash', true);
-		await safeCreateIndex(this.table, 'details.lastTick');
-		await safeCreateIndex(this.table, 'awake');
-		await clearSpareIndices(this.table, VALID_INDICES);
+		this.table = await safeCreateTable(this.conn, this.tableName, 'uuid');
+		await safeCreateIndex(this.conn, this.table, 'location.hash', true);
+		await safeCreateIndex(this.conn, this.table, 'location.chunkHash', true);
+		await safeCreateIndex(this.conn, this.table, 'details.lastTick');
+		await safeCreateIndex(this.conn, this.table, 'awake');
+		await clearSpareIndices(this.conn, this.table, VALID_INDICES);
 	}
 
 	async each(func: Function): Promise<void> {

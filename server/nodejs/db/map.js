@@ -7,7 +7,7 @@
 import Map from '../map/map';
 
 import r from 'rethinkdb';
-import {safeCreateTable, startDBCall} from './db';
+import {safeCreateTable, startDBCall} from './helper';
 import logger from '../util/logger';
 import Context from 'node-context';
 
@@ -24,7 +24,7 @@ class DBMap {
 
 	async init(conn: r.Connection): Promise<void> {
 		this.conn = conn;
-		this.table = await safeCreateTable(this.tableName, 'name');
+		this.table = await safeCreateTable(conn, this.tableName, 'name');
 	}
 
 	async listNames(): Promise<Array<string>> {

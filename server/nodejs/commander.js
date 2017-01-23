@@ -22,7 +22,7 @@ function init() {
 		.then(() => {
 			logger.info('start complete');
 			commands.init();
-		}).catch((err: Error) => {
+		}).catch((err) => {
 			logger.error(err);
 			logger.info('start script caught error, exiting');
 			process.exit();

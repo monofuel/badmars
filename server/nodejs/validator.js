@@ -7,7 +7,7 @@
 require('babel-register');
 require('babel-polyfill');
 
-const db = require('./db/db').db;
+const db = require('./db/db');
 const logger = require('./util/logger.js');
 const validator = require('./core/validator.js');
 
@@ -19,7 +19,7 @@ function init() {
 	.then(validator.init)
 	.then(() => {
 		logger.info('start complete');
-	}).catch((err: Error) => {
+	}).catch((err) => {
 		logger.error(err);
 		logger.info('start script caught error, exiting');
 	});

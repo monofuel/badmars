@@ -20,7 +20,7 @@ function init() {
 	.then(() => {
 		logger.info('start complete');
 		pathfinding.init();
-	}).catch((err: Error) => {
+	}).catch((err) => {
 		logger.error(err);
 		logger.info('start script caught error, exiting');
 		process.exit();

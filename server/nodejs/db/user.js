@@ -6,7 +6,7 @@
 
 import r from 'rethinkdb';
 import User from '../user/user';
-import {safeCreateTable, safeCreateIndex} from './db';
+import {safeCreateTable, safeCreateIndex} from './helper';
 
 class DBUser {
 	conn: r.Connection;
@@ -19,8 +19,8 @@ class DBUser {
 
 	async init(conn: r.Connection): Promise<void> {
 		this.conn = conn;
-		this.table = await safeCreateTable(this.tableName,'uuid');
-		await safeCreateIndex(this.table, 'name');
+		this.table = await safeCreateTable(this.conn, this.tableName, 'uuid');
+		await safeCreateIndex(this.conn, this.table, 'name');
 	}
 
 	async listAllSanitizedUsers(): Promise<Array<Object>> {

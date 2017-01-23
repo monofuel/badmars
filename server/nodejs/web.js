@@ -22,7 +22,7 @@ function init() {
 	Promise.all(startupPromises)
 	.then(() => {
 		logger.info('start complete');
-	}).catch((err: Error) => {
+	}).catch((err) => {
 		logger.error(err);
 		logger.info('start script caught error, exiting');
 		process.exit();

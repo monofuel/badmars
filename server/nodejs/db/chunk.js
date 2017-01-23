@@ -7,7 +7,7 @@
 import r from 'rethinkdb';
 import Chunk from '../map/chunk';
 import Context from 'node-context';
-import {safeCreateTable, startDBCall} from './db';
+import {safeCreateTable, startDBCall} from './helper';
 
 class DBChunk {
 	conn: r.Connection;
@@ -21,7 +21,7 @@ class DBChunk {
 	}
 
 	async init(): Promise<void> {
-		this.table = await safeCreateTable(this.tableName, 'hash');
+		this.table = await safeCreateTable(this.conn, this.tableName, 'hash');
 	}
 
 	async each(func: Function): Promise<void> {

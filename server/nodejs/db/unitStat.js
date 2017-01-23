@@ -9,7 +9,7 @@ import r from 'rethinkdb';
 import fs from 'fs';
 import jsonlint from 'jsonlint';
 
-import {safeCreateTable, startDBCall} from './db';
+import {safeCreateTable, startDBCall} from './helper';
 import logger from '../util/logger';
 
 import UnitStat from '../unit/unitStat';
@@ -57,7 +57,7 @@ export default class DBUnitStat {
 	}
 
 	async init(): Promise<void> {
-		this.table = await safeCreateTable(this.tableName);
+		this.table = await safeCreateTable(this.conn, this.tableName);
 		await loadDefaults();
 
 		fs.watchFile(UNIT_STAT_FILE, async(): Promise<void> => {

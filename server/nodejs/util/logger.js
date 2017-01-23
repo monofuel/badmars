@@ -137,8 +137,9 @@ function track(name: string, kargs: ? Object) {
 	kargs.hostname = os.hostname();
 	kargs.env = env.envType;
 	verifyTrack(name, kargs);
-	// $FlowFixMe: hiding this issue for now
-	db.event.addEvent(kargs);
+	if (db && db.event) {
+		db.event.addEvent(kargs);
+	}
 	/*
 	request({
 		url: env.trackingServer + ':' + env.trackingPort + '/track/event',

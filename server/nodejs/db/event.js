@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import {safeCreateTable} from './db';
+import {safeCreateTable} from './helper';
 
 class DBEvent {
 	conn: r.Connection;
@@ -18,7 +18,7 @@ class DBEvent {
 
 	async init(conn: r.Connection): Promise<void> {
 		this.conn = conn;
-		this.table = await safeCreateTable(this.tableName);
+		this.table = await safeCreateTable(conn, this.tableName);
 	}
 
 	async addEvent(object: Object): Promise<void> {

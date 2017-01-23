@@ -49,14 +49,14 @@ vorpal.command('removemap <name>', 'remove a specific map')
 			return db.map.listNames();
 		}
 	})
-	.action((args: object): Promise<void> => {
+	.action((args: Object): Promise<void> => {
 		return db.map.removeMap(args.name).then(() => {
 			console.log('success');
 		});
 	});
 
 vorpal.command('createmap <name>', 'create a new random map')
-	.action((args: object): Promise<void> => {
+	.action((args: Object): Promise<void> => {
 		return db.map.createRandomMap(args.name).then(() => {
 			console.log('created map ' + args.name);
 		});
@@ -66,20 +66,20 @@ vorpal.command('createmap <name>', 'create a new random map')
 //==================================================================
 // user methods
 vorpal.command('createuser <name> [apikey]', 'create a user account with an api key')
-	.action((args: object): Promise<void> => {
-		return db.user.createUser(args.name, '0xffffff').then((result: object): Promise<void> => {
+	.action((args: Object): Promise<void> => {
+		return db.user.createUser(args.name, '0xffffff').then((result: Object): Promise<void> => {
 			if(result.inserted !== 1) {
 				throw new Error('failed to create user');
 			}
 			if(args.apikey) {
 				return db.user.updateUser(args.name, { apiKey: args.apikey });
 			}
-		}).then((result: object) => {
+		}).then((result: Object) => {
 			console.log(result);
 		});
 	});
 
 vorpal.command('removeuser <name>', 'remove all accounts with a given name')
-	.action((args: object): Promise<void> => {
+	.action((args: Object): Promise<void> => {
 		return db.user.deleteUser(args.name);
 	});
