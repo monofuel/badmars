@@ -7,7 +7,7 @@
 require('babel-register');
 require('babel-polyfill');
 
-const db = require('./db/db').db;
+const db = require('./db/db');
 const logger = require('./util/logger.js');
 const web = require('./core/web.js');
 

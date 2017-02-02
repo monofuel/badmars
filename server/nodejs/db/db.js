@@ -103,7 +103,7 @@ export async function close(): Promise<void> {
 	return this.conn.close();
 }
 
-const db = {
+module.exports = {
 	init,
 	close,
 	map,
@@ -114,5 +114,3 @@ const db = {
 	unitStats,
 	event,
 };
-
-export default db;

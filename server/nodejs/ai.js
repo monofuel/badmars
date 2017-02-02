@@ -13,7 +13,6 @@ const AI = require('./core/AI.js');
 function init() {
 	logger.setModule('ai');
 	logger.info('start begin');
-
 	const startupPromises = [];
 	startupPromises.push(db.init());
 	Promise.all(startupPromises)
