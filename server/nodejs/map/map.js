@@ -5,6 +5,7 @@
 //	Licensed under included modified BSD license
 
 import _ from 'lodash';
+import db from '../db/db';
 import logger from '../util/logger';
 import helper from '../util/helper';
 import env from '../config/env';
@@ -860,5 +861,3 @@ export default class Map {
 		this.settings = _.cloneDeep(defaultSettings);
 	}
 }
-
-const db = require('../db/db');

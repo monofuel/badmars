@@ -7,6 +7,7 @@
 import _ from 'lodash';
 import Context from 'node-context';
 import r from 'rethinkdb';
+import Unit from '../unit/unit';
 import env from '../config/env';
 import logger from '../util/logger';
 import {safeCreateTable, safeCreateIndex, startDBCall, clearSpareIndices} from './helper';
@@ -307,5 +308,3 @@ export default class DBunit {
 		return this.conn;
 	}
 }
-
-const Unit = require('../unit/unit');

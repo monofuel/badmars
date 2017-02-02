@@ -10,12 +10,14 @@ import Context from 'node-context';
 
 import env from '../config/env';
 import logger from '../util/logger';
+import Map from './map';
+import Chunk from './chunk';
 
 /**
  * Representation of a point on a planet
  */
 
-export default class PlanetLoc {
+class PlanetLoc {
 	x: number;
 	y: number;
 	map: Map;
@@ -166,5 +168,4 @@ export default class PlanetLoc {
 	}
 }
 
-const Map = require('./map');
-const Chunk = require('./chunk');
+module.exports = PlanetLoc;
