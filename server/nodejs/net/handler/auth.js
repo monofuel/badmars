@@ -4,8 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../../db/db';
-import Client from '../client';
+import type Client from '../client';
 import Context from 'node-context';
 import type Map from '../../map/map';
 import type User from '../../user/user';
@@ -101,3 +100,6 @@ export default async function auth(ctx: Context, client: Client, data: Object): 
 
 
 };
+
+const db = require('../../db/db');
+console.log('DB', db);

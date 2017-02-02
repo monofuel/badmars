@@ -6,6 +6,7 @@
 
 import express from 'express';
 import path from 'path';
+import util from 'util';
 
 import env from '../config/env';
 import logger from '../util/logger';
@@ -31,7 +32,7 @@ export async function init(): Promise<void> {
 			const host = server.address().address;
 			const port = server.address().port;
 
-			logger.info('Express listening at http://%s:%s', host, port);
+			logger.info(util.format('Express listening at http://%s:%s', host, port));
 			resolve();
 		});
 	});

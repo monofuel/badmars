@@ -16,7 +16,7 @@ stats.init();
 let moduleName = 'monolith';
 
 //list of modules to output logs for STDOUT
-const DEBUG_MODULES = ['chunk', 'ai'];
+const DEBUG_MODULES = ['net', 'ai'];
 console.log('=========================');
 console.log('DEBUGGING MODULES:', DEBUG_MODULES);
 console.log('=========================');

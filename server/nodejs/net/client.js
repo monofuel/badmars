@@ -7,7 +7,6 @@
 import WebSocket from 'ws';
 import _ from 'lodash';
 
-import db from '../db/db';
 import logger from '../util/logger';
 import authHandler from '../net/handler/auth';
 import Map from '../map/map';
@@ -214,3 +213,5 @@ class Client {
 	}
 }
 module.exports = Client;
+
+const db = require('../db/db');

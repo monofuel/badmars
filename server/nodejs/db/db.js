@@ -97,13 +97,14 @@ async function init(): Promise<void> {
 
 	await this.map.createRandomMap('testmap');
 	//console.log('created map testmap');
+	logger.info('INITIALIZED')
 }
 
-export async function close(): Promise<void> {
+async function close(): Promise<void> {
 	return this.conn.close();
 }
 
-module.exports = {
+const db = {
 	init,
 	close,
 	map,
@@ -114,3 +115,5 @@ module.exports = {
 	unitStats,
 	event,
 };
+console.log('dbobject', db)
+module.exports = db;

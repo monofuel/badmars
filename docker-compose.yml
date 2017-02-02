@@ -58,6 +58,8 @@ services:
     volumes:
       - ./server:/badmars/server
       - ./client:/badmars/client
+    environment:
+      - BADMARS_WS_SERVER=ws://192.168.11.119
     ports:
       - "3002:3002"
     links:
