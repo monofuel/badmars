@@ -18,10 +18,7 @@ import { LAND, CLIFF, WATER, COAST } from './tiletypes';
 import Unit from '../unit/unit';
 import PlanetLoc from './planetloc';
 
-
-import DBChunk from '../db/chunk';
-import DBUnit from '../db/unit';
-import Map from './map';
+import type Map from './map';
 
 
 type EntityMapType = {
@@ -405,10 +402,10 @@ export default class Chunk {
 		}
 		return tiles;
 	}
-	getChunkDB(): DBChunk {
+	getChunkDB(): db.DBChunk {
 		return db.chunks[this.map];
 	}
-	getUnitDB(): DBUnit {
+	getUnitDB(): Db.DBUnit {
 		return db.units[this.map];
 	}
 	async getMap(ctx: Context): Promise<Map> {

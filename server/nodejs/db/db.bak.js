@@ -22,8 +22,7 @@ const unitStats = {};
 let logger;
 let conn: r.Connection;
 
-
-async function init(): Promise<void> {
+export async function init(): Promise<void> {
 	logger = require('../util/logger');
 	const options: {
 		host: string,
@@ -102,17 +101,3 @@ async function init(): Promise<void> {
 export async function close(): Promise<void> {
 	return this.conn.close();
 }
-
-const db = {
-	init,
-	close,
-	map,
-	units,
-	user,
-	chat,
-	chunks,
-	unitStats,
-	event,
-};
-
-export default db;

@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../db/db';
+import { planets } from '../db';
 import env from '../config/env';
 import logger from '../util/logger';
 import Hat from 'hat';
@@ -63,7 +63,7 @@ async function getChunk(call: grpc.Call, callback: Function): Promise<void> {
 // returns a special object for GPRC
 // we have to fiddle with the 2d array for GPRC
 async function fetchOrGenChunk(ctx: Context, mapName: string, x: number, y: number): Promise<Object> {
-	const map = await db.map.getMap(ctx, mapName);
+	const map = await (await planets()).get(ctx, mapName);
 
 	const localChunk = await map.fetchOrGenChunk(ctx, x, y);
 
