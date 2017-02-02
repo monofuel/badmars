@@ -12,15 +12,7 @@ import db from '../db/db';
 import logger from '../util/logger';
 import env from '../config/env';
 
-import groundUnitAI from './ai/groundunit';
-import attackAI from './ai/attack';
-import constructionAI from './ai/construction';
-import mineAI from './ai/mine';
-
 import UnitStat from './unitStat';
-import Map from '../map/map';
-import Chunk from '../map/chunk';
-import PlanetLoc from '../map/planetloc';
 
 export default class Unit {
 
@@ -822,3 +814,13 @@ export default class Unit {
 		this.clone(fresh);
 	}
 }
+
+
+const Map = require('../map/map');
+const Chunk = require('../map/chunk');
+const PlanetLoc = require('../map/planetloc');
+
+const groundUnitAI = require('./ai/groundunit');
+const attackAI = require('./ai/attack');
+const constructionAI = require('./ai/construction');
+const mineAI = require('./ai/mine');

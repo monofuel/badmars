@@ -15,14 +15,9 @@ import _ from 'lodash';
 import Alea from 'alea';
 
 import { LAND, CLIFF, WATER, COAST } from './tiletypes';
-import Unit from '../unit/unit';
-import PlanetLoc from './planetloc';
-
 
 import DBChunk from '../db/chunk';
 import DBUnit from '../db/unit';
-import Map from './map';
-
 
 type EntityMapType = {
 	[key: TileHash]: UUID
@@ -415,3 +410,7 @@ export default class Chunk {
 		return db.map.getMap(ctx, this.map);
 	}
 }
+
+const Map = require('./map');
+const Unit = require('../unit/unit');
+const PlanetLoc = require('./planetloc');

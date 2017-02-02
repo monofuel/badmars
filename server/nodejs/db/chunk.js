@@ -5,11 +5,10 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import Chunk from '../map/chunk';
 import Context from 'node-context';
 import {safeCreateTable, startDBCall} from './helper';
 
-class DBChunk {
+export default class DBChunk {
 	conn: r.Connection;
 	mapName: string;
 	table: r.Table;
@@ -125,5 +124,4 @@ class DBChunk {
 	}
 }
 
-
-module.exports = DBChunk;
+const Chunk = require('../map/chunk');

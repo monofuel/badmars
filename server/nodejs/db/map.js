@@ -4,8 +4,6 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import Map from '../map/map';
-
 import r from 'rethinkdb';
 import {safeCreateTable, startDBCall} from './helper';
 import logger from '../util/logger';
@@ -84,3 +82,6 @@ class DBMap {
 
 const map = new DBMap();
 export default map;
+
+
+const Map = require('../map/map');
