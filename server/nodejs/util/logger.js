@@ -55,7 +55,7 @@ function handleError(err: Error, msg?: string) {
 
 //throw a generic error message, but log specific information for debugging
 function errorWithInfo(msg: string, details: Object) {
-	exports.info(msg, details);
+	info(msg, details);
 	throw new Error(msg);
 }
 

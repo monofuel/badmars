@@ -7,6 +7,7 @@
 require('babel-register');
 require('babel-polyfill');
 const db = require('./db/db');
+console.log('db required');
 const logger = require('./util/logger.js');
 const AI = require('./core/AI.js');
 

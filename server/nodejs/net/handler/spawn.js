@@ -9,7 +9,7 @@ import Context from 'node-context';
 import Client from '../client';
 import Unit from '../../unit/unit';
 
-async function handleSpawn(ctx: Context, client: Client): Promise<void> {
+export default async function handleSpawn(ctx: Context, client: Client): Promise<void> {
 	let units: Array<Unit> = await db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
 	if(units.length > 0) {
 		client.sendError('spawn', 'already have units');
@@ -23,5 +23,3 @@ async function handleSpawn(ctx: Context, client: Client): Promise<void> {
 	client.send('spawn');
 	client.send('units', { units: units });
 }
-
-module.exports = handleSpawn;

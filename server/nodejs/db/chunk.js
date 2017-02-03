@@ -5,7 +5,6 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import Chunk from '../map/chunk';
 import Context from 'node-context';
 import {safeCreateTable, startDBCall} from './helper';
 
@@ -127,3 +126,8 @@ class DBChunk {
 
 
 module.exports = DBChunk;
+
+import { checkEmptyImport } from '../util/helper';
+
+const Chunk = require('../map/chunk');
+checkEmptyImport(Chunk, 'chunk', 'DBChunk.js');

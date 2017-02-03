@@ -6,7 +6,7 @@
 
 import r from 'rethinkdb';
 import {safeCreateTable} from './helper';
-import User from '../user/user';
+import type User from '../user/user';
 
 class DBChat {
 	conn: r.Connection;

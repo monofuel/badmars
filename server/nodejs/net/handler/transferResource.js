@@ -8,7 +8,7 @@ import db from '../../db/db';
 import Context from 'node-context';
 import Client from '../client';
 
-async function transferResource(ctx: Context, client: Client, data: Object): Promise<void> {
+export default async function transferResource(ctx: Context, client: Client, data: Object): Promise<void> {
 	if(!data.source) {
 		return client.sendError('transferResource', 'missing source');
 	}
@@ -35,5 +35,3 @@ async function transferResource(ctx: Context, client: Client, data: Object): Pro
 
 
 }
-
-module.exports = transferResource;

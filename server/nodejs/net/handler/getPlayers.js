@@ -9,10 +9,8 @@ import Context from 'node-context';
 import Client from '../client';
 import type User from '../../user/user';
 
-async function getPlayers(ctx: Context, client: Client): Promise<void> {
+export default async function getPlayers(ctx: Context, client: Client): Promise<void> {
 	db.user.listAllSanitizedUsers().then((users: Array<User>) => {
 		client.send('players', { players: users });
 	});
 }
-
-module.exports = getPlayers;

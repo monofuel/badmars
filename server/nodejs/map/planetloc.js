@@ -10,8 +10,9 @@ import Context from 'node-context';
 
 import env from '../config/env';
 import logger from '../util/logger';
-import Map from './map';
-import Chunk from './chunk';
+
+import type Map from './map';
+import type Chunk from './chunk';
 
 /**
  * Representation of a point on a planet

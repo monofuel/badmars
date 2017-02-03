@@ -12,8 +12,6 @@ import jsonlint from 'jsonlint';
 import {safeCreateTable, startDBCall} from './helper';
 import logger from '../util/logger';
 
-import UnitStat from '../unit/unitStat';
-
 const UNIT_STAT_FILE = 'config/units.json';
 
 const unitsFromDatabase = [];
@@ -96,3 +94,5 @@ export default class DBUnitStat {
 	}
 
 }
+
+const UnitStat = require('../unit/unitStat').default;

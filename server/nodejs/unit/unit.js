@@ -8,21 +8,10 @@ import r from 'rethinkdb'; //TODO should not be imported in this file
 import _ from 'lodash';
 import Context from 'node-context';
 
-import db from '../db/db';
 import logger from '../util/logger';
 import env from '../config/env';
 
-import groundUnitAI from './ai/groundunit';
-import attackAI from './ai/attack';
-import constructionAI from './ai/construction';
-import mineAI from './ai/mine';
-
-import UnitStat from './unitStat';
-import Map from '../map/map';
-import Chunk from '../map/chunk';
-import PlanetLoc from '../map/planetloc';
-
-export default class Unit {
+class Unit {
 
 	uuid: UUID; // set by database
 	awake: boolean;
@@ -822,3 +811,20 @@ export default class Unit {
 		this.clone(fresh);
 	}
 }
+console.log('exporting unit');
+module.exports = Unit;
+
+import { checkEmptyImport } from '../util/helper.js';
+
+const groundUnitAI = require('./ai/groundunit').default;
+checkEmptyImport(groundUnitAI, 'groundUnitAI', 'unit.js');
+const attackAI = require('./ai/attack').default;
+const constructionAI = require('./ai/construction').default;
+const mineAI = require('./ai/mine').default;
+
+const UnitStat = require('./unitStat').default;
+import type Map from '../map/map';
+import type Chunk from '../map/chunk';
+const PlanetLoc = require('../map/planetloc');
+
+const db = require('../db/db');

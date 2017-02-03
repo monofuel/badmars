@@ -8,17 +8,23 @@ import env from '../config/env';
 import helper from '../util/helper';
 import r from 'rethinkdb';
 
-import DBChunk from './chunk';
-import DBUnit from './unit';
-import DBUnitStat from './unitStat';
+import { checkEmptyImport } from '../util/helper';
 
-import map from './map';
-import user from './user';
-import chat from './chat';
-import event from './event';
+const map = require('./map').default;
+exports.map = map;
+const user = require('./user').default;
+exports.user = user;
+const chat = require('./chat').default;
+exports.chat = chat;
+const event = require('./event');
+exports.event = event;
+
 const chunks = {};
+exports.chunks = chunks;
 const units = {};
+exports.units = units;
 const unitStats = {};
+exports.unitStats = unitStats;
 let logger;
 let conn: r.Connection;
 
@@ -68,6 +74,13 @@ async function init(): Promise<void> {
 	]);
 
 	const mapNames = await map.listNames();
+	
+	const DBChunk = require('./chunk');
+	checkEmptyImport(DBChunk, 'DBChunk', 'db.js');
+	const DBUnit = require('./unit').default;
+	checkEmptyImport(DBUnit, 'DBUnit', 'db.js');
+	const DBUnitStat = require('./unitStat').default;
+	checkEmptyImport(DBUnitStat, 'DBUnitStat', 'db.js');
 
 	//console.log('preparing chunks');
 	const chunkPromises = [];
@@ -104,16 +117,5 @@ async function close(): Promise<void> {
 	return this.conn.close();
 }
 
-const db = {
-	init,
-	close,
-	map,
-	units,
-	user,
-	chat,
-	chunks,
-	unitStats,
-	event,
-};
-console.log('dbobject', db)
-module.exports = db;
+exports.init = init;
+exports.close = close;

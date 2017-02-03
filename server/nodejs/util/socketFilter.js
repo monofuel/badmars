@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import Unit from '../unit/unit';
+import type Unit from '../unit/unit';
 
 const unitKeyWhitelist = [
 	'x',

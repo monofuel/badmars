@@ -5,16 +5,11 @@
 //	Licensed under included modified BSD license
 
 import _ from 'lodash';
-import db from '../db/db';
 import logger from '../util/logger';
+import Context from 'node-context';
 import helper from '../util/helper';
 import env from '../config/env';
-import Chunk from './chunk';
-import PlanetLoc from './planetloc';
 import { LAND } from './tiletypes';
-import Unit from '../unit/unit';
-import Context from 'node-context';
-import Client from '../net/client';
 
 import grpc from 'grpc';
 
@@ -53,7 +48,7 @@ type ChunkCacheMapType = {
 	[key: string]: CacheChunkType
 };
 
-export default class Map {
+class Map {
 	name: string;
 	settings: Object;
 	lastTickTimestamp: number;
@@ -861,3 +856,18 @@ export default class Map {
 		this.settings = _.cloneDeep(defaultSettings);
 	}
 }
+console.log('exporting map');
+module.exports = Map;
+
+import { checkEmptyImport } from '../util/helper';
+
+const Chunk = require('./chunk');
+checkEmptyImport(Chunk, 'Chunk', 'map.js');
+const PlanetLoc = require('./planetloc');
+checkEmptyImport(PlanetLoc, 'PlanetLoc', 'map.js');
+const Unit = require('../unit/unit');
+checkEmptyImport(Unit, 'Unit', 'map.js');
+const Client = require('../net/client');
+checkEmptyImport(Client, 'Client', 'map.js');
+const db = require('../db/db');
+checkEmptyImport(db,'db', 'map.js');

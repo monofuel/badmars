@@ -5,7 +5,6 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import User from '../user/user';
 import {safeCreateTable, safeCreateIndex} from './helper';
 
 class DBUser {
@@ -73,3 +72,5 @@ class DBUser {
 
 const user = new DBUser();
 export default user;
+
+const User = require('../user/user');

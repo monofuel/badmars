@@ -8,12 +8,11 @@ import WebSocket from 'ws';
 import _ from 'lodash';
 
 import logger from '../util/logger';
-import authHandler from '../net/handler/auth';
-import Map from '../map/map';
 import filter from '../util/socketFilter';
 import Context from 'node-context';
 import hat from 'hat';
-import User from '../user/user';
+import type User from '../user/user';
+import type Map from '../map/map';
 
 const KEEP_ALIVE = 5000;
 
@@ -36,7 +35,7 @@ class Client {
 		this.ws = ws;
 		this.auth = false;
 		this.handlers = {};
-		this.handlers['login'] = authHandler;
+		this.handlers['login'] = require('./handler/auth').default;
 
 		ws.on('message', (msg: string) => {
 			this.handleFromClient(msg);

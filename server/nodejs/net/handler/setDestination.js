@@ -9,7 +9,7 @@ import logger from '../../util/logger';
 import Context from 'node-context';
 import Client from '../client';
 
-async function setDestination(ctx: Context, client: Client, data: Object): Promise<void> {
+export default async function setDestination(ctx: Context, client: Client, data: Object): Promise<void> {
 	if(!data.unitId) {
 		return client.sendError('setDestination', 'no unit specified');
 	}
@@ -35,5 +35,3 @@ async function setDestination(ctx: Context, client: Client, data: Object): Promi
 		client.sendError('setDestination', 'server error');
 	}
 }
-
-module.exports = setDestination;

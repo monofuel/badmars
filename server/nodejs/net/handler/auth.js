@@ -4,36 +4,23 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import type Client from '../client';
 import Context from 'node-context';
-import type Map from '../../map/map';
-import type User from '../../user/user';
 import logger from '../../util/logger';
+import { checkEmptyImport } from '../../util/helper';
 
-import GetPlayers from './getPlayers';
-import GetUnits from './getUnits';
-import GetMap from './getMap';
-import GetChunk from './getChunk';
-import CreateGhost from './createGhost';
-import Spawn from './spawn';
-import SetDestination from './setDestination';
-import UnitStats from './unitStats';
-import FactoryOrder from './factoryOrder';
-import TransferResource from './transferResource';
-import SendChat from './sendChat';
-
+checkEmptyImport(logger, 'logger', 'auth.js')
 function mountUserHandlers(client: Client) {
-	client.handlers['getPlayers'] = GetPlayers;
-	client.handlers['getUnits'] = GetUnits;
-	client.handlers['getMap'] = GetMap;
-	client.handlers['getChunk'] = GetChunk;
-	client.handlers['createGhost'] = CreateGhost;
-	client.handlers['spawn'] = Spawn;
-	client.handlers['setDestination'] = SetDestination;
-	client.handlers['unitStats'] = UnitStats;
-	client.handlers['factoryOrder'] = FactoryOrder;
-	client.handlers['transferResource'] = TransferResource;
-	client.handlers['sendChat'] = SendChat;
+	client.handlers['getPlayers'] = require('./getPlayers').default;
+	client.handlers['getUnits'] = require('./getUnits').default;
+	client.handlers['getMap'] = require('./getMap').default;
+	client.handlers['getChunk'] = require('./getChunk').default;
+	client.handlers['createGhost'] = require('./createGhost').default;
+	client.handlers['spawn'] = require('./spawn').default;
+	client.handlers['setDestination'] = require('./setDestination').default;
+	client.handlers['unitStats'] = require('./unitStats').default;
+	client.handlers['factoryOrder'] = require('./factoryOrder').default;
+	client.handlers['transferResource'] = require("./transferResource").default;
+	client.handlers['sendChat'] = require('./sendChat').default;
 
 	client.registerUnitListener();
 	client.registerEventHandler();
@@ -101,5 +88,12 @@ export default async function auth(ctx: Context, client: Client, data: Object): 
 
 };
 
+const Client = require('../client');
+checkEmptyImport(Client, 'client', 'auth.js');
+const Map = require('../../map/map');
+checkEmptyImport(Map, 'map', 'auth.js');
+const User = require('../../user/user');
+checkEmptyImport(User, 'user', 'auth.js');
+
 const db = require('../../db/db');
-console.log('DB', db);
+checkEmptyImport(db, 'db', 'auth.js');

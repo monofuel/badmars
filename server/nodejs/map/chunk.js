@@ -4,7 +4,6 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../db/db';
 import env from '../config/env';
 import logger from '../util/logger';
 import Context from 'node-context';
@@ -15,20 +14,12 @@ import _ from 'lodash';
 import Alea from 'alea';
 
 import { LAND, CLIFF, WATER, COAST } from './tiletypes';
-import Unit from '../unit/unit';
-import PlanetLoc from './planetloc';
-
-
-import DBChunk from '../db/chunk';
-import DBUnit from '../db/unit';
-import Map from './map';
-
 
 type EntityMapType = {
 	[key: TileHash]: UUID
 };
 
-export default class Chunk {
+class Chunk {
 	x: number;
 	y: number;
 	hash: string;
@@ -415,3 +406,17 @@ export default class Chunk {
 		return db.map.getMap(ctx, this.map);
 	}
 }
+console.log('exporting chunk');
+module.exports = Chunk;
+
+import { checkEmptyImport } from '../util/helper.js';
+
+const Unit = require('../unit/unit');
+checkEmptyImport(Unit, 'Unit', 'chunk.js');
+const PlanetLoc = require('./planetloc');
+checkEmptyImport(PlanetLoc, 'PlanetLoc', 'chunk.js');
+
+import type DBChunk from '../db/chunk';
+import type DBUnit from '../db/unit';
+import type Map from './map';
+const db = require('../db/db');
