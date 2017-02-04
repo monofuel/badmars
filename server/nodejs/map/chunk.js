@@ -49,6 +49,7 @@ class Chunk {
 	//TODO should be refactored neater
 	//the old server never actually did world generation and left it to the client.
 	async generate(ctx: Context): Promise<void> {
+		logger.checkContext(ctx, 'generate');
 		//console.log('generating chunk ' + this.hash);
 		const map = await this.getMap(ctx);
 
@@ -59,12 +60,12 @@ class Chunk {
 		const medNoiseGenerator = new SimplexNoise(new Alea(map.seed * 79)); //random prime provided by brian
 		const smallNoiseGenerator = new SimplexNoise(new Alea(map.seed * 13)); //random prime provided by kir
 		this.chunkSize = map.settings.chunkSize;
-		for (let i = 0; i < self.chunkSize + 1; i++) {
+		for (let i = 0; i < this.chunkSize + 1; i++) {
 			this.grid.push([]);
-			const x = (self.x * self.chunkSize) + i;
-			for (let j = 0; j < self.chunkSize + 1; j++) {
+			const x = (this.x * this.chunkSize) + i;
+			for (let j = 0; j < this.chunkSize + 1; j++) {
 				logger.checkContext(ctx, 'generating chunk tiles');
-				const y = (self.y * self.chunkSize) + j;
+				const y = (this.y * this.chunkSize) + j;
 				//dear god sorry this is so ugly, just porting over the same logic from the last generator that was on the client.
 				let height = bigNoiseGenerator.noise2D(x * map.settings.bigNoise, y * map.settings.bigNoise) * map.settings.bigNoiseScale;
 				height = height + medNoiseGenerator.noise2D(x * map.settings.medNoise, y * map.settings.medNoise) * map.settings.medNoiseScale;
@@ -81,15 +82,15 @@ class Chunk {
 		//-------------------------------------------------
 		//figure out the type of each tile
 
-		for (let i = 0; i < self.chunkSize; i++) {
-			self.navGrid.push([]);
-			for (let j = 0; j < self.chunkSize; j++) {
+		for (let i = 0; i < this.chunkSize; i++) {
+			this.navGrid.push([]);
+			for (let j = 0; j < this.chunkSize; j++) {
 				logger.checkContext(ctx, 'generating chunk types');
 				const corners = [
-					self.grid[i][j],
-					self.grid[i + 1][j],
-					self.grid[i][j + 1],
-					self.grid[i + 1][j + 1]
+					this.grid[i][j],
+					this.grid[i + 1][j],
+					this.grid[i][j + 1],
+					this.grid[i + 1][j + 1]
 				];
 
 				let underwater = 0;
@@ -110,19 +111,19 @@ class Chunk {
 					type = COAST;
 				}
 
-				self.navGrid[i].push(type);
+				this.navGrid[i].push(type);
 			}
 		}
 		//-------------------------------------------------
 		//spawn resources
 		const resourceAlea = new Alea(map.seed * this.x * this.y);
-		for (let i = 0; i < self.chunkSize; i++) {
-			const x = (self.x * self.chunkSize) + i;
-			for (let j = 0; j < self.chunkSize; j++) {
+		for (let i = 0; i < this.chunkSize; i++) {
+			const x = (this.x * this.chunkSize) + i;
+			for (let j = 0; j < this.chunkSize; j++) {
 				logger.checkContext(ctx, 'generating chunk resources');
-				const y = (self.y * self.chunkSize) + j;
+				const y = (this.y * this.chunkSize) + j;
 
-				if (self.navGrid[i][j] != LAND) {
+				if (this.navGrid[i][j] != LAND) {
 					continue;
 				}
 
@@ -133,7 +134,7 @@ class Chunk {
 					if (!unit) {
 						logger.info('failed to spawn iron');
 					} else {
-						self.resources[unit.location.hash[0]] = unit.uuid;
+						this.resources[unit.location.hash[0]] = unit.uuid;
 					}
 
 				} else if (resourceAlea() < map.settings.oilChance) {
@@ -143,7 +144,7 @@ class Chunk {
 					if (!unit) {
 						logger.info('failed to spawn oil');
 					} else {
-						self.resources[unit.location.hash[0]] = unit.uuid;
+						this.resources[unit.location.hash[0]] = unit.uuid;
 					}
 				}
 			}
@@ -156,6 +157,7 @@ class Chunk {
 	}
 
 	async getUnitsMap(ctx: Context, hash: TileHash): Promise<UnitMap> {
+		logger.checkContext(ctx,'getUnitsMap');
 		await this.refresh(ctx);
 		const uuids = [];
 		let uuid = this.units[hash];
@@ -178,9 +180,9 @@ class Chunk {
 	}
 
 	async getUnits(ctx: Context): Promise<Array<Unit>> {
-
+		logger.checkContext(ctx,'getUnits');
 		await this.refresh(ctx);
-		const unitUuids = _.union(_.map(this.resources), _.map(this.units), _.map(this.airUnits));
+		const unitUuids: Array<UUID> = _.union(_.map(this.resources), _.map(this.units), _.map(this.airUnits));
 
 		//fast units list
 		return this.getUnitDB().getUnits(ctx, unitUuids);
@@ -196,15 +198,16 @@ class Chunk {
 	//not fully working yet
 	//moveUnit tries to move a unit, and returns success
 	async moveUnit(ctx: Context, unit: Unit, newTile: PlanetLoc): Promise<Success> {
-		await this.refresh();
-		const oldTiles = await unit.getLocs();
+		logger.checkContext(ctx, 'moveUnit');
+		await this.refresh(ctx);
+		const oldTiles = await unit.getLocs(ctx);
 
 		let success = await newTile.chunk.getChunkDB().setUnit(ctx,newTile.chunk, unit.uuid, newTile.hash);
 		if (!success) {
 			return false;
 		}
-		const newChunk = newTile.chunk;
-		await newChunk.refresh();
+		const newChunk: Chunk = newTile.chunk;
+		await newChunk.refresh(ctx);
 		if (unit.uuid !== newChunk.units[newTile.hash]) {
 			logger.info('wrong new position', { hash: newTile.hash, uuid: unit.uuid, otherUuid: newChunk.units[newTile.hash] });
 			return false;
@@ -219,6 +222,7 @@ class Chunk {
 
 	}
 
+	//TODO contexts
 	async clearUnit(uuid: UUID, tileHash: TileHash): Promise<Success> {
 		const table = db.chunks[this.map].getTable();
 		const conn = db.chunks[this.map].getConn();
@@ -245,6 +249,7 @@ class Chunk {
 	}
 
 	async addUnit(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<Success> {
+		logger.checkContext(ctx, 'addUnit');
 		const success = await this.getChunkDB().setUnit(ctx, this, uuid, tileHash);
 		if (!success) {
 			logger.info('failed putting unit to chunk');
@@ -263,6 +268,7 @@ class Chunk {
 
 
 	async addResource(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<Success> {
+		logger.checkContext(ctx, 'addResource');
 		const success = await this.getChunkDB().setResource(ctx, this, uuid, tileHash);
 		if (!success) {
 			return false;
@@ -278,11 +284,12 @@ class Chunk {
 		return true;
 	}
 
-	async validate(): Promise<void> {
+	async validate(ctx: Context): Promise<void> {
+		logger.checkContext(ctx, 'validate');
 		if (!env.debug) {
 			return;
 		}
-		await this.refresh();
+		await this.refresh(ctx);
 
 		const invalid = (reason: string) => {
 			throw new Error(this.hash + ': ' + reason);
@@ -339,7 +346,7 @@ class Chunk {
 
 
 				const loc = await unit.getLoc();
-				await loc.chunk.refresh();
+				await loc.chunk.refresh(ctx);
 				if (!this.equals(loc.chunk)) {
 					invalid('unit on wrong chunk');
 				}
@@ -380,11 +387,15 @@ class Chunk {
 	}
 
 	async refresh(ctx: Context): Promise<void> {
+		if (!ctx) {
+			logger.errorWithInfo('missing context');
+		}
 		const fresh = await db.chunks[this.map].getChunk(ctx, this.x, this.y);
 		this.clone(fresh);
 	}
 
 	async getTiles(ctx: Context): Promise<Array<PlanetLoc>> {
+		logger.checkContext(ctx, 'getTiles');
 		const map = await this.getMap(ctx, this.map);
 		const tiles = [];
 		for (let i = 0; i < this.chunkSize; i++) {

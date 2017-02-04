@@ -18,6 +18,7 @@ async function actionable(): Promise<boolean> {
 }
 
 async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
+	logger.checkContext(ctx, 'simulate');
 
 	if(await unit.tickMovement()) {
 		//console.log('movement cooldown: ' + unit.movementCooldown);
@@ -48,7 +49,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		//1.01 is 1 for the unit, + 0.01 for float fudge factor (ffffffffffff)
 		if(transferUnit.distance(unit) > Math.max(unit.details.size, transferUnit.details.size) + 1.05) {
 			//if it is not nearby, keep pathing.
-			const tiles: Array<PlanetLoc> = await transferUnit.getLocs();
+			const tiles: Array<PlanetLoc> = await transferUnit.getLocs(ctx);
 			const tile = await map.getNearestFreeTile(ctx, tiles[0], unit, true);
 			if (!tile) {
 				return;

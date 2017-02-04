@@ -73,16 +73,21 @@ class Map {
 	}
 
 	async getChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
+		if (!ctx) {
+			logger.errorWithInfo('missing context');
+		}
 		x = parseInt(x);
 		y = parseInt(y);
 		const self = this;
 		logger.checkContext(ctx, 'getChunk');
 		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
-		const cacheChunk = this.getChunkFromCache(x + ':' + y);
+		const cacheChunk: CacheChunkType = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
 			logger.addSumStat('cacheChunkHit', 1);
-			return cacheChunk;
+			console.log('hit', x, y)
+			return cacheChunk.chunk;
 		} else {
+			console.log('miss', x, y)
 			logger.addSumStat('cacheChunkMiss', 1);
 		}
 
@@ -108,13 +113,16 @@ class Map {
 				resolve(chunk);
 			});
 		}).catch((err: Error): Promise<Chunk> => {
-			logger.errorWithInfo('failed to get chunk, retrying', { x, y, err });
+			logger.info('failed to get chunk, retrying', { x, y, err });
 			helper.sleep(50);
 			return self.getChunk(ctx, x, y);
 		});
 	}
 
 	async fetchOrGenChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
+		if (!ctx) {
+			logger.errorWithInfo('missing context');
+		}
 
 		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
 		const cacheChunk = this.getChunkFromCache(x + ':' + y);
@@ -124,12 +132,12 @@ class Map {
 		} else {
 			logger.addSumStat('cacheChunkMiss', 1);
 		}
-		let chunk = await db.chunks[this.name].getChunk(x, y);
+		let chunk: Chunk = await db.chunks[this.name].getChunk(ctx, x, y);
 
-		if (!chunk || !chunk.isValid()) {
+		if (!chunk) {
 			logger.addSumStat('generatingChunk', 1);
 			chunk = new Chunk(x, y, this.name);
-			await chunk.save();
+			await chunk.save(ctx);
 		}
 		this.addChunkToCache(chunk);
 		return chunk;
@@ -168,6 +176,9 @@ class Map {
 	}
 
 	async getLoc(ctx: Context, x: number, y: number): Promise<PlanetLoc> {
+		if (!ctx) {
+			logger.errorWithInfo('missing context');
+		}
 		const real_x = Math.floor(x);
 		const real_y = Math.floor(y);
 		let chunkX = Math.floor(real_x / this.settings.chunkSize);
@@ -199,7 +210,8 @@ class Map {
 	}
 
 	async spawnUnit(ctx: Context, newUnit: Unit): Promise<?Unit> {
-		for (const loc of await newUnit.getLocs()) {
+		logger.checkContext(ctx, 'spawnUnit');
+		for (const loc of await newUnit.getLocs(ctx)) {
 			if (!await this.checkValidForUnit(ctx, loc, newUnit)) {
 				return null;
 			} else {
@@ -219,6 +231,10 @@ class Map {
 	}
 
 	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise<? Unit> {
+		logger.checkContext(ctx, 'spawnAndValidate');
+		if (!newUnit) {
+			logger.errorWithInfo('missing unit')
+		}
 		const unit = await db.units[this.name].addUnit(ctx, newUnit);
 		const success = await unit.addToChunks(ctx);
 		if (!success) {
@@ -226,7 +242,7 @@ class Map {
 			await unit.delete();
 			return null;
 		}
-		await unit.validate();
+		await unit.validate(ctx);
 		logger.checkContext(ctx, 'spawnAndvalidate()');
 		return unit;
 	}
@@ -240,7 +256,7 @@ class Map {
 		//TODO handle multi tile units properly
 		let units = [];
 		if (!unit.details.size || unit.details.size === 1) {
-			units = await this.unitsTileCheck(await this.getLocFromHash(ctx, tile.hash), unit.details.ghosting);
+			units = await this.unitsTileCheck(ctx, await this.getLocFromHash(ctx, tile.hash), unit.details.ghosting);
 		} else {
 			const tilesToCheck = [
 				(tile.x - 1) + ':' + (tile.y - 1), (tile.x) + ':' + (tile.y - 1), (tile.x + 1) + ':' + (tile.y - 1),
@@ -248,7 +264,7 @@ class Map {
 				(tile.x - 1) + ':' + (tile.y + 1), (tile.x) + ':' + (tile.y + 1), (tile.x + 1) + ':' + (tile.y + 1)
 			];
 			for (const tileHash of tilesToCheck) {
-				const units2 = await this.unitsTileCheck(await this.getLocFromHash(ctx, tileHash), unit.details.ghosting);
+				const units2 = await this.unitsTileCheck(ctx, await this.getLocFromHash(ctx, tileHash), unit.details.ghosting);
 				for (const unit2 of units2) {
 					units.push(unit2);
 				}
@@ -291,14 +307,15 @@ class Map {
 		return false;
 	}
 
-	async checkOpen(tile: PlanetLoc): Promise<boolean> {
+	async checkOpen(ctx: Context, tile: PlanetLoc): Promise<boolean> {
+		logger.checkContext(ctx, 'checkOpen');
 		//TODO handle air units
-		return (await this.unitsTileCheck(tile, false)).length === 0;
+		return (await this.unitsTileCheck(ctx, tile, false)).length === 0;
 	}
 
-	async unitsTileCheck(tile: PlanetLoc, includeGhosts: ? boolean): Promise<Array<Unit>> {
+	async unitsTileCheck(ctx: Context, tile: PlanetLoc, includeGhosts: ? boolean): Promise<Array<Unit>> {
 		//const units = await tile.chunk.getUnits(tile.hash);
-		const units: Array<Unit> = await db.units[this.name].getUnitsAtTile(tile.hash);
+		const units: Array<Unit> = await tile.getUnits(ctx);
 		if (!includeGhosts) {
 			return _.filter(units, (unit: Unit): boolean => { return !unit.details.ghosting; });
 		} else {
@@ -308,6 +325,7 @@ class Map {
 
 	async spawnUser(ctx: Context, client: Client): Promise<void> {
 		//find a spawn location
+		console.log('finding a spawn location')
 		const chunk: Chunk = await this.findSpawnLocation(ctx);
 
 		//spawn units for them on the chunk
@@ -318,8 +336,8 @@ class Map {
 		/*for (let i = 0; i < 50; i++) {
 			unitsToSpawn.push('tank');
 		}*/
-
 		for (const unitType of unitsToSpawn) {
+			console.log('trying to spawn ', unitType)
 			let success = false;
 			while (!success) {
 				let x = this.settings.chunkSize * Math.random();
@@ -399,6 +417,9 @@ class Map {
 	}
 
 	async getNearbyUnitsFromChunk(ctx: Context, chunkHash: ChunkHash, chunkRange: ? number): Promise<Array<Unit>> {
+		if (!ctx) {
+			logger.errorWithInfo('missing context');
+		}
 		if (!chunkRange) {
 			chunkRange = env.chunkExamineRange;
 		}
@@ -407,12 +428,15 @@ class Map {
 	}
 
 	async getUnitsAtChunks(ctx: Context, chunkHashes: Array<ChunkHash> ): Promise<Array<Unit>> {
+		if (!ctx) {
+			logger.errorWithInfo('missing context');
+		}
 		const units = [];
 		for (const chunkHash of chunkHashes) {
-			const x = parseInt(chunkHash.split(':')[0]);
-			const y = parseInt(chunkHash.split(':')[1]);
-			const chunk = await this.getChunk(ctx, x, y);
-			const chunkUnits = await chunk.getUnits(ctx);
+			const x: number = parseInt(chunkHash.split(':')[0]);
+			const y: number = parseInt(chunkHash.split(':')[1]);
+			const chunk: Chunk = await this.getChunk(ctx, x, y);
+			const chunkUnits: Array<Unit> = await chunk.getUnits(ctx);
 			for (const unit of chunkUnits) {
 				units.push(unit);
 			}
@@ -457,12 +481,12 @@ class Map {
 			}
 		}
 		//only spawn on chunks that are 80% land
-		if (landTiles < self.settings.chunkSize * self.settings.chunkSize * 0.8) {
+		if (landTiles < this.settings.chunkSize * this.settings.chunkSize * 0.8) {
 			return false;
 		}
 		const unitTileChecks = [];
 		for (const tile of tiles) {
-			unitTileChecks.push(self.checkOpen(tile));
+			unitTileChecks.push(this.checkOpen(ctx, tile));
 		}
 		const tileChecks = await Promise.all(unitTileChecks);
 
@@ -731,7 +755,8 @@ class Map {
 	//TODO should have an option to find the tile that is nearest to the unit
 	//rather than to center (which it does now)
 	async getNearestFreeTile(ctx: Context, center: PlanetLoc, unit?: Unit, includeGhosts?: boolean): Promise<?PlanetLoc> {
-		const unitsOnTile: Array<Unit> = await this.unitsTileCheck(center, includeGhosts);
+		logger.checkContext(ctx, 'getNearestFreeTile');
+		const unitsOnTile: Array<Unit> = await this.unitsTileCheck(ctx, center, includeGhosts);
 
 		//check if the tile we are checking is already free
 		if (unitsOnTile.length == 0 && center.tileType == LAND) {
@@ -772,7 +797,7 @@ class Map {
 				if (containsTile(closed, openTile)) {
 					continue;
 				}
-				const unitsOnTile = await this.unitsTileCheck(openTile, includeGhosts);
+				const unitsOnTile = await this.unitsTileCheck(ctx, openTile, includeGhosts);
 				for (const tileUnit of unitsOnTile) {
 					if (unit && unit.uuid === tileUnit.uuid) {
 						return openTile; //unit is already on tile
@@ -863,11 +888,15 @@ import { checkEmptyImport } from '../util/helper';
 
 const Chunk = require('./chunk');
 checkEmptyImport(Chunk, 'Chunk', 'map.js');
+
 const PlanetLoc = require('./planetloc');
 checkEmptyImport(PlanetLoc, 'PlanetLoc', 'map.js');
+
 const Unit = require('../unit/unit');
 checkEmptyImport(Unit, 'Unit', 'map.js');
+
 const Client = require('../net/client');
 checkEmptyImport(Client, 'Client', 'map.js');
+
 const db = require('../db/db');
 checkEmptyImport(db,'db', 'map.js');

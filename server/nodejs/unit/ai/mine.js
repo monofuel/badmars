@@ -33,7 +33,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		await unit.update(ctx, { storage: { resourceCooldown: env.resourceTicks } });
 
 		const tile: PlanetLoc = await map.getLocFromHash(ctx, unit.location.hash[0]);
-		const unitsAtTile: Array<Unit> = await map.unitsTileCheck(tile);
+		const unitsAtTile: Array<Unit> = await map.unitsTileCheck(ctx, tile);
 		//get the iron or oil at the location
 		let resource: ? Unit = null;
 		for(const otherUnit of unitsAtTile) {

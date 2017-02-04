@@ -103,7 +103,7 @@ class Client {
 		const ctx = new Context({ uuid, timeout: 1000 });
 		//console.log('received' + data);
 		const data: Object = JSON.parse(dataText);
-
+		console.log(data.type);
 		if(!data.type || !this.handlers[data.type]) {
 			this.sendError('invalid', 'invalid request');
 			return;

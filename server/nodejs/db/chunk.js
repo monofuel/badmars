@@ -7,6 +7,7 @@
 import r from 'rethinkdb';
 import Context from 'node-context';
 import {safeCreateTable, startDBCall} from './helper';
+import logger from '../util/logger';
 
 class DBChunk {
 	conn: r.Connection;
@@ -82,7 +83,7 @@ class DBChunk {
 	//update a specific entity location for a specific layer
 	//note: layers must have different names than other values on chunk for now
 	async setEntity(ctx: Context, chunk: Chunk, uuid: UUID, layer: string, tileHash: TileHash): Promise<Success> {
-
+		logger.checkContext(ctx,'setEntity');
 		const entityUpdate = {};
 		entityUpdate[tileHash] = uuid; //copy to save to DB
 		// $FlowFixMe: layers should probably be in their own map that won't conflict

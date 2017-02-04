@@ -16,7 +16,7 @@ stats.init();
 let moduleName = 'monolith';
 
 //list of modules to output logs for STDOUT
-const DEBUG_MODULES = ['net', 'ai'];
+const DEBUG_MODULES = ['net', 'ai', 'chunk'];
 console.log('=========================');
 console.log('DEBUGGING MODULES:', DEBUG_MODULES);
 console.log('=========================');
@@ -54,7 +54,8 @@ function handleError(err: Error, msg?: string) {
 }
 
 //throw a generic error message, but log specific information for debugging
-function errorWithInfo(msg: string, details: Object) {
+function errorWithInfo(msg: string, details: Object = {}) {
+	details.stack = (new Error().stack);
 	info(msg, details);
 	throw new Error(msg);
 }
@@ -98,6 +99,9 @@ function info(info: string, body?: Object, silent?: boolean) {
 // functions
 
 function checkContext(ctx: Context, msg: string) {
+	if (!ctx) {
+		throw new Error('missing context: ' + msg);
+	}
 	if(!ctx.cancelled) {
 		return;
 	}

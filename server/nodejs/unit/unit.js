@@ -182,6 +182,7 @@ class Unit {
 	}
 
 	async simulate(ctx: Context): Promise<void> {
+		logger.checkContext(ctx, 'simulate');
 		//TODO pass context through stuff
 		//------------------
 		// init
@@ -271,11 +272,12 @@ class Unit {
 
 
 	async update(ctx: Context, patch: Object): Promise<void> {
+		logger.checkContext(ctx, 'update');
 		//TODO also update this object
 		//assume the object will be awake, unless we are setting it false
 		patch.awake = patch.awake || patch.awake === undefined;
 		await db.units[this.location.map].updateUnit(this.uuid, patch);
-		this.validate();
+		this.validate(ctx);
 	}
 
 	async delete(): Promise<void> {
@@ -594,10 +596,11 @@ class Unit {
 	}
 
 	async validate(ctx: Context): Promise<void> {
+		logger.checkContext(ctx, 'validate');
 		if (!env.debug) {
 			return;
 		}
-		await this.refresh();
+		await this.refresh(ctx);
 
 		const invalid = (reason: string) => {
 			throw new Error(this.uuid + ': ' + reason);
@@ -650,9 +653,9 @@ class Unit {
 
 		}
 
-		const planetLocs = await this.getLocs();
+		const planetLocs = await this.getLocs(ctx);
 		for (const loc of planetLocs) {
-			await loc.validate();
+			await loc.validate(ctx);
 		}
 
 		const map = await this.getMap(ctx);
@@ -707,6 +710,7 @@ class Unit {
 	}
 
 	async getLocs(ctx: Context): Promise<Array<PlanetLoc>> {
+		logger.checkContext(ctx, 'getLocs');
 		const promises: Array<Promise<PlanetLoc>> = [];
 		const map: Map = await this.getMap(ctx);
 		this.location.hash.forEach((hash: TileHash) => {
@@ -717,6 +721,7 @@ class Unit {
 		return Promise.all(promises);
 	}
 	async getChunks(ctx: Context): Promise<Array<Chunk>> {
+		logger.checkContext(ctx, 'getChunks');
 		const promises: Array<Promise<Chunk>> = [];
 		const map: Map = await this.getMap(ctx);
 		this.location.chunkHash.forEach((hash: TileHash) => {
@@ -754,6 +759,7 @@ class Unit {
 	}
 
 	async clearFromChunks(ctx: Context): Promise<Success> {
+		logger.checkContext(ctx, 'clearFromChunks');
 		const locs = await this.getLocs(ctx);
 		let success = true;
 		for (const loc of locs) {

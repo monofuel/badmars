@@ -10,6 +10,9 @@ services:
     links:
       - rethinkdb
       - ai
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
   dashboard:
     build:
       context: .
@@ -23,42 +26,56 @@ services:
       - '8090:8090'
   chunk:
     build: .
-    command: bash -c 'cd server/nodejs && nodemon -L chunk.js'
+    command: bash -c 'cd server/nodejs && supervisor chunk.js'
     volumes:
       - ./server:/badmars/server
     links:
       - rethinkdb
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
   ai:
     build: .
-    command: bash -c 'cd server/nodejs && nodemon -L ai.js'
+    command: bash -c 'cd server/nodejs && supervisor ai.js'
     volumes:
       - ./server:/badmars/server
     links:
       - rethinkdb
       - chunk
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
   pathfinder:
     build: .
-    command: bash -c 'cd server/nodejs && nodemon -L pathfinder.js'
+    command: bash -c 'cd server/nodejs && supervisor pathfinder.js'
     volumes:
       - ./server:/badmars/server
     links:
       - rethinkdb
       - chunk
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
   validator:
     build: .
-    command: bash -c 'cd server/nodejs && nodemon -L validator.js'
+    command: bash -c 'cd server/nodejs && supervisor -n validator.js'
     volumes:
       - ./server:/badmars/server
     links:
       - rethinkdb
       - chunk
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
   web:
     build: .
-    command: bash -c 'cd server/nodejs && nodemon -L web.js & make watchClient'
+    command: bash -c 'cd server/nodejs && supervisor web.js & make watchClient'
     volumes:
       - ./server:/badmars/server
       - ./client:/badmars/client
     environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
       - BADMARS_WS_SERVER=ws://192.168.11.119
     ports:
       - "3002:3002"
@@ -66,13 +83,16 @@ services:
       - rethinkdb
   net:
     build: .
-    command: bash -c 'cd server/nodejs && nodemon -L net.js'
+    command: bash -c 'cd server/nodejs && supervisor net.js'
     volumes:
       - ./server:/badmars/server
     ports:
       - "7005:7005"
     links:
       - rethinkdb
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
   rethinkdb:
     image: rethinkdb
     ports:

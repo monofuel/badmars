@@ -10,6 +10,7 @@ import Context from 'node-context';
 
 import env from '../config/env';
 import logger from '../util/logger';
+import _ from 'lodash';
 
 import type Map from './map';
 import type Chunk from './chunk';
@@ -37,6 +38,9 @@ class PlanetLoc {
 	constructor(map: Map, chunk: Chunk, x: number, y: number) {
 		if(!map) {
 			logger.errorWithInfo('invalid planetLoc', { x, y });
+		}
+		if (!chunk) {
+			logger.errorWithInfo('missing chunk', { x, y });
 		}
 
 		this.x = Math.floor(x);
@@ -77,6 +81,14 @@ class PlanetLoc {
 
 		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 	}
+	
+	async getUnits(ctx: Context): Promise<Array<Unit>> {
+		logger.checkContext(ctx, 'getUnits');
+		const unitMap = await this.chunk.getUnits(ctx);
+		return _.filter(unitMap,(unit) => unit.details.hash === this.hash)
+		
+	}
+	
 	toString(): string {
 		let line = 'x: ' + this.x;
 		line += ', y: ' + this.y;

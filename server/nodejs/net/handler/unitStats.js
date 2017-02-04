@@ -9,7 +9,7 @@ import Context from 'node-context';
 import Client from '../client';
 
 export default async function getUnitStats(ctx: Context, client: Client): Promise<void> {
-	const units = await db.unitStats[client.planet.name].getAll();
+	const units = await db.unitStats[client.planet.name].getAll(ctx);
 	client.send('unitStats', { units });
 
 	// TODO redo this for DB stuff

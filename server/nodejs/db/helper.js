@@ -80,7 +80,7 @@ export async function clearSpareIndices(conn: r.Connection, table: r.Table, vali
 	}
 }
 
-export async function startDBCall(ctx: Context, name: string): Promise<DBCall> {
+export function startDBCall(ctx: Context, name: string): DBCall {
 	if (!ctx) {
 		throw new Error('missing context');
 	}

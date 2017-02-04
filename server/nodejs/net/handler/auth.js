@@ -31,6 +31,7 @@ function mountUserHandlers(client: Client) {
 
 // TODO refactor this code to use await
 export default async function auth(ctx: Context, client: Client, data: Object): Promise<void> {
+	logger.checkContext(ctx, 'auth');
 
 	if(!data.planet) { //TODO change from planet to map
 		client.sendError('login', 'specify a planet');
