@@ -5,17 +5,11 @@
 // 2-7-2016
 
 
-import {
-	registerListener
-} from '../net.js';
-import {
-	map
-} from '../client.js';
-import {
-	Entity
-} from "../units/entity.js";
+import { registerListener } from '../net.js';
+import { map } from '../client.js';
+import { Entity } from "../units/entity.js";
 
-var units = {};
+let units = {};
 
 function updateUnitsListener(data) {
 	console.log('new units data', data.units);
@@ -33,10 +27,8 @@ export function updateUnit(unit: any) {
 		for (var key of Object.keys(unitInfo)) {
 			unit[key] = unitInfo[key];
 		}
-		if (unit.maxHealth && !unit.health) {
-			unit.health = unit.maxHealth;
-		}
-	} else if (unit.type !== 'iron' && unit.type !== 'oil'){
+
+	} else {
 		console.log('MISSING UNIT DATA FOR ' + unit.type);
 	}
 }

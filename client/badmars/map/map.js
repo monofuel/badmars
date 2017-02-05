@@ -4,62 +4,16 @@
 // monofuel
 // 2-7-2016
 
-import {
-	PlanetLoc
-} from './planetLoc.js';
-import {
-	TILE_LAND,
-	TILE_WATER,
-	TILE_CLIFF,
-	TILE_COAST
-} from './tileTypes.js';
-import {
-	Entity
-} from '../units/entity.js';
-import {
-	display,
-	playerInfo
-} from '../client.js';
-import {
-	Display,
-} from '../display.js';
-import {
-	Iron
-} from '../units/iron.js';
-import {
-	Oil
-} from '../units/oil.js';
-import {
-	Tank
-} from '../units/tank.js';
-import {
-	GroundUnit
-} from '../units/groundUnit.js';
-import {
-	Storage
-} from '../units/storage.js'; //oh god so many units so many files dear god why
-import {
-	Builder
-} from '../units/builder.js';
-import {
-	Transport
-} from '../units/transport.js';
-import {
-	Factory
-} from '../units/factory.js';
-import {
-	Wall
-} from '../units/wall.js';
-import {
-	Mine
-} from '../units/mine.js';
-import {
-	N,
-	S,
-	E,
-	W,
-	C
-} from '../units/directions.js';
+import { PlanetLoc } from './planetLoc.js';
+import { TILE_LAND, TILE_WATER, TILE_CLIFF, TILE_COAST } from './tileTypes.js';
+import { Entity } from '../units/entity.js';
+import { display, playerInfo } from '../client.js';
+import { Display } from '../display.js';
+import Iron from '../units/iron.js';
+import Oil from '../units/oil.js';
+import PlayerUnit from '../units/playerUnit.js';
+import GroundUnit from '../units/groundUnit.js';
+import { N, S, E, W, C } from '../units/directions.js';
 
 import {
 	registerListener,
@@ -240,67 +194,24 @@ export class Map {
 				return;
 			}
 
-			var newUnit;
 			console.log('checking unit type');
-			switch (unit.type) { //TODO refactor this. refactor it REAL good.
-				case 'iron':
-					var loc = new PlanetLoc(self, unit.x, unit.y);
-					newUnit = new Iron(loc, unit.rate, unit.uuid);
-					break;
-				case 'oil':
-					var loc = new PlanetLoc(this, unit.x, unit.y);
-					newUnit = new Oil(loc, unit.rate, unit.uuid);
-					break;
-				case 'tank':
-					var loc = new PlanetLoc(self, unit.x, unit.y);
-					newUnit = new Tank(loc, unit.owner, unit.uuid)
-					newUnit.ghosting = unit.ghosting;
-					break;
-				case 'storage':
-					var loc = new PlanetLoc(self, unit.x, unit.y);
-					newUnit = new Storage(loc, unit.owner, unit.uuid)
-					newUnit.ghosting = unit.ghosting;
-					break;
-				case 'factory':
-					var loc = new PlanetLoc(self, unit.x, unit.y);
-					newUnit = new Factory(loc, unit.owner, unit.uuid)
-					newUnit.ghosting = unit.ghosting;
-					break;
-				case 'wall':
-					var loc = new PlanetLoc(self, unit.x, unit.y);
-					newUnit = new Wall(loc, unit.owner, unit.uuid)
-					newUnit.ghosting = unit.ghosting;
-					break;
-				case 'mine':
-					var loc = new PlanetLoc(self, unit.x, unit.y);
-					newUnit = new Mine(loc, unit.owner, unit.uuid)
-					newUnit.ghosting = unit.ghosting;
-					break;
-				case 'builder':
-					var loc = new PlanetLoc(self, unit.x, unit.y);
-					newUnit = new Builder(loc, unit.owner, unit.uuid)
-					newUnit.ghosting = unit.ghosting;
-					break;
-				case 'transport':
-					var loc = new PlanetLoc(self, unit.x, unit.y);
-					newUnit = new Transport(loc, unit.owner, unit.uuid)
-					newUnit.ghosting = unit.ghosting;
-					break;
-				default:
-					console.log('unknown type: ', unit);
-					return;
+			const loc = new PlanetLoc(self, unit.x, unit.y);
+			let newUnit;
+			if (unit.details.owner) {
+				newUnit = new PlayerUnit(loc, unit.details.owner, unit.uuid, unit.details.type);
+			} else {
+				switch (unit.type) {
+					case 'iron':
+						newUnit = new Iron(loc, unit.rate, unit.uuid);
+						break;
+					case 'oil':
+						newUnit = new Oil(loc, unit.rate, unit.uuid);
+						break;
+					default:
+						console.log('unknown type: ', unit);
+						return;
+				}
 			}
-			newUnit.storage = {
-				oil: unit.oil,
-				iron: unit.iron
-			}
-			if (!newUnit.storage.iron) {
-				newUnit.storage.iron = 0;
-			}
-			if (!newUnit.storage.oil) {
-				newUnit.storage.oil = 0;
-			}
-			newUnit.health = unit.health;
 			self.units.push(newUnit);
 
 			fireBusEvent('unit',newUnit);

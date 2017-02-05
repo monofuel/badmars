@@ -47,7 +47,7 @@
 		},
 		"graphical": {
 			"model": "builder.obj",
-			"scale": 1.1
+			"scale": 0.4
 		}
 	},
 	"tank": {
@@ -102,7 +102,7 @@
 		},
 		"graphical": {
 			"model": "mine.obj",
-			"scale": 1
+			"scale": 1.1
 		}
 	},
 	"factory": {
@@ -140,7 +140,7 @@
 		},
 		"graphical": {
 			"model": "transport.obj",
-			"scale": 1
+			"scale": 0.3
 		}
 	},
 	"storage": {
@@ -157,7 +157,7 @@
 		},
 		"graphical": {
 			"model": "storage.obj",
-			"scale": 1
+			"scale": 1.3
 		}
 	},
 	"iron": {
