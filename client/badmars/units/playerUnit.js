@@ -9,7 +9,6 @@ import { PlanetLoc } from '../map/planetLoc.js';
 import { getMesh } from './unitModels.js';
 import { getSound } from '../audio/sound.js';
 import { getPlayerById } from '../net.js';
-import { updateUnit } from './unitBalance.js';
 
 export default class PlayerUnit extends GroundUnit {
 	constructor(location: PlanetLoc, playerId: string, uuid: string, type: string) {
@@ -32,12 +31,8 @@ export default class PlayerUnit extends GroundUnit {
 			color = player.color;
 		}
 
-		super(location, color, type);
+		super(location, uuid, color, type);
 
 		this.fireSound = getSound(type);
-		this.details.type = type;
-		this.uuid = uuid;
-		this.details.owner = playerId;
-		updateUnit(this);
 	}
 }

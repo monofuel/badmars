@@ -27,15 +27,15 @@ const unitKeyWhitelist = [
 module.exports.sanitizeUnit = function sanitizeUnit(unit: Unit): Object {
 
 	//TODO sanitized based on if user owns the unit
-	//TODO this needs to be re-written for unit changes
+	//TODO this needs to be re-written for new unit system
 
 	//whitelist
-	const sanitized = {};
+	/*const sanitized = {};
 	for(const key of unitKeyWhitelist) {
 		// $FlowFixMe: hiding this issue for now
 		sanitized[key] = unit[key];
-	}
-	return sanitized;
+	}*/
+	return unit;
 };
 
 const chunkKeyWhitelist = [

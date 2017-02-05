@@ -22,8 +22,8 @@ export default class GroundUnit extends Entity {
 
 	destHilightPlane: THREE.Mesh;
 
-	constructor(location: PlanetLoc, color: THREE.Color, type: string) {
-		super(location, color, type);
+	constructor(location: PlanetLoc, uuid: string, color: THREE.Color, type: string) {
+		super(location, uuid, color, type);
 		this.nextTile = null;
 		this.moving = false;
 		this.distanceMoved = 0;

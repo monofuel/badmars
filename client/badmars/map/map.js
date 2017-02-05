@@ -13,6 +13,7 @@ import Iron from '../units/iron.js';
 import Oil from '../units/oil.js';
 import PlayerUnit from '../units/playerUnit.js';
 import GroundUnit from '../units/groundUnit.js';
+import { updateUnit } from '../units/unitBalance.js';
 import { N, S, E, W, C } from '../units/directions.js';
 
 import {
@@ -30,9 +31,9 @@ import {
 export class Map {
 	settings: Settings;
 	chunkMap: Object;
-	landMeshes: Array < THREE.Object3D > ;
-	waterMeshes: Array < THREE.Object3D > ;
-	units: Array < Entity > ;
+	landMeshes: Array <THREE.Object3D>;
+	waterMeshes: Array <THREE.Object3D>;
+	units: Array <Entity>;
 	planetData: Object;
 	worldSettings: Object;
 	attackListener: Function;
@@ -79,6 +80,7 @@ export class Map {
 
 		this.chunkListener = (data) => {
 			//console.log('loading chunk');
+			//console.log('got chunk data', data);
 			var chunk = data.chunk;
 			if (self.chunkMap[data.chunk.hash]) {
 				//console.log('CHUNK ALREADY LOADED');
@@ -154,29 +156,24 @@ export class Map {
 		registerListener('units',this.updateUnitsListener);
 
 		window.addUnit = (unit: Object) => {
-			if (unit.type === 'mine') {
-				console.log(unit);
-			}
+			//console.log('adding unit', unit);
 			self.units.forEach((oldUnit: Object) => {
 				if (oldUnit.uuid === unit.uuid) {
-
-					//update monkeypatch
-					//TODO make this more elegant
 					for (let key of Object.keys(unit)) {
 						oldUnit[key] = unit[key];
-						let skipChunk = playerInfo && unit.owner !== playerInfo.id
-						let tile = new PlanetLoc(self,unit.x,unit.y,(playerInfo && unit && unit.owner !== playerInfo.id));
+						let skipChunk = playerInfo && unit.details.owner !== playerInfo.id
+						let tile = new PlanetLoc(self,unit.location.x,unit.location.y,(playerInfo && unit && unit.details.owner !== playerInfo.id));
 
-						if (oldUnit.updateNextMove && !oldUnit.location.equals(tile)) {
-							oldUnit.updateNextMove(tile,oldUnit.speed);
+						if (oldUnit.movable && oldUnit.updateNextMove && !oldUnit.loc.equals(tile)) {
+							oldUnit.updateNextMove(tile,oldUnit.movable.speed);
 						}
 					}
 					//console.log('updating unit');
 					return;
 				}
 			});
-			if (playerInfo && unit.owner !== playerInfo.id) {
-				let tile = new PlanetLoc(self,unit.x,unit.y,true);
+			if (playerInfo && unit.details.owner !== playerInfo.id) {
+				let tile = new PlanetLoc(self, unit.location.x, unit.location.y, true);
 				if (!tile.chunk) {
 					console.log('ignoring unit update, not on loaded chunk', tile);
 					return;
@@ -189,18 +186,18 @@ export class Map {
 				return;
 			}
 
-			if (unit.ghosting && unit.owner != playerInfo.id) {
+			if (unit.details.ghosting && unit.details.owner !== playerInfo.id) {
 				console.log('can see other players ghost: INVALID');
 				return;
 			}
 
-			console.log('checking unit type');
-			const loc = new PlanetLoc(self, unit.x, unit.y);
+			//console.log('checking unit type');
+			const loc = new PlanetLoc(self, unit.location.x, unit.location.y);
 			let newUnit;
 			if (unit.details.owner) {
 				newUnit = new PlayerUnit(loc, unit.details.owner, unit.uuid, unit.details.type);
 			} else {
-				switch (unit.type) {
+				switch (unit.details.type) {
 					case 'iron':
 						newUnit = new Iron(loc, unit.rate, unit.uuid);
 						break;
@@ -212,6 +209,20 @@ export class Map {
 						return;
 				}
 			}
+			
+			for (let key of Object.keys(unit)) {
+				// $FlowFixMe: hiding this issue for now
+				if (!newUnit[key] || newUnit[key] instanceof Object) {
+					// $FlowFixMe: hiding this issue for now
+					newUnit[key] = Object.assign(newUnit[key] || {}, unit[key]);
+				}
+				
+				
+			}
+			
+			updateUnit(newUnit);
+			
+			//console.log('full unit', newUnit);
 			self.units.push(newUnit);
 
 			fireBusEvent('unit',newUnit);
@@ -550,6 +561,7 @@ export class Map {
 
 	requestChunk(x: number, y: number): void {
 		let chunkHash = x + ":" + y;
+		//console.log('requesting chunk', {type:"getChunk",x:x,y:y});
 		if (this.requestedChunks[chunkHash] &&
 				Date.now() - this.requestedChunks[chunkHash] < 5000) {
 			//console.log('HALTING DUPLICATE CHUNK REQUEST');
@@ -559,7 +571,6 @@ export class Map {
 		if (!this.requestedChunks[chunkHash]) {
 			this.requestedChunks[chunkHash] = Date.now();
 		}
-		//console.log('FETCHING CHUNK');
 		window.sendMessage({type:"getChunk",x:x,y:y});
 	}
 

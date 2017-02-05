@@ -99,14 +99,14 @@ export class Entity {
 		factoryQueue: Array<FactoryOrder> ,
 	}
 
-	constructor(loc: PlanetLoc, color: THREE.Color, type: string) {
+	constructor(loc: PlanetLoc, uuid: string, color: THREE.Color, type: string) {
 		if (!loc) {
 			throw new Error('missing location');
 		}
 		if (!color) {
 			throw new Error('missing color');
 		}
-		this.uuid = "";
+		this.uuid = uuid;
 		this.loc = loc;
 		this.unitHeight = 0.25;
 		this.takingDamage = 0;

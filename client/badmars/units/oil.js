@@ -11,8 +11,7 @@ import { getMesh } from './unitModels.js';
 export default class Oil extends Entity {
 	rate: number;
 	constructor(location: PlanetLoc, rate: number, uuid: string) {
-		super(location, 0x181818, 'oil');
-		this.uuid = uuid;
+		super(location, uuid, 0x181818, 'oil');
 		this.rate = rate;
 	}
 }

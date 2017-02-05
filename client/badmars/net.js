@@ -16,14 +16,13 @@ import {
 	setApiKey,
 	version
 } from "./client.js";
-import {
-	Map
-} from "./map/map.js";
+import { Map } from "./map/map.js";
 import {
 	registerBusListener,
 	deleteBusListener,
 	fireBusEvent
 } from './eventBus.js';
+import type { Entity } from './units/entity';
 
 //now set by server as global values
 //const SERVER_URL = "ws://dev.japura.net";
@@ -231,16 +230,16 @@ export class Net {
 							}
 							if (map && map.units && firstLoad) {
 								let hasPlayer = false;
-								for (let unit of map.units) {
-									if (playerInfo && unit.owner === playerInfo.id) {
+								for (let unit: Entity of map.units) {
+									if (playerInfo && unit.details.owner === playerInfo.id) {
 										console.log('FOUND PLAYERS UNITS');
 										hasPlayer = true;
 									}
 								}
-								for (var unit of map.units) {
-									if (unit && display && playerInfo && hasPlayer && unit.playerId && playerInfo.id && unit.playerId == playerInfo.id && isFirstLoad()) {
+								for (var unit: Entity of map.units) {
+									if (unit && display && playerInfo && hasPlayer && unit.details.owner && playerInfo.id && unit.details.owner === playerInfo.id && isFirstLoad()) {
 										console.log('zooming in on unit: ', unit);
-										display.viewTile(unit.location);
+										display.viewTile(unit.loc);
 									}
 								}
 							}

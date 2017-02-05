@@ -11,8 +11,7 @@ import { getMesh } from './unitModels.js';
 export default class Iron extends Entity {
 	rate: number;
 	constructor(location: PlanetLoc, rate: number, uuid: string) {
-		super(location, 0xF8F8F8, 'iron');
-		this.uuid = uuid;
+		super(location, uuid, 0xF8F8F8, 'iron');
 		this.rate = rate;
 	}
 }

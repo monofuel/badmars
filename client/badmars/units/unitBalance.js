@@ -22,14 +22,15 @@ function updateUnitsListener(data) {
 };
 
 export function updateUnit(unit: any) {
-	var unitInfo = getUnitInfo(unit.type);
+	var unitInfo = getUnitInfo(unit.details.type);
 	if (unitInfo) {
 		for (var key of Object.keys(unitInfo)) {
-			unit[key] = unitInfo[key];
+			unit[key] = Object.assign(unit[key] || {}, unitInfo[key]);
 		}
 
 	} else {
-		console.log('MISSING UNIT DATA FOR ' + unit.type);
+		console.error(unit);
+		throw new Error('MISSING UNIT DATA FOR ' + unit.type);
 	}
 }
 
