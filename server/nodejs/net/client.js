@@ -58,7 +58,7 @@ class Client {
 			try {
 				this.ws.ping();
 			} catch(err) {
-				clearInterval(() => this.keepAlive());
+				clearInterval(this.keepAlive);
 			}
 		}, KEEP_ALIVE);
 	}

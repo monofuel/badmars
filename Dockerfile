@@ -13,6 +13,7 @@ ADD . /badmars
 #RUN gulp client
 
 EXPOSE 3002
+EXPOSE 4474
 EXPOSE 7005
 
 ENV BADMARS_DB rethinkdb

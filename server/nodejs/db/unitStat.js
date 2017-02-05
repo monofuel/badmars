@@ -74,11 +74,11 @@ export default class DBUnitStat {
 			// no indexes for this tables
 	}
 
-	async getAll(ctx: Context): Promise<Array<UnitStat>> {
-		const call = await startDBCall(ctx, 'listUnitStats');
-		const array: Array<UnitStat> = await this.table.coerceTo('array').run(this.conn);
-		await call.end();
-		return array;
+	// TODO type this properly
+	async getAll(): Promise<Object> {
+		//TODO zip units from server with units from file
+		//TODO live-update units from database
+		return unitMap;
 	}
 
 	get(type: string): UnitStat {

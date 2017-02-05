@@ -224,13 +224,14 @@ export class Map {
 			if (playerInfo && unit.owner !== playerInfo.id) {
 				let tile = new PlanetLoc(self,unit.x,unit.y,true);
 				if (!tile.chunk) {
-					console.log('ignoring unit update');
+					console.log('ignoring unit update, not on loaded chunk', tile);
 					return;
 				}
 			}
 
 			//console.log(unit);
 			if (!playerInfo || !unit) {
+				console.log('player info or unit missing', { playerInfo, unit });
 				return;
 			}
 
@@ -240,6 +241,7 @@ export class Map {
 			}
 
 			var newUnit;
+			console.log('checking unit type');
 			switch (unit.type) { //TODO refactor this. refactor it REAL good.
 				case 'iron':
 					var loc = new PlanetLoc(self, unit.x, unit.y);
