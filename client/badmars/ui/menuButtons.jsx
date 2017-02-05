@@ -43,12 +43,13 @@ export default class MenuButtons extends React.Component{
 
 	render() {
 		const {selectedUnit,openAboutClicked,constructClicked,factoryConstructClicked} = this.props;
-		const selectedUnitType = selectedUnit ? selectedUnit.type : null
+		const selectedUnitType = selectedUnit ? selectedUnit.details.type : null
 
 		let buttons;
 		let queuePane = <div>Nothing queued</div>;
-		if (selectedUnitType === 'factory' && selectedUnit && selectedUnit.factoryQueue.length > 0) {
-			let buildingUnit = selectedUnit.factoryQueue[0];
+		// TODO refactor all of this using construct.types listing the constructable types
+		if (selectedUnitType === 'factory' && selectedUnit && selectedUnit.construct && selectedUnit.construct.factoryQueue.length > 0) {
+			let buildingUnit = selectedUnit.construct.factoryQueue[0];
 			let remaining = buildingUnit.remaining;
 			let constructing = buildingUnit.cost === 0;
 			queuePane = (
@@ -61,7 +62,7 @@ export default class MenuButtons extends React.Component{
 					}
 					</div>
 					<ul style={{overflow: 'auto', maxHeight: '60%'}}>
-						{selectedUnit.factoryQueue.map((queueElement) => {
+						{selectedUnit.construct.factoryQueue.map((queueElement) => {
 							return <li>{queueElement.type}</li>;
 						})}
 					</ul>

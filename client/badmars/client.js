@@ -4,44 +4,19 @@
 // monofuel
 // 2-7-2016
 
-import {
-	Display
-} from "./display.js";
+import { Display } from "./display.js";
 
-import {
-	Map
-} from "./map/map.js";
-import {
-	Entity
-} from "./units/entity.js";
-import {
-	PlanetLoc
-} from "./map/planetLoc.js";
-import {
-	StatsMonitor
-} from "./statsMonitor.js";
-import {
-	Net,
-	registerListener,
-	deleteListener,
-	getPlayerById
-} from "./net.js";
-import {
-	loadAllModelsAsync
-} from "./units/unitModels.js";
-import {
-	loadAllSounds
-} from "./audio/sound.js";
+import { Map } from "./map/map.js";
+import { Entity } from "./units/entity.js";
+import { PlanetLoc } from "./map/planetLoc.js";
+import { StatsMonitor } from "./statsMonitor.js";
+import { Net, registerListener, deleteListener, getPlayerById } from "./net.js";
+import { loadAllModelsAsync } from "./units/unitModels.js";
+import { loadAllSounds } from "./audio/sound.js";
 import HUD from "./ui/hud.jsx";
 
-import {
-	registerBusListener,
-	deleteBusListener,
-	fireBusEvent
-} from './eventBus.js';
-import {
-	Hilight
-} from './ui/hilight.js';
+import { registerBusListener, deleteBusListener, fireBusEvent } from './eventBus.js';
+import { Hilight } from './ui/hilight.js';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -391,7 +366,7 @@ window.onload = function () {
 
 					var unit = map.getSelectedUnit(mouse);
 					if (unit) {
-						console.log(unit.type + " clicked");
+						console.log(unit.details.type + " clicked");
 						selectedUnit = unit;
 						buttonMode = MODE_MOVE;
 						mouseClick = function (tile) {
@@ -560,7 +535,7 @@ function zoomToNextUnit() {
 					continue;
 				}
 				console.log('zooming in on unit: ', unit);
-				display.viewTile(unit.location);
+				display.viewTile(unit.loc);
 				return unit;
 			}
 		}
@@ -568,7 +543,7 @@ function zoomToNextUnit() {
 			for (var unit of map.units) {
 				if (unit && display && playerInfo && unit.playerId && playerInfo.id && unit.playerId == playerInfo.id) {
 					console.log('zooming in on unit: ', unit);
-					display.viewTile(unit.location);
+					display.viewTile(unit.loc);
 					return unit;
 				}
 			}

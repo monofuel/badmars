@@ -388,17 +388,17 @@ export class Map {
 		return null;
 	}
 
-	nearestStorage(tile: PlanetLoc): ?Storage {
+	nearestStorage(tile: PlanetLoc): ?PlayerUnit {
 		var storages = [];
 		if (!playerInfo || !tile)
 			return;
 		for (var unit of this.units) {
-			if (unit instanceof Storage && unit.playerId == playerInfo.id) {
+			if (unit instanceof PlayerUnit && unit.details.type ===  'storage' && unit.details.owner === playerInfo.id) {
 				storages.push(unit);
 			}
 		}
 		storages.sort((a,b) => {
-			return a.location.distance(tile) - b.location.distance(tile);
+			return a.loc.distance(tile) - b.loc.distance(tile);
 		});
 		if (storages.length > 0) {
 			return storages[0];
@@ -407,12 +407,12 @@ export class Map {
 	}
 
 
-	updateUnitDestination(unitId: string, newLocation: Array < number > , time: number) {
+	updateUnitDestination(unitId: string, newLocation: Array <number> , time: number) {
 		const unit = this.getUnitById(unitId);
 		const x = newLocation[0];
 		const y = newLocation[1];
 		if (unit && unit.updateNextMove) {
-			var tile = new PlanetLoc(unit.location.planet, x, y);
+			const tile = new PlanetLoc(unit.loc.planet, x, y);
 			// $FlowFixMe better flowtyping for entities
 			return unit.updateNextMove(tile, time);
 		}
@@ -535,7 +535,7 @@ export class Map {
 
 		var unitList: Array<Entity> = [];
 		for (var unit of this.units)  {
-			if (frustum.containsPoint(unit.location.getVec()) && unit.playerId == playerInfo.id) {
+			if (frustum.containsPoint(unit.loc.getVec()) && unit.details.owner === playerInfo.id) {
 				unitList.push(unit);
 			}
 		}

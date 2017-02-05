@@ -18,12 +18,12 @@ export default class GroundUnit extends Entity {
 	health: number;
 	maxHealth: number;
 	fireSound: THREE.PositionalAudio;
-	hilightDestinationLocation: string;
+	hilightDestinationLocation: TileHash;
 
 	destHilightPlane: THREE.Mesh;
 
-	constructor(location: PlanetLoc, mesh: THREE.Object3D) {
-		super(location, mesh);
+	constructor(location: PlanetLoc, color: THREE.Color, type: string) {
+		super(location, color, type);
 		this.nextTile = null;
 		this.moving = false;
 		this.distanceMoved = 0;
@@ -39,9 +39,9 @@ export default class GroundUnit extends Entity {
 			}
 			//pew
 			var sound = this.fireSound;
-			var location = this.location;
+			const loc  = this.loc;
 			setTimeout(() => { //work around issue with 'audio already playing'
-				sound.position.copy(location.getLoc());
+				sound.position.copy(loc.getLoc());
 				sound.play();
 			},10);
 
@@ -93,11 +93,11 @@ export default class GroundUnit extends Entity {
 
 
 			if (this.distanceMoved == 1 && this.nextTile) {
-				this.location = this.nextTile;
+				this.loc = this.nextTile;
 				this.moving = false;
-				this.mesh.position.x = this.location.real_x;
-				this.mesh.position.y = this.location.real_z + this.unitHeight;
-				this.mesh.position.z = - this.location.real_y;
+				this.mesh.position.x = this.loc.real_x;
+				this.mesh.position.y = this.loc.real_z + this.unitHeight;
+				this.mesh.position.z = - this.loc.real_y;
 				this.distanceMoved = 0;
 				this.timeToMove = 0;
 				this.nextTile = null;
@@ -106,15 +106,19 @@ export default class GroundUnit extends Entity {
 	}
 
 	hilightDestination() {
-		if (this.destination && (!this.destHilightPlane || this.hilightDestinationLocation !== this.destination)) {
-			let destSplit = this.destination.split(":");
+		if (!this.movable || !this.movable.destination) {
+			return;
+		}
+		const dest: TileHash = this.movable.destination;
+		if (!this.destHilightPlane || this.hilightDestinationLocation !== this.movable.destination) {
+			let destSplit = this.movable.destination.split(":");
 			let x = parseInt(destSplit[0]);
 			let y = parseInt(destSplit[1]);
-			let tile = new PlanetLoc(this.location.planet, x,y);
+			let tile = new PlanetLoc(this.loc.planet, x,y);
 			if (!tile.corners) {
 				return;
 			}
-			this.hilightDestinationLocation = this.destination;
+			this.hilightDestinationLocation = dest;
 
 			var waterHeight = tile.planet.worldSettings.waterHeight + 0.1;
 			var geometry = new THREE.Geometry();
@@ -160,6 +164,6 @@ export default class GroundUnit extends Entity {
 	}
 
 	checkGroundTile(tile: PlanetLoc): boolean {
-		return tile.equals(this.location);
+		return tile.equals(this.loc);
 	}
 }

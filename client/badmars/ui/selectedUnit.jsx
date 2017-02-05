@@ -5,7 +5,7 @@
 // 4-2-2016
 
 import React from 'react';
-import { Button,Modal,Well,ProgressBar,ListGroup,ListGroupItem } from 'react-bootstrap';
+import { Button, Modal, Well, ProgressBar, ListGroup, ListGroupItem } from 'react-bootstrap';
 import { getPlayerById } from '../net.js';
 import {Entity} from '../units/entity.js';
 
@@ -29,23 +29,20 @@ export default class SelectedUnitWell extends React.Component {
 
 	render() {
 		const {selectedUnit} = this.props;
-		let iron = (selectedUnit.iron ? selectedUnit.iron : 0);
-		let fuel = (selectedUnit.fuel ? selectedUnit.fuel : 0);
-		let rate = (selectedUnit.rate ? selectedUnit.rate : 0);
-		let maxHealth = (selectedUnit.maxHealth ? selectedUnit.maxHealth : 0);
+		const iron = (selectedUnit.storage ? selectedUnit.storage.iron : 0);
+		const fuel = (selectedUnit.storage ? selectedUnit.storage.fuel : 0);
+		const rate = (selectedUnit.rate ? selectedUnit.rate : 0);
+		const maxHealth = (selectedUnit.details.maxHealth ? selectedUnit.details.maxHealth : 0);
 
-		let type = selectedUnit.type;
-		let maxStorage = selectedUnit.maxStorage;
-		let ironStorage = (selectedUnit.ironStorage ? selectedUnit.ironStorage : 0);
-		ironStorage = Math.max(iron,ironStorage);
-		let fuelStorage = (selectedUnit.fuelStorage ? selectedUnit.fuelStorage : 0);
-		fuelStorage = Math.max(fuel,fuelStorage);
-		let freeStorage = maxStorage - (iron + fuel);
-		let health = (selectedUnit.health ? selectedUnit.health : 0);;
-		let player = getPlayerById(selectedUnit.playerId);
+		const type = selectedUnit.details.type;
+    const ironStorage = (selectedUnit.storage ? selectedUnit.storage.maxIron : 0);
+		const fuelStorage = (selectedUnit.storage ? selectedUnit.storage.maxFuel : 0);
+
+		let health = (selectedUnit.details.health ? selectedUnit.details.health : 0);;
+		let player = getPlayerById(selectedUnit.details.owner);
 		let playerName = (player ? player.username : "");
 
-		if (selectedUnit.type === 'iron' || selectedUnit.type === 'oil') {
+		if (selectedUnit.details.type === 'iron' || selectedUnit.details.type === 'oil') {
 			return (
 				<div id="SelectedUnitWell">
 			        <Well bsSize="small" style={infoStyle}>
