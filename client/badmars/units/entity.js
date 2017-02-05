@@ -31,32 +31,79 @@ import {
 } from '../client.js';
 
 export class Entity {
-
-	uuid: string;
-	playerId: string;
-	type: string;
+	
+	/* client stuff */
 	mesh: THREE.Object3D;
 	unitHeight: number;
 	location: PlanetLoc;
 	mesh: THREE.OBject3D;
-	health: number;
-	speed: number;
 	selectionCircle: THREE.Object3D;
 	transferCircle: THREE.Object3D;
 	damageSphere: THREE.Object3D;
-	ghosting: boolean;
 	selectionSize: number;
 	takingDamage: number;
-	ironStorage: number;
-	fuelStorage: number;
-	factoryQueue: Array<Object>;
-	destination: string;
-	fuel: number;
-	iron: number;
-	transferRange: number;
-
-	maxStorage: number;
-	storage: Object;
+	
+	/* stuff from server */
+	
+	uuid: string;
+	awake: boolean;
+	
+	details: {
+		type: UnitType,
+		size: number,
+		buildTime: number,
+		cost: number,
+		health: number,
+		maxHealth: number,
+		tick: number,
+		lastTick: number,
+		ghosting: boolean,
+		owner: string,
+	}
+	
+	movable: ? {
+		layer: MovementLayer,
+		speed: number,
+		movementCooldown: number,
+		path: Array<any> , // TODO look up path type
+		pathAttempts: number,
+		pathAttemptAttempts: number,
+		isPathing: boolean,
+		pathUpdate: number,
+		destination: ? TileHash,
+		transferGoal: Object, // TODO why is this an object
+	}
+	attack: ? {
+		layers: Array<MovementLayer> ,
+		range: number,
+		damage: number,
+		fireRate: number,
+		fireCooldown: number,
+	}
+	storage: ? {
+		iron: number,
+		fuel: number,
+		maxIron: number,
+		maxFuel: number,
+		transferRange: number,
+		resourceCooldown: number,
+		transferGoal: ? {
+			iron: ? number,
+			fuel: ? number
+		}
+	}
+	graphical: ? {
+		model: string,
+		scale: number,
+	}
+	stationary: ? {
+		layer: MovementLayer,
+	}
+	construct: ? {
+		types: Array<string> ,
+		constructing: number,
+		factoryQueue: Array<FactoryOrder> ,
+	}
 
 	constructor(location: PlanetLoc, mesh: THREE.Object3D) {
 		this.type = 'entity';
