@@ -32,7 +32,6 @@ type UnitMap = {
 }
 
 type FactoryOrder = {
-	uuid: UUID,
 	type: UnitType,
 	cost: number,
 	remaining: number

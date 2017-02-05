@@ -331,7 +331,7 @@ class Chunk {
 		}
 		for (const tileHash of Object.keys(this.units)) {
 			const uuid = this.units[tileHash];
-			const unit = await db.units[this.map].getUnit(uuid);
+			const unit = await db.units[this.map].getUnit(ctx, uuid);
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
 			}
@@ -358,14 +358,14 @@ class Chunk {
 		}
 
 		_.each(this.resources, (uuid: UUID, tileHash: TileHash) => {
-			const unit = db.units[this.map].getUnit(uuid);
+			const unit = db.units[this.map].getUnit(ctx, uuid);
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
 			}
 		});
 
 		_.each(this.airUnits, (uuid: UUID, tileHash: TileHash) => {
-			const unit = db.units[this.map].getUnit(uuid);
+			const unit = db.units[this.map].getUnit(ctx, uuid);
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
 			}

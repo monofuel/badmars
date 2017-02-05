@@ -84,7 +84,7 @@ class Map {
 		const cacheChunk: CacheChunkType = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
 			logger.addSumStat('cacheChunkHit', 1);
-			console.log('hit', x, y)
+			//console.log('hit', x, y)
 			return cacheChunk.chunk;
 		} else {
 			console.log('miss', x, y)
@@ -235,11 +235,11 @@ class Map {
 		if (!newUnit) {
 			logger.errorWithInfo('missing unit')
 		}
-		const unit = await db.units[this.name].addUnit(ctx, newUnit);
-		const success = await unit.addToChunks(ctx);
+		const unit: Unit = await db.units[this.name].addUnit(ctx, newUnit);
+		const success: boolean = await unit.addToChunks(ctx);
 		if (!success) {
 			logger.info('spawn collision', { unit });
-			await unit.delete();
+			await unit.delete(ctx);
 			return null;
 		}
 		await unit.validate(ctx);
@@ -372,20 +372,26 @@ class Map {
 					unitStorage.fuel = 50;
 					break;
 				}
-
+				try {
 				// https://www.youtube.com/watch?v=eVB8lM-oCSk
 				if (await this.spawnUnit(ctx, unit)) {
 					if (unitType === 'iron' || unitType === 'oil') {
+						//assumes that if we spawn the iron or oil, we can also spawn a mine
 						const mine = new Unit('mine', this, x, y);
 						mine.details.owner = client.user.uuid;
 						if (!await this.spawnUnit(ctx, mine)) {
-							logger.info('failed to spawn ' + unitType);
+							logger.info('failed to spawn', { unitType: 'mine' , x, y });
 						}
 					}
+					logger.info('sucessfully spawned', { unitType, x, y });
 					success = true;
+				}
+				} catch(err) {
+					logger.info('spawning unit failed, retrying in new location', { err, x, y, unitType });
 				}
 			}
 		}
+		logger.info('spawn finished');
 	}
 
 	//find random spawn locations, looking farther away depending on how many attempts tried
@@ -566,7 +572,7 @@ class Map {
 		if (amount > 0 && Object.keys(pulledMap).length > 0) {
 			for (const unit of units) {
 				if (pulledMap[unit.uuid]) {
-					await unit.addIron(pulledMap[unit.uuid]);
+					await unit.addIron(ctx, pulledMap[unit.uuid]);
 				}
 			}
 			return false;
@@ -676,7 +682,7 @@ class Map {
 			if (distance > unitStorage.transferRange && distance > mineStorage.transferRange) {
 				continue;
 			}
-			const deposited = await unit.addIron(amount);
+			const deposited = await unit.addIron(ctx, amount);
 			amount = amount - deposited;
 			if (amount <= 0) {
 				break;
@@ -684,7 +690,7 @@ class Map {
 		}
 		if (amount > 0) {
 			//console.log('depositing iron into mine',amount);
-			await mine.addIron(amount);
+			await mine.addIron(ctx, amount);
 		}
 	}
 
@@ -716,13 +722,13 @@ class Map {
 			if (distance > unitStorage.transferRange && distance > mineStorage.transferRange) {
 				continue;
 			}
-			const deposited = await unit.addFuel(amount);
+			const deposited = await unit.addFuel(ctx, amount);
 			amount = amount - deposited;
 			if (amount <= 0) {
 				break;
 			}
 			if (amount > 0) {
-				await mine.addFuel(amount);
+				await mine.addFuel(ctx, amount);
 			}
 		}
 

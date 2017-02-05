@@ -17,13 +17,13 @@ export default async function setDestination(ctx: Context, client: Client, data:
 		return client.sendError('setDestination', 'no or invalid location set');
 	}
 
-	const unit = await db.units[client.planet.name].getUnit(data.unitId);
+	const unit = await db.units[client.planet.name].getUnit(ctx, data.unitId);
 	if(unit.owner !== client.user.uuid) {
 		return client.sendError('setDestination', 'not your unit');
 	}
 
 	try {
-		const success = await unit.setDestination(data.location[0], data.location[1]);
+		const success = await unit.setDestination(ctx, data.location[0], data.location[1]);
 
 		if(success) {
 			client.send('setDestination');

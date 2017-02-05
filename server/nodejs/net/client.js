@@ -38,14 +38,18 @@ class Client {
 		this.handlers['login'] = require('./handler/auth').default;
 
 		ws.on('message', (msg: string) => {
-			this.handleFromClient(msg);
+			try {
+				this.handleFromClient(msg);
+			} catch (err) {
+				logger.error(err);
+			}
 		});
 		ws.on('error', (err: Error) => {
 			logger.error(err);
 		});
 
 		ws.on('close', () => {
-			self.handleLogOut();
+			this.handleLogOut();
 		});
 
 		this.send('connected');
@@ -54,17 +58,21 @@ class Client {
 			try {
 				this.ws.ping();
 			} catch(err) {
-				clearInterval(self.keepAlive);
+				clearInterval(() => this.keepAlive());
 			}
 		}, KEEP_ALIVE);
 	}
 
 	send(type: string, data?: Object) {
-		if(!this.ws) return;
+		if(!this.ws) {
+			logger.errorWithInfo('sending data on closed websocket', { type, data });
+			return;
+		}
 		data = data || {};
 		data.type = type;
 		data.success = true;
 		try {
+			console.log('sending ', type);
 			this.ws.send(JSON.stringify(data));
 		} catch(err) {
 			this.handleLogOut();
@@ -103,7 +111,7 @@ class Client {
 		const ctx = new Context({ uuid, timeout: 1000 });
 		//console.log('received' + data);
 		const data: Object = JSON.parse(dataText);
-		console.log(data.type);
+		console.log('got command', data.type);
 		if(!data.type || !this.handlers[data.type]) {
 			this.sendError('invalid', 'invalid request');
 			return;

@@ -19,7 +19,7 @@ async function actionable(): Promise<boolean> {
 async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 
 	//TODO allow force attacking a specific enemy
-	const enemy = await map.getNearestEnemy(ctx, unit);
+	const enemy: Unit = await map.getNearestEnemy(ctx, unit);
 
 	if(!enemy) {
 		return;
@@ -39,10 +39,10 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 
 	if(enemy && enemy.distance(unit) <= range) {
 		await unit.armFireCooldown();
-		await enemy.takeDamage(damage);
+		await enemy.takeDamage(ctx, damage);
 		if(enemy.health === 0) {
 			logger.info('gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
-			enemy.delete();
+			enemy.delete(ctx);
 			logger.info('gameEvent', { type: 'kill', unitId: enemy.uuid });
 		} else {
 			logger.info('gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });

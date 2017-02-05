@@ -11,6 +11,7 @@ import DIRECTION from '../../map/directions';
 import Unit from '../unit';
 import Map from '../../map/map';
 import PlanetLoc from '../../map/planetloc';
+import logger from '../../util/logger';
 
 async function actionable(): Promise<boolean> {
 	//TODO return if we can move or not
@@ -32,7 +33,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 
 		//check if they are trying to transfer resources.
 		//if they are, do it.
-		if(!unit.transferGoal || !unit.transferGoal.uuid || (unit.transferGoal.iron || 0 === 0 && unit.transferGoal.oil || 0 === 0)) {
+		if(!unit.movable.transferGoal || !unit.movable.transferGoal.uuid || (unit.movable.transferGoal.iron || 0 === 0 && unit.movable.transferGoal.oil || 0 === 0)) {
 			if(unit.details.type === 'transport') {
 				//wake up nearby ghost builders
 				const units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
@@ -45,7 +46,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 
 			return;
 		}
-		const transferUnit: Unit = await db.units[map.name].getUnit(unit.transferGoal.uuid);
+		const transferUnit: Unit = await db.units[map.name].getUnit(ctx, unit.movable.transferGoal.uuid);
 		//1.01 is 1 for the unit, + 0.01 for float fudge factor (ffffffffffff)
 		if(transferUnit.distance(unit) > Math.max(unit.details.size, transferUnit.details.size) + 1.05) {
 			//if it is not nearby, keep pathing.
@@ -73,10 +74,10 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		if(ironGoal > 0) {
 			ironGoal = Math.min(ironGoal, transferUnit.storage.iron, unit.storage.maxIron - unit.storage.iron);
 			//transfering from transferUnit to unit
-			if(ironGoal !== 0 && await transferUnit.takeIron(ironGoal)) {
-				let remainder = ironGoal - await unit.addIron(ironGoal);
+			if(ironGoal !== 0 && await transferUnit.takeIron(ctx, ironGoal)) {
+				let remainder = ironGoal - await unit.addIron(ctx, ironGoal);
 				if(remainder !== 0) {
-					remainder = ironGoal - await transferUnit.addIron(remainder);
+					remainder = ironGoal - await transferUnit.addIron(ctx, remainder);
 					if(remainder !== 0) {
 						//console.log('surplus iron lost ', remainder);
 					}
@@ -90,10 +91,10 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 			ironGoal = -ironGoal;
 			ironGoal = Math.min(ironGoal, unit.storage.iron, transferUnit.storage.maxIron - transferUnit.storage.iron);
 			//transfering from transferUnit to unit
-			if(ironGoal !== 0 && await unit.takeIron(ironGoal)) {
-				let remainder = ironGoal - await transferUnit.addIron(ironGoal);
+			if(ironGoal !== 0 && await unit.takeIron(ctx, ironGoal)) {
+				let remainder = ironGoal - await transferUnit.addIron(ctx, ironGoal);
 				if(remainder !== 0) {
-					remainder = ironGoal - await unit.addIron(remainder);
+					remainder = ironGoal - await unit.addIron(ctx, remainder);
 					if(remainder !== 0) {
 						//console.log('surplus iron lost ', remainder);
 					}
@@ -113,10 +114,10 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		if(fuelGoal > 0) {
 			fuelGoal = Math.min(fuelGoal, transferUnit.storage.fuel, unit.storage.maxFuel - unit.storage.fuel);
 			//transfering from transferUnit to unit
-			if(fuelGoal !== 0 && await transferUnit.takeFuel(fuelGoal)) {
-				let remainder = fuelGoal - await unit.addFuel(fuelGoal);
+			if(fuelGoal !== 0 && await transferUnit.takeFuel(ctx, fuelGoal)) {
+				let remainder = fuelGoal - await unit.addFuel(ctx, fuelGoal);
 				if(remainder !== 0) {
-					remainder = fuelGoal - await transferUnit.addFuel(remainder);
+					remainder = fuelGoal - await transferUnit.addFuel(ctx, remainder);
 					if(remainder !== 0) {
 						//console.log('surplus fuel lost ', remainder);
 					}
@@ -130,10 +131,10 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 			fuelGoal = -fuelGoal;
 			fuelGoal = Math.min(fuelGoal, unit.storage.fuel, transferUnit.storage.maxFuel - transferUnit.storage.fuel);
 			//transfering from transferUnit to unit
-			if(fuelGoal !== 0 && await unit.takeFuel(fuelGoal)) {
-				let remainder = fuelGoal - await transferUnit.addFuel(fuelGoal);
+			if(fuelGoal !== 0 && await unit.takeFuel(ctx, fuelGoal)) {
+				let remainder = fuelGoal - await transferUnit.addFuel(ctx, fuelGoal);
 				if(remainder !== 0) {
-					remainder = fuelGoal - await unit.addFuel(remainder);
+					remainder = fuelGoal - await unit.addFuel(ctx, remainder);
 					if(remainder !== 0) {
 						//console.log('surplus fuel lost ', remainder);
 					}

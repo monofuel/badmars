@@ -64,10 +64,8 @@ async function getChunk(call: grpc.Call, callback: Function): Promise<void> {
 // we have to fiddle with the 2d array for GPRC
 async function fetchOrGenChunk(ctx: Context, mapName: string, x: number, y: number): Promise<Object> {
 	logger.checkContext(ctx, 'fetchOrGenChunk');
-	console.log('fetching chunk')
 	const map = await db.map.getMap(ctx, mapName);
 
-	console.log('fetch or gen chunk')
 	const localChunk = await map.fetchOrGenChunk(ctx, x, y);
 
 	const chunk: Object = new Chunk();

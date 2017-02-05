@@ -54,7 +54,7 @@ export default class DBunit {
 
 	async listPlayersUnits(ctx: Context, owner: string): Promise<Array<Unit>> {
 		const call = await startDBCall(ctx,'listPlayersUnits');
-		const cursor = await this.table.filter(r.row('details.owner').eq(owner)).run(this.conn);
+		const cursor = await this.table.filter({details:{owner}}).run(this.conn);
 		const units = await this.loadUnitsCursor(cursor);
 		await call.end();
 		return units;
@@ -126,6 +126,9 @@ export default class DBunit {
 
 	async deleteUnit(ctx: Context, uuid: UUID): Promise<void> {
 		const call = await startDBCall(ctx,'deleteUnit');
+		if (!uuid) {
+			throw new Error('invalid uuid');
+		}
 		await this.table.get(uuid).delete().run(this.conn);
 		await call.end();
 	}

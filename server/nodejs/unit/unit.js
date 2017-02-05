@@ -276,13 +276,14 @@ class Unit {
 		//TODO also update this object
 		//assume the object will be awake, unless we are setting it false
 		patch.awake = patch.awake || patch.awake === undefined;
-		await db.units[this.location.map].updateUnit(this.uuid, patch);
+		await db.units[this.location.map].updateUnit(ctx, this.uuid, patch);
 		this.validate(ctx);
 	}
 
-	async delete(): Promise<void> {
-		await this.clearFromChunks();
-		return db.units[this.location.map].deleteUnit(this.uuid);
+	async delete(ctx: Context): Promise<void> {
+		logger.checkContext(ctx, 'delete');
+		await this.clearFromChunks(ctx);
+		return db.units[this.location.map].deleteUnit(ctx, this.uuid);
 	}
 
 	async takeIron(amount: number): Promise<Success> {
@@ -348,7 +349,8 @@ class Unit {
 	//we shouldn't be requiring rethink in this file
 
 	//returns the amount that actually could be deposited
-	async addIron(amount: number): Promise<*> {
+	async addIron(ctx: Context, amount: number): Promise<*> {
+		logger.checkContext(ctx, 'addIron');
 		if (!this.storage) {
 			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
@@ -361,19 +363,20 @@ class Unit {
 		if (amount > max) {
 			this.storage.iron += max;
 			await db.units[this.location.map]
-				.updateUnit(this.uuid, { storage: { iron: r.row('storage.iron').default(0).add(max) } });
+				.updateUnit(ctx, this.uuid, { storage: { iron: r.row('storage.iron').default(0).add(max) } });
 			return max;
 		}
 		if (amount <= max) {
 			this.storage.iron += amount;
 			await db.units[this.location.map]
-				.updateUnit(this.uuid, { storage: { iron: r.row('storage.iron').default(0).add(amount) } });
+				.updateUnit(ctx, this.uuid, { storage: { iron: r.row('storage.iron').default(0).add(amount) } });
 			return amount;
 		}
 	}
 
 	//returns the amount that actually could be deposited
-	async addFuel(amount: number): Promise<*> {
+	async addFuel(ctx: Context, amount: number): Promise<*> {
+		logger.checkContext(ctx, 'addFuel');
 		if (!this.storage) {
 			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
@@ -383,17 +386,18 @@ class Unit {
 		}
 		if (amount > max) {
 			this.storage.fuel += max;
-			await db.units[this.location.map].updateUnit(this.uuid, { storage: { fuel: r.row('storage.fuel').default(0).add(max) } });
+			await db.units[this.location.map].updateUnit(ctx, this.uuid, { storage: { fuel: r.row('storage.fuel').default(0).add(max) } });
 			return max;
 		}
 		if (amount <= max) {
 			this.storage.fuel += amount;
-			await db.units[this.location.map].updateUnit(this.uuid, { storage: { fuel: r.row('storage.fuel').default(0).add(amount) } });
+			await db.units[this.location.map].updateUnit(ctx, this.uuid, { storage: { fuel: r.row('storage.fuel').default(0).add(amount) } });
 			return amount;
 		}
 	}
 
-	async addFactoryOrder(unitType: UnitType): Promise<void> {
+	async addFactoryOrder(ctx: Context, unitType: UnitType): Promise<void> {
+		logger.checkContext(ctx, 'addFactoryOrder');
 
 		if (!this.construct) {
 			return logger.errorWithInfo('unit cannot construct', { uuid: this.uuid, type: this.details.type });
@@ -404,13 +408,13 @@ class Unit {
 			return logger.errorWithInfo('cannot add invalid factory order', { uuid: this.uuid, type: unitType });
 		}
 
-		const order = {
+		const order: FactoryOrder = {
 			remaining: stats.details.buildTime,
 			type: unitType,
 			cost: stats.details.cost
 		};
 
-		return await db.units[this.location.map].addFactoryOrder(this.uuid, order);
+		return await db.units[this.location.map].addFactoryOrder(ctx, this.uuid, order);
 
 	}
 
@@ -812,8 +816,8 @@ class Unit {
 		return db.unitStats[this.location.map].get(this.details.type);
 	}
 
-	async refresh(): Promise<void> {
-		const fresh = await db.units[this.location.map].getUnit(this.uuid);
+	async refresh(ctx: Context): Promise<void> {
+		const fresh = await db.units[this.location.map].getUnit(ctx, this.uuid);
 		this.clone(fresh);
 	}
 }

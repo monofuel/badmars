@@ -42,6 +42,9 @@
 				"wall"
 			]
 		},
+		"storage": {
+			"maxFuel": 100
+		},
 		"graphical": {
 			"model": "builder.obj",
 			"scale": 1.1
@@ -91,6 +94,7 @@
 			"size": 1
 		},
 		"storage": {
+			"maxIron": 1000,
 			"transferRange": 5
 		},
 		"stationary": {

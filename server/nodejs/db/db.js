@@ -19,11 +19,24 @@ exports.chat = chat;
 const event = require('./event');
 exports.event = event;
 
-const chunks = {};
+import type DBChunk from './chunk';
+import type DBUnit from './unit';
+import type DBUnitStat from './unitStat';
+type ChunkMapType = {
+	[key: string]: DBChunk
+};
+type UnitMapType = {
+	[key: string]: DBUnit
+};
+type UnitStatMapType = {
+	[key: string]: DBUnitStat
+};
+
+const chunks: ChunkMapType = {};
 exports.chunks = chunks;
-const units = {};
+const units: UnitMapType = {};
 exports.units = units;
-const unitStats = {};
+const unitStats: UnitStatMapType = {};
 exports.unitStats = unitStats;
 let logger;
 let conn: r.Connection;

@@ -68,6 +68,7 @@ function connectionError(err) {
 }
 
 window.track = (name, kargs) => {
+	return;
 	if (!kargs)
 		kargs = {};
 	var xhr = new XMLHttpRequest();
@@ -174,13 +175,15 @@ export class Net {
 
 			self.s.onmessage = (event) => {
 				var data = JSON.parse(event.data);
-				/*if (data.type) {
+				if (data.type) {
 					console.log('received message type: ', data.type);
 				}
-				console.log(data);*/
+				console.log(data);
+				
 				if (!data.success) {
 					console.log(data);
 				}
+				
 				if (data.type) {
 					if (listeners[data.type]) {
 						for (var listener of listeners[data.type]) {

@@ -105,7 +105,7 @@ export default class Chat extends React.Component {
 	componentDidMount() {
 		if (interval === -1) {
 			interval = setInterval(() => {
-				console.log('force rendering chat');
+				//console.log('force rendering chat');
 				this.forceUpdate();
 			},1000);
 		}
