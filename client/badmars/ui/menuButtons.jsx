@@ -1,6 +1,4 @@
 /* @flow */
-'use strict';
-
 // monofuel
 // 6-18-2016
 
@@ -30,10 +28,13 @@ const aboutButtonStyle = {
 
 const buildButtonStyle = {
 	position: 'absolute',
-	top: '80%',
 	width: '50%',
-	marginLeft: '25%',
-	marginRight: '25%',
+	top: 0,
+	left: 0,
+	right: 0,
+	marginTop: '80%',
+	marginLeft: 'auto',
+	marginRight: 'auto',
 	height: '100px',
 	padding: '5px',
 	zIndex: '5'
