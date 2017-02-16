@@ -11,7 +11,7 @@ import { getSound } from '../audio/sound.js';
 import { getPlayerById } from '../net.js';
 
 export default class PlayerUnit extends GroundUnit {
-	constructor(location: PlanetLoc, playerId: string, uuid: string, type: string) {
+	constructor(location: PlanetLoc, playerId: string, uuid: string, type: string, scale: number) {
 		if (!playerId) {
 			throw new Error('missing player');
 		}
@@ -31,7 +31,7 @@ export default class PlayerUnit extends GroundUnit {
 			color = player.color;
 		}
 
-		super(location, uuid, color, type);
+		super(location, uuid, color, type, scale);
 
 		this.fireSound = getSound(type);
 	}

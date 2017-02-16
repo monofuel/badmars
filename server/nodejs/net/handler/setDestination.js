@@ -17,8 +17,8 @@ export default async function setDestination(ctx: Context, client: Client, data:
 		return client.sendError('setDestination', 'no or invalid location set');
 	}
 
-	const unit = await db.units[client.planet.name].getUnit(ctx, data.unitId);
-	if(unit.owner !== client.user.uuid) {
+	const unit: Unit = await db.units[client.planet.name].getUnit(ctx, data.unitId);
+	if(unit.details.owner !== client.user.uuid) {
 		return client.sendError('setDestination', 'not your unit');
 	}
 

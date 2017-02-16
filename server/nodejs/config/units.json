@@ -169,7 +169,7 @@
 		},
 		"graphical": {
 			"model": "iron.obj",
-			"scale": 1
+			"scale": 0.3
 		}
 	},
 	"oil": {
@@ -181,7 +181,7 @@
 		},
 		"graphical": {
 			"model": "oil.obj",
-			"scale": 1
+			"scale": 0.4
 		}
 	}
 }

@@ -37,11 +37,11 @@ class Client {
 		this.handlers = {};
 		this.handlers['login'] = require('./handler/auth').default;
 
-		ws.on('message', (msg: string) => {
+		ws.on('message', async (msg: string) => {
 			try {
-				this.handleFromClient(msg);
+				await this.handleFromClient(msg);
 			} catch (err) {
-				logger.error(err);
+				logger.errorWithInfo('failed to handle network message', { err, msg });
 			}
 		});
 		ws.on('error', (err: Error) => {
@@ -65,14 +65,14 @@ class Client {
 
 	send(type: string, data?: Object) {
 		if(!this.ws) {
-			logger.errorWithInfo('sending data on closed websocket', { type, data });
+			//logger.errorWithInfo('sending data on closed websocket', { type, data });
 			return;
 		}
 		data = data || {};
 		data.type = type;
 		data.success = true;
 		try {
-			console.log('sending ', type);
+			//console.log('sending ', type);
 			this.ws.send(JSON.stringify(data));
 		} catch(err) {
 			this.handleLogOut();
@@ -106,12 +106,12 @@ class Client {
 		this.ws = null;
 	}
 
-	handleFromClient(dataText: string) {
+	async handleFromClient(dataText: string) {
 		const uuid = hat();
 		const ctx = new Context({ uuid, timeout: 1000 });
 		//console.log('received' + data);
 		const data: Object = JSON.parse(dataText);
-		console.log('got command', data.type);
+		//console.log('got command', data.type);
 		if(!data.type || !this.handlers[data.type]) {
 			this.sendError('invalid', 'invalid request');
 			return;
@@ -120,7 +120,7 @@ class Client {
 			logger.errorWithInfo('bad handler',{ handle: data.type, type: typeof this.handlers[data.type]});
 			return;
 		}
-		this.handlers[data.type](ctx, this, data);
+		await this.handlers[data.type](ctx, this, data);
 	}
 
 	registerUnitListener() {

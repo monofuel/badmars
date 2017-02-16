@@ -10,8 +10,8 @@ import { getMesh } from './unitModels.js';
 
 export default class Oil extends Entity {
 	rate: number;
-	constructor(location: PlanetLoc, rate: number, uuid: string) {
-		super(location, uuid, 0x181818, 'oil');
+	constructor(location: PlanetLoc, rate: number, uuid: string, scale: number) {
+		super(location, uuid, 0x181818, 'oil', scale);
 		this.rate = rate;
 	}
 }

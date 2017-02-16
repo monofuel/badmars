@@ -195,14 +195,15 @@ export class Map {
 			const loc = new PlanetLoc(self, unit.location.x, unit.location.y);
 			let newUnit;
 			if (unit.details.owner) {
-				newUnit = new PlayerUnit(loc, unit.details.owner, unit.uuid, unit.details.type);
+				newUnit = new PlayerUnit(loc, unit.details.owner, unit.uuid, unit.details.type, unit.graphical.scale);
 			} else {
+				console.log('asdf', unit.graphical.scale);
 				switch (unit.details.type) {
 					case 'iron':
-						newUnit = new Iron(loc, unit.rate, unit.uuid);
+						newUnit = new Iron(loc, unit.rate, unit.uuid, unit.graphical.scale);
 						break;
 					case 'oil':
-						newUnit = new Oil(loc, unit.rate, unit.uuid);
+						newUnit = new Oil(loc, unit.rate, unit.uuid, unit.graphical.scale);
 						break;
 					default:
 						console.log('unknown type: ', unit);

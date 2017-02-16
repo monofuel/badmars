@@ -87,7 +87,7 @@ class Map {
 			//console.log('hit', x, y)
 			return cacheChunk.chunk;
 		} else {
-			console.log('miss', x, y)
+			//console.log('miss', x, y)
 			logger.addSumStat('cacheChunkMiss', 1);
 		}
 

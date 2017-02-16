@@ -22,8 +22,8 @@ export default class GroundUnit extends Entity {
 
 	destHilightPlane: THREE.Mesh;
 
-	constructor(location: PlanetLoc, uuid: string, color: THREE.Color, type: string) {
-		super(location, uuid, color, type);
+	constructor(location: PlanetLoc, uuid: string, color: THREE.Color, type: string, scale: number) {
+		super(location, uuid, color, type, scale);
 		this.nextTile = null;
 		this.moving = false;
 		this.distanceMoved = 0;
@@ -110,7 +110,7 @@ export default class GroundUnit extends Entity {
 			return;
 		}
 		const dest: TileHash = this.movable.destination;
-		if (!this.destHilightPlane || this.hilightDestinationLocation !== this.movable.destination) {
+		if (!this.destHilightPlane || this.hilightDestinationLocation !== dest) {
 			let destSplit = this.movable.destination.split(":");
 			let x = parseInt(destSplit[0]);
 			let y = parseInt(destSplit[1]);
@@ -154,7 +154,7 @@ export default class GroundUnit extends Entity {
 			}
 
 		} else {
-			if (!this.destination && this.destHilightPlane) {
+			if (!this.movable.destination && this.destHilightPlane) {
 				if (display) {
 					display.removeMesh(this.destHilightPlane);
 					this.destHilightPlane = null;

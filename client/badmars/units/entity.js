@@ -99,7 +99,7 @@ export class Entity {
 		factoryQueue: Array<FactoryOrder> ,
 	}
 
-	constructor(loc: PlanetLoc, uuid: string, color: THREE.Color, type: string) {
+	constructor(loc: PlanetLoc, uuid: string, color: THREE.Color, type: string, scale: number) {
 		if (!loc) {
 			throw new Error('missing location');
 		}
@@ -119,7 +119,7 @@ export class Entity {
 			throw new Error("failed to get tank mesh!");
 		}
 		this.mesh = new THREE.Mesh(geometry, material);
-		this.mesh.scale.set(0.3, 0.3, 0.3);
+		this.mesh.scale.set(scale, scale, scale);
 		this.mesh.userData = this;
 
 		if (display) {
