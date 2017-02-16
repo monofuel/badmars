@@ -13,3 +13,5 @@ public/badmars/js/badmars.js
 public/dashboard/js/index.js
 
 .c9
+npm-debug.log
+ftp-sync.json

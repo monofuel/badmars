@@ -95,60 +95,47 @@ export default class HUD extends React.Component {
 		} else {
 			return (
 				<div
-				id="primaryHUD"
-				onFocus={setHudFocus}
-				onBlur={unsetHudFocus}
-				>
-					{
-						errorMessage ?
-						<ErrorAlert
+					id="primaryHUD"
+					onFocus={setHudFocus}
+					onBlur={unsetHudFocus}>
+					{ errorMessage
+						? <ErrorAlert
 							errorMessage={errorMessage}
 							onClose={() => {
 								this.clearErrorMessage();
 							}}
 						/>
-						:
-						null
+						: null
 					}
-					{
-						aboutOpen ?
-						<AboutModal
+					{ aboutOpen
+						? <AboutModal
 							onClose={() => {
 								this.setState({aboutOpen: false});
-							}}
-						/>
-						:
-						null
+							}}/>
+						: null
 					}
-					{
-						transfering && selectedUnit && transferUnit ?
-						<Transfer
+					{ transfering && selectedUnit && transferUnit
+						? <Transfer
 							selectedUnit={selectedUnit}
 							transferUnit={transferUnit}
 							onClose={() => {
 								this.setState({transfering: false});
 							}}
-							onTransfer={performTransfer}
-						/>
-						:
-						null
+							onTransfer={performTransfer}/>
+						: null
 					}
-					{
-						selectedUnit ?
-						<SelectedUnitWell selectedUnit={selectedUnit}/>
-						:
-						null
+					{ selectedUnit
+						? <SelectedUnitWell selectedUnit={selectedUnit}/>
+						: null
 					}
 					<Chat
 						chatLog={chatLog}
-						sendChat={sendChat}
-					/>
+						sendChat={sendChat}/>
 					<MenuButtons
 						selectedUnit={selectedUnit}
 						openAboutClicked={() => {this._openAboutClicked()}}
 						constructClicked={construct}
-						factoryConstructClicked={factoryOrder}
-					/>
+						factoryConstructClicked={factoryOrder}/>
 				</div>
 			)
 		}
