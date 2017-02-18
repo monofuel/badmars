@@ -77,7 +77,7 @@ services:
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_WS_SERVER=ws://192.168.11.119
+      - BADMARS_WS_SERVER=ws://localhost
     ports:
       - "3002:3002"
     links:
