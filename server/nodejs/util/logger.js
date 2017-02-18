@@ -11,6 +11,7 @@ import os from 'os';
 import env from '../config/env';
 import stats from './stats';
 import Context from 'node-context';
+import request from 'request';
 stats.init();
 
 let moduleName = 'monolith';
@@ -144,16 +145,15 @@ function track(name: string, kargs: ? Object) {
 	if (db && db.event) {
 		db.event.addEvent(kargs);
 	}
-	/*
 	request({
 		url: env.trackingServer + ':' + env.trackingPort + '/track/event',
 		method: 'POST',
 		body: JSON.stringify(kargs)
-	}, (error, response, body) => {
+	}, (error: Error) => {
 		if(error) {
 			console.log(error);
 		}
-	});*/
+	});
 }
 
 module.exports = {

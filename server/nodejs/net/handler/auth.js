@@ -82,7 +82,8 @@ export default async function auth(ctx: Context, client: Client, data: Object): 
 			});
 		}
 	}).catch((error: Error) => {
-		client.sendError('login', error.message);
+		logger.info('auth error', {error});
+		client.sendError('login', 'login failed');
 
 	});
 

@@ -67,7 +67,6 @@ function connectionError(err) {
 }
 
 window.track = (name, kargs) => {
-	/*
 	if (!kargs)
 		kargs = {};
 	var xhr = new XMLHttpRequest();
@@ -81,8 +80,6 @@ window.track = (name, kargs) => {
 	console.log('tracking ' + name);
 	console.log(kargs);
 	xhr.send(JSON.stringify(kargs));
-	*/
-
 }
 
 function verifyTrack(name,kargs) {

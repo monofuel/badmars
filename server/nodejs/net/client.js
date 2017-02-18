@@ -37,7 +37,7 @@ class Client {
 		this.handlers = {};
 		this.handlers['login'] = require('./handler/auth').default;
 
-		ws.on('message', async (msg: string) => {
+		ws.on('message', async (msg: string): Promise<void> => {
 			try {
 				await this.handleFromClient(msg);
 			} catch (err) {
