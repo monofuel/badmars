@@ -4,8 +4,9 @@
 
 import React from 'react';
 
-import {Button, Well} from 'react-bootstrap';
-import {Entity} from '../units/entity.js';
+import { Button, Well } from 'react-bootstrap';
+import { Paper } from 'material-ui';
+import { Entity } from '../units/entity.js';
 
 type Props = {
 	selectedUnit: Entity,
@@ -104,12 +105,12 @@ export default class MenuButtons extends React.Component{
 					About
 				</Button>
 
-				<Well
+				<Paper
 					id="buttons"
 					style={buildButtonStyle}
 				>
 					{buttons}
-				</Well>
+				</Paper>
 			</div>
 		);
 	}
