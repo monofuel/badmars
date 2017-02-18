@@ -5,6 +5,8 @@
 // 6-18-2016
 
 import React from 'react';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+
 import LoginModal from './login.jsx';
 import ErrorAlert from './errorAlert.jsx';
 import MenuButtons from './menuButtons.jsx';
@@ -27,23 +29,6 @@ import {
 	deleteBusListener,
 	fireBusEvent
 } from '../eventBus.js';
-
-/*import {Button, Modal, Alert, Well} from 'react-bootstrap';
-import {AboutModal} from './about.js';
-import {SelectedUnit} from './selectedUnit.js';
-import {TransferModal} from './transfer.js';
-import ReactDOM from 'react-dom';
-import {
-	setButtonMode,
-	setMouseActions,
-	map,
-	display,
-	selectedUnit,
-	setHudClick,
-	hilight
-} from '../client.js';
-import {Entity} from "../units/entity.js";
-*/
 
 type Props = {}
 type State = {
@@ -90,11 +75,11 @@ export default class HUD extends React.Component {
 	render() {
 		const {login,selectedUnit,transferUnit,errorMessage,aboutOpen,transfering,chatLog} = this.state;
 
-		if (login) {
-			return (<LoginModal/>)
-		} else {
-			return (
-				<div
+		return (
+			<MuiThemeProvider>
+				{ login
+				? <LoginModal/>
+				: <div
 					id="primaryHUD"
 					onFocus={setHudFocus}
 					onBlur={unsetHudFocus}>
@@ -137,8 +122,9 @@ export default class HUD extends React.Component {
 						constructClicked={construct}
 						factoryConstructClicked={factoryOrder}/>
 				</div>
-			)
-		}
+			}
+			</MuiThemeProvider>
+		)
 	}
 
 	selectedUnitHandler(unit: Entity) {
