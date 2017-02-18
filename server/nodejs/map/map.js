@@ -209,11 +209,11 @@ class Map {
 		return await this.spawnUnit(ctx, newUnit);
 	}
 
-	async spawnUnit(ctx: Context, newUnit: Unit): Promise<?Unit> {
-		logger.checkContext(ctx, 'spawnUnit');
+	async spawnUnit(ctx: Context, newUnit: Unit): Promise<Unit> {
+		logger.checkContext(ctx, 'spawnUnit()');
 		for (const loc of await newUnit.getLocs(ctx)) {
 			if (!await this.checkValidForUnit(ctx, loc, newUnit)) {
-				return null;
+				logger.errorWithInfo('invalid tile for unit', { hash: newUnit.location.hash, uuid: newUnit.uuid });
 			} else {
 				//console.log('valid tile for unit: ' + tileHash);
 			}
@@ -230,17 +230,16 @@ class Map {
 		return db.units[this.name].addUnit(ctx, newUnit);
 	}
 
-	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise<? Unit> {
+	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise<Unit> {
 		logger.checkContext(ctx, 'spawnAndValidate');
 		if (!newUnit) {
-			logger.errorWithInfo('missing unit')
+			logger.errorWithInfo('missing unit');
 		}
 		const unit: Unit = await db.units[this.name].addUnit(ctx, newUnit);
 		const success: boolean = await unit.addToChunks(ctx);
 		if (!success) {
-			logger.info('spawn collision', { unit });
-			await unit.delete(ctx);
-			return null;
+			await db.units[this.location.map].deleteUnit(ctx, unit.uuid);
+			logger.errorWithInfo('spawn collision adding to chunk', { unit });
 		}
 		await unit.validate(ctx);
 		logger.checkContext(ctx, 'spawnAndvalidate()');
@@ -279,6 +278,7 @@ class Map {
 				}
 				//already has a mine
 				if (unit2.details.type === 'mine') {
+					console.log('already has mine');
 					return false;
 				}
 			}
@@ -396,7 +396,7 @@ class Map {
 						success = true;
 					}
 				} catch(err) {
-					logger.info('spawning unit failed, retrying in new location', { err, x, y, unitType });
+					logger.info('spawning unit failed, retrying in new location', { msg: err.msg, x, y, unitType });
 				}
 			}
 		}

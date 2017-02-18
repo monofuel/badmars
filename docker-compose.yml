@@ -58,7 +58,7 @@ services:
       - AI_HOST=ai
   validator:
     build: .
-    command: bash -c 'cd server/nodejs && supervisor -n validator.js'
+    command: bash -c 'cd server/nodejs && node validator.js'
     volumes:
       - ./server:/badmars/server
     links:

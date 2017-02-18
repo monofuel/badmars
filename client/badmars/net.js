@@ -60,10 +60,15 @@ export function deleteListener(listener: Function) {
 	}
 }
 
+let connectionLost = false;
 function connectionError(err) {
-	console.log("connection lost");
-	window.track("error",err);
-	fireBusEvent('error','The connection to the server was lost. You should reload');
+	// HACK to only fire once
+	if (!connectionLost) {
+		console.log("connection lost");
+		window.track("error",err);
+		fireBusEvent('error','The connection to the server was lost. You should reload');
+		connectionLost = true;
+	}
 }
 
 window.track = (name, kargs) => {
