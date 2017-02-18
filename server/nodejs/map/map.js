@@ -329,19 +329,19 @@ class Map {
 		const chunk: Chunk = await this.findSpawnLocation(ctx);
 
 		//spawn units for them on the chunk
-		const unitsToSpawn = [
+		const unitsToSpawn: string[] = [
 			'storage', 'builder', 'builder', 'tank', 'tank', 'iron', 'oil'
 		];
-
+		const usedTiles: TileHash[] = [];
 		/*for (let i = 0; i < 50; i++) {
 			unitsToSpawn.push('tank');
 		}*/
-		for (const unitType of unitsToSpawn) {
-			console.log('trying to spawn ', unitType)
+		for (const unitType: string of unitsToSpawn) {
+			console.log('trying to spawn ', unitType);
 			let success = false;
 			while (!success) {
-				let x = this.settings.chunkSize * Math.random();
-				let y = this.settings.chunkSize * Math.random();
+				let x: number = this.settings.chunkSize * Math.random();
+				let y: number = this.settings.chunkSize * Math.random();
 
 				x += this.settings.chunkSize * chunk.x;
 				y += this.settings.chunkSize * chunk.y;
@@ -349,6 +349,13 @@ class Map {
 				y = Math.round(y);
 
 				const unit = new Unit(unitType, this, x, y);
+				const tilesToUse: TileHash[] = unit.location.hash;
+
+				// check if the tiles we want to use are already used
+				if (_.intersection(usedTiles, tilesToUse).length !== 0) {
+					continue;
+				}
+
 				if (unitType !== 'iron' && unitType !== 'oil') {
 					unit.details.owner = client.user.uuid;
 				}
@@ -373,19 +380,21 @@ class Map {
 					break;
 				}
 				try {
-				// https://www.youtube.com/watch?v=eVB8lM-oCSk
-				if (await this.spawnUnit(ctx, unit)) {
-					if (unitType === 'iron' || unitType === 'oil') {
-						//assumes that if we spawn the iron or oil, we can also spawn a mine
-						const mine = new Unit('mine', this, x, y);
-						mine.details.owner = client.user.uuid;
-						if (!await this.spawnUnit(ctx, mine)) {
-							logger.info('failed to spawn', { unitType: 'mine' , x, y });
+					// https://www.youtube.com/watch?v=eVB8lM-oCSk
+					if (await this.spawnUnit(ctx, unit)) {
+						if (unitType === 'iron' || unitType === 'oil') {
+							//assumes that if we spawn the iron or oil, we can also spawn a mine
+							console.log(`spawning mine for ${unitType}`);
+							const mine = new Unit('mine', this, x, y);
+							mine.details.owner = client.user.uuid;
+							if (!await this.spawnUnit(ctx, mine)) {
+								logger.info('failed to spawn', { unitType: 'mine' , x, y });
+							}
 						}
+						logger.info('sucessfully spawned', { unitType, x, y });
+						usedTiles.push(...unit.location.hash);
+						success = true;
 					}
-					logger.info('sucessfully spawned', { unitType, x, y });
-					success = true;
-				}
 				} catch(err) {
 					logger.info('spawning unit failed, retrying in new location', { err, x, y, unitType });
 				}

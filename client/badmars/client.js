@@ -649,7 +649,7 @@ export function login(name: string,color: string) {
 			.then(() => {
 				window.track("logging_in", {
 					username: username,
-					apiKey: false,
+					apiKey: undefined,
 					color: userColor.getHexString(),
 					planet: "testmap"
 				});
