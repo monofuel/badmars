@@ -10,7 +10,6 @@ import { Entity } from '../units/entity.js';
 
 type Props = {
 	selectedUnit: Entity,
-	openAboutClicked: () => void,
 	constructClicked: (type: string) => void,
 	factoryConstructClicked: (type: string) => void
 }
@@ -20,20 +19,12 @@ const constructButtonStyle = {
 	paddingRight: '10px'
 };
 
-const aboutButtonStyle = {
-	position: 'absolute',
-	left: '190px',
-	top: '10px',
-	width: '60px'
-};
-
 const buildButtonStyle = {
 	position: 'absolute',
 	width: '50%',
-	top: 0,
+	top: '80%',
 	left: 0,
 	right: 0,
-	marginTop: '80%',
 	marginLeft: 'auto',
 	marginRight: 'auto',
 	height: '100px',
@@ -44,7 +35,7 @@ const buildButtonStyle = {
 export default class MenuButtons extends React.Component{
 
 	render() {
-		const {selectedUnit,openAboutClicked,constructClicked,factoryConstructClicked} = this.props;
+		const {selectedUnit, constructClicked, factoryConstructClicked} = this.props;
 		const selectedUnitType = selectedUnit ? selectedUnit.details.type : null
 
 		let buttons;
@@ -97,21 +88,11 @@ export default class MenuButtons extends React.Component{
 		}
 
 		return (
-			<div>
-				<Button
-					onClick={openAboutClicked}
-					style={aboutButtonStyle}
-				>
-					About
-				</Button>
-
-				<Paper
-					id="buttons"
-					style={buildButtonStyle}
-				>
-					{buttons}
-				</Paper>
-			</div>
+			<Paper
+				id="buttons"
+				style={buildButtonStyle}>
+				{buttons}
+			</Paper>
 		);
 	}
 };

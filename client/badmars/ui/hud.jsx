@@ -6,6 +6,7 @@
 
 import React from 'react';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import { Button } from 'react-bootstrap';
 
 import LoginModal from './login.jsx';
 import ErrorAlert from './errorAlert.jsx';
@@ -40,6 +41,21 @@ type State = {
 	transfering: boolean,
 	chatLog: Object[]
 }
+
+const hudStyle = {
+	position: 'absolute',
+	left: 0,
+	right: 0,
+	top: 0,
+	bottom: 0
+}
+
+const aboutButtonStyle = {
+	position: 'absolute',
+	left: '100px',
+	top: '10px',
+	width: '60px'
+};
 
 export default class HUD extends React.Component {
 	state : State;
@@ -81,6 +97,7 @@ export default class HUD extends React.Component {
 				? <LoginModal/>
 				: <div
 					id="primaryHUD"
+					style={hudStyle}
 					onFocus={setHudFocus}
 					onBlur={unsetHudFocus}>
 					{ errorMessage
@@ -116,9 +133,13 @@ export default class HUD extends React.Component {
 					<Chat
 						chatLog={chatLog}
 						sendChat={sendChat}/>
+					<Button
+						onClick={() => this._openAboutClicked()}
+						style={aboutButtonStyle}>
+						About
+					</Button>
 					<MenuButtons
 						selectedUnit={selectedUnit}
-						openAboutClicked={() => {this._openAboutClicked()}}
 						constructClicked={construct}
 						factoryConstructClicked={factoryOrder}/>
 				</div>
