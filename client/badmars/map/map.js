@@ -57,7 +57,7 @@ export class Map {
 		this.chunkMap = {};
 		this.chunkCache = {};
 		this.requestedChunks = {};
-		this.viewRange = 10;
+		this.viewRange = 6;
 		this.unloadRange = this.viewRange + 5;
 		var self = this;
 		if (planet) {
@@ -210,19 +210,19 @@ export class Map {
 						return;
 				}
 			}
-			
+
 			for (let key of Object.keys(unit)) {
 				// $FlowFixMe: hiding this issue for now
 				if (!newUnit[key] || newUnit[key] instanceof Object) {
 					// $FlowFixMe: hiding this issue for now
 					newUnit[key] = Object.assign(newUnit[key] || {}, unit[key]);
 				}
-				
-				
+
+
 			}
-			
+
 			updateUnit(newUnit);
-			
+
 			//console.log('full unit', newUnit);
 			self.units.push(newUnit);
 

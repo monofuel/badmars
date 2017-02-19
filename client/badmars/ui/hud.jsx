@@ -5,6 +5,9 @@
 // 6-18-2016
 
 import React from 'react';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import { Button } from 'react-bootstrap';
+
 import LoginModal from './login.jsx';
 import ErrorAlert from './errorAlert.jsx';
 import MenuButtons from './menuButtons.jsx';
@@ -28,23 +31,6 @@ import {
 	fireBusEvent
 } from '../eventBus.js';
 
-/*import {Button, Modal, Alert, Well} from 'react-bootstrap';
-import {AboutModal} from './about.js';
-import {SelectedUnit} from './selectedUnit.js';
-import {TransferModal} from './transfer.js';
-import ReactDOM from 'react-dom';
-import {
-	setButtonMode,
-	setMouseActions,
-	map,
-	display,
-	selectedUnit,
-	setHudClick,
-	hilight
-} from '../client.js';
-import {Entity} from "../units/entity.js";
-*/
-
 type Props = {}
 type State = {
 	login: boolean,
@@ -55,6 +41,21 @@ type State = {
 	transfering: boolean,
 	chatLog: Object[]
 }
+
+const hudStyle = {
+	position: 'absolute',
+	left: 0,
+	right: 0,
+	top: 0,
+	bottom: 0
+}
+
+const aboutButtonStyle = {
+	position: 'absolute',
+	left: '100px',
+	top: '10px',
+	width: '60px'
+};
 
 export default class HUD extends React.Component {
 	state : State;
@@ -90,12 +91,14 @@ export default class HUD extends React.Component {
 	render() {
 		const {login,selectedUnit,transferUnit,errorMessage,aboutOpen,transfering,chatLog} = this.state;
 
-		if (login) {
-			return (<LoginModal/>)
-		} else {
-			return (
-				<div
+
+		return (
+			<MuiThemeProvider>
+				{ login
+				? <LoginModal/>
+				: <div
 					id="primaryHUD"
+					style={hudStyle}
 					onFocus={setHudFocus}
 					onBlur={unsetHudFocus}>
 					{ errorMessage
@@ -131,14 +134,19 @@ export default class HUD extends React.Component {
 					<Chat
 						chatLog={chatLog}
 						sendChat={sendChat}/>
+					<Button
+						onClick={() => this._openAboutClicked()}
+						style={aboutButtonStyle}>
+						About
+					</Button>
 					<MenuButtons
 						selectedUnit={selectedUnit}
-						openAboutClicked={() => {this._openAboutClicked()}}
 						constructClicked={construct}
 						factoryConstructClicked={factoryOrder}/>
 				</div>
-			)
-		}
+			}
+			</MuiThemeProvider>
+		)
 	}
 
 	selectedUnitHandler(unit: Entity) {

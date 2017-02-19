@@ -1,17 +1,15 @@
 /* @flow */
-'use strict';
-
 // monofuel
 // 6-18-2016
 
 import React from 'react';
 
-import {Button, Well} from 'react-bootstrap';
-import {Entity} from '../units/entity.js';
+import { Button, Well } from 'react-bootstrap';
+import { Paper } from 'material-ui';
+import { Entity } from '../units/entity.js';
 
 type Props = {
 	selectedUnit: Entity,
-	openAboutClicked: () => void,
 	constructClicked: (type: string) => void,
 	factoryConstructClicked: (type: string) => void
 }
@@ -21,19 +19,14 @@ const constructButtonStyle = {
 	paddingRight: '10px'
 };
 
-const aboutButtonStyle = {
-	position: 'absolute',
-	left: '190px',
-	top: '10px',
-	width: '60px'
-};
-
 const buildButtonStyle = {
 	position: 'absolute',
-	top: '80%',
 	width: '50%',
-	marginLeft: '25%',
-	marginRight: '25%',
+	top: '80%',
+	left: 0,
+	right: 0,
+	marginLeft: 'auto',
+	marginRight: 'auto',
 	height: '100px',
 	padding: '5px',
 	zIndex: '5'
@@ -42,7 +35,7 @@ const buildButtonStyle = {
 export default class MenuButtons extends React.Component{
 
 	render() {
-		const {selectedUnit,openAboutClicked,constructClicked,factoryConstructClicked} = this.props;
+		const {selectedUnit, constructClicked, factoryConstructClicked} = this.props;
 		const selectedUnitType = selectedUnit ? selectedUnit.details.type : null
 
 		let buttons;
@@ -95,21 +88,11 @@ export default class MenuButtons extends React.Component{
 		}
 
 		return (
-			<div>
-				<Button
-					onClick={openAboutClicked}
-					style={aboutButtonStyle}
-				>
-					About
-				</Button>
-
-				<Well
-					id="buttons"
-					style={buildButtonStyle}
-				>
-					{buttons}
-				</Well>
-			</div>
+			<Paper
+				id="buttons"
+				style={buildButtonStyle}>
+				{buttons}
+			</Paper>
 		);
 	}
 };

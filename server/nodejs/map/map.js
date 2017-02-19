@@ -209,11 +209,11 @@ class Map {
 		return await this.spawnUnit(ctx, newUnit);
 	}
 
-	async spawnUnit(ctx: Context, newUnit: Unit): Promise<?Unit> {
-		logger.checkContext(ctx, 'spawnUnit');
+	async spawnUnit(ctx: Context, newUnit: Unit): Promise<Unit> {
+		logger.checkContext(ctx, 'spawnUnit()');
 		for (const loc of await newUnit.getLocs(ctx)) {
 			if (!await this.checkValidForUnit(ctx, loc, newUnit)) {
-				return null;
+				logger.errorWithInfo('invalid tile for unit', { hash: newUnit.location.hash, uuid: newUnit.uuid });
 			} else {
 				//console.log('valid tile for unit: ' + tileHash);
 			}
@@ -230,17 +230,16 @@ class Map {
 		return db.units[this.name].addUnit(ctx, newUnit);
 	}
 
-	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise<? Unit> {
+	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise<Unit> {
 		logger.checkContext(ctx, 'spawnAndValidate');
 		if (!newUnit) {
-			logger.errorWithInfo('missing unit')
+			logger.errorWithInfo('missing unit');
 		}
 		const unit: Unit = await db.units[this.name].addUnit(ctx, newUnit);
 		const success: boolean = await unit.addToChunks(ctx);
 		if (!success) {
-			logger.info('spawn collision', { unit });
-			await unit.delete(ctx);
-			return null;
+			await db.units[this.location.map].deleteUnit(ctx, unit.uuid);
+			logger.errorWithInfo('spawn collision adding to chunk', { unit });
 		}
 		await unit.validate(ctx);
 		logger.checkContext(ctx, 'spawnAndvalidate()');
@@ -279,6 +278,7 @@ class Map {
 				}
 				//already has a mine
 				if (unit2.details.type === 'mine') {
+					console.log('already has mine');
 					return false;
 				}
 			}
@@ -329,19 +329,19 @@ class Map {
 		const chunk: Chunk = await this.findSpawnLocation(ctx);
 
 		//spawn units for them on the chunk
-		const unitsToSpawn = [
+		const unitsToSpawn: string[] = [
 			'storage', 'builder', 'builder', 'tank', 'tank', 'iron', 'oil'
 		];
-
+		const usedTiles: TileHash[] = [];
 		/*for (let i = 0; i < 50; i++) {
 			unitsToSpawn.push('tank');
 		}*/
-		for (const unitType of unitsToSpawn) {
-			console.log('trying to spawn ', unitType)
+		for (const unitType: string of unitsToSpawn) {
+			console.log('trying to spawn ', unitType);
 			let success = false;
 			while (!success) {
-				let x = this.settings.chunkSize * Math.random();
-				let y = this.settings.chunkSize * Math.random();
+				let x: number = this.settings.chunkSize * Math.random();
+				let y: number = this.settings.chunkSize * Math.random();
 
 				x += this.settings.chunkSize * chunk.x;
 				y += this.settings.chunkSize * chunk.y;
@@ -349,6 +349,13 @@ class Map {
 				y = Math.round(y);
 
 				const unit = new Unit(unitType, this, x, y);
+				const tilesToUse: TileHash[] = unit.location.hash;
+
+				// check if the tiles we want to use are already used
+				if (_.intersection(usedTiles, tilesToUse).length !== 0) {
+					continue;
+				}
+
 				if (unitType !== 'iron' && unitType !== 'oil') {
 					unit.details.owner = client.user.uuid;
 				}
@@ -373,21 +380,23 @@ class Map {
 					break;
 				}
 				try {
-				// https://www.youtube.com/watch?v=eVB8lM-oCSk
-				if (await this.spawnUnit(ctx, unit)) {
-					if (unitType === 'iron' || unitType === 'oil') {
-						//assumes that if we spawn the iron or oil, we can also spawn a mine
-						const mine = new Unit('mine', this, x, y);
-						mine.details.owner = client.user.uuid;
-						if (!await this.spawnUnit(ctx, mine)) {
-							logger.info('failed to spawn', { unitType: 'mine' , x, y });
+					// https://www.youtube.com/watch?v=eVB8lM-oCSk
+					if (await this.spawnUnit(ctx, unit)) {
+						if (unitType === 'iron' || unitType === 'oil') {
+							//assumes that if we spawn the iron or oil, we can also spawn a mine
+							console.log(`spawning mine for ${unitType}`);
+							const mine = new Unit('mine', this, x, y);
+							mine.details.owner = client.user.uuid;
+							if (!await this.spawnUnit(ctx, mine)) {
+								logger.info('failed to spawn', { unitType: 'mine' , x, y });
+							}
 						}
+						logger.info('sucessfully spawned', { unitType, x, y });
+						usedTiles.push(...unit.location.hash);
+						success = true;
 					}
-					logger.info('sucessfully spawned', { unitType, x, y });
-					success = true;
-				}
 				} catch(err) {
-					logger.info('spawning unit failed, retrying in new location', { err, x, y, unitType });
+					logger.info('spawning unit failed, retrying in new location', { msg: err.msg, x, y, unitType });
 				}
 			}
 		}

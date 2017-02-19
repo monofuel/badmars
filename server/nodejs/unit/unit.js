@@ -283,6 +283,7 @@ class Unit {
 	async delete(ctx: Context): Promise<void> {
 		logger.checkContext(ctx, 'delete');
 		await this.clearFromChunks(ctx);
+
 		return db.units[this.location.map].deleteUnit(ctx, this.uuid);
 	}
 
@@ -752,7 +753,7 @@ class Unit {
 			} else {
 				added = await loc.chunk.addUnit(ctx, this.uuid, loc.hash);
 				if (!added) {
-					logger.info('loc.chunk.addUnit failed ' + loc.hash);
+					logger.info('loc.chunk.addUnit failed', { hash: loc.hash });
 				}
 			}
 			if (!added) {
@@ -769,7 +770,7 @@ class Unit {
 		for (const loc of locs) {
 			const removed = await loc.chunk.clearUnit(this.uuid, loc.hash);
 			if (!removed) {
-				logger.info('loc.chunk.clear failed ' + loc.hash);
+				logger.info('loc.chunk.clear failed', { hash: loc.hash });
 			}
 			if (!removed) {
 				success = false;

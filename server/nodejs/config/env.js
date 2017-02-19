@@ -33,7 +33,7 @@ export default {
 	wsPort: process.env.BADMARS_WS_PORT || '7005',
 	wsPublicPort: process.env.BADMARS_WS_PUBLIC_PORT || '7005',
 
-	trackingServer: process.env.TRACKING_SERVER || 'http://andrelytics.lan',
+	trackingServer: process.env.TRACKING_SERVER || 'http://192.168.11.177',
 	trackingPort: process.env.TRACKING_PORT || '9001',
 
 	authServer: process.env.BADMARS_AUTH_SERVER || 'localhost',

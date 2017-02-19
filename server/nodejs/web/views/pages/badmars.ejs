@@ -10,10 +10,10 @@
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap-theme.min.css">
 
-    <!--<script src="js/badmars/dependencies/react.js"></script>
-    <script src="js/badmars/dependencies/react-dom.js"></script>
-    <script src="js/badmars/dependencies/react-with-addons.js"></script>-->
+    <link rel="stylesheet" href="/css/badmars.css">
 
+    <!-- TODO browserify should be used for all dependencies -->
+    <!-- TODO jquery should be removed, still used for cookie stuff -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
     <script src="js/three.js"></script>
     <script src="js/jquery.cookie.js"></script>
@@ -26,77 +26,11 @@
 		const SERVER_URL = '<%= server %>';
 		const SERVER_PORT = <%= port %>;
 	</script>
-    <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-      }
-
-      canvas {
-        width: 100%;
-        height: 100%
-      }
-      button {
-        z-index: 3;
-      }
-      #buttons {
-        position: absolute;
-        left: 10px;
-        top: 200px;
-        width: 100px;
-        padding: 5px;
-
-      }
-
-      #buttons .btn {
-        width: 100%;
-        padding-bottom: 10px;
-      }
-      #info .progress-bar {
-        padding: 5px;
-      }
-
-      #info {
-        position: absolute;
-        left: 10px;
-        top: 50px;
-        bottom: auto;
-        width: 300px;
-        height: auto;
-        padding: 5px;
-      }
-      #HUDPanel {
-        z-index:1;
-      }
-      #login {
-        z-index:3;
-      }
-      #content {
-        z-index: 2;
-      }
-      #threePanel {
-        z-index:0;
-      }
-
-      .wrapper {
-          position: relative;
-          width: 100%;
-          height: 100%;
-      }
-
-      .wrapper canvas {
-          position: absolute;
-          top: 0;
-          left: 0;
-      }
-
-    </style>
   </head>
   <body>
     <div class="wrapper">
       <canvas id='HUDPanel'></canvas>
       <canvas id='threePanel'></canvas>
-      <div id="login"></div>
       <div id="content"></div>
     </div>
   </body>

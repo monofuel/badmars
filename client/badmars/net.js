@@ -60,14 +60,18 @@ export function deleteListener(listener: Function) {
 	}
 }
 
+let connectionLost = false;
 function connectionError(err) {
-	console.log("connection lost");
-	window.track("error",err);
-	fireBusEvent('error','The connection to the server was lost. You should reload');
+	// HACK to only fire once
+	if (!connectionLost) {
+		console.log("connection lost");
+		window.track("error",err);
+		fireBusEvent('error','The connection to the server was lost. You should reload');
+		connectionLost = true;
+	}
 }
 
 window.track = (name, kargs) => {
-	/*
 	if (!kargs)
 		kargs = {};
 	var xhr = new XMLHttpRequest();
@@ -81,8 +85,6 @@ window.track = (name, kargs) => {
 	console.log('tracking ' + name);
 	console.log(kargs);
 	xhr.send(JSON.stringify(kargs));
-	*/
-
 }
 
 function verifyTrack(name,kargs) {
