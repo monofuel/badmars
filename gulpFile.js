@@ -1,19 +1,16 @@
+// monofuel 2017
 const gulp = require('gulp');
+const babel = require('gulp-babel');
+const sourcemaps = require('gulp-sourcemaps');
+const concat = require('gulp-concat');
 const browserify = require('browserify');
 const source = require('vinyl-source-stream');
 const buffer = require('vinyl-buffer');
 const _ = require('lodash');
 
-const SERVER_MODULES = [
-	'ai',
-	'chunk',
-	'commander',
-	'net',
-	'pathfinder',
-	'validator'
-];
+const serverSrc = 'server/nodejs/**/*.js';
 
-gulp.task('client', function () {
+gulp.task('client', () => {
 
 	return browserify({ entries: './client/badmars/client.js', debug: true })
 		.transform("babelify")
@@ -23,7 +20,7 @@ gulp.task('client', function () {
 		.pipe(gulp.dest('./public/badmars/js/'));
 });
 
-gulp.task('dashboard', function () {
+gulp.task('dashboard', () => {
 
 	return browserify({ entries: './client/dashboard/index.jsx', debug: true })
 		.transform("babelify")
@@ -33,19 +30,20 @@ gulp.task('dashboard', function () {
 		.pipe(gulp.dest('./public/dashboard/js/'));
 });
 
-SERVER_MODULES.forEach((mod) => {
-	gulp.task(mod, function () {
-		return browserifyServerModule(mod);
-	})
-})
-
-function browserifyServerModule(name) {
-	return browserify({ entries: './server/nodejs/' + name + '.js', debug: true })
-		.transform("babelify")
-		.bundle()
-		.pipe(source(name + '.js'))
-		.pipe(buffer())
-		.pipe(gulp.dest('/bin/'))
+function buildServer() {
+	return gulp.src(serverSrc)
+		.pipe(sourcemaps.init())
+		.pipe(babel())
+		.pipe(sourcemaps.write())
+		.pipe(gulp.dest('bin/server/nodejs/'));
 }
 
-gulp.task('default', _.concat(['client', 'dashboard'], SERVER_MODULES));
+gulp.task('build:server', () => {
+	return buildServer();
+});
+
+gulp.task('watch:server', ['build:server'], () => {
+	gulp.watch(serverSrc, ['build:server'])
+})
+
+gulp.task('default', _.concat(['client', 'dashboard']));
