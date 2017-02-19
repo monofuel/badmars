@@ -1,13 +1,13 @@
 FROM node:argon
 
-RUN curl -o- -L https://yarnpkg.com/install.sh | bash
-RUN yarn install -g gulp supervisor watchify flow-bin
+RUN npm install -g gulp supervisor watchify flow-bin babel-watch
 
 RUN mkdir /badmars
 ADD ./package.json badmars/
 WORKDIR /badmars
 
-RUN yarn install
+RUN curl -o- -L https://yarnpkg.com/install.sh | bash
+RUN /bin/bash -c 'source ~/.bashrc && yarn install'
 
 ADD . /badmars
 

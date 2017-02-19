@@ -26,7 +26,7 @@ services:
       - '8090:8090'
   chunk:
     build: .
-    command: bash -c 'cd server/nodejs && supervisor chunk.js'
+    command: bash -c 'cd server/nodejs && babel-watch chunk.js'
     volumes:
       - ./server:/badmars/server
     links:
@@ -36,7 +36,7 @@ services:
       - AI_HOST=ai
   ai:
     build: .
-    command: bash -c 'cd server/nodejs && supervisor ai.js'
+    command: bash -c 'cd server/nodejs && babel-watch ai.js'
     volumes:
       - ./server:/badmars/server
     links:
@@ -47,7 +47,7 @@ services:
       - AI_HOST=ai
   pathfinder:
     build: .
-    command: bash -c 'cd server/nodejs && supervisor pathfinder.js'
+    command: bash -c 'cd server/nodejs && babel-watch pathfinder.js'
     volumes:
       - ./server:/badmars/server
     links:
@@ -69,7 +69,7 @@ services:
       - AI_HOST=ai
   web:
     build: .
-    command: bash -c 'cd server/nodejs && supervisor web.js'
+    command: bash -c 'cd server/nodejs && babel-watch web.js'
     volumes:
       - ./server:/badmars/server
       - ./client:/badmars/client
@@ -95,7 +95,7 @@ services:
       - rethinkdb
   net:
     build: .
-    command: bash -c 'cd server/nodejs && supervisor net.js'
+    command: bash -c 'cd server/nodejs && babel-watch net.js'
     volumes:
       - ./server:/badmars/server
     ports:

@@ -33,7 +33,7 @@ class DBCall {
 // this function does a db-side check for table existance before
 // creation, and also adds some jitter
 export async function safeCreateTable(conn: r.Connection, tableName: string, primaryKey?: string): r.Table {
-	await helper.sleep(20 * 1000 * Math.random());
+	// await helper.sleep(20 * 1000 * Math.random());
 	let results;
 	if (primaryKey) {
 		results = await r.tableList().contains(tableName).do((exists: boolean): any => {
