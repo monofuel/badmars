@@ -213,7 +213,7 @@ class Map {
 		logger.checkContext(ctx, 'spawnUnit()');
 		for (const loc of await newUnit.getLocs(ctx)) {
 			if (!await this.checkValidForUnit(ctx, loc, newUnit)) {
-				logger.errorWithInfo('invalid tile for unit', { hash: newUnit.location.hash, uuid: newUnit.uuid });
+				logger.errorWithInfo('invalid tile for unit', { hash: JSON.stringify(newUnit.location.hash), uuid: newUnit.uuid });
 			} else {
 				//console.log('valid tile for unit: ' + tileHash);
 			}
@@ -238,7 +238,7 @@ class Map {
 		const unit: Unit = await db.units[this.name].addUnit(ctx, newUnit);
 		const success: boolean = await unit.addToChunks(ctx);
 		if (!success) {
-			await db.units[this.location.map].deleteUnit(ctx, unit.uuid);
+			await db.units[this.name].deleteUnit(ctx, unit.uuid);
 			logger.errorWithInfo('spawn collision adding to chunk', { unit });
 		}
 		await unit.validate(ctx);
@@ -249,24 +249,16 @@ class Map {
 	async checkValidForUnit(ctx: Context, tile: PlanetLoc, unit: Unit, ignoreAwake: ? boolean): Promise<boolean> {
 		//TODO handle air and water units
 		if (tile.tileType !== LAND) {
+			logger.info(`tiletype: ${tile.tileType}`);
 			return false;
 		}
 
-		//TODO handle multi tile units properly
-		let units = [];
-		if (!unit.details.size || unit.details.size === 1) {
-			units = await this.unitsTileCheck(ctx, await this.getLocFromHash(ctx, tile.hash), unit.details.ghosting);
-		} else {
-			const tilesToCheck = [
-				(tile.x - 1) + ':' + (tile.y - 1), (tile.x) + ':' + (tile.y - 1), (tile.x + 1) + ':' + (tile.y - 1),
-				(tile.x - 1) + ':' + (tile.y), (tile.x) + ':' + (tile.y), (tile.x + 1) + ':' + (tile.y),
-				(tile.x - 1) + ':' + (tile.y + 1), (tile.x) + ':' + (tile.y + 1), (tile.x + 1) + ':' + (tile.y + 1)
-			];
-			for (const tileHash of tilesToCheck) {
-				const units2 = await this.unitsTileCheck(ctx, await this.getLocFromHash(ctx, tileHash), unit.details.ghosting);
-				for (const unit2 of units2) {
-					units.push(unit2);
-				}
+		const units: Array<Unit> = [];
+		const tilesToCheck: Array<PlanetLoc> = await unit.getLocs(ctx);
+		for (const tile: PlanetLoc of tilesToCheck) {
+			const units2: Array<Unit> = await this.unitsTileCheck(ctx, tile, unit.details.ghosting);
+			for (const unit2: Unit of units2) {
+				units.push(unit2);
 			}
 		}
 
@@ -278,12 +270,13 @@ class Map {
 				}
 				//already has a mine
 				if (unit2.details.type === 'mine') {
-					console.log('already has mine');
+					logger.info('already has mine');
 					return false;
 				}
 			}
 
 			//console.log('found iron or oil for mine');
+			console.log('returning resource', resource);
 			return resource;
 		}
 
@@ -303,7 +296,7 @@ class Map {
 			}
 			return false;
 		}
-
+		console.log('returning false', units);
 		return false;
 	}
 
@@ -325,7 +318,7 @@ class Map {
 
 	async spawnUser(ctx: Context, client: Client): Promise<void> {
 		//find a spawn location
-		console.log('finding a spawn location')
+		console.log('finding a spawn location');
 		const chunk: Chunk = await this.findSpawnLocation(ctx);
 
 		//spawn units for them on the chunk
@@ -387,8 +380,12 @@ class Map {
 							console.log(`spawning mine for ${unitType}`);
 							const mine = new Unit('mine', this, x, y);
 							mine.details.owner = client.user.uuid;
+							try {
 							if (!await this.spawnUnit(ctx, mine)) {
 								logger.info('failed to spawn', { unitType: 'mine' , x, y });
+							}
+							} catch (err) {
+								logger.error(err,`failed to spawn ${unitType} for mine`);
 							}
 						}
 						logger.info('sucessfully spawned', { unitType, x, y });

@@ -8,11 +8,12 @@ services:
     volumes:
       - ./server:/go/src/github.com/monofuel/badmars/server
     links:
-      - rethinkdb
+#      - rethinkdb
       - ai
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
+      - BADMARS_DB=rethinkdb.lan
   dashboard:
     build:
       context: .
@@ -20,8 +21,8 @@ services:
     command: go run server/go/core/dashboard/dashboard.go
     volumes:
       - ./server:/go/src/github.com/monofuel/badmars/server
-    links:
-      - rethinkdb
+#    links:
+#      - rethinkdb
     ports:
       - '8090:8090'
   chunk:
@@ -29,44 +30,48 @@ services:
     command: bash -c 'cd server/nodejs && babel-watch chunk.js'
     volumes:
       - ./server:/badmars/server
-    links:
-      - rethinkdb
+#    links:
+#      - rethinkdb
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
+      - BADMARS_DB=rethinkdb.lan
   ai:
     build: .
     command: bash -c 'cd server/nodejs && babel-watch ai.js'
     volumes:
       - ./server:/badmars/server
     links:
-      - rethinkdb
+#      - rethinkdb
       - chunk
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
+      - BADMARS_DB=rethinkdb.lan
   pathfinder:
     build: .
     command: bash -c 'cd server/nodejs && babel-watch pathfinder.js'
     volumes:
       - ./server:/badmars/server
     links:
-      - rethinkdb
+#      - rethinkdb
       - chunk
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
+      - BADMARS_DB=rethinkdb.lan
   validator:
     build: .
     command: bash -c 'cd server/nodejs && node validator.js'
     volumes:
       - ./server:/badmars/server
     links:
-      - rethinkdb
+#      - rethinkdb
       - chunk
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
+      - BADMARS_DB=rethinkdb.lan
   web:
     build: .
     command: bash -c 'cd server/nodejs && babel-watch web.js'
@@ -78,10 +83,11 @@ services:
       - MAP_HOST=chunk
       - AI_HOST=ai
       - BADMARS_WS_SERVER=ws://192.168.11.119
+      - BADMARS_DB=rethinkdb.lan
     ports:
       - "3002:3002"
-    links:
-      - rethinkdb
+#    links:
+#      - rethinkdb
   client:
     build: .
     command: bash -c 'make watchClient'
@@ -91,8 +97,10 @@ services:
       - ./public:/badmars/public
     ports:
       - "4474:4474"
-    links:
-      - rethinkdb
+#    links:
+#      - rethinkdb
+    environment:
+      - BADMARS_DB=rethinkdb.lan
   net:
     build: .
     command: bash -c 'cd server/nodejs && babel-watch net.js'
@@ -100,12 +108,14 @@ services:
       - ./server:/badmars/server
     ports:
       - "7005:7005"
-    links:
-      - rethinkdb
+#    links:
+#      - rethinkdb
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-  rethinkdb:
-    image: rethinkdb
-    ports:
-      - "8085:8080"
+      - BADMARS_DB=rethinkdb.lan
+
+#  rethinkdb:
+#    image: rethinkdb
+#    ports:
+#      - "8085:8080"

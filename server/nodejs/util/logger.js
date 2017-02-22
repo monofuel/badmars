@@ -17,7 +17,7 @@ stats.init();
 let moduleName = 'monolith';
 
 //list of modules to output logs for STDOUT
-const DEBUG_MODULES = ['net', 'ai', 'validator'];
+const DEBUG_MODULES = ['net', 'ai', 'chunk', 'validator'];
 console.log('=========================');
 console.log('DEBUGGING MODULES:', DEBUG_MODULES);
 console.log('=========================');
@@ -57,6 +57,7 @@ function handleError(err: Error, msg?: string) {
 //throw a generic error message, but log specific information for debugging
 function errorWithInfo(msg: string, details: Object = {}) {
 	details.stack = (new Error().stack);
+	console.error(details.stack);
 	info(msg, details);
 	throw new Error(msg);
 }
@@ -90,9 +91,10 @@ function info(info: string, body?: Object, silent?: boolean) {
 	} else if(!DEBUG_MODULES.includes(moduleName)) {
 		return;
 	} else if(body) {
-		console.log('INFO:', dateFormat(timestamp), ':', info, ':', body, ':', moduleName);
+		//console.log('INFO:', dateFormat(timestamp), ':', info, ':', body);
+		console.log('INFO', dateFormat(timestamp), ':', info, ':', body.module);
 	} else {
-		console.log('INFO:', dateFormat(timestamp), ':', info, ':', body);
+		console.log('INFO:', dateFormat(timestamp), ':', info);
 	}
 }
 
