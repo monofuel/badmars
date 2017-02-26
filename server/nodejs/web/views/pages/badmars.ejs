@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Bad Mars</title>
+    
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap-theme.min.css">
+
+    <link rel="stylesheet" href="/css/badmars.css">
+
+    <!-- TODO browserify should be used for all dependencies -->
+    <!-- TODO jquery should be removed, still used for cookie stuff -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="js/three.js"></script>
+    <script src="js/jquery.cookie.js"></script>
+    <script src="js/stats.min.js"></script>
+    <script src="js/OBJLoader.js"></script>
+    <script src="js/watchdog.js"></script>
+
+    <script src="js/badmars.js"></script>
+	<script>
+		const SERVER_URL = '<%= server %>';
+		const SERVER_PORT = <%= port %>;
+	</script>
+  </head>
+  <body>
+    <div class="wrapper">
+      <canvas id='HUDPanel'></canvas>
+      <canvas id='threePanel'></canvas>
+      <div id="content"></div>
+    </div>
+  </body>
+
+</html>

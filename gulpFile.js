@@ -1,30 +1,49 @@
+// monofuel 2017
 const gulp = require('gulp');
+const babel = require('gulp-babel');
+const sourcemaps = require('gulp-sourcemaps');
+const concat = require('gulp-concat');
 const browserify = require('browserify');
 const source = require('vinyl-source-stream');
 const buffer = require('vinyl-buffer');
-const uglify = require('gulp-uglify');
+const _ = require('lodash');
 
-gulp.task('client', function () {
+const serverSrc = 'server/nodejs/**/*.js';
 
-    return browserify({entries: './client/badmars-v1/client.js', debug: true})
-        .transform("babelify")
-        .bundle()
-        .pipe(source('badmars-v1.js'))
-        .pipe(buffer())
-        .pipe(uglify())
-        .pipe(gulp.dest('./server/public/js/badmars/'))
+gulp.task('client', () => {
+
+	return browserify({ entries: './client/badmars/client.js', debug: true })
+		.transform("babelify")
+		.bundle()
+		.pipe(source('badmars.js'))
+		.pipe(buffer())
+		.pipe(gulp.dest('./public/badmars/js/'));
 });
 
-gulp.task('dashboard', function () {
+gulp.task('dashboard', () => {
 
-    return browserify({entries: './dashboard-frontend/js/index.jsx', debug: true})
-        .transform("babelify")
-        .bundle()
-        .pipe(source('index.js'))
-        .pipe(buffer())
-        .pipe(uglify())
-        .pipe(gulp.dest('./dashboard-frontend/public/js/'))
+	return browserify({ entries: './client/dashboard/index.jsx', debug: true })
+		.transform("babelify")
+		.bundle()
+		.pipe(source('index.js'))
+		.pipe(buffer())
+		.pipe(gulp.dest('./public/dashboard/js/'));
 });
 
+function buildServer() {
+	return gulp.src(serverSrc)
+		.pipe(sourcemaps.init())
+		.pipe(babel())
+		.pipe(sourcemaps.write())
+		.pipe(gulp.dest('bin/server/nodejs/'));
+}
 
-gulp.task('default',['client','dashboard']);
+gulp.task('build:server', () => {
+	return buildServer();
+});
+
+gulp.task('watch:server', ['build:server'], () => {
+	gulp.watch(serverSrc, ['build:server'])
+})
+
+gulp.task('default', _.concat(['client', 'dashboard']));

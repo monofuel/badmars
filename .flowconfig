@@ -2,10 +2,11 @@
 .*/node_modules/protobufjs/src/bower.json
 .*/node_modules/gulp-flowtype/test/*
 .*/node_modules/fbjs/*
+.*/node_modules/jsonlint/test/*
 
 
 [include]
-./node_modules/
+./node_modules/*
 
 [libs]
 ./client/libs/
