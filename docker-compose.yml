@@ -103,11 +103,12 @@ services:
       - BADMARS_DB=rethinkdb.lan
   net:
     build: .
-    command: bash -c 'cd server/nodejs && babel-watch net.js'
+    command: bash -c 'cd server/nodejs && babel-watch -d 5858 -B net.js'
     volumes:
       - ./server:/badmars/server
     ports:
       - "7005:7005"
+      - "5858:5858"
 #    links:
 #      - rethinkdb
     environment:

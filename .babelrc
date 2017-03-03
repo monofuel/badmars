@@ -1,6 +1,8 @@
 {
- "presets": ["react","es2017","stage-1", "flow"],
+ "presets": ["react","es2015","stage-0", "flow"],
  "plugins": ["transform-strict-mode"],
+ "sourcemaps": true,
+ "retainLines": true,
  "env": {
     "development": {
       "plugins": [
