@@ -46,7 +46,7 @@ function unhandled(err: Error) {
 
 function handleError(err: Error, msg?: string) {
 	const timestamp = new Date();
-	const message = msg ? msg + 'caused by: ' + err.message : err.message;
+	const message = msg ? msg + ' caused by: ' + err.message : err.message;
 	console.log(dateFormat(timestamp) + ' : ' + message);
 	track('error', {
 		message,

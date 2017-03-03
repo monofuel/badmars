@@ -212,10 +212,10 @@ class Map {
 	async spawnUnit(ctx: Context, newUnit: Unit): Promise<Unit> {
 		logger.checkContext(ctx, 'spawnUnit()');
 		for (const loc of await newUnit.getLocs(ctx)) {
-			if (!await this.checkValidForUnit(ctx, loc, newUnit)) {
-				logger.errorWithInfo('invalid tile for unit', { hash: JSON.stringify(newUnit.location.hash), uuid: newUnit.uuid });
-			} else {
-				//console.log('valid tile for unit: ' + tileHash);
+			const invalid = await this.checkValidForUnit(ctx, loc, newUnit);
+			if (invalid) {
+				console.log(invalid);
+				logger.errorWithInfo('invalid tile for unit', { hash: JSON.stringify(newUnit.location.hash), uuid: newUnit.uuid, reason: invalid });
 			}
 		}
 		const unit = await this.spawnAndValidate(ctx, newUnit);
@@ -246,11 +246,10 @@ class Map {
 		return unit;
 	}
 
-	async checkValidForUnit(ctx: Context, tile: PlanetLoc, unit: Unit, ignoreAwake: ? boolean): Promise<boolean> {
+	async checkValidForUnit(ctx: Context, tile: PlanetLoc, unit: Unit, ignoreAwake: ? boolean): Promise<?string> {
 		//TODO handle air and water units
 		if (tile.tileType !== LAND) {
-			logger.info(`tiletype: ${tile.tileType}`);
-			return false;
+			return 'tiletype is not land';
 		}
 
 		const units: Array<Unit> = [];
@@ -263,41 +262,36 @@ class Map {
 		}
 
 		if (unit.details.type === 'mine') {
-			let resource = false;
+			console.log(units);
 			for (const unit2: Unit of units) {
 				if (unit2.details.type === 'iron' || unit2.details.type === 'oil') {
-					resource = true;
+					return;
 				}
 				//already has a mine
 				if (unit2.details.type === 'mine') {
-					logger.info('already has mine');
-					return false;
+					return 'already has mine';
 				}
 			}
-
-			//console.log('found iron or oil for mine');
-			console.log('returning resource', resource);
-			return resource;
+			return 'no resource for mine';
 		}
 
 		if (units.length === 0) {
-			return true;
+			return;
 		}
 
 		if (units.length === 1 && unit.uuid === units[0].uuid) {
-			return true;
+			return;
 		}
 
 		if (ignoreAwake) {
 			for (const unit of units) {
 				if (!unit.awake && unit.movementType === 'groundUnit') {
-					return true;
+					return;
 				}
 			}
-			return false;
 		}
-		console.log('returning false', units);
-		return false;
+
+		return 'has another unit';
 	}
 
 	async checkOpen(ctx: Context, tile: PlanetLoc): Promise<boolean> {
@@ -325,14 +319,12 @@ class Map {
 		const unitsToSpawn: string[] = [
 			'storage', 'builder', 'builder', 'tank', 'tank', 'iron', 'oil'
 		];
+
 		const usedTiles: TileHash[] = [];
-		/*for (let i = 0; i < 50; i++) {
-			unitsToSpawn.push('tank');
-		}*/
+
 		for (const unitType: string of unitsToSpawn) {
 			console.log('trying to spawn ', unitType);
-			let success = false;
-			while (!success) {
+			while (true) {
 				let x: number = this.settings.chunkSize * Math.random();
 				let y: number = this.settings.chunkSize * Math.random();
 
@@ -374,24 +366,23 @@ class Map {
 				}
 				try {
 					// https://www.youtube.com/watch?v=eVB8lM-oCSk
-					if (await this.spawnUnit(ctx, unit)) {
-						if (unitType === 'iron' || unitType === 'oil') {
-							//assumes that if we spawn the iron or oil, we can also spawn a mine
-							console.log(`spawning mine for ${unitType}`);
-							const mine = new Unit('mine', this, x, y);
-							mine.details.owner = client.user.uuid;
-							try {
-							if (!await this.spawnUnit(ctx, mine)) {
-								logger.info('failed to spawn', { unitType: 'mine' , x, y });
-							}
-							} catch (err) {
-								logger.error(err,`failed to spawn ${unitType} for mine`);
-							}
+					await this.spawnUnit(ctx, unit);
+
+					logger.info('sucessfully spawned', { unitType, x, y });
+					usedTiles.push(...unit.location.hash);
+
+					if (unitType === 'iron' || unitType === 'oil') {
+						//assumes that if we spawn the iron or oil, we can also spawn a mine
+						const mine = new Unit('mine', this, x, y);
+						mine.details.owner = client.user.uuid;
+						try {
+							// HACK for some reason the iron/oil hasn't spawned before we spawn the mine
+							await this.spawnUnitWithoutTileCheck(ctx, mine);
+						} catch (err) {
+							logger.error(err,`failed to spawn mine for ${unitType}`);
 						}
-						logger.info('sucessfully spawned', { unitType, x, y });
-						usedTiles.push(...unit.location.hash);
-						success = true;
 					}
+					break;
 				} catch(err) {
 					logger.info('spawning unit failed, retrying in new location', { msg: err.msg, x, y, unitType });
 				}

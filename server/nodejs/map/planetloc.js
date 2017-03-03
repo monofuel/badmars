@@ -85,7 +85,7 @@ class PlanetLoc {
 	async getUnits(ctx: Context): Promise<Array<Unit>> {
 		logger.checkContext(ctx, 'getUnits');
 		const unitMap = await this.chunk.getUnits(ctx);
-		return _.filter(unitMap,(unit) => unit.details.hash === this.hash)
+		return _.filter(unitMap, (unit: Unit): boolean => unit.details.hash === this.hash);
 		
 	}
 	

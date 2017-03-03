@@ -123,8 +123,8 @@ class AStarPath {
 		}
 
 		//check if the tile is open and passable
-		const isValid = await this.map.checkValidForUnit(ctx, this.current, this.unit, true);
-		if(!isValid) {
+		const invalidReason = await this.map.checkValidForUnit(ctx, this.current, this.unit, true);
+		if(invalidReason) {
 			//console.log('not passible for unit');
 			return 'continue';
 		}
