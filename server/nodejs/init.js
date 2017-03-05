@@ -12,7 +12,6 @@ const logger = new Logger('chunk');
 const db = new DB(logger);
 
 module.exports = async function init(moduleName: ModuleName): Promise<void> {
-	console.log('starting');
 	try {
 		logger.info(null, 'start begin');
 		await db.init();
@@ -21,11 +20,13 @@ module.exports = async function init(moduleName: ModuleName): Promise<void> {
 			const chunk = new Chunk(db, logger);
 			await chunk.init();
 		}
-		console.log('complete');
 		logger.info(null, 'start complete');
 
 	} catch (err) {
+		// eslint-disable-next-line no-console
+		console.error(err);
 		logger.info(null, 'chunk script caught error, exiting');
 		logger.trackError(null, err);
+		process.exit(-1);
 	}
 };

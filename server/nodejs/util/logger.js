@@ -94,26 +94,26 @@ export default class Logger {
 		});
 	}
 
-	track(ctx: ?MonoContext, name: string, kargs: Object = {}) {
-
+	track(ctx: ?MonoContext, name: string, krgs: Object = {}) {
+		
+		const kargs = Object.assign({}, krgs);
 		//delete null fields
 		for (const key of Object.keys(kargs)) {
 			if (kargs[key] == null) {
 				delete kargs[key];
 			}
 		}
+		
 		name = name.replace(/ /g, '_').replace(/:/g, ' ');
 		kargs.name = 'server_' + name;
 		kargs.module = this.moduleName;
 		kargs.hostname = os.hostname();
 		kargs.env = env.envType;
-
 		verifyTrack(name, kargs);
 
 		if (ctx && ctx.db) {
 			ctx.db.event.addEvent(kargs);
 		}
-
 		request({
 			url: env.trackingServer + ':' + env.trackingPort + '/track/event',
 			method: 'POST',
@@ -134,7 +134,8 @@ export default class Logger {
 //==================================================================
 // private functions
 
-function dateFormat(date: Date): string {
+function dateFormat(dateTime: number): string {
+	const date = new Date(dateTime);
 	return date.getMonth() + '/' + date.getDate() + ' ' + date.getHours() + ':' + date.getMinutes();
 }
 

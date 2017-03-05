@@ -3,19 +3,18 @@
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
-import logger from '../../util/logger';
 import Unit from '../../unit/unit';
-import Context from 'node-context';
+import type MonoContext from '../../util/monoContext';
 import Client from '../client';
 
 // https://www.youtube.com/watch?v=PK-tVTsSKpw
 
-export default async function createGhost(ctx: Context, client: Client, data: Object): Promise<void> {
+export default async function createGhost(ctx: MonoContext, client: Client, data: Object): Promise<void> {
 	if(!data.unitType) {
-		return client.sendError('createGhost', 'no unit specified');
+		return client.sendError(ctx, 'createGhost', 'no unit specified');
 	}
 	if(!data.location || data.location.length !== 2) {
-		return client.sendError('createGhost', 'no or invalid location set');
+		return client.sendError(ctx, 'createGhost', 'no or invalid location set');
 	}
 
 	const map = client.map;
@@ -23,7 +22,7 @@ export default async function createGhost(ctx: Context, client: Client, data: Ob
 	try {
 		//TODO validate the unit type
 		//maybe this logic should be moved into map
-		const unit = new Unit(data.unitType, map, data.location[0], data.location[1]);
+		const unit = new Unit(ctx, data.unitType, map, data.location[0], data.location[1]);
 		unit.details.ghosting = true;
 		unit.details.owner = client.user.uuid;
 		const success = await map.spawnUnit(ctx, unit);
@@ -40,10 +39,10 @@ export default async function createGhost(ctx: Context, client: Client, data: Ob
 			}
 
 		} else {
-			client.sendError('createGhost', 'invalid order');
+			client.sendError(ctx, 'createGhost', 'invalid order');
 		}
 	} catch(err) {
-		logger.error(err);
-		client.sendError('createGhost', 'server error');
+		ctx.logger.trackError(ctx, err);
+		client.sendError(ctx, 'createGhost', 'server error');
 	}
 }

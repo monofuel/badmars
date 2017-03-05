@@ -5,13 +5,13 @@
 //	Licensed under included modified BSD license
 
 import filter from '../../util/socketFilter';
-import Context from 'node-context';
+import MonoContext from '../../util/monoContext';
 import Client from '../client';
 import Chunk from '../../map/chunk';
-import logger from '../../util/logger';
+import { checkContext } from '../../util/logger';
 
-export default async function getChunk(ctx: Context, client: Client, data: Object): Promise<void> {
-	logger.checkContext(ctx, 'getChunk');
+export default async function getChunk(ctx: MonoContext, client: Client, data: Object): Promise<void> {
+	checkContext(ctx, 'getChunk');
 	const x = data.x || 0;
 	const y = data.y || 0;
 

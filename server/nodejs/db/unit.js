@@ -34,7 +34,7 @@ export default class DBunit {
 		await safeCreateIndex(this.conn, logger, this.table, 'location.chunkHash', true);
 		await safeCreateIndex(this.conn, logger, this.table, 'details.lastTick');
 		await safeCreateIndex(this.conn, logger, this.table, 'awake');
-		await clearSpareIndices(this.conn, logger, this.table, VALID_INDICES);
+		await clearSpareIndices(this.conn, this.table, VALID_INDICES);
 	}
 
 	async each(ctx: MonoContext, func: Function): Promise<void> {

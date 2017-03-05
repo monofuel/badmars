@@ -9,7 +9,7 @@ import {safeCreateTable} from './helper';
 
 import type Logger from '../util/logger';
 
-class DBEvent {
+export default class DBEvent {
 	conn: r.Connection;
 	table: r.Table;
 	tableName: string;
@@ -37,5 +37,3 @@ class DBEvent {
 		});
 	}
 }
-
-module.exports = new DBEvent();

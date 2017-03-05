@@ -4,13 +4,12 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../../db/db';
-import Context from 'node-context';
+import type MonoContext from '../../util/monoContext';
 import Client from '../client';
 
-export default async function getMap(ctx: Context, client: Client): Promise<void> {
+export default async function getMap(ctx: MonoContext, client: Client): Promise<void> {
 	client.send('map', { map: client.planet });
 
-	const userList = await db.user.listAllSanitizedUsers();
+	const userList = await ctx.db.user.listAllSanitizedUsers();
 	client.send('players', { players: userList });
 }

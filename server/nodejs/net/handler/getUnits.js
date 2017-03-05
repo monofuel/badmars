@@ -4,12 +4,10 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../../db/db';
-import Context from 'node-context';
+import type MonoContext from '../../util/monoContext';
 import Client from '../client';
 
-export default async function getUnits(ctx: Context, client: Client): Promise<void> {
-	const units: Array<Unit> = await db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
-	console.log('units', units.length);
+export default async function getUnits(ctx: MonoContext, client: Client): Promise<void> {
+	const units: Array<Unit> = await ctx.db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
 	client.send('units', { units: units });
 }

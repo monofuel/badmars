@@ -6,10 +6,10 @@
 
 import r from 'rethinkdb';
 import {safeCreateTable, safeCreateIndex} from './helper';
-
+import User from '../user/user';
 import type Logger from '../util/logger';
 
-class DBUser {
+export default class DBUser {
 	conn: r.Connection;
 	table: r.Table;
 	tableName: string;
@@ -71,8 +71,3 @@ class DBUser {
 		return this.table.getAll(name, { index: 'name' }).delete().run(this.conn);
 	}
 }
-
-const user = new DBUser();
-export default user;
-
-const User = require('../user/user');

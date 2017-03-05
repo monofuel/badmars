@@ -35,10 +35,10 @@ export default class DB {
 	chunks: ChunkMapType = {};
 	units: UnitMapType = {};
 	unitStats: UnitStatMapType = {};
-	map = DBMap;
-	user = DBUser;
-	chat = DBChat;
-	event = DBEvent;
+	map = new DBMap();
+	user = new DBUser();
+	chat = new DBChat();
+	event = new DBEvent();
 
 	constructor(logger: Logger) {
 		this.logger = logger;
@@ -77,17 +77,16 @@ export default class DB {
 			this.logger.info(null, 'creating database');
 			await r.dbCreate('badmars').run(this.conn);
 		}
-		const map = new DBMap();
 
 		r.db('badmars');
 		await Promise.all([
-			DBMap.init(this.conn, this.logger),
-			DBChat.init(this.conn, this.logger),
-			DBEvent.init(this.conn, this.logger),
-			DBUser.init(this.conn, this.logger),
+			this.map.init(this.conn, this.logger),
+			this.chat.init(this.conn, this.logger),
+			this.event.init(this.conn, this.logger),
+			this.user.init(this.conn, this.logger),
 		]);
 
-		const mapNames = await map.listNames();
+		const mapNames = await this.map.listNames();
 
 		const chunkPromises = [];
 		for (const name of mapNames) {
@@ -99,7 +98,7 @@ export default class DB {
 
 		const unitPromises = [];
 		for (const name of mapNames) {
-			const unit = new DBUnit(this.conn, this.logger, name);
+			const unit = new DBUnit(this.conn, name);
 			unitPromises.push(unit.init(this.logger));
 			this.units[name] = unit;
 		}

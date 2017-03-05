@@ -9,7 +9,7 @@ import {safeCreateTable} from './helper';
 import type Logger from '../util/logger';
 import type User from '../user/user';
 
-class DBChat {
+export default class DBChat {
 	conn: r.Connection;
 	table: r.Table;
 	tableName: string;
@@ -40,6 +40,3 @@ class DBChat {
 		await this.table.insert(object).run(this.conn);
 	}
 }
-
-const chat = new DBChat();
-export default chat;
