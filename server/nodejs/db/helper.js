@@ -4,35 +4,36 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import helper from '../util/helper';
 import r from 'rethinkdb';
 import _ from 'lodash';
-import Context from 'node-context';
-import logger from '../util/logger';
+
+import MonoContext from '../util/monoContext';
+import type Logger from '../util/logger';
+import { checkContext } from '../util/logger';
 
 class DBCall {
 	profile: ProfileKey;
 	name: string;
-	ctx: Context;
-	constructor(ctx: Context, name: string) {
+	ctx: MonoContext;
+	constructor(ctx: MonoContext, name: string) {
 		this.ctx = ctx;
 		this.name = name;
-		this.profile = logger.startProfile(this.name);
-		logger.checkContext(this.ctx, this.name);
+		this.profile = ctx.logger.startProfile(this.name);
+		checkContext(this.ctx, this.name);
 	}
 	async check(): Promise<void> {
-		logger.checkContext(this.ctx, this.name);
+		checkContext(this.ctx, this.name);
 	}
 	async end(): Promise<void> {
-		logger.endProfile(this.profile);
-		logger.checkContext(this.ctx, this.name);
+		this.ctx.logger.endProfile(this.profile);
+		checkContext(this.ctx, this.name);
 	}
 }
 
 // rethinkdb does not atomically create tables
 // this function does a db-side check for table existance before
 // creation, and also adds some jitter
-export async function safeCreateTable(conn: r.Connection, tableName: string, primaryKey?: string): r.Table {
+export async function safeCreateTable(conn: r.Connection, logger: Logger, tableName: string, primaryKey?: string): r.Table {
 	// HACK disabling for now // await helper.sleep(20 * 1000 * Math.random());
 	let results;
 	if (primaryKey) {
@@ -49,21 +50,21 @@ export async function safeCreateTable(conn: r.Connection, tableName: string, pri
 		}).run(conn);
 	}
 	if (results.table_created) {
-		logger.info('created table:' + tableName);
+		logger.info(null, 'created table:' + tableName);
 	}
 	return r.table(tableName);
 }
 
-export async function safeCreateIndex(conn: r.Connection, table: r.Table, name: string, multi?: boolean): Promise<void> {
+export async function safeCreateIndex(conn: r.Connection, logger: Logger, table: r.Table, name: string, multi?: boolean): Promise<void> {
 	const indexList = await table.indexList().run(conn);
 	if (multi) {
 		if (!indexList.includes(name)) {
-			logger.info('adding ' + name + ' index');
+			logger.info(null, 'adding ' + name + ' index');
 			await table.indexCreate(name, { multi }).run(conn);
 		}
 	} else {
 		if (!indexList.includes(name)) {
-			logger.info('adding ' + name + ' index');
+			logger.info(null, 'adding ' + name + ' index');
 			await table.indexCreate(name).run(conn);
 		}
 	}
@@ -80,9 +81,7 @@ export async function clearSpareIndices(conn: r.Connection, table: r.Table, vali
 	}
 }
 
-export function startDBCall(ctx: Context, name: string): DBCall {
-	if (!ctx) {
-		throw new Error('missing context');
-	}
+export function startDBCall(ctx: MonoContext, name: string): DBCall {
+	checkContext(ctx, `startDBCall ${name}`);
 	return new DBCall(ctx, name);
 }

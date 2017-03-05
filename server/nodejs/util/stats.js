@@ -75,7 +75,6 @@ exports.addSumStat = (key: string, value: number) => {
 
 
 function reportStats() {
-	const logger = require('./logger'); // cyclical dependency issue
 	const stats: Object = {};
 	for(const key: string of Object.keys(avgStats)) {
 		const array: Array<number> = avgStats[key];
@@ -101,6 +100,4 @@ function reportStats() {
 		stats['executions-' + key] = profileCount[key];
 	}
 	profileCount = {};
-
-	logger.info('stats', stats, true);
 }

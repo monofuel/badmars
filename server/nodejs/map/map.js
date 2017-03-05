@@ -5,13 +5,17 @@
 //	Licensed under included modified BSD license
 
 import _ from 'lodash';
-import logger from '../util/logger';
-import Context from 'node-context';
-import helper from '../util/helper';
+import grpc from 'grpc';
+
+import { checkContext, DetailedError, WrappedError } from '../util/logger';
+import type MonoContext from '../util/monoContext';
 import env from '../config/env';
 import { LAND } from './tiletypes';
-
-import grpc from 'grpc';
+import Chunk from './chunk';
+import PlanetLoc from './planetloc';
+import Unit from '../unit/unit';
+import Client from '../net/client';
+import sleep from '../util/sleep';
 
 const chunkService = grpc.load(__dirname + '/../../protos/chunk.proto').chunk;
 const mapClient = new chunkService.Map(env.mapHost + ':' + env.mapPort, grpc.credentials.createInsecure());
@@ -48,7 +52,7 @@ type ChunkCacheMapType = {
 	[key: string]: CacheChunkType
 };
 
-class Map {
+export default class Map {
 	name: string;
 	settings: Object;
 	lastTickTimestamp: number;
@@ -72,33 +76,28 @@ class Map {
 		this.chunkCacheMap = {};
 	}
 
-	async getChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
-		if (!ctx) {
-			logger.errorWithInfo('missing context');
-		}
+	async getChunk(ctx: MonoContext, x: number, y: number): Promise<Chunk> {
+		checkContext(ctx, 'getChunk');
 		x = parseInt(x);
 		y = parseInt(y);
 		const self = this;
-		logger.checkContext(ctx, 'getChunk');
-		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
+		ctx.logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
 		const cacheChunk: CacheChunkType = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
-			logger.addSumStat('cacheChunkHit', 1);
-			//console.log('hit', x, y)
+			ctx.logger.addSumStat('cacheChunkHit', 1);
 			return cacheChunk.chunk;
 		} else {
-			//console.log('miss', x, y)
-			logger.addSumStat('cacheChunkMiss', 1);
+			ctx.logger.addSumStat('cacheChunkMiss', 1);
 		}
 
 		return await new Promise((resolve: Function, reject: Function): Promise<Chunk> => {
-			const profile = logger.startProfile('getChunk');
-			logger.checkContext(ctx, 'getChunkGrpc');
+			const profile = ctx.logger.startProfile('getChunk');
+			checkContext(ctx, 'getChunkGrpc');
 			return mapClient.getChunk({ mapName: this.name, x, y }, (err: Error, response: ChunkProto): any => {
-				logger.endProfile(profile);
-				logger.checkContext(ctx, 'getChunkGrpcReturn');
+				ctx.logger.endProfile(profile);
+				checkContext(ctx, 'getChunkGrpcReturn');
 				if (err) {
-					logger.error(err);
+					ctx.logger.trackError(ctx, new WrappedError(err, 'getChunk grpc', { mapName: this.name, x, y }));
 					return reject(err);
 				}
 				const chunk = new Chunk();
@@ -109,42 +108,40 @@ class Map {
 				for (let i = 0; i < chunk.grid.length; i++) {
 					chunk.grid[i] = response.grid[i].items;
 				}
-				this.addChunkToCache(chunk);
+				this.addChunkToCache(ctx, chunk);
 				resolve(chunk);
 			});
 		}).catch((err: Error): Promise<Chunk> => {
-			logger.info('failed to get chunk, retrying', { x, y, err });
-			helper.sleep(50);
+			ctx.logger.info(ctx, 'failed to get chunk, retrying', { x, y, err });
+			sleep(50);
 			return self.getChunk(ctx, x, y);
 		});
 	}
 
-	async fetchOrGenChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
-		if (!ctx) {
-			logger.errorWithInfo('missing context');
-		}
-
-		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
+	async fetchOrGenChunk(ctx: MonoContext, x: number, y: number): Promise<Chunk> {
+		checkContext(ctx, 'fetchOrGenChunk');
+		ctx.logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
 		const cacheChunk = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
-			logger.addSumStat('cacheChunkHit', 1);
+			ctx.logger.addSumStat('cacheChunkHit', 1);
 			return cacheChunk;
 		} else {
-			logger.addSumStat('cacheChunkMiss', 1);
+			ctx.logger.addSumStat('cacheChunkMiss', 1);
 		}
-		let chunk: Chunk = await db.chunks[this.name].getChunk(ctx, x, y);
+		let chunk: Chunk = await ctx.db.chunks[this.name].getChunk(ctx, x, y);
 
 		if (!chunk) {
-			logger.addSumStat('generatingChunk', 1);
+			ctx.logger.addSumStat('generatingChunk', 1);
 			chunk = new Chunk(x, y, this.name);
 			await chunk.save(ctx);
 		}
-		this.addChunkToCache(chunk);
+		this.addChunkToCache(ctx, chunk);
 		return chunk;
 	}
 
-	addChunkToCache(chunk: Chunk) {
-		const profile = logger.startProfile('addChunkToCache');
+	addChunkToCache(ctx: MonoContext, chunk: Chunk) {
+		checkContext(ctx, 'addChunkToCache');
+		const profile = ctx.logger.startProfile('addChunkToCache');
 		const entry = {
 			chunk,
 			timestamp: Date.now()
@@ -162,23 +159,21 @@ class Map {
 		this.chunkCache.sort((a: CacheChunkType, b: CacheChunkType): number => {
 			return b.timestamp - a.timestamp;
 		});
-		logger.endProfile(profile);
+		ctx.logger.endProfile(profile);
 	}
 
 	getChunkFromCache(hash: ChunkHash): CacheChunkType {
 		return this.chunkCacheMap[hash];
 	}
 
-	async getLocFromHash(ctx: Context, hash: TileHash): Promise<PlanetLoc> {
+	async getLocFromHash(ctx: MonoContext, hash: TileHash): Promise<PlanetLoc> {
 		const x = parseInt(hash.split(':')[0]);
 		const y = parseInt(hash.split(':')[1]);
 		return await this.getLoc(ctx, x, y);
 	}
 
-	async getLoc(ctx: Context, x: number, y: number): Promise<PlanetLoc> {
-		if (!ctx) {
-			logger.errorWithInfo('missing context');
-		}
+	async getLoc(ctx: MonoContext, x: number, y: number): Promise<PlanetLoc> {
+		checkContext(ctx, 'getLoc');
 		const real_x = Math.floor(x);
 		const real_y = Math.floor(y);
 		let chunkX = Math.floor(real_x / this.settings.chunkSize);
@@ -198,55 +193,56 @@ class Map {
 		//console.log("local: " + local_x + ":" + local_y);
 
 		const chunk: Chunk = await this.getChunk(ctx, chunkX, chunkY);
-		logger.checkContext(ctx, 'getLoc()');
+		checkContext(ctx, 'getLoc end');
 		return new PlanetLoc(this, chunk, real_x, real_y);
 	}
 
-	async factoryMakeUnit(ctx: Context, unitType: string, owner: string, x: number, y: number): Promise<?Unit> {
-		const newUnit = new Unit(unitType, this, x, y);
+	async factoryMakeUnit(ctx: MonoContext, unitType: string, owner: string, x: number, y: number): Promise<?Unit> {
+		const newUnit = new Unit(ctx, unitType, this, x, y);
 		newUnit.details.owner = owner;
 		newUnit.details.ghosting = false;
 		return await this.spawnUnit(ctx, newUnit);
 	}
 
-	async spawnUnit(ctx: Context, newUnit: Unit): Promise<Unit> {
-		logger.checkContext(ctx, 'spawnUnit()');
+	async spawnUnit(ctx: MonoContext, newUnit: Unit): Promise<Unit> {
+		checkContext(ctx, 'spawnUnit');
 		for (const loc of await newUnit.getLocs(ctx)) {
-			const invalid = await this.checkValidForUnit(ctx, loc, newUnit);
-			if (invalid) {
-				console.log(invalid);
-				logger.errorWithInfo('invalid tile for unit', { hash: JSON.stringify(newUnit.location.hash), uuid: newUnit.uuid, reason: invalid });
+			const badReason = await this.checkValidForUnit(ctx, loc, newUnit);
+			if (badReason) {
+				throw new DetailedError('spawnUnit', { badReason });
 			}
 		}
 		const unit = await this.spawnAndValidate(ctx, newUnit);
-		logger.checkContext(ctx, 'spawnUnit()');
+		checkContext(ctx, 'spawnUnit end');
 		return unit;
 	}
 
 	//to be used when spawning units on chunks that are not yet generated
 	//this prevents a loop of trying to validate against a chunk that
 	//is not yet generated (hence infinite loop)
-	async spawnUnitWithoutTileCheck(ctx: Context, newUnit: Unit): Promise<Unit> {
-		return db.units[this.name].addUnit(ctx, newUnit);
+	async spawnUnitWithoutTileCheck(ctx: MonoContext, newUnit: Unit): Promise<Unit> {
+		return ctx.db.units[this.name].addUnit(ctx, newUnit);
 	}
 
-	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise<Unit> {
-		logger.checkContext(ctx, 'spawnAndValidate');
-		if (!newUnit) {
-			logger.errorWithInfo('missing unit');
-		}
-		const unit: Unit = await db.units[this.name].addUnit(ctx, newUnit);
-		const success: boolean = await unit.addToChunks(ctx);
-		if (!success) {
-			await db.units[this.name].deleteUnit(ctx, unit.uuid);
-			logger.errorWithInfo('spawn collision adding to chunk', { unit });
+	async spawnAndValidate(ctx: MonoContext, newUnit: Unit): Promise<Unit> {
+		checkContext(ctx, 'spawnAndValidate');
+		const unit: Unit = await ctx.db.units[this.name].addUnit(ctx, newUnit);
+		try {
+			await unit.addToChunks(ctx);
+		} catch (err) {
+			try {
+				await ctx.db.units[this.name].deleteUnit(ctx, unit.uuid);
+			} catch (err) {
+				throw new WrappedError(err, 'failed to cleanup with failed spawn in spawnAndValidate');
+			}
+			throw new WrappedError(err, 'failed to spawn in spawnAndValidate');
 		}
 		await unit.validate(ctx);
-		logger.checkContext(ctx, 'spawnAndvalidate()');
+		checkContext(ctx, 'spawnAndvalidate end');
 		return unit;
 	}
 
-	async checkValidForUnit(ctx: Context, tile: PlanetLoc, unit: Unit, ignoreAwake: ? boolean): Promise<?string> {
+	async checkValidForUnit(ctx: MonoContext, tile: PlanetLoc, unit: Unit, ignoreAwake: ? boolean): Promise<?string> {
 		//TODO handle air and water units
 		if (tile.tileType !== LAND) {
 			return 'tiletype is not land';
@@ -262,7 +258,6 @@ class Map {
 		}
 
 		if (unit.details.type === 'mine') {
-			console.log(units);
 			for (const unit2: Unit of units) {
 				if (unit2.details.type === 'iron' || unit2.details.type === 'oil') {
 					return;
@@ -294,13 +289,13 @@ class Map {
 		return 'has another unit';
 	}
 
-	async checkOpen(ctx: Context, tile: PlanetLoc): Promise<boolean> {
-		logger.checkContext(ctx, 'checkOpen');
+	async checkOpen(ctx: MonoContext, tile: PlanetLoc): Promise<boolean> {
+		checkContext(ctx, 'checkOpen');
 		//TODO handle air units
 		return (await this.unitsTileCheck(ctx, tile, false)).length === 0;
 	}
 
-	async unitsTileCheck(ctx: Context, tile: PlanetLoc, includeGhosts: ? boolean): Promise<Array<Unit>> {
+	async unitsTileCheck(ctx: MonoContext, tile: PlanetLoc, includeGhosts: ? boolean): Promise<Array<Unit>> {
 		//const units = await tile.chunk.getUnits(tile.hash);
 		const units: Array<Unit> = await tile.getUnits(ctx);
 		if (!includeGhosts) {
@@ -310,9 +305,10 @@ class Map {
 		}
 	}
 
-	async spawnUser(ctx: Context, client: Client): Promise<void> {
+	async spawnUser(ctx: MonoContext, client: Client): Promise<void> {
+
 		//find a spawn location
-		console.log('finding a spawn location');
+		ctx.logger.info(ctx, 'finding spawn location');
 		const chunk: Chunk = await this.findSpawnLocation(ctx);
 
 		//spawn units for them on the chunk
@@ -323,7 +319,6 @@ class Map {
 		const usedTiles: TileHash[] = [];
 
 		for (const unitType: string of unitsToSpawn) {
-			console.log('trying to spawn ', unitType);
 			while (true) {
 				let x: number = this.settings.chunkSize * Math.random();
 				let y: number = this.settings.chunkSize * Math.random();
@@ -333,8 +328,10 @@ class Map {
 				x = Math.round(x);
 				y = Math.round(y);
 
-				const unit = new Unit(unitType, this, x, y);
+				const unit = new Unit(ctx, unitType, this, x, y);
 				const tilesToUse: TileHash[] = unit.location.hash;
+
+				ctx.logger.info(ctx, 'spawning unit', { unitType, x, y });
 
 				// check if the tiles we want to use are already used
 				if (_.intersection(usedTiles, tilesToUse).length !== 0) {
@@ -368,35 +365,35 @@ class Map {
 					// https://www.youtube.com/watch?v=eVB8lM-oCSk
 					await this.spawnUnit(ctx, unit);
 
-					logger.info('sucessfully spawned', { unitType, x, y });
+					ctx.logger.info(ctx, 'sucessfully spawned', { unitType, x, y });
 					usedTiles.push(...unit.location.hash);
 
 					if (unitType === 'iron' || unitType === 'oil') {
 						//assumes that if we spawn the iron or oil, we can also spawn a mine
-						const mine = new Unit('mine', this, x, y);
+						const mine = new Unit(ctx, 'mine', this, x, y);
 						mine.details.owner = client.user.uuid;
 						try {
 							// HACK for some reason the iron/oil hasn't spawned before we spawn the mine
 							await this.spawnUnitWithoutTileCheck(ctx, mine);
 						} catch (err) {
-							logger.error(err,`failed to spawn mine for ${unitType}`);
+							throw new WrappedError(err,`failed to spawn mine for ${unitType}`);
 						}
 					}
 					break;
 				} catch(err) {
-					logger.info('spawning unit failed, retrying in new location', { msg: err.msg, x, y, unitType });
+					ctx.logger.info(ctx, 'spawning unit failed, retrying in new location', { msg: err.msg, x, y, unitType });
 				}
 			}
 		}
-		logger.info('spawn finished');
+		ctx.logger.info(ctx, 'spawn finished');
 	}
 
 	//find random spawn locations, looking farther away depending on how many attempts tried
 	//returns a chunk of all free tiles
-	async findSpawnLocation(ctx: Context, attempts: ? number): Promise<Chunk> {
+	async findSpawnLocation(ctx: MonoContext, attempts: ? number): Promise<Chunk> {
 		attempts = attempts || 0;
 
-		logger.checkContext(ctx, 'finding spawn location');
+		checkContext(ctx, 'finding spawn location');
 
 		const direction = Math.random() * attempts * 50; //1magic number
 		const rotation = Math.random() * Math.PI * 2; //random value between 0 and 2PI
@@ -414,15 +411,13 @@ class Map {
 		}
 	}
 
-	async getNearbyUnitsFromChunkWithTileRange(ctx: Context, chunkHash: ChunkHash, tileRange: number): Promise<Array<Unit>> {
+	async getNearbyUnitsFromChunkWithTileRange(ctx: MonoContext, chunkHash: ChunkHash, tileRange: number): Promise<Array<Unit>> {
 		const chunkRange = tileRange / this.settings.chunkSize;
 		return await this.getNearbyUnitsFromChunk(ctx, chunkHash, chunkRange);
 	}
 
-	async getNearbyUnitsFromChunk(ctx: Context, chunkHash: ChunkHash, chunkRange: ? number): Promise<Array<Unit>> {
-		if (!ctx) {
-			logger.errorWithInfo('missing context');
-		}
+	async getNearbyUnitsFromChunk(ctx: MonoContext, chunkHash: ChunkHash, chunkRange: ? number): Promise<Array<Unit>> {
+		checkContext(ctx, 'getNearbyUnitsFromChunk');
 		if (!chunkRange) {
 			chunkRange = env.chunkExamineRange;
 		}
@@ -430,10 +425,8 @@ class Map {
 		return await this.getUnitsAtChunks(ctx, chunkHashes);
 	}
 
-	async getUnitsAtChunks(ctx: Context, chunkHashes: Array<ChunkHash> ): Promise<Array<Unit>> {
-		if (!ctx) {
-			logger.errorWithInfo('missing context');
-		}
+	async getUnitsAtChunks(ctx: MonoContext, chunkHashes: Array<ChunkHash> ): Promise<Array<Unit>> {
+		checkContext(ctx, 'getUnitsAtChunks');
 		const units = [];
 		for (const chunkHash of chunkHashes) {
 			const x: number = parseInt(chunkHash.split(':')[0]);
@@ -466,7 +459,7 @@ class Map {
 	}
 
 	//TODO this function could use some love to be a bit more sane about spawning
-	async validChunkForSpawn(ctx: Context, chunk: Chunk): Promise<boolean> {
+	async validChunkForSpawn(ctx: MonoContext, chunk: Chunk): Promise<boolean> {
 
 		const nearbyUnits = await this.getNearbyUnitsFromChunkWithTileRange(ctx, chunk.hash, 32);
 		for (const unit: Unit of nearbyUnits) {
@@ -501,7 +494,7 @@ class Map {
 		return true;
 	}
 
-	async pullIron(ctx: Context, taker: Unit, amount: number): Promise<boolean> {
+	async pullIron(ctx: MonoContext, taker: Unit, amount: number): Promise<boolean> {
 		const takerStorage = taker.getComponent('storage');
 
 		//TODO should calculate based on transfer range
@@ -577,7 +570,7 @@ class Map {
 		return true;
 	}
 
-	async pullFuel(ctx: Context, taker: Unit, amount: number): Promise<boolean> {
+	async pullFuel(ctx: MonoContext, taker: Unit, amount: number): Promise<boolean> {
 		const takerStorage = taker.getComponent('storage');
 		//TODO should calculate based on transfer range
 		const units = await this.getNearbyUnitsFromChunk(ctx, taker.location.chunkHash[0]);
@@ -650,7 +643,7 @@ class Map {
 		return true;
 	}
 
-	async produceIron(ctx: Context, mine: Unit, amount: number): Promise<void> {
+	async produceIron(ctx: MonoContext, mine: Unit, amount: number): Promise<void> {
 
 		const mineStorage = mine.getComponent('storage');
 		//TODO should calculate based on transfer range
@@ -691,7 +684,7 @@ class Map {
 		}
 	}
 
-	async produceFuel(ctx: Context, mine: Unit, amount: number): Promise<void> {
+	async produceFuel(ctx: MonoContext, mine: Unit, amount: number): Promise<void> {
 		const mineStorage = mine.getComponent('storage');
 		//TODO should calculate based on transfer range
 		const units: Array<Unit> = await this.getNearbyUnitsFromChunk(ctx, mine.location.chunkHash[0]);
@@ -757,8 +750,8 @@ class Map {
 
 	//TODO should have an option to find the tile that is nearest to the unit
 	//rather than to center (which it does now)
-	async getNearestFreeTile(ctx: Context, center: PlanetLoc, unit?: Unit, includeGhosts?: boolean): Promise<?PlanetLoc> {
-		logger.checkContext(ctx, 'getNearestFreeTile');
+	async getNearestFreeTile(ctx: MonoContext, center: PlanetLoc, unit?: Unit, includeGhosts?: boolean): Promise<?PlanetLoc> {
+		checkContext(ctx, 'getNearestFreeTile');
 		const unitsOnTile: Array<Unit> = await this.unitsTileCheck(ctx, center, includeGhosts);
 
 		//check if the tile we are checking is already free
@@ -836,7 +829,7 @@ class Map {
 		}
 	}
 
-	async getNearestEnemy(ctx: Context, unit: Unit): Promise<?Unit> {
+	async getNearestEnemy(ctx: MonoContext, unit: Unit): Promise<?Unit> {
 		const units = await this.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
 		this.sortByNearestUnit(units, unit);
 
@@ -849,30 +842,6 @@ class Map {
 		return null;
 	}
 
-	async update(patch: Object): Promise<void> {
-		return await db.map.updateMap(this.name, patch);
-	}
-
-	async advanceTick(): Promise<void> {
-		const delta = Date.now() - this.lastTickTimestamp;
-		//console.log('delta',delta);
-		if (delta < 1000 / env.ticksPerSec) {
-			const sleepTime = (1000 / env.ticksPerSec) - delta;
-			//console.log('sleeping for ' + sleepTime);
-			//set a timeout to wait before response
-			await helper.sleep(sleepTime);
-		}
-		//console.log('advancing tick: ', this.lastTick);
-		this.lastTickTimestamp = Date.now();
-		this.lastTick++;
-		return await this.update({ lastTick: this.lastTick, lastTickTimestamp: this.lastTickTimestamp });
-	}
-
-	/*save() {
-		console.log('SAVE MAP DANGEROUS');
-		return db.map.saveMap(this);
-	}*/
-
 	clone(object: any) {
 		for (const key in object) {
 			// $FlowFixMe: hiding this issue for now
@@ -884,22 +853,3 @@ class Map {
 		this.settings = _.cloneDeep(defaultSettings);
 	}
 }
-console.log('exporting map');
-module.exports = Map;
-
-import { checkEmptyImport } from '../util/helper';
-
-const Chunk = require('./chunk');
-checkEmptyImport(Chunk, 'Chunk', 'map.js');
-
-const PlanetLoc = require('./planetloc');
-checkEmptyImport(PlanetLoc, 'PlanetLoc', 'map.js');
-
-const Unit = require('../unit/unit');
-checkEmptyImport(Unit, 'Unit', 'map.js');
-
-const Client = require('../net/client');
-checkEmptyImport(Client, 'Client', 'map.js');
-
-const db = require('../db/db');
-checkEmptyImport(db,'db', 'map.js');

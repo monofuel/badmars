@@ -5,11 +5,14 @@
 //	Licensed under included modified BSD license
 
 import _ from 'lodash';
-import Context from 'node-context';
+import { DetailedError } from '../util/logger';
 import r from 'rethinkdb';
 import env from '../config/env';
-import logger from '../util/logger';
-import {safeCreateTable, safeCreateIndex, startDBCall, clearSpareIndices} from './helper';
+import Unit from '../unit/unit';
+import { safeCreateTable, safeCreateIndex, startDBCall, clearSpareIndices } from './helper';
+
+import type Logger from '../util/logger';
+import type MonoContext from '../util/monoContext';
 
 const VALID_INDICES = ['location.chunkHash', 'location.hash', 'details.lastTick', 'awake'];
 
@@ -25,22 +28,22 @@ export default class DBunit {
 		this.tableName = mapName + '_unit';
 	}
 
-	async init(): Promise<void> {
-		this.table = await safeCreateTable(this.conn, this.tableName, 'uuid');
-		await safeCreateIndex(this.conn, this.table, 'location.hash', true);
-		await safeCreateIndex(this.conn, this.table, 'location.chunkHash', true);
-		await safeCreateIndex(this.conn, this.table, 'details.lastTick');
-		await safeCreateIndex(this.conn, this.table, 'awake');
+	async init(logger: Logger): Promise<void> {
+		this.table = await safeCreateTable(this.conn, logger, this.tableName, 'uuid');
+		await safeCreateIndex(this.conn, logger, this.table, 'location.hash', true);
+		await safeCreateIndex(this.conn, logger, this.table, 'location.chunkHash', true);
+		await safeCreateIndex(this.conn, logger, this.table, 'details.lastTick');
+		await safeCreateIndex(this.conn, logger, this.table, 'awake');
 		await clearSpareIndices(this.conn, this.table, VALID_INDICES);
 	}
 
-	async each(func: Function): Promise<void> {
+	async each(ctx: MonoContext, func: Function): Promise<void> {
 		const cursor = await this.table.run(this.conn);
 		await cursor.each((err: Error, doc: Object) => {
 			if (err) {
 				throw err;
 			}
-			const unit = new Unit();
+			const unit = new Unit(ctx);
 			unit.clone(doc);
 			func(unit);
 		}).catch((err: Error) => {
@@ -52,7 +55,7 @@ export default class DBunit {
 		});
 	}
 
-	async listPlayersUnits(ctx: Context, owner: string): Promise<Array<Unit>> {
+	async listPlayersUnits(ctx: MonoContext, owner: string): Promise<Array<Unit>> {
 		const call = await startDBCall(ctx,'listPlayersUnits');
 		const cursor = await this.table.filter({details:{owner}}).run(this.conn);
 		const units = await this.loadUnitsCursor(cursor);
@@ -60,25 +63,25 @@ export default class DBunit {
 		return units;
 	}
 
-	async addUnit(ctx: Context, unit: Unit): Promise<Unit> {
+	async addUnit(ctx: MonoContext, unit: Unit): Promise<Unit> {
 		const call = await startDBCall(ctx,'addUnit');
 		const delta = await this.table.insert(unit, {
 			returnChanges: true
 		}).run(this.conn);
 		await call.end();
-		return await this.loadUnit(delta.changes[0].new_val);
+		return await this.loadUnit(ctx, delta.changes[0].new_val);
 	}
 
-	async getUnit(ctx: Context, uuid: UUID): Promise<Unit> {
+	async getUnit(ctx: MonoContext, uuid: UUID): Promise<Unit> {
 		const call = await startDBCall(ctx,'getUnit');
 		const doc = await this.table.get(uuid).run(this.conn);
 		if (!doc) {
-			logger.errorWithInfo('unit not found: ', { uuid });
+			throw new DetailedError('unit not found: ', { uuid });
 		}
 		await call.end();
-		return this.loadUnit(doc);
+		return this.loadUnit(ctx, doc);
 	}
-	async getUnits(ctx: Context, uuids: Array<UUID>): Promise<Array<Unit>> {
+	async getUnits(ctx: MonoContext, uuids: Array<UUID>): Promise<Array<Unit>> {
 		const call = await startDBCall(ctx,'getUnits');
 		const promises = [];
 		for (const uuid of uuids) {
@@ -86,12 +89,12 @@ export default class DBunit {
 		}
 		const docs = await Promise.all(promises);
 		await call.check();
-		const units = await this.loadUnits(docs);
+		const units = await this.loadUnits(ctx, docs);
 		await call.end();
 		return units;
 	}
 
-	async getUnitsMap(ctx: Context, uuids: Array<UUID> ): Promise<UnitMap> {
+	async getUnitsMap(ctx: MonoContext, uuids: Array<UUID> ): Promise<UnitMap> {
 		const call = await startDBCall(ctx,'getUnitsMap');
 		const promises = [];
 		for (const uuid of uuids) {
@@ -101,7 +104,7 @@ export default class DBunit {
 		await call.check();
 		const unitMap = {};
 		for (const doc of unitDocs) {
-			const unit = new Unit();
+			const unit = new Unit(ctx);
 			unit.clone(doc);
 			unitMap[unit.uuid] = unit;
 		}
@@ -109,14 +112,14 @@ export default class DBunit {
 		return unitMap;
 	}
 
-	async updateUnit(ctx: Context, uuid: UUID, patch: Object): Promise<Object> {
+	async updateUnit(ctx: MonoContext, uuid: UUID, patch: Object): Promise<Object> {
 		const call = await startDBCall(ctx,'updateUnit');
 		const result = await this.table.get(uuid).update(patch).run(this.conn);
 		await call.end();
 		return result;
 	}
 
-	async saveUnit(ctx: Context, unit: Unit): Promise<Object> {
+	async saveUnit(ctx: MonoContext, unit: Unit): Promise<Object> {
 		const call = await startDBCall(ctx,'saveUnit');
 		const result = await this.table.get(unit.uuid).update(unit).run(this.conn);
 		await call.end();
@@ -124,7 +127,7 @@ export default class DBunit {
 
 	}
 
-	async deleteUnit(ctx: Context, uuid: UUID): Promise<void> {
+	async deleteUnit(ctx: MonoContext, uuid: UUID): Promise<void> {
 		const call = await startDBCall(ctx,'deleteUnit');
 		if (!uuid) {
 			throw new Error('invalid uuid');
@@ -133,7 +136,7 @@ export default class DBunit {
 		await call.end();
 	}
 
-	async getUnitsAtChunk(ctx: Context, x: number, y: number): Promise<Array<Unit>> {
+	async getUnitsAtChunk(ctx: MonoContext, x: number, y: number): Promise<Array<Unit>> {
 		const call = await startDBCall(ctx,'getUnitsAtChunk');
 		const hash = x + ':' + y;
 		const unitDocs = await this.table.getAll(hash, {
@@ -142,29 +145,29 @@ export default class DBunit {
 		await call.check();
 		const units: Array<Unit> = [];
 		for (const doc: Object of unitDocs) {
-			units.push(await this.loadUnit(doc));
+			units.push(await this.loadUnit(ctx, doc));
 		}
 		await call.end();
 		return units;
 
 	}
 
-	async loadUnits(unitsList: Array<Object> ): Promise<Array<Unit>> {
+	async loadUnits(ctx: MonoContext, unitsList: Array<Object> ): Promise<Array<Unit>> {
 		const units = [];
 		_.each(unitsList, (doc: Object) => {
-			units.push(this.loadUnit(doc));
+			units.push(this.loadUnit(ctx, doc));
 		});
 
 		return Promise.all(units);
 	}
 
-	async loadUnitsCursor(cursor: r.Cursor): Promise<Array<Unit>> {
+	async loadUnitsCursor(ctx: MonoContext, cursor: r.Cursor): Promise<Array<Unit>> {
 		const units = [];
 		await cursor.each((err: Error, doc: Object) => {
 			if (err) {
 				throw err;
 			}
-			units.push(this.loadUnit(doc));
+			units.push(this.loadUnit(ctx, doc));
 		}).catch((err: Error) => {
 			//dumb rethinkDB bug
 			if (err.message === 'No more rows in the cursor.') {
@@ -176,18 +179,18 @@ export default class DBunit {
 		return Promise.all(units);
 	}
 
-	async loadUnit(doc: Object): Promise<Unit> {
+	async loadUnit(ctx: MonoContext, doc: Object): Promise<Unit> {
 		if (!doc) {
 			throw new Error('loadUnit called for null document');
 		}
-		const profile = logger.startProfile('loadUnit');
-		const unit = new Unit();
+		const profile = ctx.logger.startProfile('loadUnit');
+		const unit = new Unit(ctx);
 		unit.clone(doc);
-		logger.endProfile(profile);
+		ctx.logger.endProfile(profile);
 		return unit;
 	}
 
-	async addFactoryOrder(ctx: Context, uuid: UUID, order: FactoryOrder): Promise<void> {
+	async addFactoryOrder(ctx: MonoContext, uuid: UUID, order: FactoryOrder): Promise<void> {
 		const call = await startDBCall(ctx,'addFactoryOrder');
 		await this.table.get(uuid).update({
 			factoryQueue: r.row('factoryQueue').append(order),
@@ -223,7 +226,7 @@ export default class DBunit {
 		return result;
 	}
 
-	getUnprocessedUnits(tick: number): Promise<Array<Unit>> {
+	getUnprocessedUnits(ctx: MonoContext, tick: number): Promise<Array<Unit>> {
 		return this.table.getAll(true, {
 			index: 'awake'
 		}).filter(r.row('details.lastTick').lt(tick)).limit(env.unitProcessChunks).update((unit: any): any => {
@@ -242,7 +245,7 @@ export default class DBunit {
 				const newunit = delta.changes[i].new_val;
 				//const oldunit = delta.changes[i].old_val;
 
-				const properunit = new Unit();
+				const properunit = new Unit(ctx);
 				properunit.clone(newunit);
 				units.push(properunit);
 
@@ -261,7 +264,7 @@ export default class DBunit {
 			.run(this.conn);
 	}
 
-	async claimUnitTick(ctx: Context, uuid: UUID, tick: number): Promise<? Unit> {
+	async claimUnitTick(ctx: MonoContext, uuid: UUID, tick: number): Promise<? Unit> {
 		const call = await startDBCall(ctx,'claimUnitTick');
 		const delta = await this.table.get(uuid).update((unit: any): any => {
 			return r.branch(
@@ -273,7 +276,7 @@ export default class DBunit {
 		if (!delta.changes || delta.changes.length !== 1) {
 			return null;
 		}
-		const properunit = new Unit();
+		const properunit = new Unit(ctx);
 		properunit.clone(delta.changes[0].new_val);
 		return properunit;
 	}
@@ -310,5 +313,3 @@ export default class DBunit {
 		return this.conn;
 	}
 }
-
-const Unit = require('../unit/unit');

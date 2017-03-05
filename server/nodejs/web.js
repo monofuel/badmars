@@ -1,32 +1,33 @@
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-'use strict';
-require('babel-register');
-require('babel-polyfill');
+import DB from './db/db';
+import Logger from './util/logger';
+import Web from './core/web';
 
-const db = require('./db/db');
-const logger = require('./util/logger.js');
-const web = require('./core/web.js');
+const logger = new Logger('web');
+const db = new DB(logger);
 
-logger.setModule('web');
+async function init(): Promise<void> {
+	try {
+		logger.info(null, 'start begin');
+		await db.init();
+		logger.info(null, 'db ready');
 
-function init() {
-	logger.info('start begin');
+		const web = new Web(db, logger);
+		await web.init();
+		logger.info(null, 'start complete');
 
-	const startupPromises = [];
-	startupPromises.push(db.init());
-	startupPromises.push(web.init());
-	Promise.all(startupPromises)
-	.then(() => {
-		logger.info('start complete');
-	}).catch((err) => {
-		logger.error(err);
-		logger.info('start script caught error, exiting');
-		process.exit();
-	});
+	} catch (err) {
+		// eslint-disable-next-line no-console
+		console.error(err.stack);
+		logger.info(null, 'web script caught error, exiting');
+		logger.trackError(null, err);
+		process.exit(-1);
+	}
 }
 
 init();

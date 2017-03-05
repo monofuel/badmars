@@ -4,58 +4,72 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../db/db';
-import logger from '../util/logger';
+import MonoContext from '../util/monoContext';
+
+import type Logger from '../util/logger';
+import type DB from '../db/db';
 import type Unit from '../unit/unit';
 import type Chunk from '../map/chunk';
 
-import Context from 'node-context';
+
 let maps = [];
 
-export async function init(): Promise<void> {
-	const ctx = new Context();
-	if(process.argv.length > 2) {
-		maps = process.argv.slice(2, process.argv.length);
-	} else {
-		maps = await db.map.listNames();
+export default class ValidatorService {
+	db: DB;
+	logger: Logger;
+	constructor(db: DB, logger: Logger) {
+		this.db = db;
+		this.logger = logger;
 	}
 
-	for(const mapName: string of maps) {
-		const map = await db.map.getMap(ctx, mapName);
-		if(!map) {
-			logger.info('no such map', { mapName });
-			process.exit(-1);
+	makeCtx(timeout?: number): MonoContext {
+		return new MonoContext({ timeout }, this.db, this.logger);
+	}	
+
+	async init(): Promise<void> {
+		const ctx = this.makeCtx();
+		if(process.argv.length > 2) {
+			maps = process.argv.slice(2, process.argv.length);
+		} else {
+			maps = await ctx.db.map.listNames();
 		}
-		await validateUnits(mapName);
-		await validateChunks(mapName);
-		//TODO validate maps
+
+		for(const mapName: string of maps) {
+			const map = await ctx.db.map.getMap(ctx, mapName);
+			if(!map) {
+				ctx.logger.info(ctx, 'no such map', { mapName });
+				process.exit(-1);
+			}
+			await this.validateUnits(ctx, mapName);
+			await this.validateChunks(ctx, mapName);
+			//TODO validate maps
+		}
+
+		process.exit();
 	}
 
-	process.exit();
-}
+	async validateUnits(ctx: MonoContext, mapName: string): Promise<void> {
+		let counter = 0;
+		//TODO should rename listUnits to just list (and friends)``
+		const promises = [];
+		await ctx.db.units[mapName].each(ctx, (unit: Unit) => {
+			counter++;
+			promises.push(unit.validate(ctx));
+		});
+		Promise.all(promises);
+		ctx.logger.info(ctx, 'units validated: ', { counter });
+	}
 
-async function validateUnits(mapName: string): Promise<void> {
-	let counter = 0;
-	//TODO should rename listUnits to just list (and friends)``
-	const promises = [];
-	await db.units[mapName].each((unit: Unit) => {
-		counter++;
-		promises.push(unit.validate());
-	});
-	Promise.all(promises);
-	logger.info('units validated: ', { counter });
-}
-
-async function validateChunks(mapName: string): Promise<void> {
-	let counter = 0;
-	const promises = [];
-	await db.chunks[mapName].each((chunk: Chunk) => {
-		counter++;
-		promises.push(chunk.validate());
-	});
-	Promise.all(promises);
-	logger.info('chunks validated: ', { counter });
-}
+	async validateChunks(ctx: MonoContext, mapName: string): Promise<void> {
+		let counter = 0;
+		const promises = [];
+		await ctx.db.chunks[mapName].each((chunk: Chunk) => {
+			counter++;
+			promises.push(chunk.validate(ctx));
+		});
+		Promise.all(promises);
+		ctx.logger.info(ctx, 'chunks validated: ', { counter });
+	}
 
 
 /*async function checkUnitLocations(mapName: string) {
@@ -95,3 +109,4 @@ async function validateChunks(mapName: string): Promise<void> {
 	}*/
 
 //}
+}

@@ -5,19 +5,19 @@
 //	Licensed under included modified BSD license
 
 import env from '../../config/env';
-import logger from '../../util/logger';
-import Context from 'node-context';
+import MonoContext from '../../util/monoContext';
+import { checkContext } from '../../util/logger';
 
-import Unit from '../unit';
-import Map from '../../map/map';
+import type Unit from '../unit';
+import type Map from '../../map/map';
 
-async function actionable(): Promise<boolean> {
+export async function actionable(): Promise<boolean> {
 	//TODO return if we can attack or not
 	return false;
 }
 
-async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
-
+export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
+	checkContext(ctx, 'attack simulate');
 	//TODO allow force attacking a specific enemy
 	const enemy: Unit = await map.getNearestEnemy(ctx, unit);
 
@@ -33,19 +33,19 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	const damage = unit.attack.damage;
 
 	if(unit.attack.fireCooldown !== 0) {
-		await unit.tickFireCooldown();
+		await unit.tickFireCooldown(ctx);
 		return;
 	}
 
 	if(enemy && enemy.distance(unit) <= range) {
-		await unit.armFireCooldown();
+		await unit.armFireCooldown(ctx);
 		await enemy.takeDamage(ctx, damage);
 		if(enemy.health === 0) {
-			logger.info('gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
+			ctx.logger.info(ctx, 'gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
 			enemy.delete(ctx);
-			logger.info('gameEvent', { type: 'kill', unitId: enemy.uuid });
+			ctx.logger.info(ctx, 'gameEvent', { type: 'kill', unitId: enemy.uuid });
 		} else {
-			logger.info('gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
+			ctx.logger.info(ctx, 'gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
 		}
 		return;
 	} else if(enemy && enemy.distance(unit) < env.attackMoveRange) {
@@ -54,8 +54,3 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	}
 	return;
 }
-
-export default {
-	actionable,
-	simulate
-};

@@ -5,15 +5,14 @@
 //	Licensed under included modified BSD license
 
 import env from '../config/env';
-import logger from '../util/logger';
-import Map from '../map/map';
+import type Map from '../map/map';
 import PlanetLoc from '../map/planetloc';
-import Unit from '../unit/unit';
-import Context from 'node-context';
-
+import type Unit from '../unit/unit';
+import MonoContext from '../util/monoContext';
+import { DetailedError } from '../util/logger';
 import DIRECTION from '../map/directions';
 
-class AStarPath {
+export default class AStarPath {
 	start: PlanetLoc;
 	end: PlanetLoc;
 	current: PlanetLoc;
@@ -30,10 +29,10 @@ class AStarPath {
 		this.unit = unit;
 		this.current = start;
 		if(!this.start || !this.end || !this.current || this.start.map !== this.end.map) {
-			logger.errorWithInfo('invalid start and end points', {
-				start: start,
-				end: end,
-				unit: unit
+			throw new DetailedError('invalid start and end points', {
+				start: start.toString(),
+				end: end.toString(),
+				unit: unit.uuid
 			});
 		}
 
@@ -43,7 +42,7 @@ class AStarPath {
 		this.cost = 0;
 		this.path = [];
 	}
-	async generate(ctx: Context): Promise<void> {
+	async generate(ctx: MonoContext): Promise<void> {
 		this.open = [
 			await this.map.getLoc(ctx,this.start.x + 1, this.start.y),
 			await this.map.getLoc(ctx,this.start.x - 1, this.start.y),
@@ -60,12 +59,12 @@ class AStarPath {
 
 		let result;
 		do {
-			result = await this.searchNext();
+			result = await this.searchNext(ctx);
 			//console.log('result: ', result);
 		} while (result !== 'complete');
 	}
 
-	async searchNext(ctx: Context): Promise<string> {
+	async searchNext(ctx: MonoContext): Promise<string> {
 
 		this.cost++;
 
@@ -83,7 +82,7 @@ class AStarPath {
 				this.current = this.current.prev;
 				this.path.push(this.current);
 			}
-			logger.info('complete path calculated: ' + this.path.length);
+			ctx.logger.info(ctx, 'complete path calculated', { length: this.path.length });
 
 			return 'complete';
 		}
@@ -130,10 +129,10 @@ class AStarPath {
 		}
 
 		const neighbors = [
-			await this.current.N(),
-			await this.current.S(),
-			await this.current.W(),
-			await this.current.E()
+			await this.current.N(ctx),
+			await this.current.S(ctx),
+			await this.current.W(ctx),
+			await this.current.E(ctx)
 		];
 
 		for(const tile of neighbors) {
@@ -150,11 +149,7 @@ class AStarPath {
 		return 'continue';
 	}
 
-	save() {
-		//TODO implement this
-	}
-
-	async getNext(tile: PlanetLoc): Promise<Symbol> {
+	async getNext(ctx: MonoContext, tile: PlanetLoc): Promise<Symbol> {
 
 		if(tile === null) {
 			return DIRECTION.C;
@@ -171,13 +166,13 @@ class AStarPath {
 			return DIRECTION.C;
 		}
 
-		if((await tile.E()).equals(nextTile))
+		if((await tile.E(ctx)).equals(nextTile))
 			return DIRECTION.E;
-		if((await tile.W()).equals(nextTile))
+		if((await tile.W(ctx)).equals(nextTile))
 			return DIRECTION.W;
-		if((await tile.N()).equals(nextTile))
+		if((await tile.N(ctx)).equals(nextTile))
 			return DIRECTION.N;
-		if((await tile.S()).equals(nextTile))
+		if((await tile.S(ctx)).equals(nextTile))
 			return DIRECTION.S;
 
 		//console.log('invalid next tile');
@@ -193,5 +188,3 @@ function contains(list: Array<PlanetLoc>, tile: PlanetLoc): boolean {
 	}
 	return false;
 }
-
-module.exports = AStarPath;

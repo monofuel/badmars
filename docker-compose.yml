@@ -62,7 +62,7 @@ services:
       - BADMARS_DB=rethinkdb.lan
   validator:
     build: .
-    command: bash -c 'cd server/nodejs && node validator.js'
+    command: bash -c 'cd server/nodejs && babel-watch validator.js'
     volumes:
       - ./server:/badmars/server
     links:
@@ -103,7 +103,7 @@ services:
       - BADMARS_DB=rethinkdb.lan
   net:
     build: .
-    command: bash -c 'cd server/nodejs && babel-watch -d 5858 -B net.js'
+    command: bash -c 'cd server/nodejs && babel-watch -d 5858 net.js'
     volumes:
       - ./server:/badmars/server
     ports:

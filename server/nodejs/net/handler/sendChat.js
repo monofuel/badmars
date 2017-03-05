@@ -4,17 +4,16 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../../db/db';
+import type MonoContext from '../../util/monoContext';
 import User from '../../user/user';
-import Context from 'node-context';
 import Client from '../client';
 
 const DEFAULT_CHANNEL = 'global';
 
-export default async function sendChat(ctx: Context,client: Client, data: Object): Promise<void> {
+export default async function sendChat(ctx: MonoContext,client: Client, data: Object): Promise<void> {
 	const user: User = client.user;
 	if(!data.text) {
-		client.sendError('sendChat', 'no text set');
+		client.sendError(ctx, 'sendChat', 'no text set');
 		return;
 	}
 
@@ -24,7 +23,7 @@ export default async function sendChat(ctx: Context,client: Client, data: Object
 	}
 
 
-	await db.chat.sendChat(user, data.text, data.channel || DEFAULT_CHANNEL);
+	await ctx.db.chat.sendChat(user, data.text, data.channel || DEFAULT_CHANNEL);
 
 	//realtime system should send player their new chat message,
 	//no need to send success

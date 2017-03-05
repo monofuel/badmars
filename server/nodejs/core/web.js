@@ -9,31 +9,50 @@ import path from 'path';
 import util from 'util';
 
 import env from '../config/env';
-import logger from '../util/logger';
 
 import mainRoute from '../web/routes/main';
 import managementRoute from '../web/routes/management';
 
-export async function init(): Promise<void> {
-	const app: express = express();
+import MonoContext from '../util/monoContext';
 
-	app.set('view engine', 'ejs');
-	app.set('trust proxy', true); //for accurate logs running behind a proxy
+import type Logger from '../util/logger';
+import type DB from '../db/db';
 
-	app.use(express.static(path.join(__dirname, '../../../public/badmars')));
-	app.set('views', path.join(__dirname,'../web/views'));
+export default class WebService {
+	db: DB;
+	logger: Logger;
 
-	mainRoute(app);
-	managementRoute(app);
+	constructor(db: DB, logger: Logger) {
+		this.db = db;
+		this.logger = logger;
+	}
 
-	return new Promise((resolve: Function) => {
-		const server = app.listen(env.wwwPort, () => {
+	async init(): Promise<void> {
+		const app = express();
+		const ctx = this.makeCtx();
 
-			const host = server.address().address;
-			const port = server.address().port;
+		app.set('view engine', 'ejs');
+		app.set('trust proxy', true); //for accurate logs running behind a proxy
+		app.use(express.static(path.join(__dirname, '../../../public/badmars')));
+		app.set('views', path.join(__dirname,'../web/views'));
 
-			logger.info(util.format('Express listening at http://%s:%s', host, port));
-			resolve();
+		mainRoute(ctx.create(), app);
+		managementRoute(ctx.create(), app);
+
+		return new Promise((resolve: Function) => {
+			const server = app.listen(env.wwwPort, () => {
+
+				const host = server.address().address;
+				const port = server.address().port;
+
+				ctx.logger.info(ctx, util.format('Express listening at http://%s:%s', host, port));
+				resolve();
+			});
 		});
-	});
+	}
+
+	makeCtx(timeout?: number): MonoContext {
+		return new MonoContext({ timeout }, this.db, this.logger);
+	}
+
 }

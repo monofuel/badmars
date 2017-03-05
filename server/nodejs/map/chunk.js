@@ -4,22 +4,28 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import env from '../config/env';
-import logger from '../util/logger';
-import Context from 'node-context';
-
-import r from 'rethinkdb';
-import SimplexNoise from 'simplex-noise';
 import _ from 'lodash';
 import Alea from 'alea';
+import r from 'rethinkdb';
+import SimplexNoise from 'simplex-noise';
 
+import env from '../config/env';
+import { DetailedError, checkContext } from '../util/logger';
+import type MonoContext from '../util/monoContext';
+import Unit from '../unit/unit';
+import PlanetLoc from './planetloc';
 import { LAND, CLIFF, WATER, COAST } from './tiletypes';
+
+import type DBChunk from '../db/chunk';
+import type DBUnit from '../db/unit';
+import type Map from './map';
 
 type EntityMapType = {
 	[key: TileHash]: UUID
 };
 
-class Chunk {
+
+export default class Chunk {
 	x: number;
 	y: number;
 	hash: string;
@@ -48,8 +54,8 @@ class Chunk {
 
 	//TODO should be refactored neater
 	//the old server never actually did world generation and left it to the client.
-	async generate(ctx: Context): Promise<void> {
-		logger.checkContext(ctx, 'generate');
+	async generate(ctx: MonoContext): Promise<void> {
+		checkContext(ctx, 'generate');
 		//console.log('generating chunk ' + this.hash);
 		const map = await this.getMap(ctx);
 
@@ -64,7 +70,7 @@ class Chunk {
 			this.grid.push([]);
 			const x = (this.x * this.chunkSize) + i;
 			for (let j = 0; j < this.chunkSize + 1; j++) {
-				logger.checkContext(ctx, 'generating chunk tiles');
+				checkContext(ctx, 'generating chunk tiles');
 				const y = (this.y * this.chunkSize) + j;
 				//dear god sorry this is so ugly, just porting over the same logic from the last generator that was on the client.
 				let height = bigNoiseGenerator.noise2D(x * map.settings.bigNoise, y * map.settings.bigNoise) * map.settings.bigNoiseScale;
@@ -85,7 +91,7 @@ class Chunk {
 		for (let i = 0; i < this.chunkSize; i++) {
 			this.navGrid.push([]);
 			for (let j = 0; j < this.chunkSize; j++) {
-				logger.checkContext(ctx, 'generating chunk types');
+				checkContext(ctx, 'generating chunk types');
 				const corners = [
 					this.grid[i][j],
 					this.grid[i + 1][j],
@@ -120,7 +126,7 @@ class Chunk {
 		for (let i = 0; i < this.chunkSize; i++) {
 			const x = (this.x * this.chunkSize) + i;
 			for (let j = 0; j < this.chunkSize; j++) {
-				logger.checkContext(ctx, 'generating chunk resources');
+				checkContext(ctx, 'generating chunk resources');
 				const y = (this.y * this.chunkSize) + j;
 
 				if (this.navGrid[i][j] != LAND) {
@@ -129,20 +135,20 @@ class Chunk {
 
 				if (resourceAlea() < map.settings.ironChance) {
 					//console.log('spawning iron');
-					let unit: Unit = new Unit('iron', map, x, y);
+					let unit: Unit = new Unit(ctx, 'iron', map, x, y);
 					unit = await map.spawnUnitWithoutTileCheck(ctx, unit);
 					if (!unit) {
-						logger.info('failed to spawn iron');
+						ctx.logger.info(ctx, 'failed to spawn iron');
 					} else {
 						this.resources[unit.location.hash[0]] = unit.uuid;
 					}
 
 				} else if (resourceAlea() < map.settings.oilChance) {
 					//console.log('spawning oil');
-					let unit: Unit = new Unit('oil', map, x, y);
+					let unit: Unit = new Unit(ctx, 'oil', map, x, y);
 					unit = await map.spawnUnitWithoutTileCheck(ctx, unit);
 					if (!unit) {
-						logger.info('failed to spawn oil');
+						ctx.logger.info(ctx, 'failed to spawn oil');
 					} else {
 						this.resources[unit.location.hash[0]] = unit.uuid;
 					}
@@ -151,13 +157,13 @@ class Chunk {
 		}
 	}
 
-	async save(ctx: Context): Promise<void> {
+	async save(ctx: MonoContext): Promise<void> {
 		await this.generate(ctx);
-		await this.getChunkDB().saveChunk(ctx, this);
+		await this.getChunkDB(ctx).saveChunk(ctx, this);
 	}
 
-	async getUnitsMap(ctx: Context, hash: TileHash): Promise<UnitMap> {
-		logger.checkContext(ctx,'getUnitsMap');
+	async getUnitsMap(ctx: MonoContext, hash: TileHash): Promise<UnitMap> {
+		checkContext(ctx,'getUnitsMap');
 		await this.refresh(ctx);
 		const uuids = [];
 		let uuid = this.units[hash];
@@ -175,117 +181,91 @@ class Chunk {
 		if (uuid) {
 			uuids.push(uuid);
 		}
-		return db.units[this.map].getUnitsMap(ctx, uuids);
+		return ctx.db.units[this.map].getUnitsMap(ctx, uuids);
 
 	}
 
-	async getUnits(ctx: Context): Promise<Array<Unit>> {
-		logger.checkContext(ctx,'getUnits');
+	async getUnits(ctx: MonoContext): Promise<Array<Unit>> {
+		checkContext(ctx,'getUnits');
 		await this.refresh(ctx);
 		const unitUuids: Array<UUID> = _.union(_.map(this.resources), _.map(this.units), _.map(this.airUnits));
 
 		//fast units list
-		return this.getUnitDB().getUnits(ctx, unitUuids);
+		return this.getUnitDB(ctx).getUnits(ctx, unitUuids);
 
 		//slow units list
 		//return await  db.units[this.map].getUnitsAtChunk(this.x,this.y);
 	}
 
-	async update(ctx: Context, patch: any): Promise<Object> {
-		return db.chunks[this.map].update(ctx, this.hash, patch);
+	async update(ctx: MonoContext, patch: any): Promise<Object> {
+		return ctx.db.chunks[this.map].update(ctx, this.hash, patch);
 	}
 
 	//not fully working yet
 	//moveUnit tries to move a unit, and returns success
-	async moveUnit(ctx: Context, unit: Unit, newTile: PlanetLoc): Promise<Success> {
-		logger.checkContext(ctx, 'moveUnit');
+	async moveUnit(ctx: MonoContext, unit: Unit, newTile: PlanetLoc): Promise<void> {
+		checkContext(ctx, 'moveUnit');
 		await this.refresh(ctx);
 		const oldTiles = await unit.getLocs(ctx);
 
-		let success = await newTile.chunk.getChunkDB().setUnit(ctx,newTile.chunk, unit.uuid, newTile.hash);
-		if (!success) {
-			return false;
-		}
+		await newTile.chunk.getChunkDB(ctx).setUnit(ctx,newTile.chunk, unit.uuid, newTile.hash);
+
+
 		const newChunk: Chunk = newTile.chunk;
 		await newChunk.refresh(ctx);
 		if (unit.uuid !== newChunk.units[newTile.hash]) {
-			logger.info('wrong new position', { hash: newTile.hash, uuid: unit.uuid, otherUuid: newChunk.units[newTile.hash] });
-			return false;
+			throw new DetailedError('wrong new position', { hash: newTile.hash, uuid: unit.uuid, otherUuid: newChunk.units[newTile.hash] });
 		}
-
-		success = await oldTiles[0].chunk.clearUnit(unit.uuid, oldTiles[0].hash);
-		if (!success) {
-			logger.info('failed clearing old position', { hash: newTile.hash });
-		}
-
-		return true;
+		await oldTiles[0].chunk.clearUnit(unit.uuid, oldTiles[0].hash);
 
 	}
 
 	//TODO contexts
-	async clearUnit(uuid: UUID, tileHash: TileHash): Promise<Success> {
-		const table = db.chunks[this.map].getTable();
-		const conn = db.chunks[this.map].getConn();
+	async clearUnit(ctx: MonoContext, uuid: UUID, tileHash: TileHash): Promise<void> {
+		const table = ctx.db.chunks[this.map].getTable();
+		const conn = ctx.db.chunks[this.map].getConn();
 
 		const unitUpdate = {};
 		unitUpdate[tileHash] = true;
 		if (this.units[tileHash] !== uuid) {
-			logger.info('wrong unit at old tile!', { found: this.units[tileHash], expected: uuid });
+			throw new DetailedError('wrong unit at old tile!', { found: this.units[tileHash], expected: uuid });
 		}
 		delete this.units[tileHash];
 
-		//return table.get(this.hash).without({units: tileHash}).run(conn);
 		const delta = await table.get(this.hash)
 			.replace(r.row.without({ units: unitUpdate }), { returnChanges: true }).run(conn);
 		if (delta.replaced !== 1) {
-			return false;
+			throw new DetailedError('failed clearing position', { tileHash });
 		} else {
 			const newChunk = delta.changes[0].new_val;
 			if (newChunk.units[tileHash] === uuid) {
-				logger.info('unit did not get removed from position', { uuid, found: newChunk.units[tileHash]});
+				throw new DetailedError('unit did not get removed from position', { uuid, found: newChunk.units[tileHash]});
 			}
-			return true;
 		}
 	}
 
-	async addUnit(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<Success> {
-		logger.checkContext(ctx, 'addUnit');
-		const success = await this.getChunkDB().setUnit(ctx, this, uuid, tileHash);
-		if (!success) {
-			logger.info('failed putting unit to chunk');
-			return false;
-		}
+	async addUnit(ctx: MonoContext, uuid: UUID, tileHash: TileHash): Promise<void> {
+		checkContext(ctx, 'addUnit');
+		await this.getChunkDB(ctx).setUnit(ctx, this, uuid, tileHash);
 
 		await this.refresh(ctx);
 		if (uuid !== this.units[tileHash]) {
-			logger.info('wrong new position');
-			/*console.log('wrong new position', tileHash, 'expected', uuid, 'found', this.units[tileHash]);
-			console.log('old', this.units);
-			console.log('new', this.units);*/
+			throw new DetailedError('wrong new position after refresh', { uuid, tileHash, found: this.units[tileHash] });
 		}
-		return true;
 	}
 
 
-	async addResource(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<Success> {
-		logger.checkContext(ctx, 'addResource');
-		const success = await this.getChunkDB().setResource(ctx, this, uuid, tileHash);
-		if (!success) {
-			return false;
-		}
+	async addResource(ctx: MonoContext, uuid: UUID, tileHash: TileHash): Promise<void> {
+		checkContext(ctx, 'addResource');
+		await this.getChunkDB(ctx).setResource(ctx, this, uuid, tileHash);
 		await this.refresh(ctx);
-		if (uuid !== this.resources[tileHash]) {
-			logger.info('failed to add resource');
-			/*console.log('failed adding resource', tileHash, 'expected', uuid, 'found', this.resources[tileHash]);
-			console.log('new', this.resources);
-			console.log(tileHash, uuid);
-			console.log('chunkHash', this.hash);*/
+		if (uuid !== this.units[tileHash]) {
+			throw new DetailedError('failed to add resource after refresh', { uuid, tileHash, found: this.units[tileHash] });
 		}
-		return true;
 	}
 
-	async validate(ctx: Context): Promise<void> {
-		logger.checkContext(ctx, 'validate');
+	async validate(ctx: MonoContext): Promise<void> {
+		checkContext(ctx, 'validate');
 		if (!env.debug) {
 			return;
 		}
@@ -331,7 +311,7 @@ class Chunk {
 		}
 		for (const tileHash of Object.keys(this.units)) {
 			const uuid = this.units[tileHash];
-			const unit = await db.units[this.map].getUnit(ctx, uuid);
+			const unit = await ctx.db.units[this.map].getUnit(ctx, uuid);
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
 			}
@@ -358,14 +338,14 @@ class Chunk {
 		}
 
 		_.each(this.resources, (uuid: UUID, tileHash: TileHash) => {
-			const unit = db.units[this.map].getUnit(ctx, uuid);
+			const unit = ctx.db.units[this.map].getUnit(ctx, uuid);
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
 			}
 		});
 
 		_.each(this.airUnits, (uuid: UUID, tileHash: TileHash) => {
-			const unit = db.units[this.map].getUnit(ctx, uuid);
+			const unit = ctx.db.units[this.map].getUnit(ctx, uuid);
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
 			}
@@ -386,16 +366,14 @@ class Chunk {
 		this.y = parseInt(this.y);
 	}
 
-	async refresh(ctx: Context): Promise<void> {
-		if (!ctx) {
-			logger.errorWithInfo('missing context');
-		}
-		const fresh = await db.chunks[this.map].getChunk(ctx, this.x, this.y);
+	async refresh(ctx: MonoContext): Promise<void> {
+		checkContext(ctx, 'refresh');
+		const fresh = await ctx.db.chunks[this.map].getChunk(ctx, this.x, this.y);
 		this.clone(fresh);
 	}
 
-	async getTiles(ctx: Context): Promise<Array<PlanetLoc>> {
-		logger.checkContext(ctx, 'getTiles');
+	async getTiles(ctx: MonoContext): Promise<Array<PlanetLoc>> {
+		checkContext(ctx, 'getTiles');
 		const map = await this.getMap(ctx, this.map);
 		const tiles = [];
 		for (let i = 0; i < this.chunkSize; i++) {
@@ -407,27 +385,13 @@ class Chunk {
 		}
 		return tiles;
 	}
-	getChunkDB(): DBChunk {
-		return db.chunks[this.map];
+	getChunkDB(ctx: MonoContext): DBChunk {
+		return ctx.db.chunks[this.map];
 	}
-	getUnitDB(): DBUnit {
-		return db.units[this.map];
+	getUnitDB(ctx: MonoContext): DBUnit {
+		return ctx.db.units[this.map];
 	}
-	async getMap(ctx: Context): Promise<Map> {
-		return db.map.getMap(ctx, this.map);
+	async getMap(ctx: MonoContext): Promise<Map> {
+		return ctx.db.map.getMap(ctx, this.map);
 	}
 }
-console.log('exporting chunk');
-module.exports = Chunk;
-
-import { checkEmptyImport } from '../util/helper.js';
-
-const Unit = require('../unit/unit');
-checkEmptyImport(Unit, 'Unit', 'chunk.js');
-const PlanetLoc = require('./planetloc');
-checkEmptyImport(PlanetLoc, 'PlanetLoc', 'chunk.js');
-
-import type DBChunk from '../db/chunk';
-import type DBUnit from '../db/unit';
-import type Map from './map';
-const db = require('../db/db');

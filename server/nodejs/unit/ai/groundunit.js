@@ -4,24 +4,24 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import db from '../../db/db';
-import Context from 'node-context';
+import MonoContext from '../../util/monoContext';
+import { checkContext } from '../../util/logger';
 
-import DIRECTION from '../../map/directions';
-import Unit from '../unit';
-import Map from '../../map/map';
 import PlanetLoc from '../../map/planetloc';
-import logger from '../../util/logger';
+import DIRECTION from '../../map/directions';
+import type Unit from '../unit';
+import type Map from '../../map/map';
 
-async function actionable(): Promise<boolean> {
+
+export async function actionable(): Promise<boolean> {
 	//TODO return if we can move or not
 	return false;
 }
 
-async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
-	logger.checkContext(ctx, 'simulate');
+export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
+	checkContext(ctx, 'groundUnit simulate');
 
-	if(await unit.tickMovement()) {
+	if(await unit.tickMovement(ctx)) {
 		//console.log('movement cooldown: ' + unit.movementCooldown);
 		return;
 	}
@@ -46,7 +46,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 
 			return;
 		}
-		const transferUnit: Unit = await db.units[map.name].getUnit(ctx, unit.movable.transferGoal.uuid);
+		const transferUnit: Unit = await ctx.db.units[map.name].getUnit(ctx, unit.movable.transferGoal.uuid);
 		//1.01 is 1 for the unit, + 0.01 for float fudge factor (ffffffffffff)
 		if(transferUnit.distance(unit) > Math.max(unit.details.size, transferUnit.details.size) + 1.05) {
 			//if it is not nearby, keep pathing.
@@ -145,7 +145,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 			}
 		}
 
-		await unit.clearTransferGoal();
+		await unit.clearTransferGoal(ctx);
 		return;
 	}
 	if(!unit.movable.destination) {
@@ -170,14 +170,9 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		}
 		await unit.setPath(ctx, unit.movable.path);
 	} else {
-		unit.addPathAttempt();
+		unit.addPathAttempt(ctx);
 		//console.log('move halted');
 	}
 
 	return;
 }
-
-export default {
-	actionable,
-	simulate
-};

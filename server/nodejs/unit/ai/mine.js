@@ -5,14 +5,14 @@
 //	Licensed under included modified BSD license
 
 import env from '../../config/env';
-import logger from '../../util/logger';
-import Context from 'node-context';
+import MonoContext from '../../util/monoContext';
+import { checkContext, DetailedError } from '../../util/logger';
 
 import PlanetLoc from '../../map/planetloc';
-import Unit from '../unit';
-import Map from '../../map/map';
+import type Unit from '../unit';
+import type Map from '../../map/map';
 
-async function actionable(ctx: Context, unit: Unit): Promise<boolean> {
+export async function actionable(ctx: MonoContext, unit: Unit): Promise<boolean> {
 	return Promise.resolve(
 		unit.details.type === 'mine' &&
 		!unit.details.ghosting &&
@@ -20,7 +20,8 @@ async function actionable(ctx: Context, unit: Unit): Promise<boolean> {
 	);
 }
 
-async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
+export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
+	checkContext(ctx, 'mine simulate');
 	if(!unit.storage) {
 		return; // shouldn't happen after actionable() check
 	}
@@ -42,10 +43,9 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 			}
 		}
 		if(!resource) {
-			//invalid mine
-			return logger.errorWithInfo('invalid mine without resource', {
+			throw new DetailedError('invalid mine without resource', {
 				type: unit.details.type,
-				hash: unit.location.hash
+				hash: JSON.stringify(unit.location.hash)
 			});
 		}
 		if(resource.details.type === 'iron') {
@@ -58,8 +58,3 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 
 	return;
 }
-
-export default {
-	actionable,
-	simulate
-};

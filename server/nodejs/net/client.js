@@ -7,10 +7,9 @@
 import WebSocket from 'ws';
 import _ from 'lodash';
 
-import logger from '../util/logger';
+import { DetailedError, WrappedError } from '../util/logger';
 import filter from '../util/socketFilter';
-import Context from 'node-context';
-import hat from 'hat';
+import MonoContext from '../util/monoContext';
 import type User from '../user/user';
 import type Map from '../map/map';
 
@@ -20,7 +19,7 @@ type HandlerMapType = {
 	[string]: NetHandler
 };
 
-class Client {
+export default class Client {
 	ws: WebSocket;
 	auth: boolean;
 	handlers: HandlerMapType;
@@ -30,22 +29,26 @@ class Client {
 	planet: Map;
 	user: User;
 	username: string;
+	ctx: MonoContext;
 
-	constructor(ws: WebSocket) {
+	constructor(ctx: MonoContext, ws: WebSocket) {
 		this.ws = ws;
 		this.auth = false;
 		this.handlers = {};
+		this.ctx = ctx;
 		this.handlers['login'] = require('./handler/auth').default;
+
+		ctx.logger.info(ctx, 'client connected');
 
 		ws.on('message', async (msg: string): Promise<void> => {
 			try {
 				await this.handleFromClient(msg);
 			} catch (err) {
-				logger.errorWithInfo('failed to handle network message', { err, msg });
+				ctx.logger.trackError(new WrappedError(err, 'failed to handle network message', { msg }));
 			}
 		});
 		ws.on('error', (err: Error) => {
-			logger.error(err);
+			ctx.logger.trackError(new WrappedError(err, 'websocket error'));
 		});
 
 		ws.on('close', () => {
@@ -79,8 +82,8 @@ class Client {
 		}
 	}
 
-	sendError(type: string, errMsg: string) {
-		logger.info('client error', {errMsg, type});
+	sendError(ctx: MonoContext, type: string, errMsg: string) {
+		ctx.logger.info(ctx, 'client error', { errMsg, type });
 		try {
 			this.ws.send(JSON.stringify({
 				type: type,
@@ -93,9 +96,9 @@ class Client {
 	}
 
 	handleLogOut() {
-		logger.info('client closed connection');
+		this.ctx.logger.info(this.ctx, 'client closed connection');
 		if(this.username) {
-			logger.info('logout', {
+			this.ctx.logger.info(this.ctx, 'logout', {
 				player: this.username
 			});
 		}
@@ -106,37 +109,35 @@ class Client {
 		this.ws = null;
 	}
 
-	async handleFromClient(dataText: string) {
-		const uuid = hat();
-		const ctx = new Context({ uuid, timeout: 1000 });
+	async handleFromClient(dataText: string): Promise<void> {
+		const ctx = this.ctx.create({ timeout: 1000 });
 		//console.log('received' + data);
 		const data: Object = JSON.parse(dataText);
 		//console.log('got command', data.type);
 		if(!data.type || !this.handlers[data.type]) {
-			this.sendError('invalid', 'invalid request');
+			this.sendError(ctx, 'invalid', 'invalid request');
 			return;
 		}
 		if (typeof this.handlers[data.type] !== 'function') {
-			logger.errorWithInfo('bad handler',{ handle: data.type, type: typeof this.handlers[data.type]});
-			return;
+			throw new DetailedError('bad handler',{ handle: data.type, type: typeof this.handlers[data.type]});
 		}
 		await this.handlers[data.type](ctx, this, data);
 	}
 
 	registerUnitListener() {
-		db.units[this.map.name].registerListener((err: Error, delta: Object) => {
+		this.ctx.db.units[this.map.name].registerListener((err: Error, delta: Object) => {
 			this.handleUnitUpdate(err, delta);
 		});
 	}
 
 	registerEventHandler() {
-		db.event.watchEvents((err: Error, delta: Object) => {
+		this.ctx.db.event.watchEvents((err: Error, delta: Object) => {
 			this.handleEvents(err, delta);
 		});
 	}
 
 	registerChatHandler() {
-		db.chat.watchChat((err: Error, delta: Object) => {
+		this.ctx.db.chat.watchChat((err: Error, delta: Object) => {
 			this.handleChat(err, delta);
 		});
 	}
@@ -179,7 +180,7 @@ class Client {
 
 	handleEvents(err: Error, data: Object) {
 		if(err) {
-			logger.error(err);
+			this.ctx.logger.trackError(this.ctx, new WrappedError(err, 'client handle events'));
 			return;
 		}
 
@@ -193,32 +194,29 @@ class Client {
 		switch(gameEvent.type) {
 		case 'attack':
 			if(!gameEvent.enemyId) {
-				logger.errorWithInfo('invalid event', { id: gameEvent.id, type: gameEvent.type});
+				this.ctx.logger.trackError(new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
 			}
 			if(!gameEvent.unitId) {
-				logger.errorWithInfo('invalid event', { id: gameEvent.id, type: gameEvent.type});
+				this.ctx.logger.trackError(new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
 			}
 			this.send('attack', { enemyId: gameEvent.enemyId, unitId: gameEvent.unitId });
 			break;
 		case 'kill':
 			if(!gameEvent.unitId) {
-				logger.errorWithInfo('invalid event', { id: gameEvent.id, type: gameEvent.type});
+				this.ctx.logger.trackError(new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
 			}
 			this.send('attack', { unitId: gameEvent.unitId });
 			break;
 		default:
-			logger.errorWithInfo('invalid event', { id: gameEvent.id, type: gameEvent.type});
+			this.ctx.logger.trackError(new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
 		}
 	}
 
 	handleChat(err: Error, data: Object) {
 		if(err) {
-			logger.error(err,'chat handler error');
+			this.ctx.logger.trackError(this.ctx, new WrappedError(err, 'chat handler error'));
 			return;
 		}
 		this.send('chat', data.new_val);
 	}
 }
-module.exports = Client;
-
-const db = require('../db/db');

@@ -4,20 +4,21 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import logger from '../../util/logger';
-import Context from 'node-context';
+import MonoContext from '../../util/monoContext';
+import { checkContext, DetailedError } from '../../util/logger';
 
-import Unit from '../unit';
-import Map from '../../map/map';
+import type Unit from '../unit';
+import type Map from '../../map/map';
 
-async function actionable(): Promise<boolean> {
+export async function actionable(): Promise<boolean> {
 	//TODO return if we can build or not
 	return false;
 }
 
 //pass in the unit to update
 //returns true if the unit was updated
-async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
+export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
+	checkContext(ctx, 'construction simulate');
 	if(unit.details.ghosting || !unit.construction) {
 		return;
 	}
@@ -26,7 +27,7 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		case 'ground':
 			return simulateGround(ctx, unit, map);
 		default:
-			return logger.errorWithInfo('unsupported constructor', {
+			throw new DetailedError('unsupported constructor', {
 				uuid: unit.uuid,
 				type: unit.details.type,
 				layer: unit.movable.layer
@@ -38,13 +39,13 @@ async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		return simulateBuilding(ctx, unit, map);
 	}
 
-	logger.errorWithInfo('constructor not movable or stationary', {
+	throw new DetailedError('constructor not movable or stationary', {
 		uuid: unit.uuid,
 		type: unit.details.type
 	});
 }
 
-async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<void> {
+async function simulateBuilding(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
 	if(!unit.construct) {
 		return;
 	}
@@ -56,7 +57,7 @@ async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<voi
 
 	const newUnitType: UnitType = queue[0].type;
 	//const unitInfo: UnitStat = await unit.getTypeInfo(newUnitType);
-	logger.info('building: ' + newUnitType);
+	ctx.logger.info(ctx, 'constructing', { type: newUnitType });
 
 	if(queue[0].cost > 0) {
 		if(await map.pullIron(ctx, unit, queue[0].cost)) {
@@ -79,18 +80,17 @@ async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<voi
 				}
 			});
 		} else {
-			await unit.popFactoryOrder();
+			await unit.popFactoryOrder(ctx);
 			const tile = await map.getLoc(ctx, unit.location.x, unit.location.y);
 			const newTile = await map.getNearestFreeTile(ctx, tile);
 			if (!newTile) {
-				logger.errorWithInfo('failed to find open tile', {uuid: unit.uuid});
-				return;
+				throw new DetailedError('failed to find open tile', {uuid: unit.uuid});
 			}
 
 			//if spawn fails, should re-try with a new location
 			const result = await map.factoryMakeUnit(ctx, newUnitType, unit.details.owner, newTile.x, newTile.y);
 			if(!result) {
-				logger.errorWithInfo('factory failed to create unit', {newUnitType, uuid: unit.uuid});
+				throw new DetailedError('factory failed to create unit', {newUnitType, uuid: unit.uuid});
 			}
 		}
 	}
@@ -101,7 +101,7 @@ async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<voi
 
 //TODO
 //not tested yet
-async function simulateGround(ctx: Context, unit: Unit, map: Map): Promise<void> {
+async function simulateGround(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
 	if(!unit.construct || !unit.storage) {
 		return;
 	}
@@ -162,8 +162,3 @@ async function simulateGround(ctx: Context, unit: Unit, map: Map): Promise<void>
 		return;
 	}
 }
-
-export default {
-	actionable,
-	simulate
-};

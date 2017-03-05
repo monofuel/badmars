@@ -5,11 +5,13 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import {safeCreateTable, startDBCall} from './helper';
-import logger from '../util/logger';
-import Context from 'node-context';
+import { safeCreateTable, startDBCall } from './helper';
+import Map from '../map/map';
 
-class DBMap {
+import type Logger from '../util/logger';
+import type MonoContext from '../util/monoContext';
+
+export default class DBMap {
 	mapCache: Object;
 	conn: r.Connection;
 	table: r.Table;
@@ -20,23 +22,23 @@ class DBMap {
 		this.tableName = 'map';
 	}
 
-	async init(conn: r.Connection): Promise<void> {
+	async init(conn: r.Connection, logger: Logger): Promise<void> {
 		this.conn = conn;
-		this.table = await safeCreateTable(conn, this.tableName, 'name');
+		this.table = await safeCreateTable(conn, logger, this.tableName, 'name');
 	}
 
 	async listNames(): Promise<Array<string>> {
 		return await this.table.getField('name').coerceTo('array').run(this.conn);
 	}
 
-	async getMap(ctx: Context, name: string): Promise<Map> {
+	async getMap(ctx: MonoContext, name: string): Promise<Map> {
 		const call = await startDBCall(ctx,'getMap');
 		if(this.mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/ ) {
-			logger.addSumStat('mapCacheHit', 1);
+			ctx.logger.addSumStat('mapCacheHit', 1);
 			await call.end();
 			return this.mapCache[name].map;
 		} else {
-			logger.addSumStat('mapCacheMissOrRefresh', 1);
+			ctx.logger.addSumStat('mapCacheMissOrRefresh', 1);
 		}
 
 		const doc = await this.table.get(name).run(this.conn);
@@ -79,8 +81,3 @@ class DBMap {
 		return this.createMap(new Map(name));
 	}
 }
-
-const map = new DBMap();
-export default map;
-
-const Map = require('../map/map');
