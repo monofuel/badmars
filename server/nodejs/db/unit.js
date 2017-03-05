@@ -43,8 +43,8 @@ export default class DBunit {
 			if (err) {
 				throw err;
 			}
-			const unit = new Unit(ctx);
-			unit.clone(doc);
+			const unit: Unit = new Unit(ctx);
+			unit.clone(ctx, doc);
 			func(unit);
 		}).catch((err: Error) => {
 			//dumb rethinkdb bug
@@ -58,7 +58,7 @@ export default class DBunit {
 	async listPlayersUnits(ctx: MonoContext, owner: string): Promise<Array<Unit>> {
 		const call = await startDBCall(ctx,'listPlayersUnits');
 		const cursor = await this.table.filter({details:{owner}}).run(this.conn);
-		const units = await this.loadUnitsCursor(cursor);
+		const units = await this.loadUnitsCursor(ctx, cursor);
 		await call.end();
 		return units;
 	}
@@ -104,8 +104,8 @@ export default class DBunit {
 		await call.check();
 		const unitMap = {};
 		for (const doc of unitDocs) {
-			const unit = new Unit(ctx);
-			unit.clone(doc);
+			const unit: Unit = new Unit(ctx);
+			unit.clone(ctx, doc);
 			unitMap[unit.uuid] = unit;
 		}
 		await call.end();
@@ -184,8 +184,8 @@ export default class DBunit {
 			throw new Error('loadUnit called for null document');
 		}
 		const profile = ctx.logger.startProfile('loadUnit');
-		const unit = new Unit(ctx);
-		unit.clone(doc);
+		const unit: Unit = new Unit(ctx);
+		unit.clone(ctx, doc);
 		ctx.logger.endProfile(profile);
 		return unit;
 	}
@@ -245,8 +245,8 @@ export default class DBunit {
 				const newunit = delta.changes[i].new_val;
 				//const oldunit = delta.changes[i].old_val;
 
-				const properunit = new Unit(ctx);
-				properunit.clone(newunit);
+				const properunit: Unit = new Unit(ctx);
+				properunit.clone(ctx, newunit);
 				units.push(properunit);
 
 			}
@@ -276,8 +276,8 @@ export default class DBunit {
 		if (!delta.changes || delta.changes.length !== 1) {
 			return null;
 		}
-		const properunit = new Unit(ctx);
-		properunit.clone(delta.changes[0].new_val);
+		const properunit: Unit = new Unit(ctx);
+		properunit.clone(ctx, delta.changes[0].new_val);
 		return properunit;
 	}
 

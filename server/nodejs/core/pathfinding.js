@@ -13,6 +13,7 @@ import Unit from '../unit/unit';
 
 import type Logger from '../util/logger';
 import type DB from '../db/db';
+import type PlanetLoc from '../map/planetloc';
 
 
 const registeredMaps = [];
@@ -87,30 +88,31 @@ export default class PathfindService {
 	}
 
 	async processUnit(ctx: MonoContext, unitDoc: Object): Promise<void> {
-		const unit = await new Unit(ctx);
-		unit.clone(unitDoc);
+		const unit: Unit = new Unit(ctx);
+		unit.clone(ctx, unitDoc);
 
 		if(unit.movementType !== 'ground') {
 			return;
 		}
-		const map = await ctx.db.map.getMap(ctx, unit.map);
+		const map = await ctx.db.map.getMap(ctx, unit.location.map);
 
-		const start = await map.getLoc(ctx, unit.x, unit.y);
-		if(!unit.destination) {
+		const start = await map.getLoc(ctx, unit.location.x, unit.location.y);
+		if (!unit.movable || !unit.movable.destination) {
 			return;
 		}
-		const destinationX = unit.destination.split(':')[0];
-		const destinationY = unit.destination.split(':')[1];
-		const dest = await map.getLoc(ctx, destinationX, destinationY);
+		const destination = unit.movable.destination;
+		const destinationX = destination.split(':')[0];
+		const destinationY = destination.split(':')[1];
+		const dest: PlanetLoc = await map.getLoc(ctx, destinationX, destinationY);
 
 		//if the destination is covered, get the nearest valid point.
-		const end = await map.getNearestFreeTile(ctx, dest, unit, false);
+		const end: PlanetLoc = await map.getNearestFreeTile(ctx, dest, unit, false);
 		if (!end) {
 			throw new Error('no nearby free tile?');
 		}
 
 		if(start.equals(end)) {
-			await unit.clearDestination();
+			await unit.clearDestination(ctx);
 			return;
 		}
 
@@ -133,8 +135,8 @@ export default class PathfindService {
 			}
 		} while (true);
 
-		await unit.setPath(path);
-		await unit.updateUnit({ destination: end.x + ':' + end.y });
+		await unit.setPath(ctx, path);
+		await unit.update(ctx, { destination: end.x + ':' + end.y });
 	}
 
 }

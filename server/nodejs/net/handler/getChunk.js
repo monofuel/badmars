@@ -19,6 +19,7 @@ export default async function getChunk(ctx: MonoContext, client: Client, data: O
 
 	const chunk: Chunk = await client.planet.getChunk(ctx, x, y);
 	if(!unitsOnly) {
+		// ctx.logger.info(ctx, 'client getChunk', { x, y });
 		client.send('chunk', { chunk: filter.sanitizeChunk(chunk) });
 	}
 

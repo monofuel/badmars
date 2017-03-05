@@ -55,7 +55,8 @@ export default class PlanetService {
 	}
 
 	logRequests() {
-		this.logger.info(this.makeCtx(), 'chunk_requests', { count: Object.keys(this.requests).length });
+		const count = Object.keys(this.requests).length;
+		this.logger.info(this.makeCtx(), 'chunk_requests', { count }, { silent: count === 0 });
 	}
 
 	async getChunk(call: grpc.Call, callback: Function): Promise<void> {

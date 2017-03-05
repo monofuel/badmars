@@ -110,10 +110,9 @@ export default class Client {
 	}
 
 	async handleFromClient(dataText: string): Promise<void> {
-		const ctx = this.ctx.create({ timeout: 1000 });
+		const ctx = this.ctx.create();
 		//console.log('received' + data);
 		const data: Object = JSON.parse(dataText);
-		//console.log('got command', data.type);
 		if(!data.type || !this.handlers[data.type]) {
 			this.sendError(ctx, 'invalid', 'invalid request');
 			return;
