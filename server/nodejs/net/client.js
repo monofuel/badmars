@@ -36,13 +36,14 @@ export default class Client {
 		this.auth = false;
 		this.handlers = {};
 		this.ctx = ctx;
+		ctx.setMaxListeners(40);
 		this.handlers['login'] = require('./handler/auth').default;
 
 		ctx.logger.info(ctx, 'client connected');
 
 		ws.on('message', async (msg: string): Promise<void> => {
 			try {
-				await this.handleFromClient(msg);
+				await this.handleFromClient(ctx.create(), msg);
 			} catch (err) {
 				ctx.logger.trackError(new WrappedError(err, 'failed to handle network message', { msg }));
 			}
@@ -109,8 +110,7 @@ export default class Client {
 		this.ws = null;
 	}
 
-	async handleFromClient(dataText: string): Promise<void> {
-		const ctx = this.ctx.create();
+	async handleFromClient(ctx: MonoContext, dataText: string): Promise<void> {
 		//console.log('received' + data);
 		const data: Object = JSON.parse(dataText);
 		if(!data.type || !this.handlers[data.type]) {
