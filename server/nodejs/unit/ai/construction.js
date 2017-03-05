@@ -45,7 +45,7 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 	});
 }
 
-async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<void> {
+async function simulateBuilding(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
 	if(!unit.construct) {
 		return;
 	}
@@ -101,7 +101,7 @@ async function simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<voi
 
 //TODO
 //not tested yet
-async function simulateGround(ctx: Context, unit: Unit, map: Map): Promise<void> {
+async function simulateGround(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
 	if(!unit.construct || !unit.storage) {
 		return;
 	}

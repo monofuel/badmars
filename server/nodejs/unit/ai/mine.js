@@ -12,7 +12,7 @@ import PlanetLoc from '../../map/planetloc';
 import type Unit from '../unit';
 import type Map from '../../map/map';
 
-export async function actionable(ctx: Context, unit: Unit): Promise<boolean> {
+export async function actionable(ctx: MonoContext, unit: Unit): Promise<boolean> {
 	return Promise.resolve(
 		unit.details.type === 'mine' &&
 		!unit.details.ghosting &&

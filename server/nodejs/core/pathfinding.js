@@ -8,8 +8,9 @@
 import AStarPath from '../nav/astarpath';
 import DIRECTION from '../map/directions';
 import MonoContext from '../util/monoContext';
+import { WrappedError } from '../util/logger';
+import Unit from '../unit/unit';
 
-import type Unit from '../unit/unit';
 import type Logger from '../util/logger';
 import type DB from '../db/db';
 
@@ -26,7 +27,7 @@ export default class PathfindService {
 
 	async init(): Promise<void> {
 		const ctx = this.makeCtx();
-		setInterval(() => this.registerListeners(ctx), 1000);
+		setInterval((): Promise<void> => this.registerListeners(ctx), 1000);
 
 		await this.registerListeners(ctx);
 
@@ -48,28 +49,27 @@ export default class PathfindService {
 		for(const name of names) {
 			if(registeredMaps.indexOf(name) === -1) {
 				registeredMaps.push(name);
-				ctx.db.units[name].registerPathListener((err: Error, delta: Object): void => this.pathfind(err, delta));
+				ctx.db.units[name].registerPathListener((err: Error, delta: Object): void => this.pathfind(ctx, err, delta));
 			}
 		}
 	}
 
-	pathfind(err: Error, delta: Object) {
+	pathfind(ctx: MonoContext, err: Error, delta: Object) {
 		if(err) {
-			logger.error(err);
+			ctx.logger.trackError(ctx, new WrappedError(err, 'pathfinding grpc error'));
 		}
 
 		if(!delta.new_val) {
 			return;
 		}
-		const ctx = this.makeCtx();
 		//console.log('unit updated');
-		process(ctx, delta.new_val.map);
+		this.process(ctx.create(), delta.new_val.map);
 	}
 
 	async process(ctx: MonoContext, mapName: string): Promise<Success> {
 		//TODO fix this stuff
 		//doesn't work properly with multiple pathfinding services.
-		const results = await db.units[mapName].getUnprocessedPath();
+		const results = await ctx.db.units[mapName].getUnprocessedPath();
 		//console.log(results);
 
 		//TODO this logic should probably be in db/units.js
@@ -79,22 +79,21 @@ export default class PathfindService {
 
 		for(const delta of results.changes) {
 			if(delta.new_val) {
-				await processUnit(delta.new_val);
+				await this.processUnit(ctx.create(), delta.new_val);
 			}
 		}
 
 		return true;
 	}
 
-	async processUnit(unitDoc: Object): Promise<void> {
-		const unit = await new Unit();
+	async processUnit(ctx: MonoContext, unitDoc: Object): Promise<void> {
+		const unit = await new Unit(ctx);
 		unit.clone(unitDoc);
-		const ctx = new MonoContext();
 
 		if(unit.movementType !== 'ground') {
 			return;
 		}
-		const map = await db.map.getMap(ctx, unit.map);
+		const map = await ctx.db.map.getMap(ctx, unit.map);
 
 		const start = await map.getLoc(ctx, unit.x, unit.y);
 		if(!unit.destination) {
@@ -119,13 +118,13 @@ export default class PathfindService {
 
 		if(pathfinder.generate) {
 			//console.log('generating path');
-			await pathfinder.generate();
+			await pathfinder.generate(ctx);
 		}
 		const path = [];
 
 		let nextTile = start;
 		do {
-			const dir = await pathfinder.getNext(nextTile);
+			const dir = await pathfinder.getNext(ctx, nextTile);
 			//console.log('dir:' + DIRECTION.getTypeName(dir));
 			nextTile = await nextTile.getDirTile(ctx, dir);
 			path.push(DIRECTION.getTypeName(dir));

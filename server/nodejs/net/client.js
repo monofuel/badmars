@@ -38,6 +38,8 @@ export default class Client {
 		this.ctx = ctx;
 		this.handlers['login'] = require('./handler/auth').default;
 
+		ctx.logger.info(ctx, 'client connected');
+
 		ws.on('message', async (msg: string): Promise<void> => {
 			try {
 				await this.handleFromClient(msg);

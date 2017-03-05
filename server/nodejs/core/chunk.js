@@ -17,7 +17,7 @@ import type Logger from '../util/logger';
 import type DB from '../db/db';
 
 type RequestMapType = {
-	[key: string]: Context
+	[key: string]: MonoContext
 };
 
 export default class PlanetService {

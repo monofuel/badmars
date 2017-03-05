@@ -28,17 +28,16 @@ export default class WebService {
 	}
 
 	async init(): Promise<void> {
-		const app: express = express();
+		const app = express();
 		const ctx = this.makeCtx();
 
 		app.set('view engine', 'ejs');
 		app.set('trust proxy', true); //for accurate logs running behind a proxy
-
 		app.use(express.static(path.join(__dirname, '../../../public/badmars')));
 		app.set('views', path.join(__dirname,'../web/views'));
 
-		mainRoute(app, ctx.create());
-		managementRoute(app, ctx.create());
+		mainRoute(ctx.create(), app);
+		managementRoute(ctx.create(), app);
 
 		return new Promise((resolve: Function) => {
 			const server = app.listen(env.wwwPort, () => {

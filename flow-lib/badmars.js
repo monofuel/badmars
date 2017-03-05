@@ -2,7 +2,7 @@
 
 import type Unit from '../server/unit/unit';
 import type Client from '../server/net/client';
-import type Context from 'node-context';
+import type MonoContext from '../util/monoContext';
 
 type UUID = string;
 type TileHash = string;
@@ -25,7 +25,7 @@ type ChunkProto = {
 	navGrid: Array < Object > ;
 }
 
-type NetHandler = (ctx: Context, client: Client, data: Object) => Promise <void>;
+type NetHandler = (ctx: MonoContext, client: Client, data: Object) => Promise <void>;
 
 
 type UnitMap = {

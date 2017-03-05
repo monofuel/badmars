@@ -1,29 +1,33 @@
+/* @flow */
 //-----------------------------------
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
-'use strict';
 
-require('babel-register');
-require('babel-polyfill');
-const db = require('./db/db');
-const logger = require('./util/logger.js');
-const pathfinding = require('./core/pathfinding.js');
+import DB from './db/db';
+import Logger from './util/logger';
+import Pathfinder from './core/pathfinding';
 
-function init() {
-	logger.setModule('pathfinder');
-	logger.info('start begin');
+const logger = new Logger('pathfinder');
+const db = new DB(logger);
 
-	const startupPromises = [];
-	startupPromises.push(db.init());
-	Promise.all(startupPromises)
-	.then(() => {
-		logger.info('start complete');
-		pathfinding.init();
-	}).catch((err) => {
-		logger.error(err);
-		logger.info('start script caught error, exiting');
-		process.exit();
-	});
+async function init(): Promise<void> {
+	try {
+		logger.info(null, 'start begin');
+		await db.init();
+		logger.info(null, 'db ready');
+
+		const pathfinder = new Pathfinder(db, logger);
+		await pathfinder.init();
+		logger.info(null, 'start complete');
+
+	} catch (err) {
+		// eslint-disable-next-line no-console
+		console.error(err.stack);
+		logger.info(null, 'pathfinder script caught error, exiting');
+		logger.trackError(null, err);
+		process.exit(-1);
+	}
 }
+
 init();
