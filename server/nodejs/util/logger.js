@@ -87,11 +87,16 @@ export default class Logger {
 	}
 
 	trackError(ctx: ?MonoContext, err: Error | WrappedError | DetailedError) {
-		this.track(ctx, 'error', {
+		const detailed: DetailedError = (err: any);
+		const body: any = Object.assign({
 			timestamp: err.timestamp || Date.now(),
 			stack: err.stack,
 			message: err.message
-		});
+		}, detailed.details);
+		console.error(`${this.moduleName}\tINFO\t${dateFormat(body.timestamp)}\t${body.message}`);
+		console.error(body.stack);
+		console.error(JSON.stringify(body, null, 2));
+		this.track(ctx, 'error', body);
 	}
 
 	track(ctx: ?MonoContext, name: string, krgs: Object = {}) {

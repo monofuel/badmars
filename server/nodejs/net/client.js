@@ -45,11 +45,11 @@ export default class Client {
 			try {
 				await this.handleFromClient(ctx.create(), msg);
 			} catch (err) {
-				ctx.logger.trackError(new WrappedError(err, 'failed to handle network message', { msg }));
+				ctx.logger.trackError(ctx, new WrappedError(err, 'failed to handle network message', { msg }));
 			}
 		});
 		ws.on('error', (err: Error) => {
-			ctx.logger.trackError(new WrappedError(err, 'websocket error'));
+			ctx.logger.trackError(ctx, new WrappedError(err, 'websocket error'));
 		});
 
 		ws.on('close', () => {

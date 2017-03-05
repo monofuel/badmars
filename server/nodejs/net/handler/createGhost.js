@@ -6,7 +6,9 @@
 import Unit from '../../unit/unit';
 import type MonoContext from '../../util/monoContext';
 import Client from '../client';
+import { WrappedError } from '../../util/logger';
 
+import type Map from '../../map/map';
 // https://www.youtube.com/watch?v=PK-tVTsSKpw
 
 export default async function createGhost(ctx: MonoContext, client: Client, data: Object): Promise<void> {
@@ -17,7 +19,7 @@ export default async function createGhost(ctx: MonoContext, client: Client, data
 		return client.sendError(ctx, 'createGhost', 'no or invalid location set');
 	}
 
-	const map = client.map;
+	const map: Map = client.map;
 
 	try {
 		//TODO validate the unit type
@@ -25,24 +27,21 @@ export default async function createGhost(ctx: MonoContext, client: Client, data
 		const unit = new Unit(ctx, data.unitType, map, data.location[0], data.location[1]);
 		unit.details.ghosting = true;
 		unit.details.owner = client.user.uuid;
-		const success = await map.spawnUnit(ctx, unit);
 
-		if(success) {
-			client.send('createGhost');
+		await map.spawnUnit(ctx, unit);
 
-			//wake up nearby ghost builders
-			const units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
-			for(const nearby: Unit of units) {
-				if(nearby.type === 'builder') {
-					nearby.update(ctx, { awake: true });
-				}
+		client.send('createGhost');
+
+		//wake up nearby ghost builders
+		const units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
+		for(const nearby: Unit of units) {
+			if(nearby.type === 'builder') {
+				nearby.update(ctx, { awake: true });
 			}
-
-		} else {
-			client.sendError(ctx, 'createGhost', 'invalid order');
 		}
+
 	} catch(err) {
-		ctx.logger.trackError(ctx, err);
+		ctx.logger.trackError(ctx, new WrappedError(err, 'error creating ghost'));
 		client.sendError(ctx, 'createGhost', 'server error');
 	}
 }

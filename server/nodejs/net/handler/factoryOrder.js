@@ -29,7 +29,7 @@ export default async function factoryOrder(ctx: MonoContext, client: Client, dat
 		await unit.addFactoryOrder(ctx, data.unitType);
 		client.send('factoryOrder');
 	} catch(err) {
-		ctx.logger.trackError(new WrappedError(err, 'failed to add factory order'));
+		ctx.logger.trackError(ctx, new WrappedError(err, 'failed to add factory order'));
 		client.sendError(ctx, 'factoryOrder', 'failed to add factory order');
 	}
 

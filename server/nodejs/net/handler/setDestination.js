@@ -31,7 +31,7 @@ export default async function setDestination(ctx: MonoContext, client: Client, d
 			client.sendError(ctx, 'setDestination', 'invalid order');
 		}
 	} catch(err) {
-		ctx.logger.trackError(new WrappedError(err, 'failed to add factory order'));
+		ctx.logger.trackError(ctx, new WrappedError(err, 'failed to add factory order'));
 		client.sendError(ctx, 'setDestination', 'failed to set destination');
 	}
 }
