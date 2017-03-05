@@ -9,11 +9,12 @@ import MonoContext from '../util/monoContext';
 
 import env from '../config/env';
 import { checkContext } from '../util/logger';
-import type Logger from '../util/logger';
-import type DB from '../db/db';
 
 import Chunk from '../map/chunk';
 import filter from '../util/socketFilter';
+
+import type Logger from '../util/logger';
+import type DB from '../db/db';
 
 type RequestMapType = {
 	[key: string]: Context

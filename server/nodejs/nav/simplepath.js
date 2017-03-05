@@ -4,10 +4,10 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import logger from '../util/logger';
-import Map from '../map/map';
+import { DetailedError } from '../util/logger';
+import type Map from '../map/map';
 import PlanetLoc from '../map/planetloc';
-import Context from 'node-context';
+import MonoContext from '../util/monoContext';
 
 import { LAND } from '../map/tiletypes';
 import DIRECTION from '../map/directions';
@@ -20,16 +20,16 @@ class SimplePath {
 		this.start = start;
 		this.end = end;
 		if(!this.start || !this.end || this.start.map !== this.end.map) {
-			logger.errorWithInfo('invalid start and end points', {
-				start: start,
-				end: end,
+			throw new DetailedError('invalid start and end points', {
+				start: start.toString(),
+				end: end.toString(),
 			});
 		}
 		this.map = this.start.map;
 	}
 
 	//given a tile, find the next one
-	async getNext(ctx: Context, tile: PlanetLoc): Promise<Symbol> {
+	async getNext(ctx: MonoContext, tile: PlanetLoc): Promise<Symbol> {
 		if(tile.x < this.end.x) {
 			const nextTile = await this.map.getLoc(ctx,tile.x + 1, tile.y);
 			if(nextTile.tileType === LAND) {

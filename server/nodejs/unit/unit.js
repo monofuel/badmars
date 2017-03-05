@@ -10,10 +10,10 @@ import { DetailedError } from '../util/logger';
 import type MonoContext from '../util/monoContext';
 import { checkContext } from '../util/logger';
 import env from '../config/env';
-import groundUnitAI from './ai/groundunit';
-import attackAI from './ai/attack';
-import constructionAI from './ai/construction';
-import mineAI from './ai/mine';
+import * as groundUnitAI from './ai/groundunit';
+import * as attackAI from './ai/attack';
+import * as constructionAI from './ai/construction';
+import * as mineAI from './ai/mine';
 import UnitStat from './unitStat';
 import PlanetLoc from '../map/planetloc';
 

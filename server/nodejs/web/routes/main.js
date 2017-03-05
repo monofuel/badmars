@@ -7,13 +7,12 @@
 import express from 'express';
 
 import env from '../../config/env';
-import logger from '../../util/logger';
-import db from '../../db/db';
+import MonoContext from '../../util/monoContext';
 
-export default function route(app: express) {
+export default function route(ctx: MonoContext, app: express) {
 	app.get('/', (req: express.Request, res: express.Response) => {
-		logger.requestInfo('GET /', req);
-		db.map.listNames().then((list: Array<string>) => {
+		ctx.logger.info(ctx, 'GET /', {}, { req });
+		ctx.db.map.listNames().then((list: Array<string>) => {
 			res.render('pages/index', {
 				worlds: list,
 				user: req.user

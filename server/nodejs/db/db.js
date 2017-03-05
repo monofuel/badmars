@@ -15,6 +15,8 @@ import DBUser from './user';
 import DBChat from './chat';
 import DBEvent from './event';
 
+import { WrappedError } from '../util/logger';
+
 import sleep from '../util/sleep';
 import type Logger from '../util/logger';
 
@@ -79,12 +81,30 @@ export default class DB {
 		}
 
 		r.db('badmars');
-		await Promise.all([
-			this.map.init(this.conn, this.logger),
-			this.chat.init(this.conn, this.logger),
-			this.event.init(this.conn, this.logger),
-			this.user.init(this.conn, this.logger),
-		]);
+		
+		try {
+			await this.map.init(this.conn, this.logger);
+		} catch (err) {
+			throw new WrappedError(err, 'failed to initialize map table');
+		}
+
+		try {
+			await this.chat.init(this.conn, this.logger);
+		} catch (err) {
+			throw new WrappedError(err, 'failed to initialize chat table');
+		}
+		
+		try {
+			await this.event.init(this.conn, this.logger);
+		} catch (err) {
+			throw new WrappedError(err, 'failed to initialize event table');
+		}
+
+		try {
+			await this.user.init(this.conn, this.logger);
+		} catch (err) {
+			throw new WrappedError(err, 'failed to initialize user table');
+		}
 
 		const mapNames = await this.map.listNames();
 

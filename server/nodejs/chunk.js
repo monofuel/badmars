@@ -23,7 +23,7 @@ async function init(): Promise<void> {
 
 	} catch (err) {
 		// eslint-disable-next-line no-console
-		console.error(err);
+		console.error(err.stack);
 		logger.info(null, 'chunk script caught error, exiting');
 		logger.trackError(null, err);
 		process.exit(-1);

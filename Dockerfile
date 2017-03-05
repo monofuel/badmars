@@ -1,17 +1,14 @@
-FROM node:argon
+FROM node:7-wheezy
 
-RUN npm install -g gulp supervisor watchify flow-bin babel-watch
+RUN npm install -g gulp supervisor watchify flow-bin babel-watch babel-core node-gyp
 
 RUN mkdir /badmars
 ADD ./package.json badmars/
 WORKDIR /badmars
 
-RUN curl -o- -L https://yarnpkg.com/install.sh | bash
-RUN /bin/bash -c 'source ~/.bashrc && yarn install'
+RUN yarn install
 
 ADD . /badmars
-
-#RUN gulp client
 
 EXPOSE 3002
 EXPOSE 4474
