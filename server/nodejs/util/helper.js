@@ -9,18 +9,3 @@ export async function sleep(time: number): Promise<void> {
 		setTimeout(resolve, time);
 	});
 }
-
-export default {
-	sleep
-};
-
-export function checkEmptyImport(obj: Object, name: string, file: string) {
-	for(var key in obj) {
-        if(obj.hasOwnProperty(key))
-            return;
-    }
-    if (typeof obj === "function") {
-        return;
-    }
-    console.log('### bad import', name,'in', file);
-}

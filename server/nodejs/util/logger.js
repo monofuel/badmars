@@ -49,7 +49,7 @@ export default class Logger {
 
 	unhandled(err: Error) {
 		const wrapped = new WrappedError(err, 'unhandled error');
-		this.trackError(wrapped);
+		this.trackError(null, wrapped);
 	}
 
 	info(ctx: Context, info: string, body: Object = {}, opts: { silent?: boolean, req?: Object } = {}) {
@@ -62,8 +62,8 @@ export default class Logger {
 		console.log(`${this.moduleName}\t${userText}\tINFO\t${dateFormat(body.timestamp)}\t${info}`);
 	}
 
-	trackError(err: Error | WrappedError) {
-		this.track(null, 'error', {
+	trackError(ctx: Context, err: Error | WrappedError) {
+		this.track(ctx, 'error', {
 			timestamp: err.timestamp || Date.now(),
 			stack: err.stack,
 			message: err.message
