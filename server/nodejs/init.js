@@ -1,0 +1,31 @@
+/* @flow */
+//-----------------------------------
+//	author: Monofuel
+//	website: japura.net/badmars
+//	Licensed under included modified BSD license
+
+import DB from './db/db';
+import Logger from './util/logger';
+import Chunk from './core/chunk';
+
+const logger = new Logger('chunk');
+const db = new DB(logger);
+
+module.exports = async function init(moduleName: ModuleName): Promise<void> {
+	console.log('starting');
+	try {
+		logger.info(null, 'start begin');
+		await db.init();
+		switch (moduleName) {
+		case 'chunk':
+			const chunk = new Chunk(db, logger);
+			await chunk.init();
+		}
+		console.log('complete');
+		logger.info(null, 'start complete');
+
+	} catch (err) {
+		logger.info(null, 'chunk script caught error, exiting');
+		logger.trackError(null, err);
+	}
+};

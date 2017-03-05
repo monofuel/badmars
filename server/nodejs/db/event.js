@@ -7,6 +7,8 @@
 import r from 'rethinkdb';
 import {safeCreateTable} from './helper';
 
+import type Logger from '../util/logger';
+
 class DBEvent {
 	conn: r.Connection;
 	table: r.Table;
@@ -16,9 +18,9 @@ class DBEvent {
 		this.tableName = 'event';
 	}
 
-	async init(conn: r.Connection): Promise<void> {
+	async init(conn: r.Connection, logger: Logger): Promise<void> {
 		this.conn = conn;
-		this.table = await safeCreateTable(conn, this.tableName);
+		this.table = await safeCreateTable(conn, logger, this.tableName);
 	}
 
 	async addEvent(object: Object): Promise<void> {

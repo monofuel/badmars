@@ -7,10 +7,16 @@
 import env from '../config/env';
 import r from 'rethinkdb';
 
+import DBMap from './map';
+import DBChunk from './chunk';
+import DBUnit from './unit';
+import DBUnitStat from './unitStat';
+import DBUser from './user';
+import DBChat from './chat';
+import DBEvent from './event';
+
+import sleep from '../util/sleep';
 import type Logger from '../util/logger';
-import type DBChunk from './chunk';
-import type DBUnit from './unit';
-import type DBUnitStat from './unitStat';
 
 type ChunkMapType = {
 	[key: string]: DBChunk
@@ -22,11 +28,6 @@ type UnitStatMapType = {
 	[key: string]: DBUnitStat
 };
 
-const map = require('./map').default;
-const user = require('./user').default;
-const chat = require('./chat').default;
-const event = require('./event');
-
 export default class DB {
 	logger: Logger;
 	conn: r.Connection;
@@ -34,10 +35,10 @@ export default class DB {
 	chunks: ChunkMapType = {};
 	units: UnitMapType = {};
 	unitStats: UnitStatMapType = {};
-	map = map;
-	user = user;
-	chat = chat;
-	event = event;
+	map = DBMap;
+	user = DBUser;
+	chat = DBChat;
+	event = DBEvent;
 
 	constructor(logger: Logger) {
 		this.logger = logger;
@@ -67,7 +68,7 @@ export default class DB {
 			this.conn = await r.connect(options);
 		} catch (err) {
 			this.logger.trackError(null, err, 'failed to connect to DB, retrying in 5 seconds');
-			await helper.sleep(5000);
+			await sleep(5000);
 			return this.init();
 		}
 		const dbList = await r.dbList().run(this.conn);
@@ -76,41 +77,38 @@ export default class DB {
 			this.logger.info(null, 'creating database');
 			await r.dbCreate('badmars').run(this.conn);
 		}
+		const map = new DBMap();
 
 		r.db('badmars');
 		await Promise.all([
-			map.init(this.conn),
-			chat.init(this.conn),
-			event.init(this.conn),
-			user.init(this.conn),
+			DBMap.init(this.conn, this.logger),
+			DBChat.init(this.conn, this.logger),
+			DBEvent.init(this.conn, this.logger),
+			DBUser.init(this.conn, this.logger),
 		]);
 
 		const mapNames = await map.listNames();
-		
-		const DBChunk = require('./chunk');
-		const DBUnit = require('./unit').default;
-		const DBUnitStat = require('./unitStat').default;
 
 		const chunkPromises = [];
 		for (const name of mapNames) {
 			const chunk = new DBChunk(this.conn, name);
-			chunkPromises.push(chunk.init());
+			chunkPromises.push(chunk.init(this.logger));
 			this.chunks[name] = chunk;
 		}
 		await Promise.all(chunkPromises);
 
 		const unitPromises = [];
 		for (const name of mapNames) {
-			const unit = new DBUnit(this.conn, name);
-			unitPromises.push(unit.init());
+			const unit = new DBUnit(this.conn, this.logger, name);
+			unitPromises.push(unit.init(this.logger));
 			this.units[name] = unit;
 		}
 		await Promise.all(unitPromises);
 
 		const unitStatPromises = [];
 		for (const name of mapNames) {
-			const unitStat = new DBUnitStat(this.conn, name);
-			unitStatPromises.push(unitStat.init());
+			const unitStat = new DBUnitStat(this.conn, this.logger, name);
+			unitStatPromises.push(unitStat.init(this.logger));
 			this.unitStats[name] = unitStat;
 		}
 		await Promise.all(unitStatPromises);

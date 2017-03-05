@@ -4,14 +4,15 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import { getTypeName } from './tiletypes';
-import Direction from '../map/directions';
-import Context from 'node-context';
 
-import env from '../config/env';
-import logger from '../util/logger';
 import _ from 'lodash';
 
+import { checkContext, DetailedError } from '../util/logger';
+import env from '../config/env';
+import { getTypeName } from './tiletypes';
+import Direction from '../map/directions';
+
+import type MonoContext from '../util/monoContext';
 import type Map from './map';
 import type Chunk from './chunk';
 
@@ -19,7 +20,7 @@ import type Chunk from './chunk';
  * Representation of a point on a planet
  */
 
-class PlanetLoc {
+export default class PlanetLoc {
 	x: number;
 	y: number;
 	map: Map;
@@ -37,10 +38,10 @@ class PlanetLoc {
 
 	constructor(map: Map, chunk: Chunk, x: number, y: number) {
 		if(!map) {
-			logger.errorWithInfo('invalid planetLoc', { x, y });
+			throw new DetailedError('planetloc missing map', { x, y });
 		}
 		if (!chunk) {
-			logger.errorWithInfo('missing chunk', { x, y });
+			throw new DetailedError('planetloc missing chunk', { x, y });
 		}
 
 		this.x = Math.floor(x);
@@ -64,11 +65,11 @@ class PlanetLoc {
 		//console.log("x: " + this.x + ", y: " + this.y + " chunkx: " + this.chunk.x + ", chunky: " + this.chunk.y + " localx: " + this.local_x + " localy: " + this.local_y);
 
 		if(!this.chunk) {
-			logger.errorWithInfo('couldnt find chunk', { x, y, hash: chunk.hash });
+			throw new DetailedError('couldnt find chunk', { x, y, hash: chunk.hash });
 		}
 
 		if(this.local_x > this.chunk.navGrid.length || this.local_y > this.chunk.navGrid[0].length) {
-			logger.errorWithInfo('invalid chunk', { x, y, chunkX: this.chunk.x, chunkY: this.chunk.y });
+			throw new DetailedError('invalid chunk', { x, y, chunkX: this.chunk.x, chunkY: this.chunk.y });
 		}
 
 		this.tileType = this.chunk.navGrid[this.local_x][this.local_y];
@@ -82,8 +83,8 @@ class PlanetLoc {
 		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 	}
 	
-	async getUnits(ctx: Context): Promise<Array<Unit>> {
-		logger.checkContext(ctx, 'getUnits');
+	async getUnits(ctx: MonoContext): Promise<Array<Unit>> {
+		checkContext(ctx, 'getUnits');
 		const unitMap = await this.chunk.getUnits(ctx);
 		return _.filter(unitMap, (unit: Unit): boolean => unit.details.hash === this.hash);
 		
@@ -98,20 +99,20 @@ class PlanetLoc {
 		}
 		return line;
 	}
-	async N(ctx: Context): Promise<PlanetLoc> {
+	async N(ctx: MonoContext): Promise<PlanetLoc> {
 		return await this.map.getLoc(ctx,this.x, this.y + 1);
 	}
-	async S(ctx: Context): Promise<PlanetLoc> {
+	async S(ctx: MonoContext): Promise<PlanetLoc> {
 		return await this.map.getLoc(ctx,this.x, this.y - 1);
 	}
-	async E(ctx: Context): Promise<PlanetLoc> {
+	async E(ctx: MonoContext): Promise<PlanetLoc> {
 		return await this.map.getLoc(ctx,this.x + 1, this.y);
 	}
-	async W(ctx: Context): Promise<PlanetLoc> {
+	async W(ctx: MonoContext): Promise<PlanetLoc> {
 		return await this.map.getLoc(ctx,this.x - 1, this.y);
 	}
 
-	async getDirTile(ctx: Context, dir: Dir): Promise<PlanetLoc> {
+	async getDirTile(ctx: MonoContext, dir: Dir): Promise<PlanetLoc> {
 		switch(dir) {
 		case Direction.N:
 			return await this.N(ctx);
@@ -180,5 +181,3 @@ class PlanetLoc {
 			otherLoc.map.name === this.map.name);
 	}
 }
-
-module.exports = PlanetLoc;

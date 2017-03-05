@@ -9,27 +9,48 @@ import os from 'os';
 import env from '../config/env';
 import request from 'request';
 import stats from './stats';
+import MonoContext from './monoContext';
+
+//==================================================================
+// exported types
+
+export type DetailsType = {
+	[key: string]: number | string | boolean
+};
 
 //==================================================================
 // exported classes
 
-export class WrappedError extends Error {
-	timestamp: number;
-	constructor(err: Error, msg: string) {
+export class DetailedError extends Error {
+	details: DetailsType;
+	constructor(msg: string, details: DetailsType = {}) {
 		super(msg);
-		this.message =  msg + ' caused by: ' + err.message;
-		this.timestamp = Date.now();
+		this.details = details;
+	}
+}
+
+export class WrappedError extends DetailedError {
+	details: DetailsType;
+	constructor(err: Error | DetailedError, msg: string, details?: DetailsType) {
+		super(msg);
+		this.message = msg + ' caused by: ' + err.message;
+
+		const detailed: DetailedError = (err: any);
+		if (detailed.details) {
+			this.details = Object.assign({}, detailed.details ? detailed.details : {}, details);
+		}
+		
 	}
 }
 
 //==================================================================
 // exported functions
 
-export function checkContext(ctx: Context, msg: string) {
+export function checkContext(ctx: MonoContext, msg: string) {
 	if (!ctx) {
 		throw new Error('missing context: ' + msg);
 	}
-	if(!ctx.cancelled) {
+	if (!ctx.cancelled) {
 		return;
 	}
 	throw new Error('context cancelled: ' + msg);
@@ -52,7 +73,7 @@ export default class Logger {
 		this.trackError(null, wrapped);
 	}
 
-	info(ctx: Context, info: string, body: Object = {}, opts: { silent?: boolean, req?: Object } = {}) {
+	info(ctx: ?MonoContext, info: string, body: Object = {}, opts: { silent?: boolean, req?: Object } = {}) {
 		body.timestamp = Date.now();
 		this.track(ctx, info, body);
 		if (opts.silent) {
@@ -60,9 +81,12 @@ export default class Logger {
 		}
 		const userText = opts.req ? `USER|${opts.req.user.username}` : 'SYSTEM';
 		console.log(`${this.moduleName}\t${userText}\tINFO\t${dateFormat(body.timestamp)}\t${info}`);
+		if (Object.keys(body).length > 1) {
+			console.log(JSON.stringify(body, null, 2));
+		}
 	}
 
-	trackError(ctx: Context, err: Error | WrappedError) {
+	trackError(ctx: ?MonoContext, err: Error | WrappedError | DetailedError) {
 		this.track(ctx, 'error', {
 			timestamp: err.timestamp || Date.now(),
 			stack: err.stack,
@@ -70,11 +94,11 @@ export default class Logger {
 		});
 	}
 
-	track(ctx: ?Context, name: string, kargs: Object = {}) {
+	track(ctx: ?MonoContext, name: string, kargs: Object = {}) {
 
 		//delete null fields
-		for(const key of Object.keys(kargs)) {
-			if(kargs[key] == null) { 
+		for (const key of Object.keys(kargs)) {
+			if (kargs[key] == null) {
 				delete kargs[key];
 			}
 		}
@@ -95,7 +119,7 @@ export default class Logger {
 			method: 'POST',
 			body: JSON.stringify(kargs)
 		}, (error: Error) => {
-			if(error) {
+			if (error) {
 				console.log(error);
 			}
 		});
@@ -104,7 +128,7 @@ export default class Logger {
 	addAverageStat = stats.addAverageStat;
 	addSumStat = stats.addSumStat;
 	startProfile = stats.startProfile;
-	endPRofile = stats.endProfile;
+	endProfile = stats.endProfile;
 }
 
 //==================================================================
@@ -115,8 +139,8 @@ function dateFormat(date: Date): string {
 }
 
 function verifyTrack(name: string, kargs: Object) {
-	for(const key in kargs) {
-		if(typeof kargs[key] == 'object') {
+	for (const key in kargs) {
+		if (typeof kargs[key] == 'object') {
 			console.log('invalid element ' + key + ' on ' + name);
 			delete kargs[key];
 		}

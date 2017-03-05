@@ -6,12 +6,21 @@
 
 import r from 'rethinkdb'; //TODO should not be imported in this file
 import _ from 'lodash';
-import Context from 'node-context';
-
-import logger from '../util/logger';
+import { DetailedError } from '../util/logger';
+import type MonoContext from '../util/monoContext';
+import { checkContext } from '../util/logger';
 import env from '../config/env';
+import groundUnitAI from './ai/groundunit';
+import attackAI from './ai/attack';
+import constructionAI from './ai/construction';
+import mineAI from './ai/mine';
+import UnitStat from './unitStat';
+import PlanetLoc from '../map/planetloc';
 
-class Unit {
+import type Map from '../map/map';
+import type Chunk from '../map/chunk';
+
+export default class Unit {
 
 	uuid: UUID; // set by database
 	awake: boolean;
@@ -85,7 +94,7 @@ class Unit {
 
 	//constructor will be called with arguments when making a new unit
 	//constructor will be called without arguments when initializing from database (database does .clone())
-	constructor(unitType: ? string, map: ? Map, x: number = 0, y: number = 0) {
+	constructor(ctx: MonoContext, unitType: ? string, map: ? Map, x: number = 0, y: number = 0) {
 
 		//unit will be blank, and should be filled by .clone()
 		if (!unitType || !map) {
@@ -94,9 +103,9 @@ class Unit {
 
 		// start off with loading type information
 		// to decide what components we will initialize
-		const unitStats = db.unitStats[map.name].get(unitType);
+		const unitStats = ctx.db.unitStats[map.name].get(unitType);
 		if (!unitStats) {
-			logger.info('unit stat missing', { unitType });
+			ctx.logger.info(ctx, 'unit stat missing', { unitType });
 			throw new Error('unit stats missing');
 		}
 		_.defaultsDeep(this, unitStats);
@@ -134,7 +143,7 @@ class Unit {
 				(x - 1) + ':' + (y + 1), (x) + ':' + (y + 1), (x + 1) + ':' + (y + 1)
 			];
 		} else {
-			logger.errorWithInfo('invalid unit size', { type: unitType, size: this.details.size });
+			throw new DetailedError('invalid unit size', { type: unitType, size: this.details.size });
 		}
 
 		this.location = {
@@ -181,8 +190,8 @@ class Unit {
 		}
 	}
 
-	async simulate(ctx: Context): Promise<void> {
-		logger.checkContext(ctx, 'simulate');
+	async simulate(ctx: MonoContext): Promise<void> {
+		checkContext(ctx, 'simulate');
 		//TODO pass context through stuff
 		//------------------
 		// init
@@ -210,7 +219,7 @@ class Unit {
 		//------------------
 		// execute actionable promises
 		// see what actions are possible
-		const profile = logger.startProfile('unit_AI');
+		const profile = ctx.logger.startProfile('unit_AI');
 
 		if (this.details.type === 'mine') {
 			actionPromises.push(mineAI.actionable(ctx, self, map)
@@ -258,11 +267,11 @@ class Unit {
 		} else if (actionable.groundUnitAI) {
 			await groundUnitAI.simulate(ctx, this, map);
 		} else { // if no action is performed
-			logger.info('sleeping unit');
+			ctx.logger.info(ctx, 'sleeping unit');
 			await self.update(ctx, { awake: false });
 		}
 
-		logger.endProfile(profile);
+		ctx.logger.endProfile(profile);
 	}
 
 
@@ -271,28 +280,28 @@ class Unit {
 	//---------------------------------------------------------------------------
 
 
-	async update(ctx: Context, patch: Object): Promise<void> {
-		logger.checkContext(ctx, 'update');
+	async update(ctx: MonoContext, patch: Object): Promise<void> {
+		checkContext(ctx, 'update');
 		//TODO also update this object
 		//assume the object will be awake, unless we are setting it false
 		patch.awake = patch.awake || patch.awake === undefined;
-		await db.units[this.location.map].updateUnit(ctx, this.uuid, patch);
+		await ctx.db.units[this.location.map].updateUnit(ctx, this.uuid, patch);
 		this.validate(ctx);
 	}
 
-	async delete(ctx: Context): Promise<void> {
-		logger.checkContext(ctx, 'delete');
+	async delete(ctx: MonoContext): Promise<void> {
+		checkContext(ctx, 'delete');
 		await this.clearFromChunks(ctx);
 
-		return db.units[this.location.map].deleteUnit(ctx, this.uuid);
+		return ctx.db.units[this.location.map].deleteUnit(ctx, this.uuid);
 	}
 
-	async takeIron(amount: number): Promise<Success> {
+	async takeIron(ctx: MonoContext, amount: number): Promise<void> {
 		if (!this.storage) {
-			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
-		const table = db.units[this.location.map].getTable();
-		const conn = db.units[this.location.map].getConn();
+		const table = ctx.db.units[this.location.map].getTable();
+		const conn = ctx.db.units[this.location.map].getConn();
 		const delta = await table.get(this.uuid).update((self: any): any => {
 			return r.branch(
 				self('storage.iron').ge(amount), {
@@ -304,26 +313,26 @@ class Unit {
 		}, { returnChanges: true }).run(conn);
 
 		if (!this.storage) {
-			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
 
 		if (delta.replaced === 0) {
-			return false;
+			throw new DetailedError('unit was not updated', { uuid: this.uuid, type: this.details.type });
 		} else {
 			this.storage.iron -= amount;
 			if (this.storage.iron != delta.changes[0].new_val.storage.iron) {
-				logger.errorWithInfo('failed to update iron', { uuid: this.uuid, type: this.details.type, amount });
+				throw new DetailedError('failed to update iron', { uuid: this.uuid, type: this.details.type, amount });
 			}
-			return true;
 		}
 	}
 
-	async takeFuel(amount: number): Promise<Success> {
+	// TODO success booleans are an awful idea, why did i do this.
+	async takeFuel(ctx: MonoContext, amount: number): Promise<void> {
 		if (!this.storage) {
-			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
-		const table = db.units[this.location.map].getTable();
-		const conn = db.units[this.location.map].getConn();
+		const table = ctx.db.units[this.location.map].getTable();
+		const conn = ctx.db.units[this.location.map].getConn();
 		const delta = await table.get(this.uuid).update((self: any): any => {
 			return r.branch(
 				self('storage.fuel').ge(amount), { storage: { fuel: self('storage.fuel').sub(amount) } }, {}
@@ -331,17 +340,16 @@ class Unit {
 		}, { returnChanges: true }).run(conn);
 
 		if (!this.storage) {
-			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
 
 		if (delta.replaced === 0) {
-			return false;
+			throw new DetailedError('unit was not updated', { uuid: this.uuid, type: this.details.type });
 		} else {
 			this.storage.fuel -= amount;
 			if (this.storage.fuel != delta.changes[0].new_val.storage.fuel) {
-				logger.errorWithInfo('failed to update fuel', { uuid: this.uuid, type: this.details.type, amount });
+				throw new DetailedError('failed to update fuel', { uuid: this.uuid, type: this.details.type, amount });
 			}
-			return true;
 		}
 	}
 
@@ -350,10 +358,10 @@ class Unit {
 	//we shouldn't be requiring rethink in this file
 
 	//returns the amount that actually could be deposited
-	async addIron(ctx: Context, amount: number): Promise<*> {
-		logger.checkContext(ctx, 'addIron');
+	async addIron(ctx: MonoContext, amount: number): Promise<*> {
+		checkContext(ctx, 'addIron');
 		if (!this.storage) {
-			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
 
 		const max = this.storage.maxIron - this.storage.iron;
@@ -363,23 +371,23 @@ class Unit {
 		}
 		if (amount > max) {
 			this.storage.iron += max;
-			await db.units[this.location.map]
+			await ctx.db.units[this.location.map]
 				.updateUnit(ctx, this.uuid, { storage: { iron: r.row('storage.iron').default(0).add(max) } });
 			return max;
 		}
 		if (amount <= max) {
 			this.storage.iron += amount;
-			await db.units[this.location.map]
+			await ctx.db.units[this.location.map]
 				.updateUnit(ctx, this.uuid, { storage: { iron: r.row('storage.iron').default(0).add(amount) } });
 			return amount;
 		}
 	}
 
 	//returns the amount that actually could be deposited
-	async addFuel(ctx: Context, amount: number): Promise<*> {
-		logger.checkContext(ctx, 'addFuel');
+	async addFuel(ctx: MonoContext, amount: number): Promise<*> {
+		checkContext(ctx, 'addFuel');
 		if (!this.storage) {
-			return logger.errorWithInfo('unit does not have storage', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
 		const max = this.storage.maxFuel - this.storage.fuel;
 		if (max <= 0) {
@@ -387,26 +395,26 @@ class Unit {
 		}
 		if (amount > max) {
 			this.storage.fuel += max;
-			await db.units[this.location.map].updateUnit(ctx, this.uuid, { storage: { fuel: r.row('storage.fuel').default(0).add(max) } });
+			await ctx.db.units[this.location.map].updateUnit(ctx, this.uuid, { storage: { fuel: r.row('storage.fuel').default(0).add(max) } });
 			return max;
 		}
 		if (amount <= max) {
 			this.storage.fuel += amount;
-			await db.units[this.location.map].updateUnit(ctx, this.uuid, { storage: { fuel: r.row('storage.fuel').default(0).add(amount) } });
+			await ctx.db.units[this.location.map].updateUnit(ctx, this.uuid, { storage: { fuel: r.row('storage.fuel').default(0).add(amount) } });
 			return amount;
 		}
 	}
 
-	async addFactoryOrder(ctx: Context, unitType: UnitType): Promise<void> {
-		logger.checkContext(ctx, 'addFactoryOrder');
+	async addFactoryOrder(ctx: MonoContext, unitType: UnitType): Promise<void> {
+		checkContext(ctx, 'addFactoryOrder');
 
 		if (!this.construct) {
-			return logger.errorWithInfo('unit cannot construct', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit cannot construct', { uuid: this.uuid, type: this.details.type });
 		}
 
-		const stats = db.unitStats[this.location.map].get(unitType);
+		const stats = ctx.db.unitStats[this.location.map].get(unitType);
 		if (!stats) {
-			return logger.errorWithInfo('cannot add invalid factory order', { uuid: this.uuid, type: unitType });
+			throw new DetailedError('cannot add invalid factory order', { uuid: this.uuid, type: unitType });
 		}
 
 		const order: FactoryOrder = {
@@ -415,13 +423,14 @@ class Unit {
 			cost: stats.details.cost
 		};
 
-		return await db.units[this.location.map].addFactoryOrder(ctx, this.uuid, order);
+		return await ctx.db.units[this.location.map].addFactoryOrder(ctx, this.uuid, order);
 
 	}
 
-	async popFactoryOrder(ctx: Context): Object {
+	// TODO this should be typed
+	async popFactoryOrder(ctx: MonoContext): Object {
 		if (!this.construct) {
-			return logger.errorWithInfo('unit cannot construct', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit cannot construct', { uuid: this.uuid, type: this.details.type });
 		}
 		const queue = this.construct.factoryQueue;
 		const order = queue.shift();
@@ -433,10 +442,9 @@ class Unit {
 		return order;
 	}
 
-	async addPathAttempt(ctx: Context): Promise<void> {
+	async addPathAttempt(ctx: MonoContext): Promise<void> {
 		if (!this.movable) {
-			logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
-			return;
+			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		this.movable.pathAttempts++;
 
@@ -445,7 +453,7 @@ class Unit {
 			await this.update(ctx, { movable });
 		} else if (this.movable.pathAttemptAttempts > 2) {
 			//totally give up on pathing
-			await this.clearDestination();
+			await this.clearDestination(ctx);
 		} else {
 			//blank out the path but leave the destination so that we will re-path
 			const movable = {
@@ -458,9 +466,9 @@ class Unit {
 		}
 
 	}
-	async setTransferGoal(ctx: Context, uuid: UUID, iron: number, fuel: number): Promise<void> {
+	async setTransferGoal(ctx: MonoContext, uuid: UUID, iron: number, fuel: number): Promise<void> {
 		if (!this.movable) {
-			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
 			transferGoal: {
@@ -472,9 +480,9 @@ class Unit {
 		return this.update(ctx, { movable });
 	}
 
-	async clearTransferGoal(ctx: Context): Promise<void> {
+	async clearTransferGoal(ctx: MonoContext): Promise<void> {
 		if (!this.movable) {
-			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
 			transferGoal: {}
@@ -482,26 +490,26 @@ class Unit {
 		return this.update(ctx, { movable });
 	}
 
-	async setDestination(ctx: Context, x: number, y: number): Promise<void> {
+	async setDestination(ctx: MonoContext, x: number, y: number): Promise<void> {
 		if (!this.movable) {
-			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		const hash = x + ':' + y;
 		const movable = { destination: hash, isPathing: false, path: [] };
 		return await this.update(ctx, { movable });
 	}
 
-	async setPath(ctx: Context, path: Array<any>): Promise<void> {
+	async setPath(ctx: MonoContext, path: Array<any>): Promise<void> {
 		if (!this.movable) {
-			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = { path: path, isPathing: false };
 		return await this.update(ctx, { movable });
 	}
 
-	async clearDestination(ctx: Context): Promise<void> {
+	async clearDestination(ctx: MonoContext): Promise<void> {
 		if (!this.movable) {
-			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
 			destination: null,
@@ -512,9 +520,9 @@ class Unit {
 		return this.update(ctx, { movable });
 	}
 
-	async tickMovement(ctx: Context): Promise<void> {
+	async tickMovement(ctx: MonoContext): Promise<void> {
 		if (!this.movable) {
-			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		const movable = {
 			movementCooldown: this.movable.movementCooldown--
@@ -522,9 +530,9 @@ class Unit {
 		return await this.update(ctx, { movable });
 	}
 
-	async tickFireCooldown(ctx: Context): Promise<void> {
+	async tickFireCooldown(ctx: MonoContext): Promise<void> {
 		if (!this.attack) {
-			return logger.errorWithInfo('unit can\'t attack', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit can\'t attack', { uuid: this.uuid, type: this.details.type });
 		}
 		const attack = {
 			fireCooldown: this.attack.fireCooldown--
@@ -532,9 +540,9 @@ class Unit {
 		await this.update(ctx, { attack });
 	}
 
-	async armFireCooldown(ctx: Context): Promise<void> {
+	async armFireCooldown(ctx: MonoContext): Promise<void> {
 		if (!this.attack) {
-			return logger.errorWithInfo('unit can\'t attack', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit can\'t attack', { uuid: this.uuid, type: this.details.type });
 		}
 		const attack = {
 			fireCooldown: this.attack.fireRate
@@ -542,9 +550,9 @@ class Unit {
 		await this.update(ctx, { attack });
 	}
 
-	async takeDamage(ctx: Context, dmg: number): Promise<void> {
+	async takeDamage(ctx: MonoContext, dmg: number): Promise<void> {
 		if (this.details.maxHealth === 0) {
-			return logger.errorWithInfo('non-attackable unit attacked', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('non-attackable unit attacked', { uuid: this.uuid, type: this.details.type });
 		}
 		const details = {
 			health: this.details.health - dmg
@@ -555,17 +563,17 @@ class Unit {
 		await this.update(ctx, { details, awake: true });
 	}
 
-	async moveToTile(ctx: Context, tile: PlanetLoc): Promise<boolean> {
+	async moveToTile(ctx: MonoContext, tile: PlanetLoc): Promise<boolean> {
 		if (!this.movable) {
-			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		if (this.details.size !== 1) {
-			return logger.errorWithInfo('moving is not supported for large units', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('moving is not supported for large units', { uuid: this.uuid, type: this.details.type });
 		}
 		const hasMoved = await tile.chunk.moveUnit(ctx, this, tile);
 
 		if (!this.movable) {
-			return logger.errorWithInfo('unit is not movable', { uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 
 		if (hasMoved) {
@@ -600,8 +608,8 @@ class Unit {
 		//TODO split up async and sync validation work
 	}
 
-	async validate(ctx: Context): Promise<void> {
-		logger.checkContext(ctx, 'validate');
+	async validate(ctx: MonoContext): Promise<void> {
+		checkContext(ctx, 'validate');
 		if (!env.debug) {
 			return;
 		}
@@ -714,8 +722,8 @@ class Unit {
 		}
 	}
 
-	async getLocs(ctx: Context): Promise<Array<PlanetLoc>> {
-		logger.checkContext(ctx, 'getLocs');
+	async getLocs(ctx: MonoContext): Promise<Array<PlanetLoc>> {
+		checkContext(ctx, 'getLocs');
 		const promises: Array<Promise<PlanetLoc>> = [];
 		const map: Map = await this.getMap(ctx);
 		this.location.hash.forEach((hash: TileHash) => {
@@ -725,8 +733,8 @@ class Unit {
 		});
 		return Promise.all(promises);
 	}
-	async getChunks(ctx: Context): Promise<Array<Chunk>> {
-		logger.checkContext(ctx, 'getChunks');
+	async getChunks(ctx: MonoContext): Promise<Array<Chunk>> {
+		checkContext(ctx, 'getChunks');
 		const promises: Array<Promise<Chunk>> = [];
 		const map: Map = await this.getMap(ctx);
 		this.location.chunkHash.forEach((hash: TileHash) => {
@@ -743,7 +751,7 @@ class Unit {
 	//fixing chunks. units are not quite so easy.
 
 	//is failing sometimes for factories- hint to a bigger issue
-	async addToChunks(ctx: Context): Promise<Success> {
+	async addToChunks(ctx: MonoContext): Promise<Success> {
 		const locs = await this.getLocs(ctx);
 		let success = true;
 		for (const loc of locs) {
@@ -753,7 +761,7 @@ class Unit {
 			} else {
 				added = await loc.chunk.addUnit(ctx, this.uuid, loc.hash);
 				if (!added) {
-					logger.info('loc.chunk.addUnit failed', { hash: loc.hash });
+					ctx.logger.info(ctx, 'loc.chunk.addUnit failed', { hash: loc.hash });
 				}
 			}
 			if (!added) {
@@ -763,14 +771,14 @@ class Unit {
 		return success;
 	}
 
-	async clearFromChunks(ctx: Context): Promise<Success> {
-		logger.checkContext(ctx, 'clearFromChunks');
+	async clearFromChunks(ctx: MonoContext): Promise<Success> {
+		checkContext(ctx, 'clearFromChunks');
 		const locs = await this.getLocs(ctx);
 		let success = true;
 		for (const loc of locs) {
 			const removed = await loc.chunk.clearUnit(this.uuid, loc.hash);
 			if (!removed) {
-				logger.info('loc.chunk.clear failed', { hash: loc.hash });
+				ctx.logger.info(ctx, 'loc.chunk.clear failed', { hash: loc.hash });
 			}
 			if (!removed) {
 				success = false;
@@ -779,19 +787,19 @@ class Unit {
 		return success;
 	}
 
-	async getMap(ctx: Context): Promise<Map> {
-		return await db.map.getMap(ctx,this.location.map);
+	async getMap(ctx: MonoContext): Promise<Map> {
+		return await ctx.db.map.getMap(ctx,this.location.map);
 	}
 
 	// other should be a database document for a unit (or another unit)
-	clone(other: any) {
+	clone(ctx: MonoContext, other: any) {
 		for (const key in other) {
 			// $FlowFixMe: hiding this issue for now
 			this[key] = _.cloneDeep(other[key]);
 		}
 
 
-		const stats = this.getTypeInfo();
+		const stats = this.getTypeInfo(ctx);
 		for (const key in stats) {
 			// $FlowFixMe: hiding this issue for now
 			this[key] = _.assign(this[key], stats[key]);
@@ -808,34 +816,17 @@ class Unit {
 		// $FlowFixMe:
 		const compObject = this[comp];
 		if (!compObject) {
-			logger.errorWithInfo('bad component', { comp, uuid: this.uuid, type: this.details.type });
+			throw new DetailedError('bad component', { comp, uuid: this.uuid, type: this.details.type });
 		}
 		return compObject;
 	}
 
-	async getTypeInfo(): Promise<UnitStat> {
-		return db.unitStats[this.location.map].get(this.details.type);
+	async getTypeInfo(ctx: MonoContext): Promise<UnitStat> {
+		return ctx.db.unitStats[this.location.map].get(this.details.type);
 	}
 
-	async refresh(ctx: Context): Promise<void> {
-		const fresh = await db.units[this.location.map].getUnit(ctx, this.uuid);
+	async refresh(ctx: MonoContext): Promise<void> {
+		const fresh = await ctx.db.units[this.location.map].getUnit(ctx, this.uuid);
 		this.clone(fresh);
 	}
 }
-console.log('exporting unit');
-module.exports = Unit;
-
-import { checkEmptyImport } from '../util/helper.js';
-
-const groundUnitAI = require('./ai/groundunit').default;
-checkEmptyImport(groundUnitAI, 'groundUnitAI', 'unit.js');
-const attackAI = require('./ai/attack').default;
-const constructionAI = require('./ai/construction').default;
-const mineAI = require('./ai/mine').default;
-
-const UnitStat = require('./unitStat').default;
-import type Map from '../map/map';
-import type Chunk from '../map/chunk';
-const PlanetLoc = require('../map/planetloc');
-
-const db = require('../db/db');
