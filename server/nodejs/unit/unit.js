@@ -6,13 +6,12 @@
 
 import r from 'rethinkdb'; //TODO should not be imported in this file
 import _ from 'lodash';
-import { DetailedError } from '../util/logger';
 import type MonoContext from '../util/monoContext';
-import { checkContext } from '../util/logger';
+import { checkContext, DetailedError, WrappedError } from '../util/logger';
 import env from '../config/env';
 import * as groundUnitAI from './ai/groundunit';
-import * as attackAI from './ai/attack';
-import * as constructionAI from './ai/construction';
+import AttackAI from './ai/attack';
+import ConstructionAI from './ai/construction';
 import * as mineAI from './ai/mine';
 import UnitStat from './unitStat';
 import PlanetLoc from '../map/planetloc';
@@ -39,10 +38,10 @@ export default class Unit {
 		owner: string,
 	}
 	location: {
-		hash: Array<string> ,
+		hash: Array<string>,
 		x: number,
 		y: number,
-		chunkHash: Array<string> ,
+		chunkHash: Array<string>,
 		chunkX: number,
 		chunkY: number,
 		map: string,
@@ -60,7 +59,7 @@ export default class Unit {
 		transferGoal: Object, // TODO why is this an object
 	}
 	attack: ? {
-		layers: Array<MovementLayer> ,
+		layers: Array<MovementLayer>,
 		range: number,
 		damage: number,
 		fireRate: number,
@@ -86,7 +85,7 @@ export default class Unit {
 		layer: MovementLayer,
 	}
 	construct: ? {
-		types: Array<string> ,
+		types: Array<string>,
 		constructing: number,
 		factoryQueue: Array<FactoryOrder> ,
 	}
@@ -208,12 +207,12 @@ export default class Unit {
 		//------------------
 		//iron and oil should always be off
 		if (this.details.type === 'oil' || this.details.type === 'iron') {
-			return self.update(ctx, { awake: false });
+			return this.update(ctx, { awake: false });
 		}
 
 		//ghosting units don't need to be awake
-		if (self.ghosting) {
-			return self.update(ctx, { awake: false });
+		if (this.details.ghosting) {
+			return this.update(ctx, { awake: false });
 		}
 
 		//------------------
@@ -221,54 +220,76 @@ export default class Unit {
 		// see what actions are possible
 		const profile = ctx.logger.startProfile('unit_AI');
 
+		const attackAI = new AttackAI();
+		const constructionAI = new ConstructionAI();
+
 		if (this.details.type === 'mine') {
-			actionPromises.push(mineAI.actionable(ctx, self, map)
+			actionPromises.push(mineAI.actionable(ctx, this, map)
 				.then((result: boolean) => {
 					actionable.mineAI = result;
+				}).catch((err: Error) => {
+					throw new WrappedError(err, 'mine actionable');
 				}));
 		}
 
 		if (this.movable) {
 			switch (this.movable.layer) {
 			case 'ground':
-				actionPromises.push(groundUnitAI.actionable(ctx, self, map)
+				actionPromises.push(groundUnitAI.actionable(ctx, this, map)
 					.then((result: boolean) => {
 						actionable.groundUnitAI = result;
+					}).catch((err: Error) => {
+						throw new WrappedError(err, 'groundUnitAI actionable');
 					}));
 			}
 		}
 
 		if (this.attack) {
-			actionPromises.push(attackAI.actionable(ctx, self, map)
+			actionPromises.push(attackAI.actionable(ctx, this, map)
 				.then((result: boolean) => {
 					actionable.attackAI = result;
+				}).catch((err: Error) => {
+					throw new WrappedError(err, 'attackAI actionable');
 				}));
 		}
 
 		if (this.construct) {
-			actionPromises.push(constructionAI.actionable(ctx, self, map)
+			actionPromises.push(constructionAI.actionable(ctx, this, map)
 				.then((result: boolean) => {
 					actionable.constructionAI = result;
+				}).catch((err: Error) => {
+					throw new WrappedError(err, 'constructionAI actionable');
 				}));
 		}
 
-		await Promise.all(actionPromises);
+		try {
+			await Promise.all(actionPromises);
+		} catch (err) {
+			throw new WrappedError(err, 'failed checking actionables');
+		}
 
 		//------------------
 		// actionable map is filled out
 		// pick an action to perform
-		if (actionable.mineAI) {
-			await mineAI.simulate(ctx, this, map);
-		} else if (actionable.constructionAI) {
-			//TODO constructionAI should be performed if factoryqueue is ticking
-			await constructionAI.simulate(ctx, this, map);
-		} else if (actionable.attackAI) {
-			await attackAI.simulate(ctx, this, map);
-		} else if (actionable.groundUnitAI) {
-			await groundUnitAI.simulate(ctx, this, map);
-		} else { // if no action is performed
-			ctx.logger.info(ctx, 'sleeping unit');
-			await self.update(ctx, { awake: false });
+		try {
+			if (actionable.mineAI) {
+				ctx.logger.info(ctx, 'processing mine', {}, { silent: true });
+				await mineAI.simulate(ctx, this, map);
+			} else if (actionable.constructionAI) {
+				ctx.logger.info(ctx, 'processing construction');
+				await constructionAI.simulate(ctx, this, map);
+			} else if (actionable.attackAI) {
+				ctx.logger.info(ctx, 'processing attack');
+				await attackAI.simulate(ctx, this, map);
+			} else if (actionable.groundUnitAI) {
+				ctx.logger.info(ctx, 'processing ground AI', {}, { silent: true });
+				await groundUnitAI.simulate(ctx, this, map);
+			} else { // if no action is performed
+				ctx.logger.info(ctx, 'sleeping unit');
+				await this.update(ctx, { awake: false });
+			}
+		} catch (err) {
+			throw new WrappedError(err, 'failed to perform action', actionable);
 		}
 
 		ctx.logger.endProfile(profile);
@@ -751,40 +772,31 @@ export default class Unit {
 	//fixing chunks. units are not quite so easy.
 
 	//is failing sometimes for factories- hint to a bigger issue
-	async addToChunks(ctx: MonoContext): Promise<Success> {
+	async addToChunks(ctx: MonoContext): Promise<void> {
 		const locs = await this.getLocs(ctx);
-		let success = true;
 		for (const loc of locs) {
-			let added;
 			if (this.details.type === 'oil' || this.details.type === 'iron') {
-				added = await loc.chunk.addResource(ctx, this.uuid, loc.hash);
+				await loc.chunk.addResource(ctx, this.uuid, loc.hash);
 			} else {
-				added = await loc.chunk.addUnit(ctx, this.uuid, loc.hash);
-				if (!added) {
-					ctx.logger.info(ctx, 'loc.chunk.addUnit failed', { hash: loc.hash });
+				try {
+					await loc.chunk.addUnit(ctx, this.uuid, loc.hash);
+				} catch (err) {
+					throw new WrappedError(err, 'addToChunks addUnit failed', { hash: loc.hash });
 				}
 			}
-			if (!added) {
-				success = false;
-			}
 		}
-		return success;
 	}
 
-	async clearFromChunks(ctx: MonoContext): Promise<Success> {
+	async clearFromChunks(ctx: MonoContext): Promise<void> {
 		checkContext(ctx, 'clearFromChunks');
 		const locs = await this.getLocs(ctx);
-		let success = true;
 		for (const loc of locs) {
-			const removed = await loc.chunk.clearUnit(this.uuid, loc.hash);
-			if (!removed) {
-				ctx.logger.info(ctx, 'loc.chunk.clear failed', { hash: loc.hash });
-			}
-			if (!removed) {
-				success = false;
+			try {
+				await loc.chunk.clearUnit(this.uuid, loc.hash);
+			} catch (err) {
+				throw new WrappedError(err, 'clearFromChunks clearUnit failed', { hash: loc.hash });
 			}
 		}
-		return success;
 	}
 
 	async getMap(ctx: MonoContext): Promise<Map> {

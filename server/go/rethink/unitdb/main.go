@@ -19,7 +19,7 @@ func CountUnprocessed(tick int, planet string) (int, error) {
 		Table(fmt.Sprintf("%s_unit", planet)).
 		GetAllByIndex("awake", true).
 		Filter(func(row r.Term) r.Term {
-			return row.Field("lastTick").Lt(tick)
+			return row.Field("details").Field("lastTick").Lt(tick)
 		}).
 		Count().
 		Run(rethink.Sess)
@@ -65,7 +65,7 @@ func GetUnprocessedUnitIds(tick int, planet string) (*[]string, error) {
 		Table(fmt.Sprintf("%s_unit", planet)).
 		GetAllByIndex("awake", true).
 		Filter(func(row r.Term) r.Term {
-			return row.Field("lastTick").Lt(tick)
+			return row.Field("details").Field("lastTick").Lt(tick)
 		}).
 		Field("uuid").
 		Run(rethink.Sess)

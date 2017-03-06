@@ -37,7 +37,7 @@ export default class Chunk {
 	resources: EntityMapType;
 	airUnits: EntityMapType;
 
-	constructor(x: ? number, y: ? number, map: ? string) {
+	constructor(x?: number, y?: number, map?: string) {
 		this.x = parseInt(x) || 0;
 		this.y = parseInt(y) || 0;
 		this.hash = this.x + ':' + this.y;
@@ -364,10 +364,17 @@ export default class Chunk {
 		}
 		this.x = parseInt(this.x);
 		this.y = parseInt(this.y);
+
+		if (!this.map) {
+			throw new DetailedError('invalid chunk', { x: this.x, y: this.y });
+		}
 	}
 
 	async refresh(ctx: MonoContext): Promise<void> {
 		checkContext(ctx, 'refresh');
+		if (!ctx.db.chunks[this.map]) {
+			throw new DetailedError('missing map for chunk refresh', { map: this.map });
+		}
 		const fresh = await ctx.db.chunks[this.map].getChunk(ctx, this.x, this.y);
 		this.clone(fresh);
 	}

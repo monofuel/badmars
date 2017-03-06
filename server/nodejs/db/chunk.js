@@ -6,7 +6,7 @@
 
 import r from 'rethinkdb';
 import { safeCreateTable, startDBCall } from './helper';
-import { checkContext } from '../util/logger';
+import { checkContext, DetailedError } from '../util/logger';
 import Chunk from '../map/chunk';
 
 import type Logger from '../util/logger';
@@ -69,23 +69,21 @@ export default class DBChunk {
 		await call.end();
 	}
 
-	async setUnit(ctx: MonoContext, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<Success> {
+	async setUnit(ctx: MonoContext, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<void> {
 		const call = await startDBCall(ctx,'setUnit');
-		const result = await this.setEntity(ctx, chunk, uuid, 'units', tileHash);
+		await this.setEntity(ctx, chunk, uuid, 'units', tileHash);
 		await call.end();
-		return result;
 	}
 
-	async setResource(ctx: MonoContext, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<Success> {
+	async setResource(ctx: MonoContext, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<void> {
 		const call = await startDBCall(ctx,'setResource');
-		const result = await this.setEntity(ctx, chunk, uuid, 'resources', tileHash);
+		await this.setEntity(ctx, chunk, uuid, 'resources', tileHash);
 		await call.end();
-		return result;
 	}
 
 	//update a specific entity location for a specific layer
 	//note: layers must have different names than other values on chunk for now
-	async setEntity(ctx: MonoContext, chunk: Chunk, uuid: UUID, layer: string, tileHash: TileHash): Promise<Success> {
+	async setEntity(ctx: MonoContext, chunk: Chunk, uuid: UUID, layer: string, tileHash: TileHash): Promise<void> {
 		checkContext(ctx,'setEntity');
 		const entityUpdate = {};
 		entityUpdate[tileHash] = uuid; //copy to save to DB
@@ -106,7 +104,7 @@ export default class DBChunk {
 
 		//if the update was successful, then the unit is successfully set at the location
 		if (delta.replaced === 1) {
-			return true;
+			return;
 		}
 		//otherwise, it's possible that the unit was already at this location
 		//fetch the latest copy and check it
@@ -114,9 +112,9 @@ export default class DBChunk {
 		// $FlowFixMe: layers should probably be in their own map that won't conflict
 		const layerList: Object = chunk[layer];
 		if (layerList[tileHash] === uuid) {
-			return true;
+			return;
 		}
-		return false;
+		throw new DetailedError('failed to set entity at tile', { uuid, found: layerList[tileHash]});
 	}
 
 	//these should never get used.

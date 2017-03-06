@@ -52,7 +52,7 @@ export default class AIService {
 		const mapName = request.mapName;
 		const tick = parseInt(request.tick);
 		ctx.logger.addSumStat('unitRequest', 1);
-		ctx.logger.info(ctx, 'process unit order', { uuid, mapName, tick });
+		ctx.logger.info(ctx, 'process unit order', { uuid, mapName, tick }, { silent: true });
 		try {
 			const unit = await ctx.db.units[mapName].claimUnitTick(ctx, uuid, tick);
 			if (!unit) {

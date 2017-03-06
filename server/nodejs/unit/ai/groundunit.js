@@ -13,9 +13,15 @@ import type Unit from '../unit';
 import type Map from '../../map/map';
 
 
-export async function actionable(): Promise<boolean> {
-	//TODO return if we can move or not
-	return false;
+export async function actionable(ctx: MonoContext, unit: Unit): Promise<boolean> {
+	if (!unit.movable || !unit.storage) {
+		return false;
+	}
+
+	if (!unit.movable.path && !unit.movable.transferGoal) {
+		return false;
+	}
+	return true;
 }
 
 export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
@@ -29,7 +35,7 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 		return;
 	}
 
-	if(!unit.path || unit.movable.path.length === 0 || !unit.destination) {
+	if(!unit.movable.path || unit.movable.path.length === 0 || !unit.movable.destination) {
 
 		//check if they are trying to transfer resources.
 		//if they are, do it.

@@ -70,6 +70,7 @@ export default class PathfindService {
 	async process(ctx: MonoContext, mapName: string): Promise<Success> {
 		//TODO fix this stuff
 		//doesn't work properly with multiple pathfinding services.
+		ctx.logger.info(ctx, 'checking for unprocessed units', { mapName });
 		const results = await ctx.db.units[mapName].getUnprocessedPath();
 		//console.log(results);
 
@@ -88,15 +89,22 @@ export default class PathfindService {
 	}
 
 	async processUnit(ctx: MonoContext, unitDoc: Object): Promise<void> {
+
 		const unit: Unit = new Unit(ctx);
 		unit.clone(ctx, unitDoc);
+		ctx.logger.info(ctx, 'processing path', { uuid: unit.uuid});
 
-		if(unit.movementType !== 'ground') {
+		if (!unit.movable || !unit.movable.destination) {
+			return;
+		}
+
+		if(unit.movable.layer !== 'ground') {
 			return;
 		}
 		const map = await ctx.db.map.getMap(ctx, unit.location.map);
 
 		const start = await map.getLoc(ctx, unit.location.x, unit.location.y);
+		
 		if (!unit.movable || !unit.movable.destination) {
 			return;
 		}

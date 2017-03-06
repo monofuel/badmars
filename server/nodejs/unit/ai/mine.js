@@ -23,7 +23,7 @@ export async function actionable(ctx: MonoContext, unit: Unit): Promise<boolean>
 export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
 	checkContext(ctx, 'mine simulate');
 	if(!unit.storage) {
-		return; // shouldn't happen after actionable() check
+		return;
 	}
 
 	if(unit.storage.resourceCooldown > 0) {

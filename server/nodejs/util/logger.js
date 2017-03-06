@@ -30,10 +30,10 @@ export class DetailedError extends Error {
 }
 
 export class WrappedError extends DetailedError {
-	details: DetailsType;
 	constructor(err: Error | DetailedError, msg: string, details?: DetailsType) {
-		super(msg);
+		super(msg, details);
 		this.message = msg + ' caused by: ' + err.message;
+		this.stack = err.stack;
 
 		const detailed: DetailedError = (err: any);
 		if (detailed.details) {

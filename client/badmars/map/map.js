@@ -156,8 +156,7 @@ export class Map {
 		registerListener('units',this.updateUnitsListener);
 
 		window.addUnit = (unit: Object) => {
-			//console.log('adding unit', unit);
-			self.units.forEach((oldUnit: Object) => {
+			for (const oldUnit: any of self.units) {
 				if (oldUnit.uuid === unit.uuid) {
 					for (let key of Object.keys(unit)) {
 						oldUnit[key] = unit[key];
@@ -168,10 +167,9 @@ export class Map {
 							oldUnit.updateNextMove(tile,oldUnit.movable.speed);
 						}
 					}
-					//console.log('updating unit');
 					return;
 				}
-			});
+			};
 			if (playerInfo && unit.details.owner !== playerInfo.id) {
 				let tile = new PlanetLoc(self, unit.location.x, unit.location.y, true);
 				if (!tile.chunk) {

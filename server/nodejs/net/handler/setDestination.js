@@ -16,6 +16,8 @@ export default async function setDestination(ctx: MonoContext, client: Client, d
 	if(!data.location || data.location.length !== 2) {
 		return client.sendError(ctx, 'setDestination', 'no or invalid location set');
 	}
+	const x = parseInt(data.location[0]);
+	const y = parseInt(data.location[1]);
 
 	const unit: Unit = await ctx.db.units[client.planet.name].getUnit(ctx, data.unitId);
 	if(unit.details.owner !== client.user.uuid) {
@@ -23,13 +25,9 @@ export default async function setDestination(ctx: MonoContext, client: Client, d
 	}
 
 	try {
-		const success = await unit.setDestination(ctx, data.location[0], data.location[1]);
+		await unit.setDestination(ctx, x, y);
 
-		if(success) {
-			client.send('setDestination');
-		} else {
-			client.sendError(ctx, 'setDestination', 'invalid order');
-		}
+		client.send('setDestination');
 	} catch(err) {
 		ctx.logger.trackError(ctx, new WrappedError(err, 'failed to add factory order'));
 		client.sendError(ctx, 'setDestination', 'failed to set destination');

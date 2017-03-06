@@ -210,8 +210,8 @@ export default class DBunit {
 
 	registerPathListener(func: Function) {
 		this.table.filter(r.row.hasFields('location.destination'))
-			.filter(r.row('location.isPathing').eq(false))
-			.filter(r.row('location.path').eq([]))
+			.filter(r.row('location')('isPathing').eq(false))
+			.filter(r.row('location')('path').eq([]))
 			.changes().run(this.conn).then((cursor: any) => {
 				cursor.each(func);
 			});
@@ -220,12 +220,12 @@ export default class DBunit {
 	async getUnprocessedPath(): Promise<Object> {
 
 		const result = await this.table.filter(r.row.hasFields('location.destination'))
-			.filter(r.row('location.isPathing').eq(false))
-			.filter(r.row('location.path').eq([]))
+			.filter(r.row('location')('isPathing').eq(false))
+			.filter(r.row('location')('path').eq([]))
 			.limit(env.pathChunks)
 			.update((unit: any): any => {
 				return r.branch(
-					unit('location.isPathing').eq(false), { location: { isPathing: true, pathUpdate: Date.now() } }, {}
+					unit('location')('isPathing').eq(false), { location: { isPathing: true, pathUpdate: Date.now() } }, {}
 				);
 			}, {
 				durability: 'hard',
@@ -237,9 +237,9 @@ export default class DBunit {
 	getUnprocessedUnits(ctx: MonoContext, tick: number): Promise<Array<Unit>> {
 		return this.table.getAll(true, {
 			index: 'awake'
-		}).filter(r.row('details.lastTick').lt(tick)).limit(env.unitProcessChunks).update((unit: any): any => {
+		}).filter(r.row('details')('lastTick').lt(tick)).limit(env.unitProcessChunks).update((unit: any): any => {
 			return r.branch(
-				unit('details.lastTick').ne(tick), { details: {lastTick: tick} }, {}
+				unit('details')('lastTick').ne(tick), { details: {lastTick: tick} }, {}
 			);
 		}, {
 			returnChanges: true
@@ -265,7 +265,7 @@ export default class DBunit {
 	async getUnprocessedUnitKeys(tick: number): Promise<Array<UUID>> {
 		return this.table.getAll(true, {
 			index: 'awake'
-		}).filter(r.row('details.lastTick').lt(tick))
+		}).filter(r.row('details')('lastTick').lt(tick))
 			.limit(env.unitProcessChunks)
 			.pluck('uuid')
 			.coerceTo('array')
@@ -276,7 +276,7 @@ export default class DBunit {
 		const call = await startDBCall(ctx,'claimUnitTick');
 		const delta = await this.table.get(uuid).update((unit: any): any => {
 			return r.branch(
-				unit('details.lastTick').ne(tick), { details:{lastTick: tick} }, {}
+				unit('details')('lastTick').ne(tick), { details:{lastTick: tick} }, {}
 			);
 		}, { returnChanges: true }).run(this.conn);
 		await call.end();
@@ -294,7 +294,7 @@ export default class DBunit {
 		//however we still want to process them next tick.
 		return await this.table.getAll(true, {
 			index: 'awake'
-		}).filter(r.row('details.lastTick').lt(tick - 1).and(r.row('details.lastTick').gt(0))).count().run(this.conn);
+		}).filter(r.row('details')('lastTick').lt(tick - 1).and(r.row('details')('lastTick').gt(0))).count().run(this.conn);
 	}
 
 	countAllUnits(): Promise<number> {

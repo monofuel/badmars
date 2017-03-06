@@ -6,6 +6,7 @@ import (
 
 type Detail struct {
 	Type UnitType `json:"type"`
+	tick int      `json:"tick"`
 }
 
 type Location struct {
@@ -18,6 +19,7 @@ type Location struct {
 
 type Unit struct {
 	UUID     UUID     `json:"uuid"`
+	Awake    bool     `json:"awake"`
 	Detail   Detail   `json:"detail"`
 	Location Location `json:"location"`
 	//TODO rest of the stuff

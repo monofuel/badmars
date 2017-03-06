@@ -651,6 +651,8 @@ export default class Map {
 		this.sortByNearestUnit(units, mine);
 		this.sortBuildingsOverOther(units);
 
+		ctx.logger.info(ctx, 'depositing iron from mine',{ amount }, { silent: true });
+
 		for (const unit: Unit of units) {
 			if (unit.details.ghosting) {
 				continue;
@@ -679,7 +681,7 @@ export default class Map {
 			}
 		}
 		if (amount > 0) {
-			//console.log('depositing iron into mine',amount);
+			ctx.logger.info(ctx, 'depositing iron into mine',{ amount });
 			await mine.addIron(ctx, amount);
 		}
 	}
@@ -690,6 +692,8 @@ export default class Map {
 		const units: Array<Unit> = await this.getNearbyUnitsFromChunk(ctx, mine.location.chunkHash[0]);
 		this.sortByNearestUnit(units, mine);
 		this.sortBuildingsOverOther(units);
+
+		ctx.logger.info(ctx, 'depositing oil from mine',{ amount }, { silent: true });
 
 		for (const unit: Unit of units) {
 			if (unit.ghosting) {
