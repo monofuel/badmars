@@ -6,6 +6,7 @@
 //	Licensed under included modified BSD license
 
 import os from 'os';
+import _ from 'lodash';
 import env from '../config/env';
 import request from 'request';
 import stats from './stats';
@@ -95,7 +96,7 @@ export default class Logger {
 		}, detailed.details);
 		console.error(`${this.moduleName}\tINFO\t${dateFormat(body.timestamp)}\t${body.message}`);
 		console.error(body.stack);
-		console.error(JSON.stringify(body, null, 2));
+		console.error(JSON.stringify(_.omit(body, ['stack']), null, 2));
 		this.track(ctx, 'error', body);
 	}
 
