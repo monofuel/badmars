@@ -21,7 +21,7 @@ export default async function factoryOrder(ctx: MonoContext, client: Client, dat
 	}
 
 	const unit = await ctx.db.units[client.planet.name].getUnit(ctx, data.factory);
-	if(!unit || unit.owner !== client.user.uuid) {
+	if(!unit || unit.details.owner !== client.user.uuid) {
 		return client.sendError(ctx, 'factoryOrder', 'not your unit');
 	}
 
