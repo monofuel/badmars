@@ -267,6 +267,7 @@ export default class Map {
 					return 'already has mine';
 				}
 			}
+			console.log(units);
 			return 'no resource for mine';
 		}
 
@@ -373,8 +374,7 @@ export default class Map {
 						const mine = new Unit(ctx, 'mine', this, x, y);
 						mine.details.owner = client.user.uuid;
 						try {
-							// HACK for some reason the iron/oil hasn't spawned before we spawn the mine
-							await this.spawnUnitWithoutTileCheck(ctx, mine);
+							await this.spawnUnit(ctx, mine);
 						} catch (err) {
 							throw new WrappedError(err,`failed to spawn mine for ${unitType}`);
 						}

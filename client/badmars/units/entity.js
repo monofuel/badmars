@@ -143,7 +143,7 @@ export class Entity {
 		if (this.takingDamage) {
 			this.animateSmoke();
 		}
-		if (this.ghosting) {
+		if (this.details.ghosting) {
 			this.mesh.material.transparent = true;
 			this.mesh.material.opacity = 0.3;
 		} else {

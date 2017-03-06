@@ -86,10 +86,9 @@ export default class PlanetLoc {
 	async getUnits(ctx: MonoContext): Promise<Array<Unit>> {
 		checkContext(ctx, 'getUnits');
 		const unitMap = await this.chunk.getUnits(ctx);
-		return _.filter(unitMap, (unit: Unit): boolean => unit.details.hash === this.hash);
-		
+		return _.filter(unitMap, (unit: Unit): boolean => unit.location.hash.includes(this.hash));
 	}
-	
+
 	toString(): string {
 		let line = 'x: ' + this.x;
 		line += ', y: ' + this.y;
