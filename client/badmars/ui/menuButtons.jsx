@@ -41,7 +41,7 @@ export default class MenuButtons extends React.Component{
 		let buttons;
 		let queuePane = <div>Nothing queued</div>;
 		// TODO refactor all of this using construct.types listing the constructable types
-		if (selectedUnitType === 'factory' && selectedUnit && selectedUnit.construct && selectedUnit.construct.factoryQueue.length > 0) {
+		if (selectedUnitType === 'factory' && selectedUnit && selectedUnit.construct && selectedUnit.construct.factoryQueue && selectedUnit.construct.factoryQueue.length > 0) {
 			let buildingUnit = selectedUnit.construct.factoryQueue[0];
 			let remaining = buildingUnit.remaining;
 			let constructing = buildingUnit.cost === 0;

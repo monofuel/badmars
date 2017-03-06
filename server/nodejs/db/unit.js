@@ -192,11 +192,19 @@ export default class DBunit {
 
 	async addFactoryOrder(ctx: MonoContext, uuid: UUID, order: FactoryOrder): Promise<void> {
 		const call = await startDBCall(ctx,'addFactoryOrder');
-		await this.table.get(uuid).update({
-			factoryQueue: r.row('factoryQueue').append(order),
-			awake: true
-		}).run(this.conn);
+		const result = await this.table.get(uuid).update((doc: any): any => {
+			return {
+				construct: {
+					factoryQueue: doc('construct')('factoryQueue').append(order),
+				},
+				awake: true
+			};
+		}, { returnChanges: true }).run(this.conn);
+
 		await call.end();
+		if (result.replaced !== 1) {
+			throw new DetailedError('did not add factory order', { dbError: result.first_error });
+		}
 
 	}
 
