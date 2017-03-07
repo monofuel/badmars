@@ -330,7 +330,7 @@ export default class Map {
 				x = Math.round(x);
 				y = Math.round(y);
 
-				const unit = new Unit(ctx, unitType, this, x, y);
+				let unit: Mine = new Unit(ctx, unitType, this, x, y);
 				const tilesToUse: TileHash[] = unit.location.hash;
 
 				// check if the tiles we want to use are already used
@@ -377,7 +377,7 @@ export default class Map {
 				}
 				try {
 					// https://www.youtube.com/watch?v=eVB8lM-oCSk
-					await this.spawnUnit(ctx, unit);
+					unit = await this.spawnUnit(ctx, unit);
 					spawnedUnits.push(unit);
 
 					ctx.logger.info(ctx, 'sucessfully spawned', { unitType, x, y });
@@ -388,8 +388,8 @@ export default class Map {
 						const mine = new Unit(ctx, 'mine', this, x, y);
 						mine.details.owner = client.user.uuid;
 						try {
-							await this.spawnUnitWithoutTileCheck(ctx, mine);
-							spawnedUnits.push(mine);
+							const spawnedMine: Unit = await this.spawnUnitWithoutTileCheck(ctx, mine);
+							spawnedUnits.push(spawnedMine);
 						} catch (err) {
 							throw new WrappedError(err,`failed to spawn mine for ${unitType}`);
 						}

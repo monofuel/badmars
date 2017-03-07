@@ -259,7 +259,7 @@ export default class Chunk {
 		checkContext(ctx, 'addResource');
 		await this.getChunkDB(ctx).setResource(ctx, this, uuid, tileHash);
 		await this.refresh(ctx);
-		if (uuid !== this.units[tileHash]) {
+		if (uuid !== this.resources[tileHash]) {
 			throw new DetailedError('failed to add resource after refresh', { uuid, tileHash, found: this.resources[tileHash] });
 		}
 	}

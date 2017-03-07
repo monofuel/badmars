@@ -69,7 +69,9 @@ export default class DBunit {
 			returnChanges: true
 		}).run(this.conn);
 		await call.end();
-		return await this.loadUnit(ctx, delta.changes[0].new_val);
+		const loadedUnit = await this.loadUnit(ctx, delta.changes[0].new_val);
+		unit.uuid = loadedUnit.uuid;
+		return loadedUnit; // prefered to use over the unit passed in
 	}
 
 	async getUnit(ctx: MonoContext, uuid: UUID): Promise<Unit> {
