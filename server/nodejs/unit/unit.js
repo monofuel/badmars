@@ -261,13 +261,14 @@ export default class Unit {
 					throw new WrappedError(err, 'constructionAI actionable');
 				}));
 		}
-
+		checkContext(ctx, 'pre actionable');
 		try {
 			await Promise.all(actionPromises);
 		} catch (err) {
 			throw new WrappedError(err, 'failed checking actionables');
 		}
 
+		checkContext(ctx, 'pre action');
 		//------------------
 		// actionable map is filled out
 		// pick an action to perform
@@ -291,7 +292,7 @@ export default class Unit {
 		} catch (err) {
 			throw new WrappedError(err, 'failed to perform action', actionable);
 		}
-
+		checkContext(ctx, 'post action');
 		ctx.logger.endProfile(profile);
 	}
 
@@ -792,7 +793,7 @@ export default class Unit {
 		const locs = await this.getLocs(ctx);
 		for (const loc of locs) {
 			try {
-				await loc.chunk.clearUnit(this.uuid, loc.hash);
+				await loc.chunk.clearUnit(ctx, this.uuid, loc.hash);
 			} catch (err) {
 				throw new WrappedError(err, 'clearFromChunks clearUnit failed', { hash: loc.hash });
 			}

@@ -100,7 +100,7 @@ export default class Map {
 					ctx.logger.trackError(ctx, new WrappedError(err, 'getChunk grpc', { mapName: this.name, x, y }));
 					return reject(err);
 				}
-				const chunk = new Chunk();
+				const chunk = new Chunk(this.name, x, y);
 				chunk.clone(response);
 				for (let i = 0; i < chunk.navGrid.length; i++) {
 					chunk.navGrid[i] = response.navGrid[i].items;
@@ -132,7 +132,7 @@ export default class Map {
 
 		if (!chunk) {
 			ctx.logger.addSumStat('generatingChunk', 1);
-			chunk = new Chunk(x, y, this.name);
+			chunk = new Chunk(this.name, x, y);
 			await chunk.save(ctx);
 		}
 		this.addChunkToCache(ctx, chunk);
@@ -149,6 +149,7 @@ export default class Map {
 
 		//clear old entries from cache
 		while (this.chunkCache.length > env.chunkCacheLimit) {
+			console.log('shifting cache');
 			const oldChunk = this.chunkCache.shift();
 			delete this.chunkCacheMap[oldChunk.chunk.hash];
 		}
@@ -209,7 +210,7 @@ export default class Map {
 		for (const loc of await newUnit.getLocs(ctx)) {
 			const badReason = await this.checkValidForUnit(ctx, loc, newUnit);
 			if (badReason) {
-				throw new DetailedError('spawnUnit', { badReason });
+				throw new WrappedError(new Error(badReason), 'spawnUnit');
 			}
 		}
 		const unit = await this.spawnAndValidate(ctx, newUnit);
@@ -267,7 +268,6 @@ export default class Map {
 					return 'already has mine';
 				}
 			}
-			console.log(units);
 			return 'no resource for mine';
 		}
 
@@ -318,6 +318,7 @@ export default class Map {
 		];
 
 		const usedTiles: TileHash[] = [];
+		const spawnedUnits: Unit[] = [];
 
 		for (const unitType: string of unitsToSpawn) {
 			while (true) {
@@ -332,12 +333,24 @@ export default class Map {
 				const unit = new Unit(ctx, unitType, this, x, y);
 				const tilesToUse: TileHash[] = unit.location.hash;
 
-				ctx.logger.info(ctx, 'spawning unit', { unitType, x, y });
-
 				// check if the tiles we want to use are already used
 				if (_.intersection(usedTiles, tilesToUse).length !== 0) {
 					continue;
 				}
+
+				const tiles: PlanetLoc[] = await unit.getLocs(ctx);
+				let notLand = false;
+				for (const tile: PlanetLoc of tiles) {
+					if (tile.tileType !== LAND) {
+						notLand = true;
+					}
+				}
+				if (notLand) {
+					continue;
+				}
+				
+
+				ctx.logger.info(ctx, 'spawning unit', { unitType, x, y });
 
 				if (unitType !== 'iron' && unitType !== 'oil') {
 					unit.details.owner = client.user.uuid;
@@ -365,6 +378,7 @@ export default class Map {
 				try {
 					// https://www.youtube.com/watch?v=eVB8lM-oCSk
 					await this.spawnUnit(ctx, unit);
+					spawnedUnits.push(unit);
 
 					ctx.logger.info(ctx, 'sucessfully spawned', { unitType, x, y });
 					usedTiles.push(...unit.location.hash);
@@ -374,14 +388,34 @@ export default class Map {
 						const mine = new Unit(ctx, 'mine', this, x, y);
 						mine.details.owner = client.user.uuid;
 						try {
-							await this.spawnUnit(ctx, mine);
+							await this.spawnUnitWithoutTileCheck(ctx, mine);
+							spawnedUnits.push(mine);
 						} catch (err) {
 							throw new WrappedError(err,`failed to spawn mine for ${unitType}`);
 						}
 					}
 					break;
 				} catch(err) {
-					ctx.logger.info(ctx, 'spawning unit failed, retrying in new location', { msg: err.msg, x, y, unitType });
+					for (const unit of spawnedUnits) {
+						try {
+							const locs = await unit.getLocs(ctx);
+							for (const loc of locs) {
+								try {
+									await loc.chunk.clearUnit(ctx, unit.uuid, loc.hash);
+								} catch (err) {
+									// NOOP
+								}
+							}
+						} catch (err) {
+							ctx.logger.trackError(ctx, new WrappedError(err, 'failed to remove unit during rollback unit spawn'));
+						}
+						try {
+							await ctx.db.units[this.name].deleteUnit(ctx, unit.uuid);
+						} catch (err) {
+							ctx.logger.trackError(ctx, new WrappedError(err, 'failed to delete unit to rollback unit spawn'));
+						}
+					}
+					throw new WrappedError(err, 'spawning unit failed, bailing out', {  x, y, unitType });
 				}
 			}
 		}
@@ -432,9 +466,14 @@ export default class Map {
 			const x: number = parseInt(chunkHash.split(':')[0]);
 			const y: number = parseInt(chunkHash.split(':')[1]);
 			const chunk: Chunk = await this.getChunk(ctx, x, y);
-			const chunkUnits: Array<Unit> = await chunk.getUnits(ctx);
-			for (const unit of chunkUnits) {
-				units.push(unit);
+			try {
+				const chunkUnits: Array<Unit> = await chunk.getUnits(ctx);
+				
+				for (const unit of chunkUnits) {
+					units.push(unit);
+				}
+			} catch (err) {
+				throw new WrappedError(err, 'failed to get units at chunks');
 			}
 		}
 		return units;

@@ -30,6 +30,7 @@ export default class Chunk {
 	y: number;
 	hash: string;
 	map: string;
+	tick: number;
 	grid: Array<Array<number>> ;
 	navGrid: Array<Array<TileCode>> ;
 	chunkSize: number;
@@ -37,7 +38,7 @@ export default class Chunk {
 	resources: EntityMapType;
 	airUnits: EntityMapType;
 
-	constructor(x?: number, y?: number, map?: string) {
+	constructor(map: string, x: number, y: number) {
 		this.x = parseInt(x) || 0;
 		this.y = parseInt(y) || 0;
 		this.hash = this.x + ':' + this.y;
@@ -189,7 +190,6 @@ export default class Chunk {
 		checkContext(ctx,'getUnits');
 		await this.refresh(ctx);
 		const unitUuids: Array<UUID> = _.union(_.map(this.resources), _.map(this.units), _.map(this.airUnits));
-
 		//fast units list
 		return this.getUnitDB(ctx).getUnits(ctx, unitUuids);
 
@@ -260,7 +260,7 @@ export default class Chunk {
 		await this.getChunkDB(ctx).setResource(ctx, this, uuid, tileHash);
 		await this.refresh(ctx);
 		if (uuid !== this.units[tileHash]) {
-			throw new DetailedError('failed to add resource after refresh', { uuid, tileHash, found: this.units[tileHash] });
+			throw new DetailedError('failed to add resource after refresh', { uuid, tileHash, found: this.resources[tileHash] });
 		}
 	}
 
@@ -370,13 +370,19 @@ export default class Chunk {
 		}
 	}
 
+	// HACK only allow refreshing once per tick.
 	async refresh(ctx: MonoContext): Promise<void> {
-		checkContext(ctx, 'refresh');
-		if (!ctx.db.chunks[this.map]) {
-			throw new DetailedError('missing map for chunk refresh', { map: this.map });
+		if (ctx.tick && this.tick === ctx.tick) {
+			console.log('skipping refresh');
+			return;
 		}
+		checkContext(ctx, 'refresh');
 		const fresh = await ctx.db.chunks[this.map].getChunk(ctx, this.x, this.y);
 		this.clone(fresh);
+		if (ctx.tick) {
+			console.log('refreshed');
+			this.tick = ctx.tick;
+		}
 	}
 
 	async getTiles(ctx: MonoContext): Promise<Array<PlanetLoc>> {
