@@ -35,7 +35,7 @@ export default class DBunit {
 		await safeCreateIndex(this.conn, logger, this.table, 'details.lastTick');
 		await safeCreateIndex(this.conn, logger, this.table, 'awake');
 		await clearSpareIndices(this.conn, this.table, VALID_INDICES);
-	}
+	}	
 
 	async each(ctx: MonoContext, func: Function): Promise<void> {
 		const cursor = await this.table.run(this.conn);
@@ -211,9 +211,9 @@ export default class DBunit {
 	}
 
 	registerPathListener(func: Function) {
-		this.table.filter(r.row.hasFields('location.destination'))
-			.filter(r.row('location')('isPathing').eq(false))
-			.filter(r.row('location')('path').eq([]))
+		this.table.filter(r.row.hasFields({movable: {destination: true }}))
+			.filter(r.row('movable')('isPathing').eq(false))
+			.filter(r.row('movable')('path').eq([]))
 			.changes().run(this.conn).then((cursor: any) => {
 				cursor.each(func);
 			});
@@ -221,13 +221,13 @@ export default class DBunit {
 
 	async getUnprocessedPath(): Promise<Object> {
 
-		const result = await this.table.filter(r.row.hasFields('location.destination'))
-			.filter(r.row('location')('isPathing').eq(false))
-			.filter(r.row('location')('path').eq([]))
+		const result = await this.table.filter(r.row.hasFields({movable: {destination: true }}))
+			.filter(r.row('movable')('isPathing').eq(false))
+			.filter(r.row('movable')('path').eq([]))
 			.limit(env.pathChunks)
 			.update((unit: any): any => {
 				return r.branch(
-					unit('location')('isPathing').eq(false), { location: { isPathing: true, pathUpdate: Date.now() } }, {}
+					unit('movable')('isPathing').eq(false), { movable: { isPathing: true, pathUpdate: Date.now() } }, {}
 				);
 			}, {
 				durability: 'hard',

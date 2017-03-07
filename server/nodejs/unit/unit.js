@@ -326,9 +326,9 @@ export default class Unit {
 		const conn = ctx.db.units[this.location.map].getConn();
 		const delta = await table.get(this.uuid).update((self: any): any => {
 			return r.branch(
-				self('storage.iron').ge(amount), {
+				self('storage')('iron').ge(amount), {
 					storage: {
-						iron: self('storage.iron').sub(amount)
+						iron: self('storage')('iron').sub(amount)
 					}
 				}, {}
 			);
@@ -357,7 +357,7 @@ export default class Unit {
 		const conn = ctx.db.units[this.location.map].getConn();
 		const delta = await table.get(this.uuid).update((self: any): any => {
 			return r.branch(
-				self('storage.fuel').ge(amount), { storage: { fuel: self('storage.fuel').sub(amount) } }, {}
+				self('storage')('fuel').ge(amount), { storage: { fuel: self('storage')('fuel').sub(amount) } }, {}
 			);
 		}, { returnChanges: true }).run(conn);
 
@@ -394,13 +394,13 @@ export default class Unit {
 		if (amount > max) {
 			this.storage.iron += max;
 			await ctx.db.units[this.location.map]
-				.updateUnit(ctx, this.uuid, { storage: { iron: r.row('storage.iron').default(0).add(max) } });
+				.updateUnit(ctx, this.uuid, { storage: { iron: r.row('storage')('iron').default(0).add(max) } });
 			return max;
 		}
 		if (amount <= max) {
 			this.storage.iron += amount;
 			await ctx.db.units[this.location.map]
-				.updateUnit(ctx, this.uuid, { storage: { iron: r.row('storage.iron').default(0).add(amount) } });
+				.updateUnit(ctx, this.uuid, { storage: { iron: r.row('storage')('iron').default(0).add(amount) } });
 			return amount;
 		}
 	}
@@ -417,12 +417,12 @@ export default class Unit {
 		}
 		if (amount > max) {
 			this.storage.fuel += max;
-			await ctx.db.units[this.location.map].updateUnit(ctx, this.uuid, { storage: { fuel: r.row('storage.fuel').default(0).add(max) } });
+			await ctx.db.units[this.location.map].updateUnit(ctx, this.uuid, { storage: { fuel: r.row('storage')('fuel').default(0).add(max) } });
 			return max;
 		}
 		if (amount <= max) {
 			this.storage.fuel += amount;
-			await ctx.db.units[this.location.map].updateUnit(ctx, this.uuid, { storage: { fuel: r.row('storage.fuel').default(0).add(amount) } });
+			await ctx.db.units[this.location.map].updateUnit(ctx, this.uuid, { storage: { fuel: r.row('storage')('fuel').default(0).add(amount) } });
 			return amount;
 		}
 	}
@@ -647,7 +647,7 @@ export default class Unit {
 		if (!this.details.type) {
 			invalid('missing type');
 		}
-		//TODO verify type is a valid type
+		//TODO verify type is a valid type	
 		if (!this.location.map) {
 			invalid('missing map name');
 		}

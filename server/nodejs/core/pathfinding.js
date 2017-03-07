@@ -64,7 +64,7 @@ export default class PathfindService {
 			return;
 		}
 		//console.log('unit updated');
-		this.process(ctx.create(), delta.new_val.map);
+		this.process(ctx.create(), delta.new_val.location.map);
 	}
 
 	async process(ctx: MonoContext, mapName: string): Promise<Success> {
@@ -72,7 +72,6 @@ export default class PathfindService {
 		//doesn't work properly with multiple pathfinding services.
 		ctx.logger.info(ctx, 'checking for unprocessed units', { mapName });
 		const results = await ctx.db.units[mapName].getUnprocessedPath();
-		//console.log(results);
 
 		//TODO this logic should probably be in db/units.js
 		if(results.replaced === 0) {

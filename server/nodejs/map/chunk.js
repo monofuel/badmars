@@ -220,8 +220,8 @@ export default class Chunk {
 
 	}
 
-	//TODO contexts
 	async clearUnit(ctx: MonoContext, uuid: UUID, tileHash: TileHash): Promise<void> {
+		checkContext(ctx, 'clearUnit');
 		const table = ctx.db.chunks[this.map].getTable();
 		const conn = ctx.db.chunks[this.map].getConn();
 
@@ -373,16 +373,16 @@ export default class Chunk {
 	// HACK only allow refreshing once per tick.
 	async refresh(ctx: MonoContext): Promise<void> {
 		if (ctx.tick && this.tick === ctx.tick) {
-			console.log('skipping refresh');
 			return;
 		}
 		checkContext(ctx, 'refresh');
-		const fresh = await ctx.db.chunks[this.map].getChunk(ctx, this.x, this.y);
-		this.clone(fresh);
+
 		if (ctx.tick) {
-			console.log('refreshed');
 			this.tick = ctx.tick;
 		}
+		const fresh = await ctx.db.chunks[this.map].getChunk(ctx, this.x, this.y);
+		this.clone(fresh);
+		
 	}
 
 	async getTiles(ctx: MonoContext): Promise<Array<PlanetLoc>> {
