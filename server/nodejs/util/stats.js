@@ -5,6 +5,8 @@
 //	Licensed under included modified BSD license
 
 import env from '../config/env';
+import Logger from './logger';
+
 type StatMapType = {
 	[key: string]: Array<number>
 };
@@ -27,8 +29,8 @@ let profileCount: {
 	[key: string]: number
 } = {};
 
-exports.init = () => {
-	setInterval(reportStats, env.statReportRate * 60 * 1000);
+exports.init = (logger: Logger) => {
+	setInterval((): void => reportStats(logger), env.statReportRate * 60 * 1000);
 };
 
 exports.startProfile = (name: string): ProfileKey => {
@@ -74,7 +76,7 @@ exports.addSumStat = (key: string, value: number) => {
 };
 
 
-function reportStats() {
+function reportStats(logger: Logger) {
 	const stats: Object = {};
 	for(const key: string of Object.keys(avgStats)) {
 		const array: Array<number> = avgStats[key];
@@ -100,4 +102,5 @@ function reportStats() {
 		stats['executions-' + key] = profileCount[key];
 	}
 	profileCount = {};
+	logger.info(null, 'stats', stats, { silent: true });
 }

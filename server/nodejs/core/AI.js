@@ -51,6 +51,7 @@ export default class AIService {
 		const uuid = request.uuid;
 		const mapName = request.mapName;
 		const tick = parseInt(request.tick);
+		ctx.tick = tick;
 		ctx.logger.addSumStat('unitRequest', 1);
 		ctx.logger.info(ctx, 'process unit order', { uuid, mapName, tick }, { silent: true });
 		try {
@@ -60,7 +61,6 @@ export default class AIService {
 			}
 			await this.processUnit(ctx, unit);
 			checkContext(ctx, 'processing unit');
-
 			callback(null, { success: true });
 		} catch (err) {
 			ctx.logger.trackError(ctx, new WrappedError(err, 'proccess unit GRPC'));

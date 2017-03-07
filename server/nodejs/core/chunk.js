@@ -85,7 +85,7 @@ export default class PlanetService {
 
 		const localChunk = await map.fetchOrGenChunk(ctx, x, y);
 
-		const chunk: Object = new Chunk();
+		const chunk: Object = new Chunk(mapName, x, y);
 		chunk.clone(localChunk);
 
 		for (let i = 0; i < chunk.navGrid.length; i++) {

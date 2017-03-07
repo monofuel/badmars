@@ -11,7 +11,7 @@ export default {
 	envType: process.env.NODE_ENV || 'dev',
 	debug: process.env.NODE_ENV === 'dev',
 
-	ticksPerSec: parseInt(process.env.TICKS_PER_SEC) || 2,
+	ticksPerSec: parseInt(process.env.TICKS_PER_SEC) || 1,
 	stressTest: process.env.STRESS_TEST || false,
 	statReportRate: parseInt(process.env.STAT_REPORT_RATE) || 1, //in minutes
 	unitProcessChunks: parseInt(process.env.UNIT_PROCESS_CHUNKS) || 20,

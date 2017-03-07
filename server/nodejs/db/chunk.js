@@ -33,7 +33,7 @@ export default class DBChunk {
 			if (err) {
 				throw err;
 			}
-			const chunk = new Chunk();
+			const chunk = new Chunk(this.mapName, doc.x, doc.y);
 			chunk.clone(doc);
 			func(chunk);
 		}).catch((err: Error) => {
@@ -52,7 +52,7 @@ export default class DBChunk {
 		if (!doc) {
 			return null;
 		}
-		const chunk = new Chunk();
+		const chunk = new Chunk(this.mapName, x, y);
 		chunk.clone(doc);
 		return chunk;
 	}
