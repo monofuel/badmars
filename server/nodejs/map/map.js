@@ -330,7 +330,7 @@ export default class Map {
 				x = Math.round(x);
 				y = Math.round(y);
 
-				let unit: Mine = new Unit(ctx, unitType, this, x, y);
+				let unit: Unit = new Unit(ctx, unitType, this, x, y);
 				const tilesToUse: TileHash[] = unit.location.hash;
 
 				// check if the tiles we want to use are already used
