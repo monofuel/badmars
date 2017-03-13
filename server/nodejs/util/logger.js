@@ -51,6 +51,11 @@ export function checkContext(ctx: MonoContext, msg: string) {
 	if (!ctx) {
 		throw new Error('missing context: ' + msg);
 	}
+
+	if (!ctx.db) {
+		throw new Error('context missing db');
+	}
+
 	if (!ctx.cancelled) {
 		return;
 	}
@@ -62,11 +67,23 @@ export function checkContext(ctx: MonoContext, msg: string) {
 
 export default class Logger {
 	moduleName: string;
+	// INFO: log things unless they want to be silent
+	// DEBUG: always log everything, even silent
+	// SILENT: alawys silent
+	logLevel: 'INFO' | 'DEBUG' | 'SILENT';
+
 	constructor(moduleName: string) {
 		this.moduleName = moduleName;
 		process.on('uncaughtException', (err: Error): void => this.unhandled(err));
 		process.on('unhandledRejection', (err: Error): void => this.unhandled(err));
 		stats.init(this);
+		this.logLevel = 'INFO';
+	}
+
+	clone(): Logger {
+		const logger = new Logger(this.moduleName);
+		logger.logLevel = this.logLevel;
+		return logger;
 	}
 
 	unhandled(err: Error) {
@@ -77,7 +94,7 @@ export default class Logger {
 	info(ctx: ?MonoContext, info: string, body: Object = {}, opts: { silent?: boolean, req?: Object } = {}) {
 		body.timestamp = Date.now();
 		this.track(ctx, info, body);
-		if (opts.silent) {
+		if ((opts.silent && this.logLevel !== 'DEBUG') || this.logLevel === 'SILENT') {
 			return;
 		}
 		const userText = opts.req ? `USER|${opts.req.user.username}` : 'SYSTEM';

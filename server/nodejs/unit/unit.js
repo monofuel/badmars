@@ -233,9 +233,14 @@ export default class Unit {
 		}
 
 		if (this.movable) {
+
+			const mctx = ctx.create();
+			mctx.logger = mctx.logger.clone();
+			mctx.logger.logLevel = 'DEBUG';
+
 			switch (this.movable.layer) {
 			case 'ground':
-				actionPromises.push(groundUnitAI.actionable(ctx, this, map)
+				actionPromises.push(groundUnitAI.actionable(mctx, this, map)
 					.then((result: boolean) => {
 						actionable.groundUnitAI = result;
 					}).catch((err: Error) => {

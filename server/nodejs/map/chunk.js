@@ -39,10 +39,13 @@ export default class Chunk {
 	airUnits: EntityMapType;
 
 	constructor(map: string, x: number, y: number) {
+		if (!map) {
+			throw new Error('chunk missing map');
+		}
 		this.x = parseInt(x) || 0;
 		this.y = parseInt(y) || 0;
 		this.hash = this.x + ':' + this.y;
-		this.map = map || 'undefined';
+		this.map = map;
 		this.grid = []; //grid size should be chunkSize + 1
 		this.navGrid = []; //tile size should be chunkSize
 		this.chunkSize = 16;

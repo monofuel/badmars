@@ -65,7 +65,6 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 
 			return;
 		}
-
 		if(!unit.movable || !unit.storage || !unit.storage.transferGoal || !transferUnit.storage) {
 			return;
 		}
@@ -110,7 +109,6 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 				return;
 			}
 		}
-
 		unit.setTransferGoal(ctx, transferUnit.uuid, 0, fuelGoal);
 
 		if(!unit.movable || !unit.storage || !unit.storage.transferGoal || !transferUnit.storage) {
@@ -169,13 +167,13 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 	const nextTile = await start.getDirTile(ctx, dir);
 	//console.log(start.toString());
 	//console.log(nextTile.toString());
-	if(await unit.moveToTile(ctx, nextTile)) {
-		//console.log('updating path');
+	try {
+		await unit.moveToTile(ctx, nextTile);
 		if(!unit.movable) {
 			return;
 		}
 		await unit.setPath(ctx, unit.movable.path);
-	} else {
+	} catch (err) {
 		unit.addPathAttempt(ctx);
 		//console.log('move halted');
 	}

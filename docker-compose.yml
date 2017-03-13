@@ -13,7 +13,7 @@ services:
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_DB=rethinkdb.lan
+      - BADMARS_DB=rethinkdb.mono
   dashboard:
     build:
       context: .
@@ -27,7 +27,7 @@ services:
     ports:
       - '8090:8090'
     environment:
-      - BADMARS_DB=rethinkdb.lan
+      - BADMARS_DB=rethinkdb.mono
   chunk:
     build: .
     command: bash -c 'cd server/nodejs && babel-watch chunk.js'
@@ -38,7 +38,7 @@ services:
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_DB=rethinkdb.lan
+      - BADMARS_DB=rethinkdb.mono
   ai:
     build: .
     command: bash -c 'cd server/nodejs && babel-watch ai.js'
@@ -50,7 +50,7 @@ services:
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_DB=rethinkdb.lan
+      - BADMARS_DB=rethinkdb.mono
   pathfinder:
     build: .
     command: bash -c 'cd server/nodejs && babel-watch pathfinder.js'
@@ -62,7 +62,7 @@ services:
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_DB=rethinkdb.lan
+      - BADMARS_DB=rethinkdb.mono
   validator:
     build: .
     command: bash -c 'cd server/nodejs && babel-watch validator.js'
@@ -74,7 +74,7 @@ services:
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_DB=rethinkdb.lan
+      - BADMARS_DB=rethinkdb.mono
   web:
     build: .
     command: bash -c 'cd server/nodejs && babel-watch web.js'
@@ -86,7 +86,7 @@ services:
       - MAP_HOST=chunk
       - AI_HOST=ai
       - BADMARS_WS_SERVER=ws://192.168.11.119
-      - BADMARS_DB=rethinkdb.lan
+      - BADMARS_DB=rethinkdb.mono
     ports:
       - "3002:3002"
 #    links:
@@ -103,7 +103,7 @@ services:
 #    links:
 #      - rethinkdb
     environment:
-      - BADMARS_DB=rethinkdb.lan
+      - BADMARS_DB=rethinkdb.mono
   dashboard-frontend:
     build: .
     command: bash -c 'make watchDashboard'
@@ -113,7 +113,7 @@ services:
 #    links:
 #      - rethinkdb
     environment:
-      - BADMARS_DB=rethinkdb.lan
+      - BADMARS_DB=rethinkdb.mono
   net:
     build: .
     command: bash -c 'cd server/nodejs && babel-watch -d 5858 net.js'
@@ -127,7 +127,7 @@ services:
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_DB=rethinkdb.lan
+      - BADMARS_DB=rethinkdb.mono
 
 #  rethinkdb:
 #    image: rethinkdb
