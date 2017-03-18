@@ -19,10 +19,7 @@ var env []string
 
 var hotReload = true
 
-var hotReloadBlacklist = []string{
-	"net",
-	"web",
-}
+var hotReloadBlacklist = []string{}
 
 func init() {
 	prepareEnv()
@@ -112,9 +109,9 @@ func defaultEnv(key string, defaultValue string) {
 
 func startNodeModule(name string) error {
 	if hotReload && !Contains(hotReloadBlacklist, name) {
-		return startProgram("nodemon", "./server/nodejs/", fmt.Sprintf("%s.js", name))
+		return startProgram("babel-watch", "./server/nodejs/", fmt.Sprintf("%s.js", name))
 	} else {
-		return startProgram("node", "./server/nodejs/", name)
+		return startProgram("babel-cli", "./server/nodejs/", name)
 	}
 }
 
