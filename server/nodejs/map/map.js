@@ -100,14 +100,15 @@ export default class Map {
 					ctx.logger.trackError(ctx, new WrappedError(err, 'getChunk grpc', { mapName: this.name, x, y }));
 					return reject(err);
 				}
+				for (let i = 0; i < response.navGrid.length; i++) {
+					response.navGrid[i] = response.navGrid[i].items;
+				}
+				for (let i = 0; i < response.grid.length; i++) {
+					response.grid[i] = response.grid[i].items;
+				}
 				const chunk = new Chunk(this.name, x, y);
 				chunk.clone(response);
-				for (let i = 0; i < chunk.navGrid.length; i++) {
-					chunk.navGrid[i] = response.navGrid[i].items;
-				}
-				for (let i = 0; i < chunk.grid.length; i++) {
-					chunk.grid[i] = response.grid[i].items;
-				}
+				
 				this.addChunkToCache(ctx, chunk);
 				resolve(chunk);
 			});
@@ -121,14 +122,19 @@ export default class Map {
 	async fetchOrGenChunk(ctx: MonoContext, x: number, y: number): Promise<Chunk> {
 		checkContext(ctx, 'fetchOrGenChunk');
 		ctx.logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
-		const cacheChunk = this.getChunkFromCache(x + ':' + y);
+		const cacheChunk: CacheChunkType = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
 			ctx.logger.addSumStat('cacheChunkHit', 1);
-			return cacheChunk;
+			return cacheChunk.chunk;
 		} else {
 			ctx.logger.addSumStat('cacheChunkMiss', 1);
 		}
-		let chunk: Chunk = await ctx.db.chunks[this.name].getChunk(ctx, x, y);
+		let chunk: Chunk;
+		try {
+			chunk = await ctx.db.chunks[this.name].getChunk(ctx, x, y);
+		} catch (err) {
+			throw new WrappedError(err, 'fetching chunk from db');
+		}
 
 		if (!chunk) {
 			ctx.logger.addSumStat('generatingChunk', 1);

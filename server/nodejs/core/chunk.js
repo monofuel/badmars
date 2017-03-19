@@ -14,6 +14,7 @@ import Chunk from '../map/chunk';
 import filter from '../util/socketFilter';
 
 import type Logger from '../util/logger';
+import { WrappedError } from '../util/logger';
 import type DB from '../db/db';
 
 type RequestMapType = {
@@ -70,7 +71,7 @@ export default class PlanetService {
 			const chunk: Chunk = await this.fetchOrGenChunk(ctx, mapName, x, y);
 			callback(null, chunk);
 		} catch (err) {
-			this.logger.trackError(ctx, err);
+			this.logger.trackError(ctx, new WrappedError(err, 'failed to get chunk', { map: call.request.mapName, x: call.request.x, y: call.request.y }));
 			callback(err);
 		} finally {
 			delete this.requests[ctx.uuid];
@@ -87,6 +88,7 @@ export default class PlanetService {
 
 		const chunk: Object = new Chunk(mapName, x, y);
 		chunk.clone(localChunk);
+		chunk.syncValidate();
 
 		for (let i = 0; i < chunk.navGrid.length; i++) {
 			chunk.navGrid[i] = { items: chunk.navGrid[i] };

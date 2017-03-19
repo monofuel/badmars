@@ -302,7 +302,7 @@ export default class Chunk {
 		}
 		for (const row of this.grid) {
 			if (row.length !== this.chunkSize + 1) {
-				invalid('bad row length');
+				invalid('bad row length. got ' + row.length + ', expected ' + (this.chunkSize + 1));
 			}
 		}
 		if (this.navGrid.length !== this.chunkSize) {
@@ -310,7 +310,7 @@ export default class Chunk {
 		}
 		for (const row of this.navGrid) {
 			if (row.length !== this.chunkSize) {
-				invalid('bad nav row length');
+				invalid('bad nav row length. got ' + row.length + ', expected ' + (this.chunkSize + 1));
 			}
 		}
 	}
