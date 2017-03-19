@@ -54,11 +54,11 @@ export default class PlanetLoc {
 		this.localX = localX;
 		this.localY = localY;
 
+		this.chunk.syncValidate();
+
 		this.tileType = this.chunk.navGrid[this.localX][this.localY];
-		if (env.debug) {
-			this.chunk.syncValidate();
-			this.validate();
-		}
+		
+		this.validate();
 
 	}
 

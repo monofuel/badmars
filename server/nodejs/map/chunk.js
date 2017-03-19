@@ -298,7 +298,7 @@ export default class Chunk {
 			invalid('missing chunk size');
 		}
 		if (this.grid.length !== this.chunkSize + 1) {
-			invalid('bad chunk grid: ' + this.grid.length + ':' + (this.chunkSize + 1));
+			invalid('bad chunk grid. got ' + this.grid.length + ', expected ' + (this.chunkSize + 1));
 		}
 		for (const row of this.grid) {
 			if (row.length !== this.chunkSize + 1) {
@@ -306,7 +306,7 @@ export default class Chunk {
 			}
 		}
 		if (this.navGrid.length !== this.chunkSize) {
-			invalid('bad chunk nav grid: ' + this.navGrid.length + ':' + (this.chunkSize));
+			invalid('bad chunk nav grid. got ' + this.navGrid.length + ', expected ' + (this.chunkSize));
 		}
 		for (const row of this.navGrid) {
 			if (row.length !== this.chunkSize) {
@@ -387,6 +387,7 @@ export default class Chunk {
 		if (!this.map) {
 			throw new DetailedError('invalid chunk without map', { x: this.x, y: this.y });
 		}
+		this.syncValidate();
 	}
 
 	// HACK only allow refreshing once per tick.
