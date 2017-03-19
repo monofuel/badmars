@@ -6,10 +6,12 @@
 
 import DB from './db/db';
 import Logger from './util/logger';
+import {init as statInit} from './util/stats';
 import AI from './core/AI';
 
 const logger = new Logger('ai');
 const db = new DB(logger);
+statInit(logger);
 
 async function init(): Promise<void> {
 	try {

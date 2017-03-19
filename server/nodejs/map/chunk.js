@@ -369,7 +369,7 @@ export default class Chunk {
 		this.y = parseInt(this.y);
 
 		if (!this.map) {
-			throw new DetailedError('invalid chunk', { x: this.x, y: this.y });
+			throw new DetailedError('invalid chunk without map', { x: this.x, y: this.y });
 		}
 	}
 

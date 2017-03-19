@@ -6,7 +6,7 @@
 
 import env from '../config/env';
 import type Map from '../map/map';
-import PlanetLoc from '../map/planetloc';
+import type PlanetLoc from '../map/planetloc';
 import type Unit from '../unit/unit';
 import MonoContext from '../util/monoContext';
 import { DetailedError } from '../util/logger';

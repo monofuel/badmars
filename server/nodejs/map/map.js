@@ -7,12 +7,12 @@
 import _ from 'lodash';
 import grpc from 'grpc';
 
-import { checkContext, DetailedError, WrappedError } from '../util/logger';
+import { checkContext, WrappedError } from '../util/logger';
 import type MonoContext from '../util/monoContext';
 import env from '../config/env';
 import { LAND } from './tiletypes';
 import Chunk from './chunk';
-import PlanetLoc from './planetloc';
+import PlanetLoc, { getLocationDetails } from './planetloc';
 import Unit from '../unit/unit';
 import Client from '../net/client';
 import sleep from '../util/sleep';
@@ -149,7 +149,6 @@ export default class Map {
 
 		//clear old entries from cache
 		while (this.chunkCache.length > env.chunkCacheLimit) {
-			console.log('shifting cache');
 			const oldChunk = this.chunkCache.shift();
 			delete this.chunkCacheMap[oldChunk.chunk.hash];
 		}
@@ -175,27 +174,15 @@ export default class Map {
 
 	async getLoc(ctx: MonoContext, x: number, y: number): Promise<PlanetLoc> {
 		checkContext(ctx, 'getLoc');
-		const real_x = Math.floor(x);
-		const real_y = Math.floor(y);
-		let chunkX = Math.floor(real_x / this.settings.chunkSize);
-		let chunkY = Math.floor(real_y / this.settings.chunkSize);
-		let local_x = real_x - (chunkX * this.settings.chunkSize);
-		let local_y = real_y - (chunkY * this.settings.chunkSize);
-		if (local_x < 0) {
-			local_x += this.settings.chunkSize;
-			chunkX--;
-		}
-		if (local_y < 0) {
-			local_y += this.settings.chunkSize;
-			chunkY--;
-		}
-		//console.log("real: " + real_x + ":" + real_y);
-		//console.log("chunk: " + chunkX + ":" + chunkY);
-		//console.log("local: " + local_x + ":" + local_y);
+		const details = getLocationDetails(x,y);
 
-		const chunk: Chunk = await this.getChunk(ctx, chunkX, chunkY);
+		const chunk: Chunk = await this.getChunk(ctx, details.chunkX, details.chunkY);
 		checkContext(ctx, 'getLoc end');
-		return new PlanetLoc(this, chunk, real_x, real_y);
+		try {
+			return new PlanetLoc(this, chunk, details.x, details.y);
+		} catch (err) {
+			throw new WrappedError(err, 'failed to get planetLoc in getLoc');
+		}
 	}
 
 	async factoryMakeUnit(ctx: MonoContext, unitType: string, owner: string, x: number, y: number): Promise<?Unit> {

@@ -61,7 +61,6 @@ export default class PlanetLoc {
 			this.local_y = this.local_y + chunk.chunkSize;
 		}
 
-
 		//console.log("x: " + this.x + ", y: " + this.y + " chunkx: " + this.chunk.x + ", chunky: " + this.chunk.y + " localx: " + this.local_x + " localy: " + this.local_y);
 
 		if(!this.chunk) {
@@ -69,7 +68,7 @@ export default class PlanetLoc {
 		}
 
 		if(this.local_x > this.chunk.navGrid.length || this.local_y > this.chunk.navGrid[0].length) {
-			throw new DetailedError('invalid chunk', { x, y, chunkX: this.chunk.x, chunkY: this.chunk.y });
+			throw new DetailedError('invalid chunk, bad x and y', { x, y, local_x: this.local_x, local_y: this.local_y, chunkX: this.chunk.x, chunkY: this.chunk.y });
 		}
 
 		this.tileType = this.chunk.navGrid[this.local_x][this.local_y];
@@ -178,5 +177,26 @@ export default class PlanetLoc {
 		return(otherLoc.x === this.x &&
 			otherLoc.y === this.y &&
 			otherLoc.map.name === this.map.name);
+	}
+}
+
+type LocationDetails {
+	x: number,
+	y: number
+}
+
+export function getLocationDetails(x: number, y: number, chunkSize: number): LocationDetails {
+	x = Math.floor(x);
+	y = Math.floor(y);
+
+	let chunkX = Math.floor(y / this.settings.chunkSize);
+	let chunkY = Math.floor(y / this.settings.chunkSize);
+	let local_x = x - (chunkX * this.settings.chunkSize);
+	let local_y = y - (chunkY * this.settings.chunkSize);
+
+
+	return {
+		x,
+		y,
 	}
 }
