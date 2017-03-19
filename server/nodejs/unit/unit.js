@@ -590,35 +590,36 @@ export default class Unit {
 		await this.update(ctx, { details, awake: true });
 	}
 
-	async moveToTile(ctx: MonoContext, tile: PlanetLoc): Promise<boolean> {
+	async moveToTile(ctx: MonoContext, tile: PlanetLoc): Promise<void> {
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		if (this.details.size !== 1) {
 			throw new DetailedError('moving is not supported for large units', { uuid: this.uuid, type: this.details.type });
 		}
-		const hasMoved = await tile.chunk.moveUnit(ctx, this, tile);
+		await tile.chunk.moveUnit(ctx, this, tile);
 
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 
-		if (hasMoved) {
-			const location = {
-				x: tile.x,
-				y: tile.y,
-				chunkX: tile.chunk.x,
-				chunkY: tile.chunk.y,
-				hash: [tile.hash],
-				chunkHash: [tile.chunk.hash]
-			};
-			const movable = {
-				movementCooldown: this.movable.speed
-			};
+		const location = {
+			x: tile.x,
+			y: tile.y,
+			chunkX: tile.chunk.x,
+			chunkY: tile.chunk.y,
+			hash: [tile.hash],
+			chunkHash: [tile.chunk.hash]
+		};
+		const movable = {
+			movementCooldown: this.movable.speed
+		};
 
-			await this.update(ctx, { location, movable });
+		if (tile.hash === this.movable.destination) {
+			movable.destination = undefined;
 		}
-		return hasMoved;
+
+		await this.update(ctx, { location, movable });
 	}
 
 	distance(unit: Unit): number {

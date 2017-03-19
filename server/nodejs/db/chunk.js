@@ -48,7 +48,7 @@ export default class DBChunk {
 	async getChunk(ctx: MonoContext, x: number, y: number): Promise<?Chunk> {
 		const call = await startDBCall(ctx,'getChunk');
 		const doc = await this.table.get(x + ':' + y).run(this.conn);
-		await call.end(true);
+		await call.end();
 		if (!doc) {
 			return null;
 		}
@@ -65,7 +65,7 @@ export default class DBChunk {
 	async getChunkUnits(ctx: MonoContext, x: number, y: number): Promise<?Object> {
 		const call = await startDBCall(ctx,'getChunkUnits');
 		const doc = await this.table.get(x + ':' + y).pluck(['airUnits', 'resources','units']).run(this.conn);
-		await call.end(true);
+		await call.end();
 		return doc;
 	}
 

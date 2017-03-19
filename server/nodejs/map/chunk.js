@@ -193,19 +193,13 @@ export default class Chunk {
 		checkContext(ctx,'getUnits');
 		await this.refresh(ctx);
 		const unitUuids: Array<UUID> = _.union(_.map(this.resources), _.map(this.units), _.map(this.airUnits));
-		//fast units list
 		return this.getUnitDB(ctx).getUnits(ctx, unitUuids);
-
-		//slow units list
-		//return await  db.units[this.map].getUnitsAtChunk(this.x,this.y);
 	}
 
 	async update(ctx: MonoContext, patch: any): Promise<Object> {
 		return ctx.db.chunks[this.map].update(ctx, this.hash, patch);
 	}
 
-	//not fully working yet
-	//moveUnit tries to move a unit, and returns success
 	async moveUnit(ctx: MonoContext, unit: Unit, newTile: PlanetLoc): Promise<void> {
 		checkContext(ctx, 'moveUnit');
 		await this.refresh(ctx);
@@ -213,14 +207,12 @@ export default class Chunk {
 
 		await newTile.chunk.getChunkDB(ctx).setUnit(ctx,newTile.chunk, unit.uuid, newTile.hash);
 
-
 		const newChunk: Chunk = newTile.chunk;
-		await newChunk.refresh(ctx);
+		await newChunk.refresh(ctx, { force: true });
 		if (unit.uuid !== newChunk.units[newTile.hash]) {
 			throw new DetailedError('wrong new position', { hash: newTile.hash, uuid: unit.uuid, otherUuid: newChunk.units[newTile.hash] });
 		}
-		await oldTiles[0].chunk.clearUnit(unit.uuid, oldTiles[0].hash);
-
+		await oldTiles[0].chunk.clearUnit(ctx, unit.uuid, oldTiles[0].hash);
 	}
 
 	async clearUnit(ctx: MonoContext, uuid: UUID, tileHash: TileHash): Promise<void> {
@@ -391,8 +383,8 @@ export default class Chunk {
 	}
 
 	// chunks can only be refreshed once per tick.
-	async refresh(ctx: MonoContext): Promise<void> {
-		if (ctx.tick && this.tick === ctx.tick) {
+	async refresh(ctx: MonoContext, { force }: { force: boolean} = {}): Promise<void> {
+		if (!force && (ctx.tick && this.tick === ctx.tick)) {
 			return;
 		}
 		checkContext(ctx, 'refresh');
