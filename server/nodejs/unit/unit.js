@@ -637,7 +637,9 @@ export default class Unit {
 
 	async validate(ctx: MonoContext): Promise<void> {
 		checkContext(ctx, 'validate');
-		if (!env.debug) {
+		// TODO set this back to false sometime
+		// was debugging something else and this function gave errors
+		if (env.debug) {
 			return;
 		}
 		await this.refresh(ctx);

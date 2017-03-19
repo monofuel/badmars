@@ -9,7 +9,7 @@
 
 export default {
 	envType: process.env.NODE_ENV || 'dev',
-	debug: process.env.NODE_ENV === 'dev',
+	debug: process.env.NODE_ENV !== 'prod',
 
 	ticksPerSec: parseInt(process.env.TICKS_PER_SEC) || 1,
 	stressTest: process.env.STRESS_TEST || false,

@@ -267,15 +267,16 @@ export default class Chunk {
 		}
 	}
 
-	async validate(ctx: MonoContext): Promise<void> {
-		checkContext(ctx, 'validate');
+	syncValidate() {
 		if (!env.debug) {
 			return;
 		}
-		await this.refresh(ctx);
-
 		const invalid = (reason: string) => {
-			throw new Error(this.hash + ': ' + reason);
+			throw new DetailedError('bad chunk: ' + reason, {
+				hash: this.hash,
+				x: this.x,
+				y: this.y,
+			});
 		};
 
 		if (this.x == null) {
@@ -312,6 +313,20 @@ export default class Chunk {
 				invalid('bad nav row length');
 			}
 		}
+	}
+
+	async validate(ctx: MonoContext): Promise<void> {
+		checkContext(ctx, 'validate');
+		if (!env.debug) {
+			return;
+		}
+		const invalid = (reason: string) => {
+			throw new Error(this.hash + ': ' + reason);
+		};
+		await this.refresh(ctx);
+
+		this.syncValidate();
+
 		for (const tileHash of Object.keys(this.units)) {
 			const uuid = this.units[tileHash];
 			const unit = await ctx.db.units[this.map].getUnit(ctx, uuid);
@@ -339,20 +354,21 @@ export default class Chunk {
 				}*/
 			}
 		}
-
-		_.each(this.resources, (uuid: UUID, tileHash: TileHash) => {
-			const unit = ctx.db.units[this.map].getUnit(ctx, uuid);
+		for (const tileHash of Object.keys(this.resources)) {
+			const uuid = this.resources[tileHash];
+			const unit = await ctx.db.units[this.map].getUnit(ctx, uuid);
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
 			}
-		});
+		}
 
-		_.each(this.airUnits, (uuid: UUID, tileHash: TileHash) => {
-			const unit = ctx.db.units[this.map].getUnit(ctx, uuid);
+		for (const tileHash of Object.keys(this.airUnits)) {
+			const uuid = this.resources[tileHash];
+			const unit = await ctx.db.units[this.map].getUnit(ctx, uuid);
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
 			}
-		});
+		}
 
 	}
 

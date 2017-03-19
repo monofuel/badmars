@@ -174,12 +174,12 @@ export default class Map {
 
 	async getLoc(ctx: MonoContext, x: number, y: number): Promise<PlanetLoc> {
 		checkContext(ctx, 'getLoc');
-		const details = getLocationDetails(x,y);
+		const details = getLocationDetails(x, y, this.settings.chunkSize);
 
 		const chunk: Chunk = await this.getChunk(ctx, details.chunkX, details.chunkY);
 		checkContext(ctx, 'getLoc end');
 		try {
-			return new PlanetLoc(this, chunk, details.x, details.y);
+			return new PlanetLoc(this, chunk, details);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to get planetLoc in getLoc');
 		}
