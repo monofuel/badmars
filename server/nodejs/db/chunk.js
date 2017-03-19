@@ -48,7 +48,7 @@ export default class DBChunk {
 	async getChunk(ctx: MonoContext, x: number, y: number): Promise<?Chunk> {
 		const call = await startDBCall(ctx,'getChunk');
 		const doc = await this.table.get(x + ':' + y).run(this.conn);
-		await call.end();
+		await call.end(true);
 		if (!doc) {
 			return null;
 		}
@@ -56,6 +56,19 @@ export default class DBChunk {
 		chunk.clone(doc);
 		return chunk;
 	}
+
+	/*
+	* only pluck the entity related fields from the chunk
+	* since we currently assume the map does not change
+	* this is mainly used by chunk.refresh
+	*/
+	async getChunkUnits(ctx: MonoContext, x: number, y: number): Promise<?Object> {
+		const call = await startDBCall(ctx,'getChunkUnits');
+		const doc = await this.table.get(x + ':' + y).pluck(['airUnits', 'resources','units']).run(this.conn);
+		await call.end(true);
+		return doc;
+	}
+
 	async update(ctx: MonoContext, hash: ChunkHash, patch: any): Promise<Object> {
 		const call = await startDBCall(ctx,'updateChunk');
 		const result = await this.table.get(hash).update(patch, { returnChanges: true }).run(this.conn);

@@ -390,7 +390,7 @@ export default class Chunk {
 		this.syncValidate();
 	}
 
-	// HACK only allow refreshing once per tick.
+	// chunks can only be refreshed once per tick.
 	async refresh(ctx: MonoContext): Promise<void> {
 		if (ctx.tick && this.tick === ctx.tick) {
 			return;
@@ -400,7 +400,9 @@ export default class Chunk {
 		if (ctx.tick) {
 			this.tick = ctx.tick;
 		}
-		const fresh = await ctx.db.chunks[this.map].getChunk(ctx, this.x, this.y);
+		this.syncValidate();
+		const fresh: Object = await ctx.db.chunks[this.map].getChunkUnits(ctx, this.x, this.y);
+
 		this.clone(fresh);
 		
 	}
