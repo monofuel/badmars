@@ -157,18 +157,12 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 		return;
 	}
 	const profile = ctx.logger.startProfile('moving unit');
-	//const destinationHash = unit.movable.destination;
 	const start = await map.getLoc(ctx, unit.location.x, unit.location.y);
-	//const destinationX = parseInt(destinationHash.split(':')[0]);
-	//const destinationY = parseInt(destinationHash.split(':')[1]);
-	// const end = await map.getLoc(ctx, destinationX, destinationY);
 	if(!unit.movable) {
 		return;
 	}
 	const dir = DIRECTION.getTypeFromName(unit.movable.path.shift());
 	const nextTile = await start.getDirTile(ctx, dir);
-	//console.log(start.toString());
-	//console.log(nextTile.toString());
 	try {
 		try {
 			await unit.moveToTile(ctx, nextTile);

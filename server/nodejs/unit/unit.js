@@ -215,6 +215,8 @@ export default class Unit {
 			return this.update(ctx, { awake: false });
 		}
 
+		await this.assertLocation(ctx, map);
+
 		//------------------
 		// execute actionable promises
 		// see what actions are possible
@@ -321,6 +323,72 @@ export default class Unit {
 		await this.clearFromChunks(ctx);
 
 		return ctx.db.units[this.location.map].deleteUnit(ctx, this.uuid);
+	}
+
+	async assertLocation(ctx: MonoContext, map: Map): Promise<void> {
+		const badLocs = [];
+		try {
+			const locs: Array<PlanetLoc> = await this.getLocs(ctx);
+			for (const loc: PlanetLoc of locs) {
+				const units: Array<Unit> = await loc.getUnits(ctx);
+				const unit: ?Unit = _.find(units, (unit: Unit): boolean => {
+					return this.uuid === unit.uuid;
+				});
+				if (!unit) {
+					badLocs.push(loc);
+				}
+			}
+			if (badLocs.length !== 0) {
+				throw new DetailedError('unit missing from tile', {
+					uuid: this.uuid,
+					unitHash: JSON.stringify(this.location.hash),
+					tileHash: badLocs[0].hash,
+				});
+			}
+		} catch (err) {
+			if (this.details.size === 1) {
+				let chunkHash: ChunkHash;
+				try {
+					chunkHash = await ctx.db.chunks[this.location.map].findChunkForUnit(ctx, this.uuid);
+				} catch (err) {
+					if (err.message === 'unit not found on map') {
+						const loc = badLocs[0];
+						ctx.logger.info(ctx, 'adding unit back to map, was missing');
+						loc.chunk.addUnit(ctx, this.uuid, loc.hash);
+						return;
+					} else {
+						throw err;
+					}
+				}
+				const x: number = parseInt(chunkHash.split(':')[0]);
+				const y: number = parseInt(chunkHash.split(':')[1]);
+				const chunk = await map.getChunk(ctx, x, y);
+				await chunk.refresh({ force: true });
+				const unitMap = await chunk.getUnitsMap();
+				for (const loc of Object.keys(unitMap)) {
+					if (unitMap[loc] !== this.uuid) {
+						continue;
+					}
+					await this.update(ctx, {
+						location: {
+							hash: [loc],
+							x: parseInt(loc.split(':')[0]),
+							y: parseInt(loc.split(':')[1]),
+							chunkHash:[chunkHash],
+							chunkX: x,
+							chunkY: y,
+						}
+					});
+					// throw an error to abort the current action
+					throw new Error('fixed unit location');
+				}
+				throw new WrappedError(err, 'failed to fix unit location', { chunkHash, unitMap: JSON.stringify(unitMap) });
+
+			} else {
+				throw new WrappedError(err, 'invalid location for multi-tile unit');
+			}
+
+		}
 	}
 
 	async takeIron(ctx: MonoContext, amount: number): Promise<void> {

@@ -204,6 +204,12 @@ export default class Chunk {
 		checkContext(ctx, 'moveUnit');
 		await this.refresh(ctx);
 		const oldTiles = await unit.getLocs(ctx);
+		if (oldTiles[0].chunk.units[oldTiles[0].hash] !== unit.uuid) {
+			throw new DetailedError('unit not at proper tile', {
+				uuid: unit.uuid,
+				found: oldTiles[0].chunk.units[oldTiles[0].hash]
+			});
+		}
 
 		await newTile.chunk.getChunkDB(ctx).setUnit(ctx,newTile.chunk, unit.uuid, newTile.hash);
 
@@ -219,7 +225,6 @@ export default class Chunk {
 		checkContext(ctx, 'clearUnit');
 		const table = ctx.db.chunks[this.map].getTable();
 		const conn = ctx.db.chunks[this.map].getConn();
-
 		const unitUpdate = {};
 		unitUpdate[tileHash] = true;
 		if (this.units[tileHash] !== uuid) {

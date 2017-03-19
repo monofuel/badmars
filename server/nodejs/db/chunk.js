@@ -69,6 +69,22 @@ export default class DBChunk {
 		return doc;
 	}
 
+	// only for single-tile units right now
+	async findChunkForUnit(ctx: MonoContext, uuid: UUID): Promise<ChunkHash> {
+		const call = await startDBCall(ctx,'getChunkUnits');
+		const doc = this.table.filter((chunk: any): any => {
+			return chunk('units').values().contains(uuid);
+		}).pluck('hash');
+		await call.end();
+		if (doc.length === 0) {
+			throw new DetailedError('unit not found on map', { uuid });
+		} else if (doc.length === 1) {
+			return doc[0].hash;
+		} else {
+			throw new DetailedError('unit found on multiple chunks', { uuid, docs: JSON.stringify(doc)});
+		}
+	}
+
 	async update(ctx: MonoContext, hash: ChunkHash, patch: any): Promise<Object> {
 		const call = await startDBCall(ctx,'updateChunk');
 		const result = await this.table.get(hash).update(patch, { returnChanges: true }).run(this.conn);
