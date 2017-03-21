@@ -56,7 +56,6 @@ export default class AIService {
 		ctx.logger.info(ctx, 'process unit order', { uuid, mapName, tick }, { silent: true });
 		try {
 			const unit = await ctx.db.units[mapName].claimUnitTick(ctx, uuid, tick);
-			console.log('processing ', unit.details.type);
 			if (!unit) {
 				throw new DetailedError('unit missing', { uuid });
 			}
