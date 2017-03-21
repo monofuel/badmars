@@ -13,7 +13,7 @@ import env from '../config/env';
 import { DetailedError, checkContext } from '../util/logger';
 import type MonoContext from '../util/monoContext';
 import Unit from '../unit/unit';
-import PlanetLoc from './planetloc';
+import PlanetLoc, { getLocationDetails } from './planetloc';
 import { LAND, CLIFF, WATER, COAST } from './tiletypes';
 
 import type DBChunk from '../db/chunk';
@@ -186,7 +186,6 @@ export default class Chunk {
 			uuids.push(uuid);
 		}
 		return ctx.db.units[this.map].getUnitsMap(ctx, uuids);
-
 	}
 
 	async getUnits(ctx: MonoContext): Promise<Array<Unit>> {
@@ -412,7 +411,7 @@ export default class Chunk {
 			for (let j = 0; j < this.chunkSize; j++) {
 				const x = i + (this.x * this.chunkSize);
 				const y = j + (this.y * this.chunkSize);
-				tiles.push(new PlanetLoc(map, this, x, y));
+				tiles.push(new PlanetLoc(map, this, getLocationDetails(x, y, this.chunkSize)));
 			}
 		}
 		return tiles;

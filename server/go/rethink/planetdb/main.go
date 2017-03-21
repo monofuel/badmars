@@ -34,8 +34,10 @@ func Get(name string) (*Planet, error) {
 
 func (planet *Planet) AdvanceTick() error {
 	patch := make(map[string]interface{})
-	patch["lastTickTimestamp"] = NowTimestamp()
-	patch["lastTick"] = planet.LastTick + 1
+	planet.LastTickTimestamp = NowTimestamp()
+	patch["lastTickTimestamp"] = planet.LastTickTimestamp
+	planet.LastTick = planet.LastTick + 1
+	patch["lastTick"] = planet.LastTick
 	return planet.patch(&patch)
 }
 

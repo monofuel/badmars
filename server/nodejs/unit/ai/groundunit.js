@@ -18,7 +18,15 @@ export async function actionable(ctx: MonoContext, unit: Unit): Promise<boolean>
 		return false;
 	}
 
-	if (!unit.movable.path && !unit.movable.transferGoal) {
+	// TODO should refactor transferGoal to be a regular goal/destination
+	if (unit.movable.transferGoal && unit.movable.transferGoal.uuid) {
+		return true;
+	}
+
+	if (!unit.movable.path) {
+		return false;
+	}
+	if (!unit.movable.destination) {
 		return false;
 	}
 	return true;

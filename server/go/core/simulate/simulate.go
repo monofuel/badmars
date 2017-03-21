@@ -117,6 +117,7 @@ func removePlanetFromSimulated(name string) {
 func simulatePlanet(name string) {
 	addPlanetToSimulated(name)
 	for {
+		fmt.Println("fetching planet")
 		planet, err := planetdb.Get(name)
 		if err != nil {
 			fmt.Printf("planet deleted: %v\n", err)
@@ -132,10 +133,11 @@ func simulatePlanet(name string) {
 		}
 
 		delta := NowTimestamp() - planet.LastTickTimestamp
-		//fmt.Printf("delta ms: %d\n", delta)
+		fmt.Printf("delta ms: %d\n", delta)
 
 		if delta < int64(1000/tps) {
 			sleepTime := int64(1000/tps) - delta
+			fmt.Printf("tps: %d | sleeping for %d\n", tps, sleepTime)
 			time.Sleep(time.Duration(sleepTime) * time.Millisecond)
 		} else if delta > int64(1.5*1000/tps) {
 			fmt.Printf("Long tick length, delta of %d\n", delta)
@@ -144,7 +146,6 @@ func simulatePlanet(name string) {
 }
 
 func tryNewTick(planet *planetdb.Planet) error {
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(1000/tps)*time.Millisecond)
 	defer cancel()
 	/*

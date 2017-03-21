@@ -665,6 +665,7 @@ export default class Unit {
 		if (this.details.size !== 1) {
 			throw new DetailedError('moving is not supported for large units', { uuid: this.uuid, type: this.details.type });
 		}
+		console.log('moving unit!');
 		await tile.chunk.moveUnit(ctx, this, tile);
 
 		if (!this.movable) {
@@ -679,12 +680,12 @@ export default class Unit {
 			hash: [tile.hash],
 			chunkHash: [tile.chunk.hash]
 		};
-		const movable = {
+		const movable: Object = {
 			movementCooldown: this.movable.speed
 		};
 
 		if (tile.hash === this.movable.destination) {
-			movable.destination = undefined;
+			movable.destination = '';
 		}
 
 		await this.update(ctx, { location, movable });
