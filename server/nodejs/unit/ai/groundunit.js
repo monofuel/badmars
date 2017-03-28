@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import MonoContext from '../../util/monoContext';
-import { checkContext } from '../../util/logger';
+import { checkContext, WrappedError } from '../../util/logger';
 
 import PlanetLoc from '../../map/planetloc';
 import DIRECTION from '../../map/directions';
@@ -18,7 +18,15 @@ export async function actionable(ctx: MonoContext, unit: Unit): Promise<boolean>
 		return false;
 	}
 
-	if (!unit.movable.path && !unit.movable.transferGoal) {
+	// TODO should refactor transferGoal to be a regular goal/destination
+	if (unit.movable.transferGoal && unit.movable.transferGoal.uuid) {
+		return true;
+	}
+
+	if (!unit.movable.path) {
+		return false;
+	}
+	if (!unit.movable.destination) {
 		return false;
 	}
 	return true;
@@ -27,11 +35,12 @@ export async function actionable(ctx: MonoContext, unit: Unit): Promise<boolean>
 export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
 	checkContext(ctx, 'groundUnit simulate');
 
-	if(await unit.tickMovement(ctx)) {
-		//console.log('movement cooldown: ' + unit.movementCooldown);
+	if(!unit.movable || !unit.storage) {
 		return;
 	}
-	if(!unit.movable || !unit.storage) {
+
+	if(await unit.tickMovement(ctx)) {
+		console.log('movement cooldown: ' + unit.movable.movementCooldown);
 		return;
 	}
 
@@ -155,27 +164,30 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 	if(!unit.movable.destination) {
 		return;
 	}
-	//const destinationHash = unit.movable.destination;
+	const profile = ctx.logger.startProfile('moving unit');
 	const start = await map.getLoc(ctx, unit.location.x, unit.location.y);
-	//const destinationX = parseInt(destinationHash.split(':')[0]);
-	//const destinationY = parseInt(destinationHash.split(':')[1]);
-	// const end = await map.getLoc(ctx, destinationX, destinationY);
 	if(!unit.movable) {
 		return;
 	}
 	const dir = DIRECTION.getTypeFromName(unit.movable.path.shift());
 	const nextTile = await start.getDirTile(ctx, dir);
-	//console.log(start.toString());
-	//console.log(nextTile.toString());
 	try {
-		await unit.moveToTile(ctx, nextTile);
-		if(!unit.movable) {
-			return;
+		try {
+			await unit.moveToTile(ctx, nextTile);
+		} catch (err) {
+			throw new WrappedError(err, 'error moving to tile');
 		}
-		await unit.setPath(ctx, unit.movable.path);
+		try {
+			await unit.setPath(ctx, unit.movable.path);
+		} catch (err) {
+			throw new WrappedError(err, 'error updating path');
+		}
 	} catch (err) {
+		ctx.logger.trackError(ctx, new WrappedError(err, 'error moving'));
 		unit.addPathAttempt(ctx);
 		//console.log('move halted');
+	} finally {
+		ctx.logger.endProfile(profile);
 	}
 
 	return;

@@ -43,13 +43,17 @@ exports.startProfile = (name: string): ProfileKey => {
 
 	return key;
 };
-exports.endProfile = (key: ProfileKey) => {
+exports.endProfile = (key: ProfileKey, visible?: boolean) => {
 
 	const profileRun: ProfileType = runningProfiles[key];
 	const name: string = profileRun.name;
 	profileRun.endTime = (new Date()).getTime();
 	profileRun.delta = profileRun.endTime - profileRun.startTime;
 	addAverageStat(profileRun.name, profileRun.delta);
+	if (visible) {
+		// eslint-disable-next-line no-console
+		console.log('profile: ', profileRun.name, '|', profileRun.delta);
+	}
 
 	if(!profileCount[name]) {
 		profileCount[name] = 1;

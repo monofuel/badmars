@@ -56,6 +56,35 @@ export default class DBChunk {
 		chunk.clone(doc);
 		return chunk;
 	}
+
+	/*
+	* only pluck the entity related fields from the chunk
+	* since we currently assume the map does not change
+	* this is mainly used by chunk.refresh
+	*/
+	async getChunkUnits(ctx: MonoContext, x: number, y: number): Promise<?Object> {
+		const call = await startDBCall(ctx,'getChunkUnits');
+		const doc = await this.table.get(x + ':' + y).pluck(['airUnits', 'resources','units']).run(this.conn);
+		await call.end();
+		return doc;
+	}
+
+	// only for single-tile units right now
+	async findChunkForUnit(ctx: MonoContext, uuid: UUID): Promise<ChunkHash> {
+		const call = await startDBCall(ctx,'getChunkUnits');
+		const doc = this.table.filter((chunk: any): any => {
+			return chunk('units').values().contains(uuid);
+		}).pluck('hash');
+		await call.end();
+		if (doc.length === 0) {
+			throw new DetailedError('unit not found on map', { uuid });
+		} else if (doc.length === 1) {
+			return doc[0].hash;
+		} else {
+			throw new DetailedError('unit found on multiple chunks', { uuid, docs: JSON.stringify(doc)});
+		}
+	}
+
 	async update(ctx: MonoContext, hash: ChunkHash, patch: any): Promise<Object> {
 		const call = await startDBCall(ctx,'updateChunk');
 		const result = await this.table.get(hash).update(patch, { returnChanges: true }).run(this.conn);

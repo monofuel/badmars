@@ -26,8 +26,8 @@ export default class PlanetLoc {
 	map: Map;
 	hash: TileHash;
 	chunk: Chunk;
-	local_x: number;
-	local_y: number;
+	localX: number;
+	localY: number;
 	tileType: TileCode;
 
 	// temp storage used by pathfinder
@@ -36,7 +36,8 @@ export default class PlanetLoc {
 	realCost: number;
 	cost: number;
 
-	constructor(map: Map, chunk: Chunk, x: number, y: number) {
+	constructor(map: Map, chunk: Chunk, { x, y, localX, localY}: LocationDetailsType) {
+
 		if(!map) {
 			throw new DetailedError('planetloc missing map', { x, y });
 		}
@@ -44,35 +45,20 @@ export default class PlanetLoc {
 			throw new DetailedError('planetloc missing chunk', { x, y });
 		}
 
-		this.x = Math.floor(x);
-		this.y = Math.floor(y);
+		this.x = x;
+		this.y = y;
 		this.map = map;
 		this.hash = x + ':' + y;
 		this.chunk = chunk;
 
-		this.local_x = this.x - (chunk.x * chunk.chunkSize);
-		this.local_y = this.y - (chunk.y * chunk.chunkSize);
+		this.localX = localX;
+		this.localY = localY;
 
-		if(this.local_x < 0) {
-			this.local_x = this.local_x + chunk.chunkSize;
-		}
+		this.chunk.syncValidate();
 
-		if(this.local_y < 0) {
-			this.local_y = this.local_y + chunk.chunkSize;
-		}
-
-
-		//console.log("x: " + this.x + ", y: " + this.y + " chunkx: " + this.chunk.x + ", chunky: " + this.chunk.y + " localx: " + this.local_x + " localy: " + this.local_y);
-
-		if(!this.chunk) {
-			throw new DetailedError('couldnt find chunk', { x, y, hash: chunk.hash });
-		}
-
-		if(this.local_x > this.chunk.navGrid.length || this.local_y > this.chunk.navGrid[0].length) {
-			throw new DetailedError('invalid chunk', { x, y, chunkX: this.chunk.x, chunkY: this.chunk.y });
-		}
-
-		this.tileType = this.chunk.navGrid[this.local_x][this.local_y];
+		this.tileType = this.chunk.navGrid[this.localX][this.localY];
+		
+		this.validate();
 
 	}
 
@@ -133,7 +119,15 @@ export default class PlanetLoc {
 			return;
 		}
 		const invalid = (reason: string) => {
-			throw new Error(this.hash + ': ' + reason);
+			throw new DetailedError('bad tile: ' + reason, {
+				hash: this.hash,
+				x: this.x,
+				y: this.y,
+				chunkX: this.chunk.x,
+				chunkY: this.chunk.y,
+				localX: this.localX,
+				localY: this.localY
+			});
 		};
 		if(this.x == null) {
 			invalid('bad x value:' + this.x);
@@ -141,7 +135,6 @@ export default class PlanetLoc {
 		if(this.y == null) {
 			invalid('bad x value:' + this.y);
 		}
-
 		if(!this.map) {
 			invalid('bad map');
 		}
@@ -151,26 +144,30 @@ export default class PlanetLoc {
 		if(!this.chunk) {
 			invalid('bad chunk');
 		}
-		if(this.local_x == null) {
+		if(this.localX == null) {
 			invalid('bad local x');
 		}
-		if(this.local_y == null) {
+		if(this.localY == null) {
 			invalid('bad local y');
+		}
+		if (this.localY > this.chunk.navGrid[0].length) {
+			invalid('bad local y');
+		}
+		if (this.localX > this.chunk.navGrid.length) {
+			invalid('bad local x');
 		}
 		if(this.tileType == null) {
 			invalid('bad tile type');
 		}
 
-		const real_x = (this.chunk.chunkSize * this.chunk.x) + this.local_x;
-		const real_y = (this.chunk.chunkSize * this.chunk.y) + this.local_y;
+		const real_x = (this.chunk.chunkSize * this.chunk.x) + this.localX;
+		const real_y = (this.chunk.chunkSize * this.chunk.y) + this.localY;
 		if(this.x != real_x) {
 			invalid('x does not match up: ' + real_x + ' != ' + this.x);
 		}
 		if(this.y != real_y) {
 			invalid('y does not match up: ' + real_y + ' != ' + this.y);
 		}
-
-
 	}
 
 	equals(otherLoc: PlanetLoc): boolean {
@@ -179,4 +176,32 @@ export default class PlanetLoc {
 			otherLoc.y === this.y &&
 			otherLoc.map.name === this.map.name);
 	}
+}
+
+type LocationDetailsType = {
+	x: number,
+	y: number,
+	chunkX: number,
+	chunkY: number,
+	localX: number,
+	localY: number
+};
+
+export function getLocationDetails(x: number, y: number, chunkSize: number): LocationDetailsType {
+	x = Math.floor(x);
+	y = Math.floor(y);
+
+	const chunkX = Math.floor(x / chunkSize);
+	const chunkY = Math.floor(y / chunkSize);
+	const localX = x - (chunkX * chunkSize);
+	const localY = y - (chunkY * chunkSize);
+
+	return {
+		x,
+		y,
+		chunkX,
+		chunkY,
+		localX,
+		localY,
+	};
 }

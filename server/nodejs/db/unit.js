@@ -114,9 +114,15 @@ export default class DBunit {
 		return unitMap;
 	}
 
+	/*
+	* apply a patch to a unit. This is generally safe for certain fields, however
+	* the changes might not be visible to the simulated unit until the next turn
+	* with hard durability, since this is usually sensitive.
+	* this -could- be soft durability if we really needed performance
+	*/
 	async updateUnit(ctx: MonoContext, uuid: UUID, patch: Object): Promise<Object> {
 		const call = await startDBCall(ctx,'updateUnit');
-		const result = await this.table.get(uuid).update(patch).run(this.conn);
+		const result = await this.table.get(uuid).update(patch, { durability: 'hard' }).run(this.conn);
 		await call.end();
 		return result;
 	}
@@ -274,13 +280,19 @@ export default class DBunit {
 			.run(this.conn);
 	}
 
+	/* 
+	* claimUnitTick will claim the unit in an atomic way with soft durability
+	* this helps shave a good 10~40 ms off.
+	* Claiming is only done to prevent 2 servers from simulating 1 unit, 
+	* if servers crash then every unit will have to be simulated anyway.
+	*/
 	async claimUnitTick(ctx: MonoContext, uuid: UUID, tick: number): Promise<? Unit> {
 		const call = await startDBCall(ctx,'claimUnitTick');
 		const delta = await this.table.get(uuid).update((unit: any): any => {
 			return r.branch(
 				unit('details')('lastTick').ne(tick), { details:{lastTick: tick} }, {}
 			);
-		}, { returnChanges: true }).run(this.conn);
+		}, { returnChanges: true, durability: 'soft' }).run(this.conn);
 		await call.end();
 
 		if (!delta.changes || delta.changes.length !== 1) {

@@ -76,7 +76,6 @@ export default class Logger {
 		this.moduleName = moduleName;
 		process.on('uncaughtException', (err: Error): void => this.unhandled(err));
 		process.on('unhandledRejection', (err: Error): void => this.unhandled(err));
-		stats.init(this);
 		this.logLevel = 'INFO';
 	}
 

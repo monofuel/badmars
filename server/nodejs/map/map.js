@@ -7,12 +7,12 @@
 import _ from 'lodash';
 import grpc from 'grpc';
 
-import { checkContext, DetailedError, WrappedError } from '../util/logger';
+import { checkContext, WrappedError } from '../util/logger';
 import type MonoContext from '../util/monoContext';
 import env from '../config/env';
 import { LAND } from './tiletypes';
 import Chunk from './chunk';
-import PlanetLoc from './planetloc';
+import PlanetLoc, { getLocationDetails } from './planetloc';
 import Unit from '../unit/unit';
 import Client from '../net/client';
 import sleep from '../util/sleep';
@@ -100,14 +100,15 @@ export default class Map {
 					ctx.logger.trackError(ctx, new WrappedError(err, 'getChunk grpc', { mapName: this.name, x, y }));
 					return reject(err);
 				}
+				for (let i = 0; i < response.navGrid.length; i++) {
+					response.navGrid[i] = response.navGrid[i].items;
+				}
+				for (let i = 0; i < response.grid.length; i++) {
+					response.grid[i] = response.grid[i].items;
+				}
 				const chunk = new Chunk(this.name, x, y);
 				chunk.clone(response);
-				for (let i = 0; i < chunk.navGrid.length; i++) {
-					chunk.navGrid[i] = response.navGrid[i].items;
-				}
-				for (let i = 0; i < chunk.grid.length; i++) {
-					chunk.grid[i] = response.grid[i].items;
-				}
+				
 				this.addChunkToCache(ctx, chunk);
 				resolve(chunk);
 			});
@@ -121,14 +122,19 @@ export default class Map {
 	async fetchOrGenChunk(ctx: MonoContext, x: number, y: number): Promise<Chunk> {
 		checkContext(ctx, 'fetchOrGenChunk');
 		ctx.logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
-		const cacheChunk = this.getChunkFromCache(x + ':' + y);
+		const cacheChunk: CacheChunkType = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
 			ctx.logger.addSumStat('cacheChunkHit', 1);
-			return cacheChunk;
+			return cacheChunk.chunk;
 		} else {
 			ctx.logger.addSumStat('cacheChunkMiss', 1);
 		}
-		let chunk: Chunk = await ctx.db.chunks[this.name].getChunk(ctx, x, y);
+		let chunk: Chunk;
+		try {
+			chunk = await ctx.db.chunks[this.name].getChunk(ctx, x, y);
+		} catch (err) {
+			throw new WrappedError(err, 'fetching chunk from db');
+		}
 
 		if (!chunk) {
 			ctx.logger.addSumStat('generatingChunk', 1);
@@ -149,7 +155,6 @@ export default class Map {
 
 		//clear old entries from cache
 		while (this.chunkCache.length > env.chunkCacheLimit) {
-			console.log('shifting cache');
 			const oldChunk = this.chunkCache.shift();
 			delete this.chunkCacheMap[oldChunk.chunk.hash];
 		}
@@ -175,27 +180,15 @@ export default class Map {
 
 	async getLoc(ctx: MonoContext, x: number, y: number): Promise<PlanetLoc> {
 		checkContext(ctx, 'getLoc');
-		const real_x = Math.floor(x);
-		const real_y = Math.floor(y);
-		let chunkX = Math.floor(real_x / this.settings.chunkSize);
-		let chunkY = Math.floor(real_y / this.settings.chunkSize);
-		let local_x = real_x - (chunkX * this.settings.chunkSize);
-		let local_y = real_y - (chunkY * this.settings.chunkSize);
-		if (local_x < 0) {
-			local_x += this.settings.chunkSize;
-			chunkX--;
-		}
-		if (local_y < 0) {
-			local_y += this.settings.chunkSize;
-			chunkY--;
-		}
-		//console.log("real: " + real_x + ":" + real_y);
-		//console.log("chunk: " + chunkX + ":" + chunkY);
-		//console.log("local: " + local_x + ":" + local_y);
+		const details = getLocationDetails(x, y, this.settings.chunkSize);
 
-		const chunk: Chunk = await this.getChunk(ctx, chunkX, chunkY);
+		const chunk: Chunk = await this.getChunk(ctx, details.chunkX, details.chunkY);
 		checkContext(ctx, 'getLoc end');
-		return new PlanetLoc(this, chunk, real_x, real_y);
+		try {
+			return new PlanetLoc(this, chunk, details);
+		} catch (err) {
+			throw new WrappedError(err, 'failed to get planetLoc in getLoc');
+		}
 	}
 
 	async factoryMakeUnit(ctx: MonoContext, unitType: string, owner: string, x: number, y: number): Promise<?Unit> {

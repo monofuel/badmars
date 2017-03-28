@@ -24,8 +24,8 @@ class DBCall {
 	async check(): Promise<void> {
 		checkContext(this.ctx, this.name);
 	}
-	async end(): Promise<void> {
-		this.ctx.logger.endProfile(this.profile);
+	async end(visible?: boolean): Promise<void> {
+		this.ctx.logger.endProfile(this.profile, visible);
 		checkContext(this.ctx, this.name);
 	}
 }

@@ -6,6 +6,7 @@
 
 
 import AStarPath from '../nav/astarpath';
+import SimplePath from '../nav/simplepath';
 import DIRECTION from '../map/directions';
 import MonoContext from '../util/monoContext';
 import { WrappedError } from '../util/logger';
@@ -80,7 +81,11 @@ export default class PathfindService {
 
 		for(const delta of results.changes) {
 			if(delta.new_val) {
-				await this.processUnit(ctx.create(), delta.new_val);
+				try {
+					await this.processUnit(ctx.create(), delta.new_val);
+				} catch (err) {
+					ctx.logger.trackError(ctx, new WrappedError(err, 'processing path for unit'));
+				}
 			}
 		}
 
@@ -101,13 +106,12 @@ export default class PathfindService {
 			return;
 		}
 		const map = await ctx.db.map.getMap(ctx, unit.location.map);
-
 		const start = await map.getLoc(ctx, unit.location.x, unit.location.y);
 		
 		if (!unit.movable || !unit.movable.destination) {
 			return;
 		}
-		const destination = unit.movable.destination;
+		const destination: TileHash = unit.movable.destination;
 		const destinationX = destination.split(':')[0];
 		const destinationY = destination.split(':')[1];
 		const dest: PlanetLoc = await map.getLoc(ctx, destinationX, destinationY);
@@ -117,17 +121,19 @@ export default class PathfindService {
 		if (!end) {
 			throw new Error('no nearby free tile?');
 		}
-
 		if(start.equals(end)) {
 			await unit.clearDestination(ctx);
 			return;
 		}
 
 		const pathfinder = new AStarPath(start, end, unit);
-
+		//const pathfinder = new SimplePath(start, end, unit);
 		if(pathfinder.generate) {
-			//console.log('generating path');
-			await pathfinder.generate(ctx);
+			try {
+				await pathfinder.generate(ctx);
+			} catch (err) {
+				throw new WrappedError(err, 'generating path');
+			}
 		}
 		const path = [];
 
