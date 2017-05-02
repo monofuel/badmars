@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+ labels:
+   name: ai
+ name: ai
+spec:
+ ports:
+   - port: 3010
+     targetPort: 3010
+ selector:
+   name: ai
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ai-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: ai
+    spec:
+      containers:
+      - image: gcr.io/badmars-1242/badmars_node:v4
+        name: ai
+        command: ["sh"]
+        args: ["-c", "cd server/nodejs && babel-watch ai.js"]
+        resources:
+          requests:
+            cpu: 10m
+            memory: 150Mi
+        ports:
+        - name: ai
+          containerPort: 3010
+          hostPort: 3010
+        env:
+        - name: BADMARS_DB
+          value: "10.128.0.5"
+        - name: MAP_HOST
+          value: "chunk"
+        - name: AI_HOST
+          value: "ai"
+        - name: TRACKING_SERVER
+          value: "http://japura.net"

@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pathfinder-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: pathfinder
+    spec:
+      containers:
+      - image: gcr.io/badmars-1242/badmars_node:v4
+        name: pathfinder
+        command: ["sh"]
+        args: ["-c", "cd server/nodejs && babel-watch pathfinder.js"]
+        resources:
+          requests:
+            cpu: 10m
+            memory: 150Mi
+        env:
+        - name: BADMARS_DB
+          value: "10.128.0.5"
+        - name: MAP_HOST
+          value: "chunk"
+        - name: AI_HOST
+          value: "ai"
+        - name: TRACKING_SERVER
+          value: "http://japura.net"

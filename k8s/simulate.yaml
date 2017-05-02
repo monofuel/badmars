@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: simulate-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: simulate
+    spec:
+      containers:
+      - image: gcr.io/badmars-1242/badmars_go:v8
+        name: simulate
+        command: ["go"]
+        args: ["run", "server/go/core/simulate/simulate.go"]
+        resources:
+          requests:
+            cpu: 10m
+            memory: 150Mi
+        env:
+        - name: BADMARS_DB
+          value: "10.128.0.5"
+        - name: TRACKING_SERVER
+          value: "http://japura.net"
+        - name: MAP_HOST
+          value: "chunk"
+        - name: AI_HOST
+          value: "ai"

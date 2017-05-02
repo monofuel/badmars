@@ -39,7 +39,7 @@ func init() {
 	if aiHost == "" {
 		aiHost = "localhost"
 	}
-	aiPort = os.Getenv("AI_PORT")
+	aiPort = os.Getenv("BM_AI_PORT")
 	if aiPort == "" {
 		aiPort = "3010"
 	}

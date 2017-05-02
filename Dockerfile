@@ -1,4 +1,4 @@
-FROM node:7-wheezy
+FROM node:slim
 
 RUN npm install -g gulp supervisor watchify flow-bin babel-watch babel-core node-gyp
 

@@ -18,13 +18,14 @@ import (
 	. "github.com/monofuel/badmars/server/go/util"
 )
 
-var dashboardPort = os.Getenv("DASHBOARD_PORT")
+var dashboardPort = os.Getenv("BM_DASHBOARD_PORT")
 var templates = template.Must(template.ParseFiles("public/dashboard/index.html"))
 
 func init() {
 	fmt.Println("handling configuration")
+
 	if dashboardPort == "" {
-		dashboardPort = "8090"
+		dashboardPort = ":8090"
 	}
 	err := bmdb.Connect()
 	if err != nil {
@@ -38,7 +39,7 @@ func main() {
 
 	registerHandlers()
 	log.Printf("listening on port %s", dashboardPort)
-	log.Fatal(http.ListenAndServe(":"+dashboardPort, nil))
+	log.Fatal(http.ListenAndServe(dashboardPort, nil))
 }
 
 func registerHandlers() {

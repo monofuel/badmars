@@ -30,7 +30,7 @@ services:
       - BADMARS_DB=rethinkdb.mono
   chunk:
     build: .
-    command: bash -c 'cd server/nodejs && babel-watch chunk.js'
+    command: sh -c 'cd server/nodejs && babel-watch chunk.js'
     volumes:
       - ./server:/badmars/server
 #    links:
@@ -41,7 +41,7 @@ services:
       - BADMARS_DB=rethinkdb.mono
   ai:
     build: .
-    command: bash -c 'cd server/nodejs && babel-watch ai.js'
+    command: sh -c 'cd server/nodejs && babel-watch ai.js'
     volumes:
       - ./server:/badmars/server
     links:
@@ -53,7 +53,7 @@ services:
       - BADMARS_DB=rethinkdb.mono
   pathfinder:
     build: .
-    command: bash -c 'cd server/nodejs && babel-watch pathfinder.js'
+    command: sh -c 'cd server/nodejs && babel-watch pathfinder.js'
     volumes:
       - ./server:/badmars/server
     links:
@@ -65,7 +65,7 @@ services:
       - BADMARS_DB=rethinkdb.mono
   validator:
     build: .
-    command: bash -c 'cd server/nodejs && babel-watch validator.js'
+    command: sh -c 'cd server/nodejs && babel-watch validator.js'
     volumes:
       - ./server:/badmars/server
     links:
@@ -77,7 +77,7 @@ services:
       - BADMARS_DB=rethinkdb.mono
   web:
     build: .
-    command: bash -c 'cd server/nodejs && babel-watch web.js'
+    command: sh -c 'cd server/nodejs && babel-watch web.js'
     volumes:
       - ./server:/badmars/server
       - ./client:/badmars/client
@@ -93,7 +93,7 @@ services:
 #      - rethinkdb
   client:
     build: .
-    command: bash -c 'make watchClient'
+    command: watchify ./client/badmars/client.js -t babelify -p livereactload -o ./public/badmars/js/badmars.js
     volumes:
       - ./server:/badmars/server
       - ./client:/badmars/client
@@ -106,7 +106,7 @@ services:
       - BADMARS_DB=rethinkdb.mono
   dashboard-frontend:
     build: .
-    command: bash -c 'make watchDashboard'
+    command: watchify ./client/dashboard/index.jsx -t babelify -p livereactload -o ./public/dashboard/js/index.js
     volumes:
       - ./client:/badmars/client
       - ./public:/badmars/public
@@ -116,7 +116,7 @@ services:
       - BADMARS_DB=rethinkdb.mono
   net:
     build: .
-    command: bash -c 'cd server/nodejs && babel-watch -d 5858 net.js'
+    command: sh -c 'cd server/nodejs && babel-watch -d 5858 net.js'
     volumes:
       - ./server:/badmars/server
     ports:

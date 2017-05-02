@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+ labels:
+   name: dashboard
+ name: dashboard
+spec:
+ ports:
+   - port: 8090
+     targetPort: 8090
+ selector:
+   name: dashboard
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: dashboard-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: dashboard
+    spec:
+      containers:
+      - image: gcr.io/badmars-1242/badmars_go:v7
+        name: dashboard
+        command: ["go"]
+        args: ["run", "server/go/core/dashboard/dashboard.go"]
+        resources:
+          requests:
+            cpu: 10m
+            memory: 150Mi
+        ports:
+        - name: dashboard
+          containerPort: 8090
+          hostPort: 8090
+        env:
+        - name: BADMARS_DB
+          value: "10.128.0.5"
+        - name: TRACKING_SERVER
+          value: "http://japura.net"

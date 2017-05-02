@@ -7,7 +7,7 @@
 import _ from 'lodash';
 import r from 'rethinkdb';
 import fs from 'fs';
-import jsonlint from 'jsonlint';
+import parseJson from 'parse-json';
 
 import UnitStat from '../unit/unitStat';
 import { safeCreateTable } from './helper';
@@ -26,7 +26,7 @@ async function loadDefaults(): Promise<void> {
 	const statsFile = fs.readFileSync(UNIT_STAT_FILE).toString();
 	try {
 		// using jsonlint to give readable errors
-		const stats = jsonlint.parse(statsFile);
+		const stats = parseJson(statsFile);
 		_.map(stats, (unit: Object, type: string) => {
 			const unitStat = new UnitStat(type, unit);
 			try {
