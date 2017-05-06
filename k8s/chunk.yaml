@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Service
+metadata:
+ labels:
+   name: chunk
+ name: chunk
+spec:
+ ports:
+   - port: 3011
+     targetPort: 3011
+ selector:
+   name: chunk
+---
+apiVersion: extensions/v1beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: chunk-deployment
+  namespace: default
+spec:
+  cpuUtilization:
+    targetPercentage: 80
+  maxReplicas: 1
+  minReplicas: 1
+  scaleRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: chunk-deployment
+    subresource: scale
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: chunk-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: chunk
+    spec:
+      containers:
+      - image: gcr.io/badmars-1242/badmars_node:v$VERSION
+        name: chunk
+        command: ["sh"]
+        args: ["-c", "cd server/nodejs && babel-watch chunk.js"]
+        resources:
+          requests:
+            cpu: 20m
+            memory: 100Mi
+        livenessProbe:
+          httpGet:
+            path: /_health
+            port: 3002
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /_health
+            port: 3002
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        ports:
+        - name: chunk
+          containerPort: 3011
+          hostPort: 3011
+        env:
+        - name: BADMARS_DB
+          value: "10.128.0.5"
+        - name: TRACKING_SERVER
+          value: "http://japura.net"

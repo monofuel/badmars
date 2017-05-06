@@ -7,6 +7,7 @@ type Planet struct {
 	LastTick          int            `json:"lastTick"`
 	Users             []string       `json:"users"`
 	Seed              float32        `json:"seed"`
+	Paused            bool           `json:"paused"`
 }
 
 type PlanetSettings struct {

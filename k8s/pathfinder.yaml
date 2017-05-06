@@ -1,0 +1,57 @@
+apiVersion: extensions/v1beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pathfinder-deployment
+  namespace: default
+spec:
+  cpuUtilization:
+    targetPercentage: 80
+  maxReplicas: 1
+  minReplicas: 1
+  scaleRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: pathfinder-deployment
+    subresource: scale
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pathfinder-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: pathfinder
+    spec:
+      containers:
+      - image: gcr.io/badmars-1242/badmars_node:v$VERSION
+        name: pathfinder
+        command: ["sh"]
+        args: ["-c", "cd server/nodejs && babel-watch pathfinder.js"]
+        resources:
+          requests:
+            cpu: 30m
+            memory: 150Mi
+        livenessProbe:
+          httpGet:
+            path: /_health
+            port: 3002
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /_health
+            port: 3002
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        env:
+        - name: BADMARS_DB
+          value: "10.128.0.5"
+        - name: MAP_HOST
+          value: "chunk"
+        - name: AI_HOST
+          value: "ai"
+        - name: TRACKING_SERVER
+          value: "http://japura.net"

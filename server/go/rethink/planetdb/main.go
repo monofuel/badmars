@@ -41,6 +41,13 @@ func (planet *Planet) AdvanceTick() error {
 	return planet.patch(&patch)
 }
 
+func (planet *Planet) AdvancePaused() error {
+	patch := make(map[string]interface{})
+	planet.LastTickTimestamp = NowTimestamp()
+	patch["lastTickTimestamp"] = planet.LastTickTimestamp
+	return planet.patch(&patch)
+}
+
 func (planet *Planet) patch(patch *map[string]interface{}) error {
 
 	_, err := r.DB("badmars").

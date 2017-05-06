@@ -61,6 +61,7 @@ export default class Map {
 	seed: number;
 	chunkCache: Array<CacheChunkType>;
 	chunkCacheMap: ChunkCacheMapType;
+	paused: boolean;
 
 	constructor(name: ? string) {
 		if (!name) {
@@ -74,6 +75,7 @@ export default class Map {
 		this.seed = Math.random();
 		this.chunkCache = [];
 		this.chunkCacheMap = {};
+		this.paused = false;
 	}
 
 	async getChunk(ctx: MonoContext, x: number, y: number): Promise<Chunk> {
@@ -849,10 +851,10 @@ export default class Map {
 			for (const tile of open) {
 
 				const neighbors = [
-					await tile.N(),
-					await tile.S(),
-					await tile.E(),
-					await tile.W()
+					await tile.N(ctx),
+					await tile.S(ctx),
+					await tile.E(ctx),
+					await tile.W(ctx)
 				];
 				for (const neighbor of neighbors) {
 					if (containsTile(open, neighbor) || containsTile(closed, neighbor)) {
@@ -876,6 +878,21 @@ export default class Map {
 		}
 
 		return null;
+	}
+
+	// only for debugging purposes
+	async advanceTick(ctx: MonoContext): Promise<void> {
+		return this.update(ctx, { lastTick: this.lastTick + 1 });
+	}
+
+	async setPaused(ctx: MonoContext, paused: boolean): Promise<void> {
+		return this.update(ctx, { paused });
+	}
+
+	async update(ctx: MonoContext, patch: Object): Promise<void> {
+		checkContext(ctx, 'update');
+		Object.assign(this, patch);
+		await ctx.db.map.updateMap(this.name, patch);
 	}
 
 	clone(object: any) {

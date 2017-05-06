@@ -26,10 +26,9 @@ export default async function setDestination(ctx: MonoContext, client: Client, d
 
 	try {
 		await unit.setDestination(ctx, x, y);
-
 		client.send('setDestination');
 	} catch(err) {
-		ctx.logger.trackError(ctx, new WrappedError(err, 'failed to add factory order'));
+		ctx.logger.trackError(ctx, new WrappedError(err, 'failed to set destination'));
 		client.sendError(ctx, 'setDestination', 'failed to set destination');
 	}
 }

@@ -12,6 +12,7 @@ import env from '../config/env';
 
 import mainRoute from '../web/routes/main';
 import managementRoute from '../web/routes/management';
+import healthRoute from '../web/routes/health';
 
 import MonoContext from '../util/monoContext';
 
@@ -38,6 +39,7 @@ export default class WebService {
 
 		mainRoute(ctx.create(), app);
 		managementRoute(ctx.create(), app);
+		healthRoute(ctx.create(), app);
 
 		return new Promise((resolve: Function) => {
 			const server = app.listen(env.wwwPort, () => {

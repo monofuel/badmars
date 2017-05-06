@@ -42,9 +42,9 @@ export default {
 	wsServer: process.env.BADMARS_WS_SERVER || 'ws://shipyard.lan',
 
 	aiHost: process.env.AI_HOST || 'localhost',
-	aiPort: process.env.AI_PORT || '3010',
+	aiPort: process.env.BM_AI_PORT || '3010',
 	mapHost: process.env.MAP_HOST || 'localhost',
-	mapPort: process.env.MAP_PORT || '3011',
+	mapPort: process.env.BM_MAP_PORT || '3011',
 
 	googleAuth: {
 		clientID: process.env.GOOGLE_OAUTH_ID,
