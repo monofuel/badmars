@@ -69,7 +69,7 @@ export default class Commands {
 
 		vorpal.command('unpause <name>', 'unpause a map')
 			.action(async (args: Object): Promise<void> => {
-				const map = await this.db.map.getMap(args.name);
+				const map = await this.db.map.getMap(ctx, args.name);
 				await map.setPaused(ctx, false);
 			});
 

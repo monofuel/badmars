@@ -311,7 +311,8 @@ export default class Unit {
 
 	async update(ctx: MonoContext, patch: Object): Promise<void> {
 		checkContext(ctx, 'update');
-		Object.assign(this, patch);
+		// TODO we should also update the unit itself (this breaks currently)
+		// Object.assign(this, patch);
 		//assume the object will be awake, unless we are setting it false
 		patch.awake = patch.awake || patch.awake === undefined;
 		await ctx.db.units[this.location.map].updateUnit(ctx, this.uuid, patch);
