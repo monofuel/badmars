@@ -12,6 +12,22 @@ spec:
    name: web
 ---
 apiVersion: extensions/v1beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web-deployment
+  namespace: default
+spec:
+  cpuUtilization:
+    targetPercentage: 80
+  maxReplicas: 10
+  minReplicas: 1
+  scaleRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: web-deployment
+    subresource: scale
+---
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: web-deployment
@@ -23,7 +39,7 @@ spec:
         name: web
     spec:
       containers:
-      - image: gcr.io/badmars-1242/badmars_node:v4
+      - image: gcr.io/badmars-1242/badmars_node:v5
         name: web
         command: ["sh"]
         args: ["-c", "cd server/nodejs && babel-watch web.js"]

@@ -1,5 +1,7 @@
-FROM node:slim
+FROM node:alpine
 
+RUN apk update
+RUN apk add libc6-compat
 RUN npm install -g gulp supervisor watchify flow-bin babel-watch babel-core node-gyp
 
 RUN mkdir /badmars

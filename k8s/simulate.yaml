@@ -1,4 +1,20 @@
 apiVersion: extensions/v1beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: simulate-deployment
+  namespace: default
+spec:
+  cpuUtilization:
+    targetPercentage: 80
+  maxReplicas: 10
+  minReplicas: 1
+  scaleRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: simulate-deployment
+    subresource: scale
+---
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: simulate-deployment
@@ -17,7 +33,7 @@ spec:
         resources:
           requests:
             cpu: 10m
-            memory: 150Mi
+            memory: 20Mi
         env:
         - name: BADMARS_DB
           value: "10.128.0.5"

@@ -16,6 +16,22 @@ spec:
    name: net
 ---
 apiVersion: extensions/v1beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: net-deployment
+  namespace: default
+spec:
+  cpuUtilization:
+    targetPercentage: 80
+  maxReplicas: 10
+  minReplicas: 1
+  scaleRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: net-deployment
+    subresource: scale
+---
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: net-deployment
@@ -27,7 +43,7 @@ spec:
         name: net
     spec:
       containers:
-      - image: gcr.io/badmars-1242/badmars_node:v4
+      - image: gcr.io/badmars-1242/badmars_node:v5
         name: net
         command: ["sh"]
         args: ["-c", "cd server/nodejs && babel-watch net.js"]

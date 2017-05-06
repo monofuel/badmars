@@ -12,6 +12,22 @@ spec:
    name: ai
 ---
 apiVersion: extensions/v1beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ai-deployment
+  namespace: default
+spec:
+  cpuUtilization:
+    targetPercentage: 80
+  maxReplicas: 10
+  minReplicas: 1
+  scaleRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: ai-deployment
+    subresource: scale
+---
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: ai-deployment
@@ -23,7 +39,7 @@ spec:
         name: ai
     spec:
       containers:
-      - image: gcr.io/badmars-1242/badmars_node:v4
+      - image: gcr.io/badmars-1242/badmars_node:v5
         name: ai
         command: ["sh"]
         args: ["-c", "cd server/nodejs && babel-watch ai.js"]
@@ -43,4 +59,4 @@ spec:
         - name: AI_HOST
           value: "ai"
         - name: TRACKING_SERVER
-          value: "http://japura.net"
+          value: "45.56.92.248"

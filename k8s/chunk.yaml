@@ -12,6 +12,22 @@ spec:
    name: chunk
 ---
 apiVersion: extensions/v1beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: chunk-deployment
+  namespace: default
+spec:
+  cpuUtilization:
+    targetPercentage: 80
+  maxReplicas: 10
+  minReplicas: 1
+  scaleRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: chunk-deployment
+    subresource: scale
+---
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: chunk-deployment
@@ -23,14 +39,14 @@ spec:
         name: chunk
     spec:
       containers:
-      - image: gcr.io/badmars-1242/badmars_node:v4
+      - image: gcr.io/badmars-1242/badmars_node:v5
         name: chunk
         command: ["sh"]
         args: ["-c", "cd server/nodejs && babel-watch chunk.js"]
         resources:
           requests:
             cpu: 10m
-            memory: 150Mi
+            memory: 100Mi
         ports:
         - name: chunk
           containerPort: 3011

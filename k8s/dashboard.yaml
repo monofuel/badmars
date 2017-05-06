@@ -30,7 +30,7 @@ spec:
         resources:
           requests:
             cpu: 10m
-            memory: 150Mi
+            memory: 10Mi
         ports:
         - name: dashboard
           containerPort: 8090
