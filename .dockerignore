@@ -2,3 +2,4 @@
 node_modules
 k8s
 deploy.sh
+version.txt

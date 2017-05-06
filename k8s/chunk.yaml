@@ -39,7 +39,7 @@ spec:
         name: chunk
     spec:
       containers:
-      - image: gcr.io/badmars-1242/badmars_node:v5
+      - image: gcr.io/badmars-1242/badmars_node:v$VERSION
         name: chunk
         command: ["sh"]
         args: ["-c", "cd server/nodejs && babel-watch chunk.js"]

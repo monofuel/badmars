@@ -23,7 +23,7 @@ spec:
         name: dashboard
     spec:
       containers:
-      - image: gcr.io/badmars-1242/badmars_go:v7
+      - image: gcr.io/badmars-1242/badmars_go:v$VERSION
         name: dashboard
         command: ["go"]
         args: ["run", "server/go/core/dashboard/dashboard.go"]
