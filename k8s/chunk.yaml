@@ -19,7 +19,7 @@ metadata:
 spec:
   cpuUtilization:
     targetPercentage: 80
-  maxReplicas: 3
+  maxReplicas: 1
   minReplicas: 1
   scaleRef:
     apiVersion: extensions/v1beta1

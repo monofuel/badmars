@@ -61,6 +61,7 @@ export default class Map {
 	seed: number;
 	chunkCache: Array<CacheChunkType>;
 	chunkCacheMap: ChunkCacheMapType;
+	paused: boolean;
 
 	constructor(name: ? string) {
 		if (!name) {
@@ -74,6 +75,7 @@ export default class Map {
 		this.seed = Math.random();
 		this.chunkCache = [];
 		this.chunkCacheMap = {};
+		this.paused = false;
 	}
 
 	async getChunk(ctx: MonoContext, x: number, y: number): Promise<Chunk> {
@@ -876,6 +878,24 @@ export default class Map {
 		}
 
 		return null;
+	}
+
+	// only for debugging purposes
+	async advanceTick(ctx: MonoContext): Promise<void> {
+		return this.update(ctx, {
+			lastTick: this.lastTick + 1,
+			lastTickTimestamp: Date.now(),
+		});
+	}
+
+	async setPaused(ctx: MonoContext, paused: boolean): Promise<void> {
+		return this.update(ctx, { paused });
+	}
+
+	async update(ctx: MonoContext, patch: Object): Promise<void> {
+		checkContext(ctx, 'update');
+		Object.assign(this, patch);
+		await ctx.db.map.updateMap(this.name, patch);
 	}
 
 	clone(object: any) {

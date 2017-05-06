@@ -212,12 +212,19 @@ func tryNewTick(planet *planetdb.Planet) error {
 	}
 	close(successChan)
 	if failCount != 0 {
-		fmt.Printf("unit update | success: %d,failed: %d\n", successCount, failCount)
+		fmt.Printf("unit update | paused: %v, success: %d,failed: %d\n", planet.Paused, successCount, failCount)
 	}
 
-	err = planet.AdvanceTick()
-	if err != nil {
-		return err
+	if planet.Paused {
+		err = planet.AdvancePaused()
+		if err != nil {
+			return err
+		}
+	} else {
+		err = planet.AdvanceTick()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

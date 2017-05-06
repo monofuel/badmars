@@ -48,6 +48,7 @@ export default class constructionAI {
 				continue;
 			}
 			this.nearestGhost = nearbyUnit;
+			console.log('found a nearby ghost');
 			return true;
 		}
 
