@@ -6,6 +6,7 @@
 
 import DB from './db/db';
 import Logger from './util/logger';
+import Health from './core/health';
 import Net from './core/net';
 
 const logger = new Logger('net');
@@ -19,7 +20,11 @@ async function init(): Promise<void> {
 
 		const net = new Net(db, logger);
 		await net.init();
-		logger.info(null, 'start complete');
+		logger.info(null, 'net service started');
+
+		const health = new Health(db, logger);
+		await health.init();
+		logger.info(null, 'READY');
 
 	} catch (err) {
 		// eslint-disable-next-line no-console

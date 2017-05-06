@@ -19,7 +19,7 @@ metadata:
 spec:
   cpuUtilization:
     targetPercentage: 80
-  maxReplicas: 10
+  maxReplicas: 3
   minReplicas: 1
   scaleRef:
     apiVersion: extensions/v1beta1
@@ -45,8 +45,20 @@ spec:
         args: ["-c", "cd server/nodejs && babel-watch ai.js"]
         resources:
           requests:
-            cpu: 10m
+            cpu: 30m
             memory: 150Mi
+        livenessProbe:
+          httpGet:
+            path: /_health
+            port: 3002
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /_health
+            port: 3002
+          initialDelaySeconds: 5
+          periodSeconds: 5
         ports:
         - name: ai
           containerPort: 3010
@@ -59,4 +71,4 @@ spec:
         - name: AI_HOST
           value: "ai"
         - name: TRACKING_SERVER
-          value: "45.56.92.248"
+          value: "http://japura.net"

@@ -19,7 +19,7 @@ metadata:
 spec:
   cpuUtilization:
     targetPercentage: 80
-  maxReplicas: 10
+  maxReplicas: 3
   minReplicas: 1
   scaleRef:
     apiVersion: extensions/v1beta1
@@ -47,6 +47,18 @@ spec:
           requests:
             cpu: 10m
             memory: 150Mi
+        livenessProbe:
+          httpGet:
+            path: /_health
+            port: 3002
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /_health
+            port: 3002
+          initialDelaySeconds: 5
+          periodSeconds: 5
         ports:
         - name: web
           containerPort: 3002

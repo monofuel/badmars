@@ -6,6 +6,7 @@
 
 import DB from './db/db';
 import Logger from './util/logger';
+import Health from './core/health';
 import Chunk from './core/chunk';
 
 const logger = new Logger('chunk');
@@ -19,7 +20,11 @@ async function init(): Promise<void> {
 
 		const chunk = new Chunk(db, logger);
 		await chunk.init();
-		logger.info(null, 'start complete');
+		logger.info(null, 'chunk service started');
+
+		const health = new Health(db, logger);
+		await health.init();
+		logger.info(null, 'READY');
 
 	} catch (err) {
 		// eslint-disable-next-line no-console

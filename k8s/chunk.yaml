@@ -19,7 +19,7 @@ metadata:
 spec:
   cpuUtilization:
     targetPercentage: 80
-  maxReplicas: 10
+  maxReplicas: 3
   minReplicas: 1
   scaleRef:
     apiVersion: extensions/v1beta1
@@ -45,8 +45,20 @@ spec:
         args: ["-c", "cd server/nodejs && babel-watch chunk.js"]
         resources:
           requests:
-            cpu: 10m
+            cpu: 20m
             memory: 100Mi
+        livenessProbe:
+          httpGet:
+            path: /_health
+            port: 3002
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /_health
+            port: 3002
+          initialDelaySeconds: 5
+          periodSeconds: 5
         ports:
         - name: chunk
           containerPort: 3011

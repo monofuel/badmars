@@ -6,6 +6,7 @@
 
 import DB from './db/db';
 import Logger from './util/logger';
+import Health from './core/health';
 import Pathfinder from './core/pathfinding';
 
 const logger = new Logger('pathfinder');
@@ -19,7 +20,11 @@ async function init(): Promise<void> {
 
 		const pathfinder = new Pathfinder(db, logger);
 		await pathfinder.init();
-		logger.info(null, 'start complete');
+		logger.info(null, 'pathfinder service started');
+
+		const health = new Health(db, logger);
+		await health.init();
+		logger.info(null, 'READY');
 
 	} catch (err) {
 		// eslint-disable-next-line no-console

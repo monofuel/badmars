@@ -6,7 +6,7 @@ metadata:
 spec:
   cpuUtilization:
     targetPercentage: 80
-  maxReplicas: 10
+  maxReplicas: 3
   minReplicas: 1
   scaleRef:
     apiVersion: extensions/v1beta1
@@ -32,7 +32,7 @@ spec:
         args: ["run", "server/go/core/simulate/simulate.go"]
         resources:
           requests:
-            cpu: 10m
+            cpu: 20m
             memory: 20Mi
         env:
         - name: BADMARS_DB
