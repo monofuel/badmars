@@ -33,4 +33,4 @@ cd k8s
 echo "-----------------------------------------"
 echo "updating pods"
 echo "-----------------------------------------"
-for f in *.yaml; do sed -e "s/\$VERSION/$VERSION/g" $f | kubectl apply -f -; done
+for f in *.yaml; do sed -e "s/\$VERSION/$NEW_VERSION/g" $f | kubectl apply -f -; done
