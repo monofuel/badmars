@@ -131,7 +131,14 @@
 	},
 	"transport": {
 		"details": {
-			"size": 1
+			"size": 1,
+			"buildTime": 10,
+			"cost": 500,
+			"maxHealth": 100
+		},
+		"movable": {
+			"layer": "ground",
+			"speed": 4
 		},
 		"storage": {
 			"transferRange": 10,

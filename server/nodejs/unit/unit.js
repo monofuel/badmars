@@ -154,38 +154,41 @@ export default class Unit {
 			chunkY,
 			chunkHash
 		};
+		this.initModules();
+	}
 
+	initModules() {
 		//------------------
 		// construct init
 		if (this.construct) {
-			this.construct.constructing = 0;
-			this.construct.factoryQueue = [];
+			this.construct.constructing = this.construct.constructing || 0;
+			this.construct.factoryQueue = this.construct.factoryQueue || [];
 		}
 
 		//------------------
 		// attack init
 		if (this.attack) {
-			this.attack.fireCooldown = 0;
+			this.attack.fireCooldown = this.attack.fireCooldown || 0;
 		}
 
 		//------------------
 		// storage init
 		if (this.storage) {
-			this.storage.resourceCooldown = 0;
-			this.storage.iron = 0;
-			this.storage.fuel = 0;
+			this.storage.resourceCooldown = this.storage.resourceCooldown || 0;
+			this.storage.iron = this.storage.iron || 0;
+			this.storage.fuel = this.storage.fuel || 0;
 		}
 
 		//------------------
 		// movable init
 		if (this.movable) {
-			this.movable.movementCooldown = 0;
-			this.movable.path = [];
-			this.movable.pathAttempts = 0;
-			this.movable.pathAttemptAttempts = 0;
-			this.movable.isPathing = false;
-			this.movable.pathUpdate = 0;
-			this.movable.transferGoal = {};
+			this.movable.movementCooldown = this.movable.movementCooldown || 0;
+			this.movable.path = this.movable.path || [];
+			this.movable.pathAttempts = this.movable.pathAttempts || 0;
+			this.movable.pathAttemptAttempts = this.movable.pathAttemptAttempts || 0;
+			this.movable.isPathing = this.movable.isPathing || false;
+			this.movable.pathUpdate = this.movable.pathUpdate || 0;
+			this.movable.transferGoal = this.movable.transferGoal || {};
 		}
 	}
 
@@ -203,6 +206,7 @@ export default class Unit {
 			constructionAI: false,
 			attackAI: false
 		};
+		this.initModules();
 
 		//------------------
 		//iron and oil should always be off
@@ -912,7 +916,7 @@ export default class Unit {
 		return compObject;
 	}
 
-	async getTypeInfo(ctx: MonoContext): Promise<UnitStat> {
+	getTypeInfo(ctx: MonoContext): UnitStat {
 		return ctx.db.unitStats[this.location.map].get(this.details.type);
 	}
 

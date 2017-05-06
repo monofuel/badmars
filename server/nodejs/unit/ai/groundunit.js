@@ -171,7 +171,6 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 	}
 	const dir = DIRECTION.getTypeFromName(unit.movable.path.shift());
 	const nextTile = await start.getDirTile(ctx, dir);
-	console.log('moving');
 	try {
 		try {
 			await unit.moveToTile(ctx, nextTile);

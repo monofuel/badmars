@@ -31,9 +31,10 @@ export default class DBMap {
 		return await this.table.getField('name').coerceTo('array').run(this.conn);
 	}
 
-	async getMap(ctx: MonoContext, name: string): Promise<Map> {
+	async getMap(ctx: MonoContext, name: string, opts?: Object): Promise<Map> {
+		const { ignoreCache } = opts || { ignoreCache: false };
 		const call = await startDBCall(ctx,'getMap');
-		if(this.mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/ ) {
+		if(!ignoreCache && this.mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/ ) {
 			ctx.logger.addSumStat('mapCacheHit', 1);
 			await call.end();
 			return this.mapCache[name].map;

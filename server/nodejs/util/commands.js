@@ -82,7 +82,7 @@ export default class Commands {
 		vorpal.command('advanceTick <name>', 'advance the tick on a map')
 			.action(async (args: Object): Promise<void> => {
 				// TODO would be cool if this function watched for how long it took to simulate the next tick
-				const map = await this.db.map.getMap(ctx, args.name);
+				const map = await this.db.map.getMap(ctx, args.name, { ignoreCache: true });
 				await map.advanceTick(ctx);
 			});
 		//==================================================================

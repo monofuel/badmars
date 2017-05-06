@@ -851,10 +851,10 @@ export default class Map {
 			for (const tile of open) {
 
 				const neighbors = [
-					await tile.N(),
-					await tile.S(),
-					await tile.E(),
-					await tile.W()
+					await tile.N(ctx),
+					await tile.S(ctx),
+					await tile.E(ctx),
+					await tile.W(ctx)
 				];
 				for (const neighbor of neighbors) {
 					if (containsTile(open, neighbor) || containsTile(closed, neighbor)) {
@@ -882,10 +882,7 @@ export default class Map {
 
 	// only for debugging purposes
 	async advanceTick(ctx: MonoContext): Promise<void> {
-		return this.update(ctx, {
-			lastTick: this.lastTick + 1,
-			lastTickTimestamp: Date.now(),
-		});
+		return this.update(ctx, { lastTick: this.lastTick + 1 });
 	}
 
 	async setPaused(ctx: MonoContext, paused: boolean): Promise<void> {

@@ -15,11 +15,12 @@ export default class constructionAI {
 
 	async actionable(ctx: MonoContext, unit: Unit, map: Map): Promise<boolean> {
 
-		if(unit.details.ghosting || !unit.construction) {
+		if(unit.details.ghosting || !unit.construct) {
 			return false;
 		}
 
 		if (unit.movable) {
+			console.log('movement', unit.movable.layer);
 			switch (unit.movable.layer) {
 			case 'ground':
 				return this.checkGroundActionable(ctx, unit, map);
