@@ -6,7 +6,7 @@ RUN apk add make
 RUN apk add libc6-compat
 RUN apk add inotify-tools
 RUN apk add bash
-RUN npm install -g watchify flow-bin babel-watch babel-core node-gyp babel-cli
+RUN npm install -g browserify watchify flow-bin babel-watch babel-core node-gyp babel-cli
 
 RUN mkdir /badmars
 ADD ./package.json badmars/
@@ -16,4 +16,4 @@ RUN yarn install
 
 ADD . /badmars
 
-CMD ["make", "build"]
+CMD ["make", "buildServer"]

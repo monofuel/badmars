@@ -20,6 +20,7 @@
     "alea": "0.0.9",
     "babel-preset-env": "^1.4.0",
     "babel-preset-es2017": "^6.24.1",
+    "bufferutil": "^3.0.0",
     "ejs": "^2.5.2",
     "express": "^4.14.0",
     "grpc": "^1.0.0",
@@ -39,6 +40,7 @@
     "simplex-noise": "^2.2.0",
     "tsify": "^3.0.1",
     "typescript": "^2.3.2",
+    "utf-8-validate": "^3.0.1",
     "vorpal": "^1.11.4",
     "ws": "^1.1.1"
   },

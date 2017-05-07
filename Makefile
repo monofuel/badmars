@@ -8,10 +8,10 @@ client:
 	BABEL_ENV=production gulp client
 
 watchClient:
-	 watchify ./client/badmars/client.js -t babelify -p tsify -p livereactload -o ./bin/public/badmars/js/badmars.js
+	 watchify ./client/badmars/client.js -t babelify -p tsify -p livereactload --debug -o ./bin/public/badmars/js/badmars.js
 
 watchDashboard:
-	 watchify ./client/dashboard/index.jsx -t babelify -p tfsify -p livereactload -o ./bin/public/dashboard/js/index.js
+	 watchify ./client/dashboard/index.jsx -t babelify -p tfsify -p livereactload --debug -o ./bin/public/dashboard/js/index.js
 
 check:
 	go vet .
@@ -30,18 +30,51 @@ setup: goSetup
 
 prepareBin:
 	cp -r server/protos bin/protos
-	cp -r server/nodejs/config/*.json bin/server/nodejs/config/
+	mkdir -p bin/server/nodejs/config/
+	cp server/nodejs/config/*.json bin/server/nodejs/config/
+	mkdir -p bin/server/nodejs/web/views/
 	cp -r server/nodejs/web/views bin/server/nodejs/web/views
 	cp -r ./public bin/public
 
-buildServer: prepareBin
-	babel server/nodejs -d bin/server/nodejs
+buildServer: prepareBin buildChunk buildAI buildNet buildPathfinder buildValidator
 
-watchServer: prepareBin
-	babel server/nodejs -d bin/server/nodejs --watch
+buildChunk:
+	browserify ./server/nodejs/chunk.js -t babelify -p tsify -o ./bin/server/nodejs/chunk.js --node --im --debug
 
-	# does not work correctly yet
-	#sh ./buildWatch.sh
+buildAI:
+	browserify ./server/nodejs/ai.js -t babelify -p tsify -o ./bin/server/nodejs/ai.js --node --im --debug
+
+buildNet:
+	browserify ./server/nodejs/net.js -t babelify -p tsify -o ./bin/server/nodejs/net.js --node --im --debug
+
+buildWeb:
+	browserify ./server/nodejs/web.js -t babelify -p tsify -o ./bin/server/nodejs/web.js --node --im --debug
+
+buildPathfinder:
+	browserify ./server/nodejs/pathfinder.js -t babelify -p tsify -o ./bin/server/nodejs/pathfinder.js --node --im --debug
+
+buildValidator:
+	browserify ./server/nodejs/validator.js -t babelify -p tsify -o ./bin/server/nodejs/validator.js --node --im --debug
+
+watchServer: prepareBin watchChunk watchAI watchNet watchPathfinder watchValidator
+
+watchChunk:
+	watchify ./server/nodejs/chunk.js -t babelify -p tsify -o ./bin/server/nodejs/chunk.js --node --im --debug
+
+watchAI:
+	watchify ./server/nodejs/ai.js -t babelify -p tsify -o ./bin/server/nodejs/ai.js --node --im --debug
+
+watchNet:
+	watchify ./server/nodejs/net.js -t babelify -p tsify -o ./bin/server/nodejs/net.js --node --im --debug
+
+watchWeb:
+	watchify ./server/nodejs/web.js -t babelify -p tsify -o ./bin/server/nodejs/web.js --node --im --debug
+
+watchPathfinder:
+	watchify ./server/nodejs/pathfinder.js -t babelify -p tsify -o ./bin/server/nodejs/pathfinder.js --node --im --debug
+
+watchValidator:
+	watchify ./server/nodejs/validator.js -t babelify -p tsify -o ./bin/server/nodejs/validator.js --node --im --debug
 
 #--------------------------------------------
 #commands that use docker
@@ -50,7 +83,7 @@ dockerBuildPrepare:
 	 docker build -t badmars-node-build -f ./Dockerfile-node-build .
 
 dockerBuild: dockerBuildPrepare
-	 docker run -v `pwd`/bin:/badmars/bin -v `pwd`/server:/badmars/server badmars-node-build make buildServer
+	 docker run -v `pwd`/bin:/badmars/bin -v `pwd`/server:/badmars/server badmars-node-build make buildServer -j 4
 
 dockerWatch: dockerBuildPrepare
-	 docker run  -v `pwd`/bin:/badmars/bin -v `pwd`/server:/badmars/server badmars-node-build make watchServer
+	 docker run  -v `pwd`/bin:/badmars/bin -v `pwd`/server:/badmars/server badmars-node-build make watchServer -j 10

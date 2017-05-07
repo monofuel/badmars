@@ -14,7 +14,7 @@ import MonoContext from '../util/monoContext';
 import type Logger from '../util/logger';
 import type DB from '../db/db';
 
-const AI = grpc.load(__dirname + '/../../../protos/ai.proto').ai;
+const AI = grpc.load(__dirname + '/../../protos/ai.proto').ai;
 
 export default class AIService {
 	db: DB;
