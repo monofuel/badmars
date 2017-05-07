@@ -70,7 +70,7 @@ services:
       - BADMARS_DB=rethinkdb.mono
   validator:
     build: .
-    command: sh -c 'cd bin/server/nodejs && supervisor validator.js'
+    command: sh -c 'cd bin/server/nodejs && node validator.js'
     volumes:
       - ./bin:/badmars/bin
       - ./server:/badmars/server
@@ -136,17 +136,3 @@ services:
       - MAP_HOST=chunk
       - AI_HOST=ai
       - BADMARS_DB=rethinkdb.mono
-
-#  rethinkdb:
-#    image: rethinkdb
-#    ports:
-#      - "8085:8080"
-
-  node-build:
-    build:
-      context: .
-      dockerfile: Dockerfile-node-build
-    command: ./node_modules/gulp/bin/gulp.js build:server
-    volumes:
-      - ./bin:/badmars/bin
-      - ./server:/badmars/server
