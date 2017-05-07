@@ -62,10 +62,13 @@ export default class DBChunk {
 	* since we currently assume the map does not change
 	* this is mainly used by chunk.refresh
 	*/
-	async getChunkUnits(ctx: MonoContext, x: number, y: number): Promise<?Object> {
+	async getChunkUnits(ctx: MonoContext, x: number, y: number): Promise<Object> {
 		const call = await startDBCall(ctx,'getChunkUnits');
 		const doc = await this.table.get(x + ':' + y).pluck(['airUnits', 'resources','units']).run(this.conn);
 		await call.end();
+		if (!doc) {
+			throw new DetailedError('no chunk returned in getChunkUnits');
+		}
 		return doc;
 	}
 

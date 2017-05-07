@@ -287,15 +287,15 @@ export default class Unit {
 			if (actionable.mineAI) {
 				ctx.logger.info(ctx, 'processing mine', {}, { silent: true });
 				await mineAI.simulate(ctx, this, map);
-			} else if (actionable.constructionAI) {
-				ctx.logger.info(ctx, 'processing construction');
-				await constructionAI.simulate(ctx, this, map);
 			} else if (actionable.attackAI) {
 				ctx.logger.info(ctx, 'processing attack');
 				await attackAI.simulate(ctx, this, map);
 			} else if (actionable.groundUnitAI) {
 				ctx.logger.info(ctx, 'processing ground AI', {}, { silent: true });
 				await groundUnitAI.simulate(ctx, this, map);
+			} else if (actionable.constructionAI) {
+				ctx.logger.info(ctx, 'processing construction');
+				await constructionAI.simulate(ctx, this, map);
 			} else { // if no action is performed
 				ctx.logger.info(ctx, 'sleeping unit');
 				await this.update(ctx, { awake: false });
@@ -620,6 +620,18 @@ export default class Unit {
 		return this.update(ctx, { movable });
 	}
 
+	async clearPath(ctx: MonoContext): Promise<void> {
+		if (!this.movable) {
+			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
+		}
+		const movable = {
+			isPathing: false,
+			path: [],
+			pathAttemptAttempts: 0
+		};
+		return this.update(ctx, { movable });
+	}
+
 	async tickMovement(ctx: MonoContext): Promise<void> {
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
@@ -671,6 +683,11 @@ export default class Unit {
 			throw new DetailedError('moving is not supported for large units', { uuid: this.uuid, type: this.details.type });
 		}
 		console.log('moving unit!');
+		if (tile.chunk.units[tile.hash]) {
+			ctx.logger.info(ctx, 'unit movement blocked', { hash: tile.hash, uuid: this.uuid});
+			await this.clearPath(ctx);
+			return;
+		}
 		await tile.chunk.moveUnit(ctx, this, tile);
 
 		if (!this.movable) {

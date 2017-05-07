@@ -202,6 +202,7 @@ export default class Chunk {
 	async moveUnit(ctx: MonoContext, unit: Unit, newTile: PlanetLoc): Promise<void> {
 		checkContext(ctx, 'moveUnit');
 		await this.refresh(ctx);
+		const newChunk: Chunk = newTile.chunk;
 		const oldTiles = await unit.getLocs(ctx);
 		if (oldTiles[0].chunk.units[oldTiles[0].hash] !== unit.uuid) {
 			throw new DetailedError('unit not at proper tile', {
@@ -209,10 +210,8 @@ export default class Chunk {
 				found: oldTiles[0].chunk.units[oldTiles[0].hash]
 			});
 		}
+		await this.getChunkDB(ctx).setUnit(ctx, newChunk, unit.uuid, newTile.hash);
 
-		await newTile.chunk.getChunkDB(ctx).setUnit(ctx,newTile.chunk, unit.uuid, newTile.hash);
-
-		const newChunk: Chunk = newTile.chunk;
 		await newChunk.refresh(ctx, { force: true });
 		if (unit.uuid !== newChunk.units[newTile.hash]) {
 			throw new DetailedError('wrong new position', { hash: newTile.hash, uuid: unit.uuid, otherUuid: newChunk.units[newTile.hash] });

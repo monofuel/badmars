@@ -14,6 +14,7 @@ services:
       - MAP_HOST=chunk
       - AI_HOST=ai
       - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   dashboard:
     build:
       context: .
@@ -28,6 +29,7 @@ services:
       - '8090:8090'
     environment:
       - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   chunk:
     build: .
     command: sh -c 'cd server/nodejs && babel-watch chunk.js'
@@ -39,6 +41,7 @@ services:
       - MAP_HOST=chunk
       - AI_HOST=ai
       - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   ai:
     build: .
     command: sh -c 'cd server/nodejs && babel-watch ai.js'
@@ -51,6 +54,7 @@ services:
       - MAP_HOST=chunk
       - AI_HOST=ai
       - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   pathfinder:
     build: .
     command: sh -c 'cd server/nodejs && babel-watch pathfinder.js'
@@ -63,6 +67,7 @@ services:
       - MAP_HOST=chunk
       - AI_HOST=ai
       - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   validator:
     build: .
     command: sh -c 'cd server/nodejs && babel-watch validator.js'
@@ -75,6 +80,7 @@ services:
       - MAP_HOST=chunk
       - AI_HOST=ai
       - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   web:
     build: .
     command: sh -c 'cd server/nodejs && babel-watch web.js'
@@ -87,6 +93,7 @@ services:
       - AI_HOST=ai
       - BADMARS_WS_SERVER=ws://localhost
       - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
     ports:
       - "3002:3002"
     links:
@@ -104,6 +111,7 @@ services:
       - rethinkdb
     environment:
       - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   dashboard-frontend:
     build: .
     command: sh -c 'make watchDashboard'
@@ -128,7 +136,7 @@ services:
       - MAP_HOST=chunk
       - AI_HOST=ai
       - BADMARS_DB=rethinkdb
-
+      - TRACKING_SERVER=http://japura.net
   rethinkdb:
     image: rethinkdb
     ports:

@@ -20,7 +20,6 @@ export default class constructionAI {
 		}
 
 		if (unit.movable) {
-			console.log('movement', unit.movable.layer);
 			switch (unit.movable.layer) {
 			case 'ground':
 				return this.checkGroundActionable(ctx, unit, map);
@@ -49,7 +48,6 @@ export default class constructionAI {
 				continue;
 			}
 			this.nearestGhost = nearbyUnit;
-			console.log('found a nearby ghost');
 			return true;
 		}
 

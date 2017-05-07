@@ -15,8 +15,7 @@ import type Map from '../../map/map';
 export async function actionable(ctx: MonoContext, unit: Unit): Promise<boolean> {
 	return Promise.resolve(
 		unit.details.type === 'mine' &&
-		!unit.details.ghosting &&
-		!!unit.storage
+		!unit.details.ghosting
 	);
 }
 
