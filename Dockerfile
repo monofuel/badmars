@@ -1,6 +1,7 @@
 FROM node:alpine
 
 RUN apk update
+#install libc6-compat for grpc
 RUN apk add libc6-compat
 RUN npm install -g gulp supervisor watchify flow-bin babel-watch babel-core node-gyp babel-cli
 

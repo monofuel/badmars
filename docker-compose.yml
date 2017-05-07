@@ -133,3 +133,12 @@ services:
 #    image: rethinkdb
 #    ports:
 #      - "8085:8080"
+
+  node-build:
+    build:
+      context: .
+      dockerfile: Dockerfile-node-build
+    command: gulp watch:server
+    volumes:
+      - ./bin:/badmars/bin
+      - ./server:/badmars/server
