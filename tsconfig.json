@@ -1,0 +1,16 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "target": "es6",
+        "noImplicitAny": true,
+        "sourceMap": true,
+        "experimentalDecorators": true,
+        "outDir": "./bin/server/nodejs"
+    },
+    "exclude": [
+        "node_modules"
+    ],
+    "include": [
+        "./server/nodejs/**/*"
+    ]
+}

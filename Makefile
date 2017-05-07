@@ -56,25 +56,29 @@ buildPathfinder:
 buildValidator:
 	browserify ./server/nodejs/validator.js -t babelify -p tsify -o ./bin/server/nodejs/validator.js --node --im --debug
 
-watchServer: prepareBin watchChunk watchAI watchNet watchPathfinder watchValidator
+# TODO build for go services
+
+watchServer: prepareBin watchChunk watchAI watchNet watchWeb watchPathfinder watchValidator
 
 watchChunk:
-	watchify ./server/nodejs/chunk.js -t babelify -p tsify -o ./bin/server/nodejs/chunk.js --node --im --debug
+	watchify ./server/nodejs/chunk.js -t babelify -p tsify -o ./bin/server/nodejs/chunk.js --node --im --debug -v
 
 watchAI:
-	watchify ./server/nodejs/ai.js -t babelify -p tsify -o ./bin/server/nodejs/ai.js --node --im --debug
+	watchify ./server/nodejs/ai.js -t babelify -p tsify -o ./bin/server/nodejs/ai.js --node --im --debug -v
 
 watchNet:
-	watchify ./server/nodejs/net.js -t babelify -p tsify -o ./bin/server/nodejs/net.js --node --im --debug
+	watchify ./server/nodejs/net.js -t babelify -p tsify -o ./bin/server/nodejs/net.js --node --im --debug -v
 
 watchWeb:
-	watchify ./server/nodejs/web.js -t babelify -p tsify -o ./bin/server/nodejs/web.js --node --im --debug
+	watchify ./server/nodejs/web.js -t babelify -p tsify -o ./bin/server/nodejs/web.js --node --im --debug -v
 
 watchPathfinder:
-	watchify ./server/nodejs/pathfinder.js -t babelify -p tsify -o ./bin/server/nodejs/pathfinder.js --node --im --debug
+	watchify ./server/nodejs/pathfinder.js -t babelify -p tsify -o ./bin/server/nodejs/pathfinder.js --node --im --debug -v
 
 watchValidator:
-	watchify ./server/nodejs/validator.js -t babelify -p tsify -o ./bin/server/nodejs/validator.js --node --im --debug
+	watchify ./server/nodejs/validator.js -t babelify -p tsify -o ./bin/server/nodejs/validator.js --node --im --debug -v
+
+# TODO add watch for go services
 
 #--------------------------------------------
 #commands that use docker
