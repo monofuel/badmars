@@ -138,7 +138,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-node-build
-    command: gulp watch:server
+    command: ./node_modules/gulp/bin/gulp.js watch:server
     volumes:
       - ./bin:/badmars/bin
       - ./server:/badmars/server
