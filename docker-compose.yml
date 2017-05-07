@@ -100,7 +100,7 @@ services:
 #      - rethinkdb
   client:
     build: .
-    command: watchify ./client/badmars/client.js -t babelify -p livereactload -o ./public/badmars/js/badmars.js
+    command: make watchClient
     volumes:
       - ./server:/badmars/server
       - ./client:/badmars/client
@@ -113,7 +113,7 @@ services:
       - BADMARS_DB=rethinkdb.mono
   dashboard-frontend:
     build: .
-    command: watchify ./client/dashboard/index.jsx -t babelify -p livereactload -o ./public/dashboard/js/index.js
+    command: make watchDashboard
     volumes:
       - ./client:/badmars/client
       - ./public:/badmars/public

@@ -8,10 +8,10 @@ client:
 	BABEL_ENV=production gulp client
 
 watchClient:
-	 watchify ./client/badmars/client.js -t babelify -p livereactload -o ./public/badmars/js/badmars.js
+	 watchify ./client/badmars/client.js -t babelify -p tsify -p livereactload -o ./bin/public/badmars/js/badmars.js
 
 watchDashboard:
-	 watchify ./client/dashboard/index.jsx -t babelify -p livereactload -o ./public/dashboard/js/index.js
+	 watchify ./client/dashboard/index.jsx -t babelify -p tfsify -p livereactload -o ./bin/public/dashboard/js/index.js
 
 check:
 	go vet .

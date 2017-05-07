@@ -37,6 +37,8 @@
     "request": "^2.75.0",
     "rethinkdb": "^2.3.3",
     "simplex-noise": "^2.2.0",
+    "tsify": "^3.0.1",
+    "typescript": "^2.3.2",
     "vorpal": "^1.11.4",
     "ws": "^1.1.1"
   },
