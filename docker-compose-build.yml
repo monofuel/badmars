@@ -1,0 +1,10 @@
+version: '2'
+services:
+  node-build:
+    build:
+      context: .
+      dockerfile: Dockerfile-node-build
+    command: make build
+    volumes:
+      - ./bin:/badmars/bin
+      - ./server:/badmars/server

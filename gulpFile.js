@@ -41,6 +41,12 @@ gulp.task('copyConfig', () => {
 })
 
 
+gulp.task('copyPages', () => {
+	return gulp.src(['server/nodejs/web/views/**/*'])
+		.pipe(gulp.dest('bin/server/nodejs/web/views'));
+})
+
+
 function buildServer() {
 	return gulp.src(serverSrc)
 		.pipe(sourcemaps.init())
@@ -49,7 +55,7 @@ function buildServer() {
 		.pipe(gulp.dest('bin/server/nodejs/'));
 }
 
-gulp.task('build:server',['copyProto', 'copyConfig'], () => {
+gulp.task('build:server',['copyProto', 'copyConfig', 'copyPages'], () => {
 	return buildServer();
 });
 

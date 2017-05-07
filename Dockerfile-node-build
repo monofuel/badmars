@@ -2,7 +2,10 @@ FROM node:alpine
 
 RUN apk update
 #install libc6-compat for grpc
+RUN apk add make
 RUN apk add libc6-compat
+RUN apk add inotify-tools
+RUN apk add bash
 RUN npm install -g watchify flow-bin babel-watch babel-core node-gyp babel-cli
 
 RUN mkdir /badmars
@@ -13,4 +16,4 @@ RUN yarn install
 
 ADD . /badmars
 
-CMD ["./node_modules/gulp/bin/gulp.js", "build:server"]
+CMD ["make", "build"]
