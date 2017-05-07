@@ -30,6 +30,17 @@ gulp.task('dashboard', () => {
 		.pipe(gulp.dest('./public/dashboard/js/'));
 });
 
+gulp.task('copyProto', () => {
+	return gulp.src(['server/protos/**/*'])
+		.pipe(gulp.dest('bin/protos'));
+})
+
+gulp.task('copyConfig', () => {
+	return gulp.src(['server/nodejs/config/units.json'])
+		.pipe(gulp.dest('bin/server/nodejs/config/'));
+})
+
+
 function buildServer() {
 	return gulp.src(serverSrc)
 		.pipe(sourcemaps.init())
@@ -38,7 +49,7 @@ function buildServer() {
 		.pipe(gulp.dest('bin/server/nodejs/'));
 }
 
-gulp.task('build:server', () => {
+gulp.task('build:server',['copyProto', 'copyConfig'], () => {
 	return buildServer();
 });
 

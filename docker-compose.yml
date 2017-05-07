@@ -6,6 +6,7 @@ services:
       dockerfile: Dockerfile-go
     command: go run server/go/core/simulate/simulate.go
     volumes:
+      - ./bin:/badmars/bin
       - ./server:/go/src/github.com/monofuel/badmars/server
     links:
 #      - rethinkdb
@@ -20,6 +21,7 @@ services:
       dockerfile: Dockerfile-go
     command: go run server/go/core/dashboard/dashboard.go
     volumes:
+      - ./bin:/badmars/bin
       - ./server:/go/src/github.com/monofuel/badmars/server
       - ./public:/go/src/github.com/monofuel/badmars/public
 #    links:
@@ -30,8 +32,9 @@ services:
       - BADMARS_DB=rethinkdb.mono
   chunk:
     build: .
-    command: sh -c 'cd server/nodejs && babel-watch chunk.js'
+    command: sh -c 'cd bin/server/nodejs && supervisor chunk.js'
     volumes:
+      - ./bin:/badmars/bin
       - ./server:/badmars/server
 #    links:
 #      - rethinkdb
@@ -41,8 +44,9 @@ services:
       - BADMARS_DB=rethinkdb.mono
   ai:
     build: .
-    command: sh -c 'cd server/nodejs && babel-watch ai.js'
+    command: sh -c 'cd bin/server/nodejs && supervisor ai.js'
     volumes:
+      - ./bin:/badmars/bin
       - ./server:/badmars/server
     links:
 #      - rethinkdb
@@ -53,8 +57,9 @@ services:
       - BADMARS_DB=rethinkdb.mono
   pathfinder:
     build: .
-    command: sh -c 'cd server/nodejs && babel-watch pathfinder.js'
+    command: sh -c 'cd bin/server/nodejs && supervisor pathfinder.js'
     volumes:
+      - ./bin:/badmars/bin
       - ./server:/badmars/server
     links:
 #      - rethinkdb
@@ -65,8 +70,9 @@ services:
       - BADMARS_DB=rethinkdb.mono
   validator:
     build: .
-    command: sh -c 'cd server/nodejs && babel-watch validator.js'
+    command: sh -c 'cd bin/server/nodejs && supervisor validator.js'
     volumes:
+      - ./bin:/badmars/bin
       - ./server:/badmars/server
     links:
 #      - rethinkdb
@@ -77,8 +83,9 @@ services:
       - BADMARS_DB=rethinkdb.mono
   web:
     build: .
-    command: sh -c 'cd server/nodejs && babel-watch web.js'
+    command: sh -c 'cd bin/server/nodejs && supervisor web.js'
     volumes:
+      - ./bin:/badmars/bin
       - ./server:/badmars/server
       - ./client:/badmars/client
       - ./public:/badmars/public
@@ -116,8 +123,9 @@ services:
       - BADMARS_DB=rethinkdb.mono
   net:
     build: .
-    command: sh -c 'cd server/nodejs && babel-watch -d 5858 net.js'
+    command: sh -c 'cd bin/server/nodejs && supervisor net.js'
     volumes:
+      - ./bin:/badmars/bin
       - ./server:/badmars/server
     ports:
       - "7005:7005"
@@ -138,7 +146,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-node-build
-    command: ./node_modules/gulp/bin/gulp.js watch:server
+    command: ./node_modules/gulp/bin/gulp.js build:server
     volumes:
       - ./bin:/badmars/bin
       - ./server:/badmars/server

@@ -3,6 +3,8 @@ set -euo pipefail
 
 export PROJECT_ID=badmars-1242
 
+docker-compose build node-build
+
 if [ ! -f ./version.txt ]; then
     echo 1 > ./version.txt
 fi

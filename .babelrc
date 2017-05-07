@@ -1,16 +1,37 @@
 {
- "presets": ["env", "react"],
- "plugins": [ "transform-class-properties", "transform-strict-mode"],
- "env": {
-    "development": {
-      "plugins": [
-        ["react-transform", {
-          "transforms": [{
-            "transform": "livereactload/babel-transform",
-            "imports": ["react"]
-          }]
-        }]
-      ]
+    "presets": [
+        "react",
+        [
+            "env",
+            {
+                "target": {
+                    "node": "current"
+                }
+            }
+        ]
+    ],
+    "plugins": [
+        "transform-class-properties",
+        "transform-strict-mode",
+        "transform-runtime"
+    ],
+    "env": {
+        "development": {
+            "plugins": [
+                [
+                    "react-transform",
+                    {
+                        "transforms": [
+                            {
+                                "transform": "livereactload/babel-transform",
+                                "imports": [
+                                    "react"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            ]
+        }
     }
-  }
 }
