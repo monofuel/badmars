@@ -1,20 +1,4 @@
 apiVersion: extensions/v1beta1
-kind: HorizontalPodAutoscaler
-metadata:
-  name: simulate-deployment
-  namespace: default
-spec:
-  cpuUtilization:
-    targetPercentage: 80
-  maxReplicas: 1
-  minReplicas: 1
-  scaleRef:
-    apiVersion: extensions/v1beta1
-    kind: Deployment
-    name: simulate-deployment
-    subresource: scale
----
-apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: simulate-deployment
@@ -26,7 +10,7 @@ spec:
         name: simulate
     spec:
       containers:
-      - image: gcr.io/badmars-1242/badmars_go:v$VERSION
+      - image: king.mono:5000/badmars-1242/badmars_go:v$VERSION
         name: simulate
         command: ["go"]
         args: ["run", "server/go/core/simulate/simulate.go"]
@@ -36,10 +20,14 @@ spec:
             memory: 20Mi
         env:
         - name: BADMARS_DB
-          value: "10.128.0.5"
-        - name: TRACKING_SERVER
-          value: "http://japura.net"
+          value: "rethinkdb.mono"
         - name: MAP_HOST
           value: "chunk"
         - name: AI_HOST
           value: "ai"
+        - name: BADMARS_WS_SERVER
+          value: "wss://japura.net"
+        - name: BADMARS_WS_PUBLIC_PORT
+          value: "7006"
+        - name: TRACKING_SERVER
+          value: "http://andrelytics.mono"

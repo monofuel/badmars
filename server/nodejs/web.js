@@ -7,6 +7,7 @@
 import DB from './db/db';
 import Logger from './util/logger';
 import Web from './core/web';
+require('source-map-support').install();
 
 const logger = new Logger('web');
 const db = new DB(logger);

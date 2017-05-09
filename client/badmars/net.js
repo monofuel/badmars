@@ -75,7 +75,7 @@ window.track = (name, kargs) => {
 	if (!kargs)
 		kargs = {};
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://japura.net:9001/track/event");
+	xhr.open("POST", "https://japura.net:9001/track/event");
 	kargs.name = "badmars_v1_" + name;
 	kargs.version = version;
 	if (playerInfo) {

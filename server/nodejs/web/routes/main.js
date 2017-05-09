@@ -15,7 +15,6 @@ export default function route(ctx: MonoContext, app: express) {
 		ctx.db.map.listNames().then((list: Array<string>) => {
 			res.render('pages/index', {
 				worlds: list,
-				user: req.user
 			});
 		});
 	});

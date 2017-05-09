@@ -8,6 +8,7 @@ import DB from './db/db';
 import Logger from './util/logger';
 import Health from './core/health';
 import Net from './core/net';
+require('source-map-support').install();
 
 const logger = new Logger('net');
 const db = new DB(logger);

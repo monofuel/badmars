@@ -5,48 +5,33 @@ metadata:
    name: net
  name: net
 spec:
+ type: NodePort
+ selector:
+  name: net
  ports:
-   - name: web
+   - name: net
      port: 7005
      targetPort: 7005
-   - name: hotreload
-     port: 5858
-     targetPort: 5858
+     nodePort: 30005
  selector:
    name: net
----
-apiVersion: extensions/v1beta1
-kind: HorizontalPodAutoscaler
-metadata:
-  name: net-deployment
-  namespace: default
-spec:
-  cpuUtilization:
-    targetPercentage: 80
-  maxReplicas: 1
-  minReplicas: 1
-  scaleRef:
-    apiVersion: extensions/v1beta1
-    kind: Deployment
-    name: net-deployment
-    subresource: scale
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: net-deployment
 spec:
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:
         name: net
     spec:
       containers:
-      - image: gcr.io/badmars-1242/badmars_node:v$VERSION
+      - image: king.mono:5000/badmars-1242/badmars_node:v$VERSION
         name: net
         command: ["sh"]
-        args: ["-c", "cd server/nodejs && babel-watch net.js"]
+        args: ["-c", "cd bin/server/nodejs && node net.js"]
         resources:
           requests:
             cpu: 20m
@@ -67,15 +52,16 @@ spec:
         - name: net
           containerPort: 7005
           hostPort: 7005
-        - name: hotreload
-          containerPort: 5858
-          hostPort: 5858
         env:
         - name: BADMARS_DB
-          value: "10.128.0.5"
+          value: "rethinkdb.mono"
         - name: MAP_HOST
           value: "chunk"
         - name: AI_HOST
           value: "ai"
+        - name: BADMARS_WS_SERVER
+          value: "wss://japura.net"
+        - name: BADMARS_WS_PUBLIC_PORT
+          value: "7006"
         - name: TRACKING_SERVER
-          value: "http://japura.net"
+          value: "http://andrelytics.mono"

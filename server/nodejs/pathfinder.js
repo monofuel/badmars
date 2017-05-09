@@ -8,6 +8,7 @@ import DB from './db/db';
 import Logger from './util/logger';
 import Health from './core/health';
 import Pathfinder from './core/pathfinding';
+require('source-map-support').install();
 
 const logger = new Logger('pathfinder');
 const db = new DB(logger);

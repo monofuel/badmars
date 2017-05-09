@@ -11,21 +11,17 @@ spec:
  selector:
    name: ai
 ---
-apiVersion: extensions/v1beta1
+apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
   name: ai-deployment
-  namespace: default
 spec:
-  cpuUtilization:
-    targetPercentage: 80
-  maxReplicas: 1
-  minReplicas: 1
-  scaleRef:
-    apiVersion: extensions/v1beta1
+  maxReplicas: 10
+  minReplicas: 2
+  scaleTargetRef:
     kind: Deployment
     name: ai-deployment
-    subresource: scale
+  targetCPUUtilizationPercentage: 80
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -39,10 +35,10 @@ spec:
         name: ai
     spec:
       containers:
-      - image: gcr.io/badmars-1242/badmars_node:v$VERSION
+      - image: king.mono:5000/badmars-1242/badmars_node:v$VERSION
         name: ai
         command: ["sh"]
-        args: ["-c", "cd server/nodejs && babel-watch ai.js"]
+        args: ["-c", "cd bin/server/nodejs && node ai.js"]
         resources:
           requests:
             cpu: 30m
@@ -65,10 +61,14 @@ spec:
           hostPort: 3010
         env:
         - name: BADMARS_DB
-          value: "10.128.0.5"
+          value: "rethinkdb.mono"
         - name: MAP_HOST
           value: "chunk"
         - name: AI_HOST
           value: "ai"
+        - name: BADMARS_WS_SERVER
+          value: "wss://japura.net"
+        - name: BADMARS_WS_PUBLIC_PORT
+          value: "7006"
         - name: TRACKING_SERVER
-          value: "http://japura.net"
+          value: "http://andrelytics.mono"

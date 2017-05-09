@@ -7,6 +7,7 @@
 import DB from './db/db';
 import Logger from './util/logger';
 import Validator from './core/validator';
+require('source-map-support').install();
 
 const logger = new Logger('validator');
 const db = new DB(logger);

@@ -8,20 +8,7 @@
     <div>
       <ul class="nav navbar-nav">
         <li class="active"> <a href="/badmars">Home</a></li>
-		<li> <a href="/badmars">Multiplayer Demo</a></li>
-      </ul>
-      <ul class="nav navbar-nav navbar-right">
-        <% if (user) { %>
-          <li class="dropdown">
-            <a class="dropdown-toggle active" data-toggle="dropdown" href="#"><%= user.username %><span class="caret"></span></a>
-            <ul class="dropdown-menu">
-                <li><a href="/profile">Profile</a></li>
-                <li><a href="/logout">Logout</a></li>
-            </ul>
-          </li>
-        <% } else { %>
-            <li><a href="/auth/google"><span class="glyphicon glyphicon-log-in"></span> Google Login</a></li>
-        <% } %>
+		<li> <a href="badmars">Multiplayer Demo</a></li>
       </ul>
     </div>
   </div>

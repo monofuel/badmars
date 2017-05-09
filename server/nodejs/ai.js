@@ -9,6 +9,7 @@ import Logger from './util/logger';
 import {init as statInit} from './util/stats';
 import Health from './core/health';
 import AI from './core/AI';
+require('source-map-support').install();
 
 const logger = new Logger('ai');
 const db = new DB(logger);

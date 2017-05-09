@@ -96,7 +96,7 @@ export default class Logger {
 		if ((opts.silent && this.logLevel !== 'DEBUG') || this.logLevel === 'SILENT') {
 			return;
 		}
-		const userText = opts.req ? `USER|${opts.req.user.username}` : 'SYSTEM';
+		const userText = opts.req && opts.req.user ? `USER|${opts.req.user.username}` : 'SYSTEM';
 		console.log(`${this.moduleName}\t${userText}\tINFO\t${dateFormat(body.timestamp)}\t${info}`);
 		if (Object.keys(body).length > 1) {
 			console.log(JSON.stringify(body, null, 2));

@@ -5,9 +5,13 @@ metadata:
    name: dashboard
  name: dashboard
 spec:
+ type: NodePort
+ selector:
+  name: dashboard
  ports:
    - port: 8090
      targetPort: 8090
+     nodePort: 30008
  selector:
    name: dashboard
 ---
@@ -23,7 +27,7 @@ spec:
         name: dashboard
     spec:
       containers:
-      - image: gcr.io/badmars-1242/badmars_go:v$VERSION
+      - image: king.mono:5000/badmars-1242/badmars_go:v$VERSION
         name: dashboard
         command: ["go"]
         args: ["run", "server/go/core/dashboard/dashboard.go"]
@@ -37,6 +41,14 @@ spec:
           hostPort: 8090
         env:
         - name: BADMARS_DB
-          value: "10.128.0.5"
+          value: "rethinkdb.mono"
+        - name: MAP_HOST
+          value: "chunk"
+        - name: AI_HOST
+          value: "ai"
+        - name: BADMARS_WS_SERVER
+          value: "wss://japura.net"
+        - name: BADMARS_WS_PUBLIC_PORT
+          value: "7006"
         - name: TRACKING_SERVER
-          value: "http://japura.net"
+          value: "http://andrelytics.mono"
