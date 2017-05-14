@@ -1,10 +1,8 @@
-/* @flow */
 // monofuel
-// 2-7-2016
 
-import { PlanetLoc } from './planetLoc.js';
+import PlanetLoc from './planetLoc';
 import { TILE_LAND, TILE_WATER, TILE_CLIFF, TILE_COAST } from './tileTypes.js';
-import { Entity } from '../units/entity.js';
+import Entity from '../units/entity.js';
 import { display, playerInfo } from '../client.js';
 import { Display } from '../display.js';
 import Iron from '../units/iron.js';
@@ -14,14 +12,9 @@ import GroundUnit from '../units/groundUnit.js';
 import { updateUnit } from '../units/unitBalance.js';
 import { N, S, E, W, C } from '../units/directions.js';
 
-import {
-	registerListener,
-	deleteListener
-} from '../net.js';
-
 //TODO chunk should be a type
 
-export class Map {
+export default class Map {
 	settings: Settings;
 	chunkMap: Object;
 	landMeshes: Array <THREE.Object3D>;

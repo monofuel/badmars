@@ -5,12 +5,12 @@
         "noImplicitAny": true,
         "sourceMap": true,
         "experimentalDecorators": true,
-        "outDir": "./bin/server/nodejs"
+        "outDir": "./bin/server/nodejs",
+        "jsx": "preserve"
     },
-    "exclude": [
-        "node_modules"
-    ],
     "include": [
-        "./server/nodejs/**/*"
+        "./server/nodejs/**/*",
+        "./client/badmars/**/*",
+        "./ts-lib/*"
     ]
 }

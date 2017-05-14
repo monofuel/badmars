@@ -1,6 +1,6 @@
 // monofuel
 
-import { SyncEvent, AsyncEvent } from 'ts-events';
+import { SyncEvent } from 'ts-events';
 import config from './config';
 import { log } from './logger';
 const t = require('flow-runtime');
@@ -10,22 +10,12 @@ const t = require('flow-runtime');
 // - typescript types
 // - runtime types
 
-interface SelectedUnitEvent {
+interface SelectedUnitsEvent {
 	unit: Object;
 }
 
-const SelectedUnitEventType = t.object({
-	unit: t.object(), // TODO type this
-})
-
-interface UnitUpdateEvent {
-	unit: Object;
-	prev: Object;
-}
-
-const UnitUpdateEventType = t.object({
-	unit: t.object(),
-	prev: t.object(),
+const SelectedUnitsEventType = t.object({
+	units: t.array(t.object()), // TODO type this
 })
 
 interface TransferEvent {
@@ -35,21 +25,15 @@ interface TransferEvent {
 
 const TransferEventType = t.object({
 	unit: t.object(),
+	sender: t.object()
 })
 
 // TODO properly type this
-interface ChatEvent {
+export interface ChatEvent {
 	username: string;
 	text: string;
 	timestamp: number;
 }
-
-const ChatEventType = t.object({
-	username: t.string(),
-	text: t.string(),
-	timestamp: t.number(),
-})
-
 interface DisplayErrorEvent {
 	errMsg: string;
 }
@@ -64,38 +48,35 @@ interface SetDestinationEvent {
 	loc: Object;
 }
 
-// ------------------------------------------
-// event emitters
+type GameStageType = 'login' | 'planet';
+export interface GameStageEvent {
+	stage: GameStageType;
+}
 
-export const SelectedUnitChange = new SyncEvent<SelectedUnitEvent>();
-export const UnitUpdateChange = new SyncEvent<UnitUpdateEvent>();
+// ------------------------------------------
+// frontend event emitters
+
+export const SelectedUnitsChange = new SyncEvent<SelectedUnitsEvent>();
 export const TransferChange = new SyncEvent<TransferEvent>();
-export const ChatChange = new SyncEvent<ChatEvent>();
 export const DisplayErrorChange = new SyncEvent<DisplayErrorEvent>();
 export const LoginChange = new SyncEvent<LoginEvent>();
-
+export const GameStageChange = new SyncEvent<GameStageEvent>();
 
 // ------------------------------------------
 // validator listeners
 
 if (config.debug) {
-	// mount runtime type-check listeners
-	log('debug', 'mounting runtime type checkers');
-	SelectedUnitChange.attach((event: SelectedUnitEvent) => {
-		SelectedUnitEventType.assert(event);
+	SelectedUnitsChange.attach((event: SelectedUnitsEvent) => {
+		SelectedUnitsEventType.assert(event);
 	})
 
-	UnitUpdateChange.attach((event: UnitUpdateEvent) => {
-		UnitUpdateEventType.assert(event);
-	})
 	TransferChange.attach((event: TransferEvent) => {
 		TransferEventType.assert(event);
 	})
-	ChatChange.attach((event: ChatEvent) => {
-		ChatEventType.assert(event);
-	})
+
 	DisplayErrorChange.attach((event: DisplayErrorEvent) => {
 		DisplayErrorEventType.assert(event);
-	})
+	});
+	log('debug', 'mounted runtime game type checkers');
 }
 

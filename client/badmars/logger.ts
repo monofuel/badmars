@@ -21,6 +21,13 @@ const LogChange = new AsyncEvent<LogEvent>();
 export function log(level: LogLevelType, name: string, meta: MetaType = {}) {
 	LogChange.post({ name, meta, level})
 }
+export function logError(err: Error) {
+	const meta = {
+		message: err.message,
+		stack: err.stack
+	}
+	LogChange.post({ name: 'error', meta, level: 'error' })
+}
 
 // log everything info and below to andrelytics
 LogChange.attach(async (event: LogEvent): Promise<void> => {
@@ -61,4 +68,15 @@ function numberForLevel(level: LogLevelType): number {
 		case 'silly':
 			return 5;
 	}
+}
+
+window.onerror = (msg, url, line, col, error) => {
+	const body = {
+		msg: msg,
+		url: url,
+		line: line,
+		col: col,
+		stack: error.stack,
+	}
+	log('error', msg, body);
 }

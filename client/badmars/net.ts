@@ -1,0 +1,238 @@
+// monofuel
+
+import { autobind } from 'core-decorators';
+import Map from './map/map';
+import Entity from './units/entity';
+import { DisplayErrorChange } from './gameEvents';
+import Player from './player';
+import State from './state';
+import { log, logError } from './logger';
+import { AsyncEvent } from 'ts-events';
+import config from './config';
+
+// set by server as global values
+declare var SERVER_URL: string;
+declare var SERVER_PORT: number;
+
+// ------------------------------------------
+// server event types
+
+type NetworkEvent = MapEvent | ConnectedEvent | PlayersEvent | SpawnEvent | UnitEvent | LoginEvent;
+
+interface BaseEvent {
+	success: boolean;
+	reason?: string;
+}
+
+interface MapEvent extends BaseEvent {
+	type: 'map';
+}
+export interface ConnectedEvent extends BaseEvent {
+	type: 'connected';
+}
+
+interface PlayersEvent extends BaseEvent {
+	type: 'players';
+	players: {
+		uuid: UUID,
+		name: string,
+		color: string,
+	}[];
+}
+
+interface SpawnEvent extends BaseEvent {
+	type: 'spawn';
+}
+
+interface UnitEvent extends BaseEvent {
+	type: 'unit';
+	units: any; // TODO
+}
+
+interface UnitStatsEvent extends BaseEvent {
+	type: 'unitStats';
+	// TODO
+}
+
+interface ChatEvent extends BaseEvent {
+	type: 'chat';
+	uuid: UUID;
+	channel: string;
+	text: string;
+	timestamp: number;
+}
+
+export interface LoginEvent extends BaseEvent {
+	type: 'login';
+	apiKey?: string;
+}
+
+// ------------------------------------------
+// request event types
+
+type RequestType = UnitStatsEvent | GetUnitsRequest | LoginRequest | SetDestinationRequest;
+
+interface UnitStatsRequest {
+	type: 'unitStats';
+}
+
+interface GetUnitsRequest {
+	type: 'getUnits';
+}
+
+interface LoginRequest {
+	type: 'login';
+	username: string;
+	apiKey: string;
+	planet: string;
+}
+
+interface SetDestinationRequest {
+	type: 'setDestination';
+	unitId: UUID;
+	location: number[];
+}
+
+interface FactoryOrderRequest {
+	type: 'factoryOrder';
+	factory: UUID;
+	unitType: string;
+}
+
+// ------------------------------------------
+// event emitters
+
+export const MapChange = new AsyncEvent<MaptEvent>();
+export const ConnectedChange = new AsyncEvent<ConnectedEvent>();
+export const PlayersChange = new AsyncEvent<PlayersEvent>();
+export const SpawnChange = new AsyncEvent<SpawnEvent>();
+export const UnitChange = new AsyncEvent<UnitEvent>();
+export const ChatChange = new AsyncEvent<ChatEvent>();
+export const LoginChange = new AsyncEvent<LoginEvent>();
+
+export const RequestChange = new AsyncEvent<RequestType>();
+
+// ------------------------------------------
+// validator listeners
+
+// TODO
+
+if (config.debug) {
+	log('debug', 'mounted runtime server type checkers');
+}
+
+// ------------------------------------------
+// network class
+
+export default class Net {
+	ws: WebSocket;
+	listeners: Object;
+	state: State;
+
+	constructor(state: State) {
+		this.listeners = {};
+		this.state = state;
+	}
+
+	private connectionError(err: Error) {
+		logError(err);
+		if (this.state.connected) {
+			DisplayErrorChange.post({ errMsg: 'The connection to the server was lost. You should reload' });
+		}
+		this.state.connected = false;
+	}
+
+	public async connect(): Promise<void> {
+		log('debug', `connecting to: ${SERVER_URL}:${SERVER_PORT}`);
+		this.ws = new WebSocket(SERVER_URL + ':' + SERVER_PORT);
+
+		setInterval(() => {
+			if (this.getState() !== 1) {
+				this.connectionError(new Error(`bad connection state: ${this.getState()}`));
+			};
+		}, 1000);
+
+
+		this.ws.onerror = () => {
+			DisplayErrorChange.post({ errMsg: 'The connection to the server was lost. You should reload' });
+		}
+
+		this.ws.onmessage = this.onmessage;
+
+		PlayersChange.attach((event: PlayersEvent) => {
+			event.players.forEach((player) => {
+				this.state.addPlayer(player.uuid, player.name, player.color);
+			});
+		});
+
+		await new Promise((resolve) => {
+			this.ws.onopen = () => {
+				log('debug', 'connected!');
+				RequestChange.attach(this.send);
+				resolve();
+			}
+		});
+	}
+
+	@autobind
+	private async onmessage(event: any): Promise<void> {
+		const data: NetworkEvent = JSON.parse(event.data);
+		if (!data.type) {
+			log('error', 'message recieved without type');
+			return;
+		}
+		if (!data.success) {
+			log('debug', `message failed: ${data.type} reason: ${data.reason}`)
+		}
+
+		// TODO ask for unit stats
+		// TODO load planet information for map
+		// TODO ask for units
+		// TODO ask for spawning
+		// TODO get players
+
+		switch (data.type) {
+			case 'map':
+				MapChange.post(data);
+				return;
+			case 'connected':
+				ConnectedChange.post(data);
+				return;
+			case 'players':
+				PlayersChange.post(data);
+				return;
+			case 'spawn':
+				SpawnChange.post(data);
+				return;
+			case 'unit':
+				UnitChange.post(data);
+				return;
+			default:
+				log('debug', `unknown message type: ${(data as any).type} with fields ${Object.keys(data)}`)
+		}
+	}
+
+	@autobind
+	private send(data: RequestType) {
+		try {
+			this.ws.send(JSON.stringify(data));
+		} catch (err) {
+			this.connectionError(err);
+		}
+	}
+
+	private close() {
+		this.ws.close();
+	}
+
+	/*
+	 * 0 is not connected
+	 * 1 is connected
+	 * 2 is closing
+	 * 3 is closed
+	 */
+	private getState(): number {
+		return this.ws.readyState;
+	}
+
+}

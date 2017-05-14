@@ -2,11 +2,10 @@
 
 // Stats comes from stats.min.js
 declare interface StatsType {
-	constructor();
-	setMode(num: number);
+	setMode(num: number): void;
 	domElement: any;
-	begin();
-	end();
+	begin(): void;
+	end(): void;
 }
 declare var Stats: any;
 

@@ -1,13 +1,8 @@
-/* @flow */
-'use strict';
-
 // monofuel
-// 2-7-2016
-
 
 import { N, S, E, W, C } from './directions.js';
 import { PlanetLoc } from '../map/planetLoc.js';
-import { Player } from '../player.js';
+import Player from '../player';
 import { selectedUnit, selectedUnits, display } from '../client.js';
 import { updateUnit } from './unitBalance.js';
 import { MODE_FOCUS, buttonMode } from '../client.js';

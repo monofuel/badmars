@@ -4,7 +4,8 @@
 // monofuel
 // 6-18-2016
 
-import React from 'react';
+import { autobind } from 'core-decorators';
+import * as React from 'react';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import { Button } from 'react-bootstrap';
 
@@ -17,8 +18,6 @@ import SelectedUnitWell from './selectedUnit.jsx';
 import Transfer from './transfer.jsx';
 
 import {
-	setHudFocus,
-	unsetHudFocus,
 	construct,
 	factoryOrder,
 	performTransfer,
@@ -29,21 +28,25 @@ import Entity from '../units/entity.js';
 import {
 	DisplayErrorChange,
 	LoginChange,
-	ChatChange,
-	SelectedUnitChange,
-	UnitUpdateChange,
-	TransferChange
+	SelectedUnitsChange,
+	TransferChange,
+	GameStageChange,
+	GameStageEvent,
  } from '../gameEvents';
+ import {
+	 ChatChange,
+	 UnitUpdateChange
+ } from '../net';
 
-type Props = {}
-type State = {
-	login: boolean,
-	selectedUnit: ?Entity,
-	transferUnit: ?Entity,
-	errorMessage: ?string,
-	aboutOpen: boolean,
-	transfering: boolean,
-	chatLog: Object[]
+interface Props {}
+interface State {
+	login: boolean;
+	selectedUnit: Entity | null;
+	transferUnit: Entity | null;
+	errorMessage: string | null;
+	aboutOpen: boolean;
+	transfering: boolean;
+	chatLog: Object[];
 }
 
 const hudStyle = {
@@ -61,9 +64,9 @@ const aboutButtonStyle = {
 	width: '60px'
 };
 
-export default class HUD extends React.Component {
-	state : State;
-	props : Props;
+export default class HUD extends React.Component<Props, State> {
+	state: State;
+	props: Props;
 
 	constructor(props: Props) {
 		super(props);
@@ -76,10 +79,12 @@ export default class HUD extends React.Component {
 			transfering: false,
 			chatLog: []
 		};
-		SelectedUnitChange.attach(({ unit }) => this.selectedUnitHandler(unit));
+
+		SelectedUnitsChange.attach(({ units }) => this.selectedUnitHandler(units));
 		UnitUpdateChange.attach(({ unit }) => this.updateUnitsHandler(unit));
 		TransferChange.attach(({ unit }) => this.unitTransferHandler(unit));
 		ChatChange.attach((msg) => this._addChatMessage(msg));
+		GameStageChange.attach(this._gameStateChange);
 	}
 
 	render() {
@@ -152,6 +157,13 @@ export default class HUD extends React.Component {
 		}
 	}
 
+	@autobind
+	_gameStateChange(event: GameStateEvent) {
+		this.setState({
+			login: event.stage === 'login'
+		})
+	}
+
 	_addChatMessage(message: Object) {
 		this.setState({
 			chatLog: [message].concat(this.state.chatLog.slice(0,199))
@@ -167,7 +179,7 @@ export default class HUD extends React.Component {
 		});
 	}
 
-	updateErrorMessage(msg: string, vanish: ?boolean) : void {
+	updateErrorMessage(msg: string, vanish?: boolean): void {
 		this.setState({
 			errorMessage: msg
 		});
@@ -175,7 +187,7 @@ export default class HUD extends React.Component {
 		if (vanish) {
 			setTimeout(() => {
 				this.clearErrorMessage();
-			},2000);
+			}, 2000);
 		}
 	}
 
