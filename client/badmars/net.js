@@ -17,12 +17,8 @@ import {
 	version
 } from "./client.js";
 import { Map } from "./map/map.js";
-import {
-	registerBusListener,
-	deleteBusListener,
-	fireBusEvent
-} from './eventBus.js';
-import type { Entity } from './units/entity';
+import type Entity from './units/entity';
+import { DisplayErrorChange } from './gameEvents';
 
 //now set by server as global values
 //const SERVER_URL = "ws://dev.japura.net";
@@ -64,27 +60,14 @@ let connectionLost = false;
 function connectionError(err) {
 	// HACK to only fire once
 	if (!connectionLost) {
-		console.log("connection lost");
-		window.track("error",err);
-		fireBusEvent('error','The connection to the server was lost. You should reload');
+		DisplayErrorChange.post({ errMsg: 'The connection to the server was lost. You should reload'});
 		connectionLost = true;
 	}
 }
 
 window.track = (name, kargs) => {
-	if (!kargs)
-		kargs = {};
-	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "https://japura.net:9001/track/event");
-	kargs.name = "badmars_v1_" + name;
-	kargs.version = version;
-	if (playerInfo) {
-		kargs.playerName = playerInfo.username;
-	}
-	verifyTrack(name,kargs);
-	console.log('tracking ' + name);
-	console.log(kargs);
-	xhr.send(JSON.stringify(kargs));
+	console.log('track is a noop now');
+	// throw new Error('track is depricated');
 }
 
 function verifyTrack(name,kargs) {
@@ -160,11 +143,7 @@ export class Net {
 			}
 
 			self.s.onerror = () => {
-				console.log("connection lost");
-				window.track("error", {
-					message: "connection lost"
-				});
-				fireBusEvent('error','The connection to the server was lost. You should reload');
+				DisplayErrorChange.post({ errMsg: 'The connection to the server was lost. You should reload'});
 			}
 
 			window.sendMessage = (data) => {

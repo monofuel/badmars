@@ -17,12 +17,16 @@
   },
   "homepage": "https://github.com/monofuel/badMars-JS#readme",
   "dependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/winston": "^2.3.2",
     "alea": "0.0.9",
+    "axios": "^0.16.1",
     "babel-preset-env": "^1.4.0",
     "babel-preset-es2017": "^6.24.1",
     "bufferutil": "^3.0.0",
     "ejs": "^2.5.2",
     "express": "^4.14.0",
+    "flow-runtime": "^0.12.0",
     "grpc": "^1.0.0",
     "hat": "0.0.3",
     "lodash": "^4.15.0",
@@ -30,7 +34,7 @@
     "material-ui": "^0.16.7",
     "node-context": "^0.7.0",
     "parse-json": "^2.2.0",
-    "react": "^15.0.2",
+    "react": "^15.5.4",
     "react-bootstrap": "^0.30.7",
     "react-dom": "^15.0.2",
     "react-google-chart": "^0.1.2",
@@ -40,11 +44,14 @@
     "rethinkdb": "^2.3.3",
     "simplex-noise": "^2.2.0",
     "source-map-support": "^0.4.15",
+    "stats.js": "^0.17.0",
+    "ts-events": "^3.2.0",
     "tsify": "^3.0.1",
     "typescript": "^2.3.2",
     "utf-8-validate": "^3.0.1",
     "vorpal": "^1.11.4",
-    "ws": "^1.1.1"
+    "winston": "^2.3.1",
+    "ws": "^2.3.1"
   },
   "devDependencies": {
     "babel-plugin-react-transform": "^2.0.2",
@@ -61,7 +68,7 @@
     "gulp-concat": "^2.6.1",
     "gulp-sourcemaps": "^2.4.1",
     "gulp-uglify": "^2.0.0",
-    "livereactload": "^3.0.0",
+    "livereactload": "^3.3.0",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   }

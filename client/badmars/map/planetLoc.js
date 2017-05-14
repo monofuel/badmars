@@ -4,9 +4,7 @@
 // monofuel
 // 2-7-2016
 
-import {
-	Map
-} from './map.js';
+import type { Map } from './map.js';
 import {
 	getTypeName,
 	TILE_LAND,
@@ -201,3 +199,5 @@ export class PlanetLoc {
 			otherLoc.planet == this.planet);
 	}
 }
+
+export default PlanetLoc;

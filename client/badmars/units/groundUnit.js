@@ -5,7 +5,7 @@
 // 2-7-2016
 
 import { PlanetLoc } from '../map/planetLoc.js';
-import { Entity } from "./entity.js";
+import Entity from "./entity.js";
 import { N, S, E, W, C } from './directions.js';
 import { display } from '../client.js';
 

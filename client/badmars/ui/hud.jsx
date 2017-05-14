@@ -24,12 +24,16 @@ import {
 	performTransfer,
 	sendChat
 } from '../client.js';
-import {Entity} from '../units/entity.js';
+import Entity from '../units/entity.js';
+
 import {
-	registerBusListener,
-	deleteBusListener,
-	fireBusEvent
-} from '../eventBus.js';
+	DisplayErrorChange,
+	LoginChange,
+	ChatChange,
+	SelectedUnitChange,
+	UnitUpdateChange,
+	TransferChange
+ } from '../gameEvents';
 
 type Props = {}
 type State = {
@@ -72,20 +76,10 @@ export default class HUD extends React.Component {
 			transfering: false,
 			chatLog: []
 		};
-		let self = this;
-		registerBusListener('selectedUnit',(unit: Entity) => {
-			self.selectedUnitHandler(unit);
-		});
-		registerBusListener('unit',(unit: Entity) => {
-			self.updateUnitsHandler(unit);
-		});
-		registerBusListener('transfer',(unit: Entity) => {
-			self.unitTransferHandler(unit);
-		});
-		registerBusListener('chat',(message: Object) => {
-			self._addChatMessage(message);
-		});
-
+		SelectedUnitChange.attach(({ unit }) => this.selectedUnitHandler(unit));
+		UnitUpdateChange.attach(({ unit }) => this.updateUnitsHandler(unit));
+		TransferChange.attach(({ unit }) => this.unitTransferHandler(unit));
+		ChatChange.attach((msg) => this._addChatMessage(msg));
 	}
 
 	render() {

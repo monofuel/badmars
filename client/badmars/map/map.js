@@ -1,6 +1,4 @@
 /* @flow */
-'use strict';
-
 // monofuel
 // 2-7-2016
 
@@ -20,11 +18,6 @@ import {
 	registerListener,
 	deleteListener
 } from '../net.js';
-import {
-	registerBusListener,
-	deleteBusListener,
-	fireBusEvent
-} from '../eventBus.js';
 
 //TODO chunk should be a type
 

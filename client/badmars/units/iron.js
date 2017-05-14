@@ -5,7 +5,7 @@
 // 2-7-2016
 
 import { PlanetLoc } from '../map/planetLoc.js';
-import { Entity } from "./entity.js";
+import Entity from "./entity.js";
 import { getMesh } from './unitModels.js';
 
 export default class Iron extends Entity {

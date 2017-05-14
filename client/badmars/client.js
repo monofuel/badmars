@@ -7,7 +7,7 @@
 import { Display } from "./display.js";
 
 import { Map } from "./map/map.js";
-import { Entity } from "./units/entity.js";
+import Entity from "./units/entity.js";
 import { PlanetLoc } from "./map/planetLoc.js";
 import { StatsMonitor } from "./statsMonitor.js";
 import { Net, registerListener, deleteListener, getPlayerById } from "./net.js";
@@ -15,7 +15,16 @@ import { loadAllModelsAsync } from "./units/unitModels.js";
 import { loadAllSounds } from "./audio/sound.js";
 import HUD from "./ui/hud.jsx";
 
-import { registerBusListener, deleteBusListener, fireBusEvent } from './eventBus.js';
+import {
+	DisplayErrorChange,
+	LoginChange,
+	ChatChange,
+	SelectedUnitChange,
+	UnitUpdateChange,
+	TransferChange
+ } from './gameEvents';
+ import { log } from './logger';
+
 import { Hilight } from './ui/hilight.js';
 
 import React from 'react';
@@ -132,7 +141,6 @@ window.onload = function () {
 	statsMonitor = new StatsMonitor();
 	net = new Net();
 	hilight = new Hilight();
-	window.debug.fireBusEvent = fireBusEvent;
 	let panelElement = document.getElementById('HUDPanel');
 	if (panelElement instanceof HTMLCanvasElement) {
 		hudPanel = panelElement;
@@ -151,7 +159,7 @@ window.onload = function () {
 		hud = hudComponent;
 	}
 
-	registerBusListener('error',errorListener);
+	DisplayErrorChange.attach(errorListener);
 
 	loadAllSounds(); //TODO should be done async probably
 	loadAllModelsAsync()
@@ -161,7 +169,7 @@ window.onload = function () {
 
 		});
 
-	registerListener('login',loginListener);
+	LoginChange.attach(loginListener);
 	registerListener('setDestination', moveListener);
 
 	//hacky way to reload selected view on changes
@@ -172,7 +180,7 @@ window.onload = function () {
 		console.log('updating gui');
 	  for (var unit of data.units) {
 	    if (unit.uuid == selectedUnit.uuid) {
-				fireBusEvent('selectedUnit',selectedUnit);
+				SelectedUnitChange.post({ unit: selectedUnit })
 			}
 	  }
 	});
@@ -185,7 +193,7 @@ window.onload = function () {
 			username = user.username;
 		}
 		//timestamp is time recieved, not server time
-		fireBusEvent('chat', {user: username,text: data.text,timestamp:Date.now()});
+		ChatChange.post({user: username,text: data.text,timestamp:Date.now()});
 	});
 
 	username = $.cookie("username");
@@ -242,7 +250,7 @@ window.onload = function () {
 						//TODO re-zoom to unit after loading
 					}
 					selectedUnit = unit;
-					fireBusEvent('selectedUnit',unit);
+					SelectedUnitChange.post({ unit });
 					break;
 			}
 		}
@@ -329,7 +337,7 @@ window.onload = function () {
 							if (selectedUnits.length == 1) {
 								selectedUnit = selectedUnits[0];
 								window.debug.selectedUnit = selectedUnit;
-								fireBusEvent('selectedUnit',selectedUnit);
+								SelectedUnitChange.post({ unit: selectedUnit });
 							}
 							buttonMode = MODE_MOVE;
 							mouseClick = function (tile) {
@@ -390,7 +398,7 @@ window.onload = function () {
 					//TODO the whole system needs a lot of refactoring for multiple selected units
 					window.debug.selectedUnit = selectedUnit;
 					window.debug.selectedUnits = selectedUnits;
-					fireBusEvent('selectedUnit',unit);
+					SelectedUnitChange.post({ unit });
 					break;
 				case RIGHT_MOUSE:
 					if (buttonMode == MODE_MOVE) {
@@ -398,8 +406,7 @@ window.onload = function () {
 						var unit = map.getSelectedUnit(mouse);
 						if (unit && selectedUnit && playerInfo && unit.playerId == playerInfo.id && unit.uuid !== selectedUnit.uuid) {
 							console.log('right clicked players own unit');
-							transferUnit = unit;
-							fireBusEvent('transfer',transferUnit);
+							TransferChange.post({ unit });
 						}
 						if (selectedTile && mouseClick) {
 							mouseClick(selectedTile);
@@ -566,14 +573,14 @@ var moveListener = (data) => {
 	}
 }
 
-function errorListener(msg: string) {
+function errorListener({msg}: { msg: string }) {
 	console.log('displaying error: ',msg);
   hud.updateErrorMessage(msg);
 }
 
 var loginListener = (data) => {
 	if (data.success) {
-		window.track("login_success", {
+		log('info', 'login_success', {
 			username: username
 		});
 		if (data.apiKey) {

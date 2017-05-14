@@ -14,7 +14,7 @@ import { MODE_FOCUS, buttonMode } from '../client.js';
 import { getMesh } from './unitModels.js';
 import { getPlayerById } from '../net.js';
 
-export class Entity {
+export default class Entity {
 
 	/* client stuff */
 	mesh: THREE.Object3D;
