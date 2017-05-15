@@ -4,13 +4,13 @@ import { autobind } from 'core-decorators';
 import PlanetLoc from './map/planetLoc';
 import State from './state';
 import config from './config';
-import * as THREE from 'three';
 import { log } from './logger';
+import * as THREE from 'three';
 
 export default class Display {
 	private lightAngle: number;
 	private d: number;
-	private camera: THREE.OrthographicCamera | THREE.PerspectiveCamera;
+	public camera: THREE.OrthographicCamera | THREE.PerspectiveCamera;
 	private light: THREE.DirectionalLight;
 	private moonLight: THREE.DirectionalLight;
 	private hemLight: THREE.HemisphereLight;

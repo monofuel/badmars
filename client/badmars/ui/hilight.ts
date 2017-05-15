@@ -14,13 +14,7 @@ import {
 	TILE_CLIFF,
 	TILE_COAST
 } from '../map/tileTypes.js';
-import {
-	buttonMode,
-	MODE_FOCUS,
-	setMouseActions,
-	map,
-	display
-} from '../client.js';
+import * as THREE from 'three';
 
 export class Hilight {
 	enabled: boolean;
@@ -33,7 +27,6 @@ export class Hilight {
 		this.enabled = false;
 		this.deconstruct = false;
 		this.setGoodColor();
-		window.debug.hilight = this;
 	}
 
 	setGoodColor() {

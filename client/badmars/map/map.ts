@@ -21,6 +21,7 @@ import {
 	KillChange,
 	UnitEvent,
 	UnitChange,
+	RequestChange,
 } from '../net';
 
 // TODO chunk should be a type
@@ -109,111 +110,90 @@ export default class Map {
 						unit.updateUnitData(updated);
 					}
 				} else {
-					window.addUnit(updated);
+					this.addUnit(updated);
 				}
 			}
 		}
 		UnitChange.attach(this.updateUnitsListener);
 
-		window.addUnit = (unit: Object) => {
-			for (const oldUnit of this.units) {
-				if (oldUnit.uuid === unit.uuid) {
-					for (let key of Object.keys(unit)) {
-						oldUnit[key] = unit[key];
-						let skipChunk = playerInfo && unit.details.owner !== playerInfo.id
-						let tile = new PlanetLoc(this, unit.location.x, unit.location.y, (playerInfo && unit && unit.details.owner !== playerInfo.id));
+	}
+	private addUnit(unit: any) {
+		const { playerInfo } = this.state;
+		for (const oldUnit of this.units) {
+			if (oldUnit.uuid === unit.uuid) {
+				Object.assign(oldUnit, unit);
+				const skipChunk = playerInfo && unit.details.owner !== playerInfo.uuid;
+				let tile = new PlanetLoc(this, unit.location.x, unit.location.y, (playerInfo && unit && unit.details.owner !== playerInfo.uuid));
 
-						if (oldUnit.movable && oldUnit.updateNextMove && !oldUnit.loc.equals(tile)) {
-							oldUnit.updateNextMove(tile, oldUnit.movable.speed);
-						}
-					}
-					return;
+				if (oldUnit.movable && oldUnit instanceof GroundUnit && !oldUnit.loc.equals(tile)) {
+					oldUnit.updateNextMove(tile, oldUnit.movable.speed);
 				}
-			};
-			if (playerInfo && unit.details.owner !== playerInfo.id) {
-				let tile = new PlanetLoc(this, unit.location.x, unit.location.y, true);
-				if (!tile.chunk) {
-					console.log('ignoring unit update, not on loaded chunk', tile);
-					return;
-				}
-			}
-
-			//console.log(unit);
-			if (!playerInfo || !unit) {
-				console.log('player info or unit missing', { playerInfo, unit });
 				return;
 			}
-
-			if (unit.details.ghosting && unit.details.owner !== playerInfo.id) {
-				console.log('can see other players ghost: INVALID');
+		};
+		if (playerInfo && unit.details.owner !== playerInfo.uuid) {
+			let tile = new PlanetLoc(this, unit.location.x, unit.location.y, true);
+			if (!tile.chunk) {
+				console.log('ignoring unit update, not on loaded chunk', tile);
 				return;
 			}
-
-			//console.log('checking unit type');
-			const loc = new PlanetLoc(this, unit.location.x, unit.location.y);
-			let newUnit;
-			if (unit.details.owner) {
-				newUnit = new PlayerUnit(loc, unit.details.owner, unit.uuid, unit.details.type, unit.graphical.scale);
-			} else {
-				console.log('asdf', unit.graphical.scale);
-				switch (unit.details.type) {
-					case 'iron':
-						newUnit = new Iron(loc, unit.rate, unit.uuid, unit.graphical.scale);
-						break;
-					case 'oil':
-						newUnit = new Oil(loc, unit.rate, unit.uuid, unit.graphical.scale);
-						break;
-					default:
-						console.log('unknown type: ', unit);
-						return;
-				}
-			}
-
-			for (let key of Object.keys(unit)) {
-				// $FlowFixMe: hiding this issue for now
-				if (!newUnit[key] || newUnit[key] instanceof Object) {
-					// $FlowFixMe: hiding this issue for now
-					newUnit[key] = Object.assign(newUnit[key] || {}, unit[key]);
-				}
-
-
-			}
-
-			updateUnit(newUnit);
-
-			//console.log('full unit', newUnit);
-			this.units.push(newUnit);
-
-			fireBusEvent('unit', newUnit);
 		}
+
+		// console.log(unit);
+		if (!playerInfo || !unit) {
+			console.log('player info or unit missing', { playerInfo, unit });
+			return;
+		}
+
+		if (unit.details.ghosting && unit.details.owner !== playerInfo.uuid) {
+			console.log('can see other players ghost: INVALID');
+			return;
+		}
+
+		// console.log('checking unit type');
+		const loc = new PlanetLoc(this, unit.location.x, unit.location.y);
+		let newUnit;
+		if (unit.details.owner) {
+			newUnit = new PlayerUnit(loc, unit.details.owner, unit.uuid, unit.details.type, unit.graphical.scale);
+		} else {
+			console.log('asdf', unit.graphical.scale);
+			switch (unit.details.type) {
+				case 'iron':
+					newUnit = new Iron(loc, unit.rate, unit.uuid, unit.graphical.scale);
+					break;
+				case 'oil':
+					newUnit = new Oil(loc, unit.rate, unit.uuid, unit.graphical.scale);
+					break;
+				default:
+					console.log('unknown type: ', unit);
+					return;
+			}
+		}
+		Object.assign(newUnit, unit);
+		updateUnit(newUnit);
+		this.units.push(newUnit);
 	}
 
 	destroy() {
-
-
+		const { display } = this.state;
 		clearInterval(this.chunkInterval);
-		deleteListener(this.attackListener);
-		deleteListener(this.killListener);
-		deleteListener(this.ghostUnitListener);
-		deleteListener(this.chunkListener);
-		if (display) {
-			for (var mesh of this.landMeshes) {
+		AttackChange.detach(this.attackListener);
+		KillChange.detach(this.killListener);
+		ChunkChange.detach(this.chunkListener);
+			for (const mesh of this.landMeshes) {
 				display.removeMesh(mesh);
 			}
-			for (var mesh of this.waterMeshes) {
+			for (const mesh of this.waterMeshes) {
 				display.removeMesh(mesh);
 			}
-		}
-		var unitListCopy = this.units.slice();
+		const unitListCopy = this.units.slice();
 		for (var unit of unitListCopy) {
 			unit.destroy();
 		}
-		if (this.units.length != 0) {
-			console.log("failed to destroy all units");
-		}
 	}
 
-	generateChunk(chunkX: number, chunkY: number, chunk: Object) {
+	generateChunk(chunkX: number, chunkY: number, chunk: any) {
+		const { display } = this.state;
 		var chunkArray = chunk.grid;
 		var navGrid = chunk.navGrid;
 		var gridGeom = new THREE.Geometry();
@@ -267,10 +247,10 @@ export default class Map {
 		gridGeom.computeVertexNormals();
 
 		waterGeom.computeBoundingSphere();
-		waterGeom.computeFaceNormals();
+		// waterGeom.computeFaceNormals();
 		waterGeom.computeVertexNormals();
 
-		//fiddle with the normals
+		// fiddle with the normals
 
 		for (var index = 0; index < gridGeom.faces.length; index += 2) {
 			var landVector1 = gridGeom.faces[index].normal;
@@ -280,13 +260,13 @@ export default class Map {
 			newVec = newVec.divideScalar(2);
 
 
-			//these 2 lines don't really change the visuals
-			//but let's keep them anyway
+			// these 2 lines don't really change the visuals
+			// but let's keep them anyway
 			gridGeom.faces[index].normal.copy(newVec);
 			gridGeom.faces[index + 1].normal.copy(newVec);
 
-			//this gives the cool square effect and make
-			//shading look good between tiles
+			// this gives the cool square effect and make
+			// shading look good between tiles
 			for (var i = 0; i <= 2; i++) {
 				gridGeom.faces[index].vertexNormals[i].copy(newVec);
 				gridGeom.faces[index + 1].vertexNormals[i].copy(newVec);
@@ -309,9 +289,9 @@ export default class Map {
 		gridMesh.rotation.x = -Math.PI / 2;
 		waterMesh.rotation.x = -Math.PI / 2;
 
-		//gridMesh.position.z = (chunkX);
+		// gridMesh.position.z = (chunkX);
 		gridMesh.position.y = 0;
-		//gridMesh.position.x = (chunkY);
+		// gridMesh.position.x = (chunkY);
 
 
 		waterMesh.position.copy(gridMesh.position)
@@ -327,12 +307,10 @@ export default class Map {
 		this.chunkMap[chunk.hash].landMesh = gridMesh;
 		this.chunkMap[chunk.hash].waterMesh = waterMesh;
 
-		if (display) {
-			display.addMesh(gridMesh);
-			display.addMesh(waterMesh);
-		}
+		display.addMesh(gridMesh);
+		display.addMesh(waterMesh);
 
-		//console.log("Generated Geometry");
+		// console.log("Generated Geometry");
 
 	}
 
@@ -359,12 +337,13 @@ export default class Map {
 	}
 
 	nearestStorage(tile: PlanetLoc): PlayerUnit {
+		const { playerInfo } = this.state;
 		var storages = [];
 		if (!playerInfo || !tile) {
 			return;
 		}
 		for (var unit of this.units) {
-			if (unit instanceof PlayerUnit && unit.details.type === 'storage' && unit.details.owner === playerInfo.id) {
+			if (unit instanceof PlayerUnit && unit.details.type === 'storage' && unit.details.owner === playerInfo.uuid) {
 				storages.push(unit);
 			}
 		}
@@ -382,19 +361,10 @@ export default class Map {
 		const unit = this.getUnitById(unitId);
 		const x = newLocation[0];
 		const y = newLocation[1];
-		if (unit && unit.updateNextMove) {
+		if (unit && unit instanceof GroundUnit) {
 			const tile = new PlanetLoc(unit.loc.planet, x, y);
 			// $FlowFixMe better flowtyping for entities
 			return unit.updateNextMove(tile, time);
-		}
-		if (!unit) {
-			console.log('unknown unit moving. re-requesting unit list');
-			if (window.sendMessage) {
-				window.sendMessage({
-					type: 'getUnits'
-				})
-			}
-
 		}
 		return;
 	}
@@ -419,9 +389,7 @@ export default class Map {
 	}
 
 	getSelectedUnit(mouse: THREE.Vector2): Entity {
-		if (!display) {
-			return null;
-		}
+		const { display } = this.state;
 		var raycaster = new THREE.Raycaster();
 
 		raycaster.setFromCamera(mouse, display.camera);
@@ -433,14 +401,11 @@ export default class Map {
 		if (intersects.length > 0) {
 			return intersects[0].object.userData;
 		}
-		console.log("no unit selected");
 		return null;
 	}
 
 	getSelectedUnits(mouseStart: THREE.Vector2, mouseEnd: THREE.Vector2): Array<Entity> {
-		if (!display) {
-			return [];
-		}
+		const { display } = this.state;
 		var maxX = Math.max(mouseStart.x, mouseEnd.x);
 		var minX = Math.min(mouseStart.x, mouseEnd.x);
 		var maxY = Math.max(mouseStart.y, mouseEnd.y);
@@ -456,14 +421,13 @@ export default class Map {
 		return unitList;
 	}
 
-	toScreenPosition(obj: THREE.Mesh): THREE.Vector3 {
+	toScreenPosition(obj: THREE.Object3D): THREE.Vector3 {
+		const { display } = this.state;
 		var vector = new THREE.Vector3();
 
-		obj.updateMatrixWorld();
+		obj.updateMatrixWorld(false);
 		vector.setFromMatrixPosition(obj.matrixWorld);
-		if (display) {
-			vector.project(display.camera);
-		}
+		vector.project(display.camera);
 
 		return vector;
 
@@ -479,7 +443,7 @@ export default class Map {
 	startVec.y += 50;
 	var boundingBox = new THREE.Box3(endVec,startVec);
 	console.log(boundingBox);
-	
+		
 	var unitList = [];
 	for (var unit of this.units)  {
 		if (boundingBox.containsPoint(unit.location.getVec())) {
@@ -492,11 +456,9 @@ export default class Map {
 	*/
 
 	getSelectedUnitsInView(): Array<Entity> {
-		if (!display || !playerInfo) {
-			return [];
-		}
+		const { display, playerInfo } = this.state;
 		display.camera.updateMatrix(); // make sure camera's local matrix is updated
-		display.camera.updateMatrixWorld(); // make sure camera's world matrix is updated
+		display.camera.updateMatrixWorld(false); // make sure camera's world matrix is updated
 		display.camera.matrixWorldInverse.getInverse(display.camera.matrixWorld);
 
 		var frustum = new THREE.Frustum();
@@ -507,7 +469,7 @@ export default class Map {
 
 		var unitList: Array<Entity> = [];
 		for (var unit of this.units) {
-			if (frustum.containsPoint(unit.loc.getVec()) && unit.details.owner === playerInfo.id) {
+			if (frustum.containsPoint(unit.loc.getVec()) && unit.details.owner === playerInfo.uuid) {
 				unitList.push(unit);
 			}
 		}
@@ -532,7 +494,9 @@ export default class Map {
 		if (!this.requestedChunks[chunkHash]) {
 			this.requestedChunks[chunkHash] = Date.now();
 		}
-		window.sendMessage({ type: "getChunk", x: x, y: y });
+		RequestChange.post({
+ type: "getChunk", x: x, y: y 
+		});
 	}
 
 	getChunksAroundTile(tile: PlanetLoc): Array<string> {
@@ -568,9 +532,9 @@ export default class Map {
 			if (cacheChunk) {
 				this.chunkMap[chunk] = cacheChunk;
 				this.generateChunk(x, y, cacheChunk);
-				window.sendMessage({ type: "getChunk", x: x, y: y, unitsOnly: true });
+				RequestChange.post({ type: 'getChunk', x: x, y: y, unitsOnly: true });
 			} else {
-				window.sendMessage({ type: "getChunk", x: x, y: y });
+				RequestChange.post({ type: 'getChunk', x: x, y: y });
 			}
 		}
 	}
@@ -587,6 +551,7 @@ export default class Map {
 	}
 
 	unloadChunksNearTile(tile: PlanetLoc): void {
+		const { display } = this.state;
 		for (let hash in this.chunkMap) {
 			let x = parseInt(hash.split(":")[0]);
 			let y = parseInt(hash.split(":")[1]);
@@ -632,9 +597,7 @@ export default class Map {
 	}
 
 	getTileAtRay(mouse: THREE.Vector2): PlanetLoc {
-		if (!display) {
-			return null;
-		}
+		const { display } = this.state;
 
 		var raycaster = new THREE.Raycaster();
 		raycaster.setFromCamera(mouse, display.camera);

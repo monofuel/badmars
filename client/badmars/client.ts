@@ -2,8 +2,6 @@
 
 (window as any).debug = {};
 
-import * as THREE from 'three';
-
 import Display from './display';
 import Map from './map/map';
 import Input from './input';
@@ -14,6 +12,7 @@ import Net from './net';
 import { loadAllModelsAsync } from './units/unitModels';
 import { loadAllSounds } from './audio/sound';
 import ui from './ui/index';
+import * as THREE from 'three';
 
 import {
 	DisplayErrorChange,

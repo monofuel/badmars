@@ -55,7 +55,7 @@ interface SpawnEvent extends BaseEvent {
 	type: 'spawn';
 }
 
-interface UnitEvent extends BaseEvent {
+export interface UnitEvent extends BaseEvent {
 	type: 'unit';
 	units: any; // TODO
 }

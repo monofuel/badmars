@@ -1,13 +1,10 @@
-/* @flow */
-'use strict';
-
 // monofuel
-// 2-7-2016
 
-import { PlanetLoc } from '../map/planetLoc.js';
-import Entity from "./entity.js";
-import { N, S, E, W, C } from './directions.js';
-import { display } from '../client.js';
+import PlanetLoc from '../map/planetLoc';
+import Entity from './entity';
+import { N, S, E, W, C } from './directions';
+import State from '../state';
+import * as THREE from 'three';
 
 export default class GroundUnit extends Entity {
 	nextTile: PlanetLoc | null;
@@ -22,8 +19,8 @@ export default class GroundUnit extends Entity {
 
 	destHilightPlane: THREE.Mesh;
 
-	constructor(location: PlanetLoc, uuid: string, color: THREE.Color, type: string, scale: number) {
-		super(location, uuid, color, type, scale);
+	constructor(state: State, location: PlanetLoc, uuid: string, color: THREE.Color, type: string, scale: number) {
+		super(state, location, uuid, color, type, scale);
 		this.nextTile = null;
 		this.moving = false;
 		this.distanceMoved = 0;
@@ -40,7 +37,7 @@ export default class GroundUnit extends Entity {
 			//pew
 			var sound = this.fireSound;
 			const loc  = this.loc;
-			setTimeout(() => { //work around issue with 'audio already playing'
+			setTimeout(() => { // work around issue with 'audio already playing'
 				sound.position.copy(loc.getLoc());
 				sound.play();
 			},10);
@@ -50,7 +47,7 @@ export default class GroundUnit extends Entity {
 		}
 	}
 
-	//TODO should be refactored with updateUnitData
+	// TODO should be refactored with updateUnitData
 	updateHealth(amount: number) {
 		this.health = amount;
 	}
@@ -106,6 +103,7 @@ export default class GroundUnit extends Entity {
 	}
 
 	hilightDestination() {
+		const { display } = this.state;
 		if (!this.movable || !this.movable.destination) {
 			return;
 		}

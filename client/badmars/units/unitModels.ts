@@ -3,7 +3,6 @@
 import * as _ from 'lodash';
 import * as THREE from 'three';
 
-
 export class ModelInfo {
 	name: string;
 	fileName: string;

@@ -1,10 +1,10 @@
 // monofuel
 
 import { autobind } from 'core-decorators';
-import * as THREE from 'three';
 import StatsMonitor from './statsMonitor';
 import State from './state';
 import { log, logError } from './logger';
+import * as THREE from 'three';
 
 export default class MainLoop {
 	clock: THREE.Clock;

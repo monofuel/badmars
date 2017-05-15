@@ -3,13 +3,13 @@
 import { autobind } from 'core-decorators';
 import * as _ from 'lodash';
 import { SyncEvent } from 'ts-events';
-import * as THREE from 'three';
 
 import State from './state';
 import Entity from './units/entity';
 import PlanetLoc from './map/planetLoc';
 import { SelectedUnitsChange, TransferChange } from './gameEvents';
 import { RequestChange } from './net';
+import * as THREE from 'three';
 
 export type MouseMode = 'select' | 'move' | 'focus';
 

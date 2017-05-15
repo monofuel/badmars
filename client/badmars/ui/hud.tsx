@@ -1,29 +1,18 @@
-/* @flow */
-'use strict';
-
 // monofuel
-// 6-18-2016
 
 import { autobind } from 'core-decorators';
 import * as React from 'react';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import { Button } from 'react-bootstrap';
 
-import LoginModal from './login.jsx';
-import ErrorAlert from './errorAlert.jsx';
-import MenuButtons from './menuButtons.jsx';
-import Chat from './chat.jsx';
-import AboutModal from './about.jsx';
-import SelectedUnitWell from './selectedUnit.jsx';
-import Transfer from './transfer.jsx';
-
-import {
-	construct,
-	factoryOrder,
-	performTransfer,
-	sendChat
-} from '../client.js';
-import Entity from '../units/entity.js';
+import LoginModal from './login';
+import ErrorAlert from './errorAlert';
+import MenuButtons from './menuButtons';
+import Chat from './chat';
+import AboutModal from './about';
+import SelectedUnitWell from './selectedUnit';
+import Transfer from './transfer';
+import Entity from '../units/entity';
 
 import {
 	DisplayErrorChange,
@@ -32,13 +21,13 @@ import {
 	TransferChange,
 	GameStageChange,
 	GameStageEvent,
- } from '../gameEvents';
- import {
-	 ChatChange,
-	 UnitUpdateChange
- } from '../net';
+} from '../gameEvents';
+import {
+	ChatChange,
+	UnitChange
+} from '../net';
 
-interface Props {}
+interface Props { }
 interface State {
 	login: boolean;
 	selectedUnit: Entity | null;
@@ -81,75 +70,75 @@ export default class HUD extends React.Component<Props, State> {
 		};
 
 		SelectedUnitsChange.attach(({ units }) => this.selectedUnitHandler(units));
-		UnitUpdateChange.attach(({ unit }) => this.updateUnitsHandler(unit));
+		UnitChange.attach(({ unit }) => this.updateUnitsHandler(unit));
 		TransferChange.attach(({ unit }) => this.unitTransferHandler(unit));
 		ChatChange.attach((msg) => this._addChatMessage(msg));
 		GameStageChange.attach(this._gameStateChange);
 	}
 
 	render() {
-		const {login,selectedUnit,transferUnit,errorMessage,aboutOpen,transfering,chatLog} = this.state;
+		const { login, selectedUnit, transferUnit, errorMessage, aboutOpen, transfering, chatLog } = this.state;
 
 
 		return (
 			<MuiThemeProvider>
-				{ login
-				? <LoginModal/>
-				: <div
-					id="primaryHUD"
-					style={hudStyle}
-					onFocus={setHudFocus}
-					onBlur={unsetHudFocus}>
-					{ errorMessage
-						? <ErrorAlert
-							errorMessage={errorMessage}
-							onClose={() => {
-								this.clearErrorMessage();
-							}}
-						/>
-						: null
-					}
-					{ aboutOpen
-						? <AboutModal
-							onClose={() => {
-								this.setState({aboutOpen: false});
-							}}/>
-						: null
-					}
-					{ transfering && selectedUnit && transferUnit
-						? <Transfer
-							selectedUnit={selectedUnit}
-							transferUnit={transferUnit}
-							onClose={() => {
-								this.setState({transfering: false});
-							}}
-							onTransfer={performTransfer}/>
-						: null
-					}
-					{ selectedUnit
-						? <SelectedUnitWell selectedUnit={selectedUnit}/>
-						: null
-					}
-					<Chat
-						chatLog={chatLog}
-						sendChat={sendChat}/>
-					<Button
-						onClick={() => this._openAboutClicked()}
-						style={aboutButtonStyle}>
-						About
+				{login
+					? <LoginModal />
+					: <div
+						id='primaryHUD'
+						style={hudStyle}
+						onFocus={setHudFocus}
+						onBlur={unsetHudFocus}>
+						{errorMessage
+							? <ErrorAlert
+								errorMessage={errorMessage}
+								onClose={() => {
+									this.clearErrorMessage();
+								}}
+							/>
+							: null
+						}
+						{aboutOpen
+							? <AboutModal
+								onClose={() => {
+									this.setState({ aboutOpen: false });
+								}} />
+							: null
+						}
+						{transfering && selectedUnit && transferUnit
+							? <Transfer
+								selectedUnit={selectedUnit}
+								transferUnit={transferUnit}
+								onClose={() => {
+									this.setState({ transfering: false });
+								}}
+								onTransfer={performTransfer} />
+							: null
+						}
+						{selectedUnit
+							? <SelectedUnitWell selectedUnit={selectedUnit} />
+							: null
+						}
+						<Chat
+							chatLog={chatLog}
+							sendChat={sendChat} />
+						<Button
+							onClick={() => this._openAboutClicked()}
+							style={aboutButtonStyle}>
+							About
 					</Button>
-					<MenuButtons
-						selectedUnit={selectedUnit}
-						constructClicked={construct}
-						factoryConstructClicked={factoryOrder}/>
-				</div>
-			}
+						<MenuButtons
+							selectedUnit={selectedUnit}
+							constructClicked={construct}
+							factoryConstructClicked={factoryOrder} />
+					</div>
+				}
 			</MuiThemeProvider>
 		)
 	}
 
 	selectedUnitHandler(unit: Entity) {
-		this.setState({selectedUnit: unit,transferUnit: null});
+		this.setState({ selectedUnit: unit, transferUnit: null });
 	}
 	updateUnitsHandler(unit: Entity) {
 		if (this.state.selectedUnit && this.state.selectedUnit.uuid === unit.uuid) {
@@ -166,7 +155,7 @@ export default class HUD extends React.Component<Props, State> {
 
 	_addChatMessage(message: Object) {
 		this.setState({
-			chatLog: [message].concat(this.state.chatLog.slice(0,199))
+			chatLog: [message].concat(this.state.chatLog.slice(0, 199))
 		});
 	}
 
@@ -192,7 +181,7 @@ export default class HUD extends React.Component<Props, State> {
 	}
 
 	clearErrorMessage() {
-		this.setState({errorMessage: null});
+		this.setState({ errorMessage: null });
 	}
 
 	setLoginState(bool: boolean) {
@@ -202,6 +191,6 @@ export default class HUD extends React.Component<Props, State> {
 	}
 
 	_openAboutClicked() {
-		this.setState({aboutOpen: true});
+		this.setState({ aboutOpen: true });
 	}
 };
