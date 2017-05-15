@@ -1,12 +1,9 @@
-/* @flow */
 // monofuel
-// 6-18-2016
-
-import React from 'react';
+import * as React from 'react';
 
 import { Button, Well } from 'react-bootstrap';
 import { Paper } from 'material-ui';
-import { Entity } from '../units/entity.js';
+import Entity from '../units/entity';
 
 type Props = {
 	selectedUnit: Entity,

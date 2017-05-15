@@ -17,7 +17,18 @@ declare var SERVER_PORT: number;
 // ------------------------------------------
 // server event types
 
-type NetworkEvent = MapEvent | ConnectedEvent | PlayersEvent | SpawnEvent | UnitEvent | LoginEvent;
+type NetworkEvent = MapEvent |
+	ConnectedEvent |
+	PlayersEvent |
+	SpawnEvent |
+	UnitEvent |
+	LoginEvent |
+	ChunkEvent |
+	ChatEvent |
+	MapEvent |
+	UnitStatsEvent |
+	KillEvent |
+	AttackEvent;
 
 interface BaseEvent {
 	success: boolean;
@@ -51,7 +62,7 @@ interface UnitEvent extends BaseEvent {
 
 interface UnitStatsEvent extends BaseEvent {
 	type: 'unitStats';
-	// TODO
+	units: any[] // TODO
 }
 
 interface ChatEvent extends BaseEvent {
@@ -65,6 +76,23 @@ interface ChatEvent extends BaseEvent {
 export interface LoginEvent extends BaseEvent {
 	type: 'login';
 	apiKey?: string;
+}
+
+export interface ChunkEvent extends BaseEvent {
+	type: 'chunk';
+	hash: string;
+	[key: string]: any; // TODO
+}
+
+export interface AttackEvent extends BaseEvent {
+	type: 'attack';
+	[key: string]: any; // TODO
+}
+
+export interface KillEvent extends BaseEvent {
+	type: 'kill';
+	unitId: string;
+	[key: string]: any; // TODO
 }
 
 // ------------------------------------------
@@ -83,8 +111,9 @@ interface GetUnitsRequest {
 interface LoginRequest {
 	type: 'login';
 	username: string;
-	apiKey: string;
+	apiKey?: string;
 	planet: string;
+	color?: string;
 }
 
 interface SetDestinationRequest {
@@ -107,8 +136,12 @@ export const ConnectedChange = new AsyncEvent<ConnectedEvent>();
 export const PlayersChange = new AsyncEvent<PlayersEvent>();
 export const SpawnChange = new AsyncEvent<SpawnEvent>();
 export const UnitChange = new AsyncEvent<UnitEvent>();
+export const UnitStatsChange = new AsyncEvent<UnitStatsEvent>();
 export const ChatChange = new AsyncEvent<ChatEvent>();
 export const LoginChange = new AsyncEvent<LoginEvent>();
+export const ChunkChange = new AsyncEvent<ChunkEvent>();
+export const AttackChange = new AsyncEvent<AttackEvent>();
+export const KillChange = new AsyncEvent<KillEvent>();
 
 export const RequestChange = new AsyncEvent<RequestType>();
 

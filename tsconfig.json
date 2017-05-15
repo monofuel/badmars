@@ -6,7 +6,7 @@
         "sourceMap": true,
         "experimentalDecorators": true,
         "outDir": "./bin/server/nodejs",
-        "jsx": "preserve"
+        "jsx": "react"
     },
     "include": [
         "./server/nodejs/**/*",

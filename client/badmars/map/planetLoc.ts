@@ -1,18 +1,14 @@
-/* @flow */
-'use strict';
-
 // monofuel
-// 2-7-2016
 
-import type { Map } from './map.js';
+import Map from './map';
 import {
 	getTypeName,
 	TILE_LAND,
 	TILE_WATER,
 	TILE_CLIFF,
 	TILE_COAST
-} from './tileTypes.js';
-
+} from './tileTypes';
+import * as THREE from 'three';
 
 /**
  * Representation of a point on a planet
@@ -26,7 +22,7 @@ export class PlanetLoc {
 	real_z: number;
 	tileType: Symbol;
 	corners: Array<number>;
-	chunk: Object;
+	chunk: any;
 	chunkX: number;
 	chunkY: number;
 
@@ -35,11 +31,11 @@ export class PlanetLoc {
 	 * @param  {Number}  The X coordinate
 	 * @param  {Number}  The Y coordinate
 	 */
-	constructor(planet: Map, x: number, y: number, skipChunk: ?boolean) {
+	constructor(planet: Map, x: number, y: number, skipChunk?: boolean) {
 			this.planet = planet;
 
-			//TODO should refer to the local x as local_x and real_x as just regular x
-			//dear god why did i name it this way
+			// TODO should refer to the local x as local_x and real_x as just regular x
+			// dear god why did i name it this way
 			this.real_x = Math.floor(x);
 			this.real_y = Math.floor(y);
 
@@ -58,7 +54,7 @@ export class PlanetLoc {
 				this.chunkY--;
 			}
 
-			this.chunk = this.planet.chunkMap[this.chunkX + ":" + this.chunkY];
+			this.chunk = this.planet.chunkMap[this.chunkX + ':' + this.chunkY];
 
 			if (!planet || !planet.chunkMap) {
 				console.log('invalid call to PlanetLoc');
@@ -68,23 +64,21 @@ export class PlanetLoc {
 				return;
 			}
 			if (!this.chunk) {
-				//console.log("tile on not loaded chunk: " + this.real_x + "," + this.real_y);
-				//console.log('chunk hash: ' + this.chunkX + ":" + this.chunkY);
+				// console.log("tile on not loaded chunk: " + this.real_x + "," + this.real_y);
+				// console.log('chunk hash: ' + this.chunkX + ":" + this.chunkY);
 				if (!skipChunk) {
-					//console.log('requesting');
-					planet.requestChunk(this.chunkX,this.chunkY);
+					// console.log('requesting');
+					planet.requestChunk(this.chunkX, this.chunkY);
 				}
 				return;
 			}
 
 			if (this.x < 0 || this.x > this.planet.worldSettings.chunkSize ||
 			this.y < 0 || this.y > this.planet.worldSettings.chunkSize) {
-				console.log("invalid tile: " + this.real_x + "," + this.real_y);
-				console.log("local coords: " + this.x + "," + this.y);
-				console.log('chunk hash: ' + this.chunkX + ":" + this.chunkY);
+				console.log('invalid tile: ' + this.real_x + ',' + this.real_y);
+				console.log('local coords: ' + this.x + ',' + this.y);
+				console.log('chunk hash: ' + this.chunkX + ':' + this.chunkY);
 			}
-
-			window.debug.chunk = this.chunk;
 
 			this.corners = [
 				this.chunk.grid[this.x][this.y],
@@ -181,7 +175,7 @@ export class PlanetLoc {
 		return new PlanetLoc(this.planet, this.real_x, this.real_y + 1);
 	}
 
-	getVec(): THREE.vector3 {
+	getVec(): THREE.Vector3 {
 		return new THREE.Vector3(this.real_x, this.real_z, - this.real_y);
 	}
 
@@ -190,7 +184,7 @@ export class PlanetLoc {
 	 * @param  {PlanetLoc} Location to compare to
 	 * @return {boolean}   Equality
 	 */
-	equals(otherLoc: ?PlanetLoc): boolean {
+	equals(otherLoc: PlanetLoc): boolean {
 		if (!otherLoc) {
 			return false;
 		}

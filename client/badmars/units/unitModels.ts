@@ -1,21 +1,21 @@
-/* @flow */
-'use strict';
-
 // monofuel
-// 2-7-2016
+
+import * as _ from 'lodash';
+import * as THREE from 'three';
+
 
 export class ModelInfo {
 	name: string;
 	fileName: string;
-	model: THREE.Mesh3D;
+	model: any;
 	constructor(name: string, fileName: string) {
 		this.name = name;
 		this.fileName = fileName;
-		this.model = THREE.geometry;
+		this.model = new THREE.Geometry();
 	}
 }
 
-var modelMap: Array < ModelInfo > = [
+const models: ModelInfo[] = [
 	(new ModelInfo('tank', 'tank_mockup.obj')),
 	(new ModelInfo('iron', 'iron_mockup.obj')),
 	(new ModelInfo('oil', 'oil.obj')),
@@ -26,38 +26,40 @@ var modelMap: Array < ModelInfo > = [
 	(new ModelInfo('transport', 'transport.obj'))
 ];
 
-export var loaded: number;
-export var total: number;
+let loaded: number;
+let total: number;
 
-export function getMesh(name: string): ? ModelInfo {
-	for (var model of modelMap) {
-		if (model.name == name) {
-			return model.model.children[0].geometry;
-		}
+// TODO figure out why this works and how to type it correctly
+export function getMesh(name: string): any {
+	const model = _.find(models, (model) => model.name === name);
+	if (model) {
+		return model.model.children[0].geometry;
 	}
-	console.log('failed to find model for ', name);
-	return null;
+	throw new Error(`no model for ${name}`);
 }
 
 /**
  * kick off tasks to load all the models and returns a promise
  */
-export function loadAllModelsAsync() : Promise<*> {
+export async function loadAllModelsAsync(): Promise<void> {
 	loaded = 0;
-	total = modelMap.length;
+	total = models.length;
 
-	var manager = new THREE.LoadingManager();
-	//manager.onProgress = function (item: string, loaded: boolean, total: number) {
-		//console.log(item, loaded, total);
-	//}
-	var loader = new THREE.OBJLoader(manager);
+	const manager = new THREE.LoadingManager();
+	/*
+	manager.onProgress = function (item: string, loaded: boolean, total: number) {
+		console.log(item, loaded, total);
+	}
+	*/
+	// OBJ loader is provided by another script
+	var loader = new (THREE as any).OBJLoader(manager);
 	var allPromises = [];
-	for (var tmp of modelMap) {
+	for (var tmp of models) {
 		allPromises.push(new Promise(function (resolve, reject) {
-			var unitInfo = tmp; //passing variable into promise finnickery
+			var unitInfo = tmp; // passing variable into promise finnickery
 			loader.load('models/' + unitInfo.fileName,
-				function (model: THREE.Mesh3D) {
-					//console.log('loaded model for ', unitInfo.name);
+				function (model: THREE.Mesh) {
+					// console.log('loaded model for ', unitInfo.name);
 					loaded++;
 					unitInfo.model = model;
 
@@ -65,5 +67,5 @@ export function loadAllModelsAsync() : Promise<*> {
 				});
 		}));
 	}
-	return Promise.all(allPromises);
+	await Promise.all(allPromises);
 }

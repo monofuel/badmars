@@ -37,9 +37,10 @@ import {
 import { log } from './logger';
 import State from './state';
 
-import { Hilight } from './ui/hilight.js';
-import './units/unitBalance.js';
+import { Hilight } from './ui/hilight';
+import './units/unitBalance';
 import config from './config';
+import { handleUnitStatChanges } from './units/unitBalance';
 
 declare const $: any;
 
@@ -66,8 +67,8 @@ async function gameInit(): Promise<State> {
 				planet: 'testmap',
 			});
 		}
-	})
-
+	});
+	handleUnitStatChanges(state);
 	window.requestAnimationFrame(state.mainLoop.logicLoop);
 	return state;
 }

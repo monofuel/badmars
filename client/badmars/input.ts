@@ -180,7 +180,7 @@ export default class Input {
 					location: [Math.floor(tile.real_x), Math.floor(tile.real_y)]
 				});
 			}
-		});
+		};
 	}
 
 	@autobind
@@ -220,7 +220,7 @@ export default class Input {
 					} else {
 						this.state.selectedUnits = [];
 						this.mouseMode = 'select';
-						SelectedUnitsChange.post({ units: []});
+						SelectedUnitsChange.post({ units: [] });
 
 						// TODO clear buttons highlighted
 						// TODO clear hilight on map
@@ -230,7 +230,7 @@ export default class Input {
 					if (this.mouseMode === 'move') {
 						const selectedTile = this.state.map.getTileAtRay(mouse);
 						const unit = this.state.map.getSelectedUnit(mouse);
-						const selectedUnit = this.state.selectedUnits.length > 0 ? this.state.selectedUnits[0]: null
+						const selectedUnit = this.state.selectedUnits.length > 0 ? this.state.selectedUnits[0] : null
 						if (unit && selectedUnit && this.state.playerInfo && unit.playerId === this.state.playerInfo.uuid && unit.uuid !== selectedUnit.uuid) {
 							console.log('right clicked players own unit');
 							TransferChange.post({ unit, sender: selectedUnit });
@@ -255,25 +255,25 @@ export default class Input {
 
 	@autobind
 	private construct(unitType: string) {
-	console.log('adding mouse click function for ' + unitType);
-	setMouseActions((selectedTile) => {
-		var type = unitType;
-		if (hilight) {
-			if (type != 'cancel') {
-				console.log('building ' + unitType);
-				hilight.setDeconstruct(false);
-			} else {
-				hilight.setDeconstruct(true);
+		console.log('adding mouse click function for ' + unitType);
+		setMouseActions((selectedTile) => {
+			var type = unitType;
+			if (hilight) {
+				if (type !== 'cancel') {
+					console.log('building ' + unitType);
+					hilight.setDeconstruct(false);
+				} else {
+					hilight.setDeconstruct(true);
+				}
 			}
-		}
 
-		var newLoc = [
-			Math.floor(selectedTile.real_x),
-			Math.floor(selectedTile.real_y)
-		];
-		let createGhost = { type: 'createGhost', unitType: unitType, location: newLoc };
-		console.log(createGhost);
-		window.sendMessage(createGhost);
-	});
-}
+			var newLoc = [
+				Math.floor(selectedTile.real_x),
+				Math.floor(selectedTile.real_y)
+			];
+			let createGhost = { type: 'createGhost', unitType: unitType, location: newLoc };
+			console.log(createGhost);
+			window.sendMessage(createGhost);
+		});
+	}
 }

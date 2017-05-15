@@ -1,26 +1,25 @@
 // monofuel
 
-import { N, S, E, W, C } from './directions.js';
-import { PlanetLoc } from '../map/planetLoc.js';
+import { N, S, E, W, C } from './directions';
+import PlanetLoc from '../map/planetLoc';
 import Player from '../player';
-import { selectedUnit, selectedUnits, display } from '../client.js';
-import { updateUnit } from './unitBalance.js';
-import { MODE_FOCUS, buttonMode } from '../client.js';
-import { getMesh } from './unitModels.js';
-import { getPlayerById } from '../net.js';
+import State from '../state';
+import { updateUnit } from './unitBalance';
+import { getMesh } from './unitModels';
+import * as THREE from 'three';
 
 export default class Entity {
 
 	/* client stuff */
-	mesh: THREE.Object3D;
+	mesh: THREE.Mesh;
 	unitHeight: number;
 	loc: PlanetLoc;
-	mesh: THREE.OBject3D;
 	selectionCircle: THREE.Object3D;
 	transferCircle: THREE.Object3D;
-	damageSphere: THREE.Object3D;
+	damageSphere: THREE.Mesh;
 	selectionSize: number;
 	takingDamage: number;
+	state: State;
 
 	/* stuff from server */
 
@@ -28,7 +27,7 @@ export default class Entity {
 	awake: boolean;
 
 	details: {
-		type: UnitType,
+		type: string,
 		size: number,
 		buildTime: number,
 		cost: number,
@@ -38,63 +37,67 @@ export default class Entity {
 		lastTick: number,
 		ghosting: boolean,
 		owner: string,
-	}
+	};
 
 	location: {
-		hash: Array<string> ,
+		hash: string[],
 		x: number,
 		y: number,
-		chunkHash: Array<string> ,
+		chunkHash: string[],
 		chunkX: number,
 		chunkY: number,
 		map: string,
-	}
+	};
 
-	movable: ? {
-		layer: MovementLayer,
+	movable?: {
+		layer: string,
 		speed: number,
 		movementCooldown: number,
-		path: Array<any> , // TODO look up path type
+		path: Array<any>, // TODO look up path type
 		pathAttempts: number,
 		pathAttemptAttempts: number,
 		isPathing: boolean,
 		pathUpdate: number,
-		destination: ? TileHash,
+		destination: TileHash | null,
 		transferGoal: Object, // TODO why is this an object
-	}
-	attack: ? {
-		layers: Array<MovementLayer> ,
+	};
+
+	attack?: {
+		layers: string[],
 		range: number,
 		damage: number,
 		fireRate: number,
 		fireCooldown: number,
-	}
-	storage: ? {
+	};
+
+	storage?: {
 		iron: number,
 		fuel: number,
 		maxIron: number,
 		maxFuel: number,
 		transferRange: number,
 		resourceCooldown: number,
-		transferGoal: ? {
-			iron: ? number,
-			fuel: ? number
+		transferGoal?: {
+			iron: number,
+			fuel: number
 		}
-	}
-	graphical: ? {
+	};
+
+	graphical?: {
 		model: string,
 		scale: number,
-	}
-	stationary: ? {
-		layer: MovementLayer,
-	}
-	construct: ? {
-		types: Array<string> ,
+	};
+	stationary?: {
+		layer: string,
+	};
+	construct?: {
+		types: string[],
 		constructing: number,
-		factoryQueue: Array<FactoryOrder> ,
-	}
+		factoryQueue: any[], // TODO type this
+	};
 
-	constructor(loc: PlanetLoc, uuid: string, color: THREE.Color, type: string, scale: number) {
+	constructor(state: State, loc: PlanetLoc, uuid: string, color: THREE.Color, type: string, scale: number) {
+		const { display } = state;
 		if (!loc) {
 			throw new Error('missing location');
 		}
@@ -107,19 +110,17 @@ export default class Entity {
 		this.takingDamage = 0;
 		this.selectionSize = 1.1;
 
-		const material = new THREE.MeshLambertMaterial({ color: color });
+		const material = new THREE.MeshLambertMaterial({ color: color.getHexString() });
 
 		const geometry = getMesh(type);
 		if (!geometry) {
-			throw new Error("failed to get tank mesh!");
+			throw new Error(`failed to get ${type} mesh`);
 		}
 		this.mesh = new THREE.Mesh(geometry, material);
 		this.mesh.scale.set(scale, scale, scale);
 		this.mesh.userData = this;
 
-		if (display) {
-			display.addMesh(this.mesh);
-		}
+		display.addMesh(this.mesh);
 		this.updateLoc();
 	}
 
@@ -149,11 +150,12 @@ export default class Entity {
 	}
 
 	showTransferDistance() {
+		const { display } = this.state;
 		if (!this.storage || !this.storage.transferRange) {
 			return;
 		}
 
-		if (buttonMode != MODE_FOCUS) {
+		if (this.state.input.mouseMode !== 'focus') {
 			if (display && this.transferCircle) {
 				display.removeMesh(this.transferCircle);
 				this.transferCircle = null;
@@ -164,7 +166,7 @@ export default class Entity {
 		if (this.transferCircle) {
 			this.transferCircle.position.copy(this.mesh.position);
 			this.transferCircle.position.y += 1;
-		} else if (this.storage.transferRange && this.storage.transferRange > 0){
+		} else if (this.storage.transferRange && this.storage.transferRange > 0) {
 			var geometry = new THREE.CircleGeometry(this.storage.transferRange, 32);
 			var material = new THREE.MeshBasicMaterial({
 				color: 0x0000ff,
@@ -181,9 +183,10 @@ export default class Entity {
 		}
 	}
 
-	updateUnitData(unit: Object) {
+	public updateUnitData(unit: Object) {
 		updateUnit(this);
-
+		// TODO this is fubared, is it even needed?
+		/*
 		//UNIT UPDATE WHITELIST
 		this.details.ghosting = unit.ghosting;
 		this.details.health = unit.health;
@@ -198,19 +201,19 @@ export default class Entity {
 		if (this.construct) {
 			this.construct.factoryQueue = unit.factoryQueue;
 		}
-
+	*/
 	}
 
 	takeDamage() {
+		const { display } = this.state;
 		console.log('taking damage');
-		if (display) {
-			display.removeMesh(this.damageSphere); //TODO ugly hack, restarts animation
-		}
+		display.removeMesh(this.damageSphere); // HACK, restarts animation
 		this.takingDamage = 1;
 		this.animateSmoke();
 	}
 
 	animateSmoke() {
+		const { display } = this.state;
 		if (this.damageSphere) {
 			this.damageSphere.position.copy(this.mesh.position);
 			this.damageSphere.position.y += this.takingDamage / 50;
@@ -242,8 +245,9 @@ export default class Entity {
 	}
 
 	displayIfSelected() {
+		const { selectedUnits, display } = this.state;
 
-		if ((!selectedUnit || selectedUnit != this) && (!selectedUnits || selectedUnits.indexOf(this) == -1)) {
+		if (selectedUnits.indexOf(this) === -1) {
 			if (display && this.selectionCircle) {
 				display.removeMesh(this.selectionCircle);
 				this.selectionCircle = null;
@@ -271,6 +275,7 @@ export default class Entity {
 	}
 
 	destroy() {
+		const { display } = this.state;
 		console.log('removing ', this.details.type);
 		if (display) {
 			display.removeMesh(this.mesh);
@@ -290,7 +295,7 @@ export default class Entity {
 	 * Check if this unit is at the given location
 	 * This method should be overrided by other classes.
 	 * @param	{PlanetLoc}	location to check if this unit blocks it
-	 * @return	{boolean> do we block it
+	 * @return	{boolean} do we block it
 	 */
 	checkGroundTile(tile: PlanetLoc): boolean {
 		return false;

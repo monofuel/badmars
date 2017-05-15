@@ -1,6 +1,6 @@
 // monofuel
 
-import Player from './Player';
+import Player from './player';
 import * as _ from 'lodash';
 import Map from './map/map';
 import Net from './net';

@@ -1,25 +1,10 @@
-/* @flow */
-'use strict';
-
 // monofuel
-// 2-7-2016
 
+import { UnitStatsChange } from '../net';
+import Entity from '../units/entity';
+import State from '../state';
 
-import { registerListener } from '../net.js';
-import { map } from '../client.js';
-import { Entity } from "../units/entity.js";
-
-let units = {};
-
-function updateUnitsListener(data) {
-	console.log('new units data', data.units);
-	units = data.units;
-	if (map) {
-		for (var unit of map.units) {
-			updateUnit(unit);
-		}
-	}
-};
+let units: any = {};
 
 export function updateUnit(unit: any) {
 	var unitInfo = getUnitInfo(unit.details.type);
@@ -34,8 +19,22 @@ export function updateUnit(unit: any) {
 	}
 }
 
-registerListener('unitStats', updateUnitsListener);
-
 export function getUnitInfo(type: string) {
 	return units[type];
+}
+
+export function handleUnitStatChanges(state: State) {
+	function updateUnitsListener(data: any) {
+		console.log('new units data', data.units);
+		units = data.units;
+
+		if (state.map) {
+			for (var unit of state.map.units) {
+				updateUnit(unit);
+			}
+		}
+	};
+
+
+	UnitStatsChange.attach(updateUnitsListener)
 }
