@@ -144,7 +144,7 @@ export default class Input {
 
 	@autobind
 	private mouseMoveHandler(event: MouseEvent): void {
-		MouseMoveChanged.post({ event });
+		MouseMoveChanged.post({ type: 'mouseMove', event });
 	}
 
 	@autobind
@@ -210,7 +210,7 @@ export default class Input {
 			switch (event.button) {
 				case LEFT_MOUSE:
 					if (this.mouseMode === 'focus') {
-						MouseReleaseChanged.post({ event: event })
+						MouseReleaseChanged.post({ type: 'mouseRelease', event: event })
 						break;
 					}
 
@@ -231,12 +231,12 @@ export default class Input {
 						const selectedTile = this.state.map.getTileAtRay(mouse);
 						const unit = this.state.map.getSelectedUnit(mouse);
 						const selectedUnit = this.state.selectedUnits.length > 0 ? this.state.selectedUnits[0] : null
-						if (unit && selectedUnit && this.state.playerInfo && unit.playerId === this.state.playerInfo.uuid && unit.uuid !== selectedUnit.uuid) {
+						if (unit && selectedUnit && this.state.playerInfo && unit.details.owner === this.state.playerInfo.uuid && unit.uuid !== selectedUnit.uuid) {
 							console.log('right clicked players own unit');
-							TransferChange.post({ unit, sender: selectedUnit });
+							TransferChange.post({ dest: unit, source: selectedUnit });
 						}
 						if (selectedTile) {
-							MouseReleaseChanged.post({ event: event })
+							MouseReleaseChanged.post({ type: 'mouseRelease', event: event })
 						}
 					} else if (this.mouseMode = 'focus') {
 						this.mouseMode = 'move';
@@ -256,14 +256,16 @@ export default class Input {
 	@autobind
 	private construct(unitType: string) {
 		console.log('adding mouse click function for ' + unitType);
-		setMouseActions((selectedTile) => {
+		this.mouseAction = (event: MouseReleaseEvent) => {
+
+			const selectedTile = this.getTileUnderCursor(event.event);
 			var type = unitType;
-			if (hilight) {
+			if (this.state.hilight) {
 				if (type !== 'cancel') {
 					console.log('building ' + unitType);
-					hilight.setDeconstruct(false);
+					this.state.hilight.setDeconstruct(false);
 				} else {
-					hilight.setDeconstruct(true);
+					this.state.hilight.setDeconstruct(true);
 				}
 			}
 
@@ -271,9 +273,7 @@ export default class Input {
 				Math.floor(selectedTile.real_x),
 				Math.floor(selectedTile.real_y)
 			];
-			let createGhost = { type: 'createGhost', unitType: unitType, location: newLoc };
-			console.log(createGhost);
-			window.sendMessage(createGhost);
-		});
+			RequestChange.post({ type: 'createGhost', unitType: unitType, location: newLoc });
+		};
 	}
 }

@@ -121,7 +121,6 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 	}
 	@autobind
 	private handleKeyPress(event: React.KeyboardEvent<React.Component<ReactBootstrap.FormControlProps,{}>>) {
-		const { sendChat } = this.props;
 		const { sendText } = this.state;
 		if (event.charCode !== 13 || !sendText) {
 			return;

@@ -98,7 +98,7 @@ export interface KillEvent extends BaseEvent {
 // ------------------------------------------
 // request event types
 
-type RequestType = UnitStatsEvent | GetUnitsRequest | LoginRequest | SetDestinationRequest | ChatRequest | ChunkRequest;
+type RequestType = UnitStatsEvent | GetUnitsRequest | LoginRequest | SetDestinationRequest | ChatRequest | ChunkRequest | GhostRequest  | TransferRequest;
 
 interface UnitStatsRequest {
 	type: 'unitStats';
@@ -138,6 +138,19 @@ interface ChunkRequest {
 	x: number;
 	y: number;
 	unitsOnly?: boolean;
+}
+interface GhostRequest {
+	type: 'createGhost';
+	unitType: string;
+	location: any;
+}
+
+interface TransferRequest {
+	type: 'transferResource';
+	source: string;
+	dest: string;
+	iron: number;
+	fuel: number;
 }
 
 // ------------------------------------------

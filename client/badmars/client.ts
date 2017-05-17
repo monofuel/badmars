@@ -36,7 +36,7 @@ import {
 import { log } from './logger';
 import State from './state';
 
-import { Hilight } from './ui/hilight';
+import Hilight from './ui/hilight';
 import './units/unitBalance';
 import config from './config';
 import { handleUnitStatChanges } from './units/unitBalance';
@@ -115,7 +115,7 @@ function attachGlobalListeners(state: State) {
 				type: 'getMap'
 			});
 
-			GameStageChange.post({ stage: 'game' });
+			GameStageChange.post({ stage: 'planet' });
 			this.state.input.mouseMode = 'select';
 			LoginChange.detach(loginListener);
 		}

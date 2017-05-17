@@ -87,7 +87,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 
 	public componentDidMount() {
 		SelectedUnitsChange.attach(({ units }) => this.selectedUnitsHandler(units));
-		UnitChange.attach(({ unit }) => this.updateUnitsHandler(unit));
+		UnitChange.attach(({ units }) => this.updateUnitsHandler(units));
 		TransferChange.attach(({ source, dest }) => this.unitTransferHandler(source));
 		ChatChange.attach((msg) => this._addChatMessage(msg));
 		GameStageChange.attach(this._gameStateChange);

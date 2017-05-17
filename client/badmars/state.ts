@@ -8,6 +8,7 @@ import Display from './display';
 import Input from './input';
 import MainLoop from './mainLoop';
 import Entity from './units/entity';
+import Hilight from './ui/hilight';
 
 export type Focused = 'chat' | 'hud' | 'game';
 
@@ -35,6 +36,7 @@ export default class State {
 	public mainLoop: MainLoop;
 
 	public selectedUnits: Entity[];
+	public hilight: Hilight;
 
 	constructor() {
 		this.players = [];
