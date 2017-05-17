@@ -1,12 +1,10 @@
-/* @flow */
-'use strict';
-
 // monofuel
-// 7-16-2016
 
+import { autobind } from 'core-decorators';
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
 
-import {Well, Input, Table, Button} from 'react-bootstrap';
+import { Well, FormControl, Table, Button } from 'react-bootstrap';
 
 import State from '../state';
 import { RequestChange } from '../net';
@@ -35,9 +33,7 @@ const chatBodyStyle = {
 }
 
 interface ChatPropsType {
-	chatLog: Object[];
-	sendChat: (text: string) => void;
-	gameState: State;
+	chatLog: any[];
 }
 
 interface ChatStateType {
@@ -46,6 +42,13 @@ interface ChatStateType {
 };
 
 export default class Chat extends React.Component<ChatPropsType, ChatStateType> {
+	public static contextTypes = {
+		state: PropTypes.any.isRequired
+	};
+	context: {
+		state: State,
+	};
+
 	props: ChatPropsType;
 	state: ChatStateType = {
 		minimized: true,
@@ -54,42 +57,41 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 	interval: NodeJS.Timer;
 
 	render() {
-		const {sendText, minimized} = this.state;
-		const {chatLog} = this.props;
-		let recentChat = [];
-		chatLog.map((line) => {
+		const { sendText, minimized } = this.state;
+		const { chatLog } = this.props;
+		let recentChat: any[] = [];
+		chatLog.map((line: any) => {
 			if (Date.now() - line.timestamp < 1000 * 8 && recentChat.length < 3) {
 				recentChat.push(line);
 			}
 		});
 		return (
-			<Well id="chatWell" style={chatWellStyle}>
-				<span style={{display: 'flex',minHeight:'34px'}}>
-					<input
-						type="text"
-						style={{marginBottom: '0px',flex:'1',marginRight:'2px'}}
+			<Well id='chatWell' style={chatWellStyle as any}>
+				<span style={{ display: 'flex', minHeight: '34px' }}>
+					<FormControl
+						style={{ marginBottom: '0px', flex: '1', marginRight: '2px' }}
 						value={sendText}
-						onChange={(event) => this._inputChange(event)}
-						onKeyPress={(event) => this._handleKeyPress(event)}
-						onFocus={setChatFocus}
-						onBlur={unsetChatFocus}/>
-					<Button onClick={() => this.setState({minimized: !minimized})}>{minimized ? '+' : '-'}</Button>
+						onChange={this.inputChange}
+						onKeyPress={this.handleKeyPress}
+						onFocus={() => this.context.state.focused = 'chat'}
+						onBlur={() => this.context.state.focused = 'game'} />
+					<Button onClick={() => this.setState({ minimized: !minimized })}>{minimized ? '+' : '-'}</Button>
 				</span>
-				<Table condensed style={chatTableStyle}>
+				<Table condensed style={chatTableStyle as any}>
 					<tbody style={chatBodyStyle}>
-						{ minimized?
+						{minimized ?
 							recentChat.map((line) => {
 								return (
-									<tr style={{display: 'flex'}} key={line.user + line.timestamp}>
-									<td>{line.user}</td><td style={{flex:'1'}}>{line.text}</td>
+									<tr style={{ display: 'flex' }} key={line.user + line.timestamp}>
+										<td>{line.user}</td><td style={{ flex: '1' }}>{line.text}</td>
 									</tr>
 								)
 							})
 							:
 							chatLog.map((line) => {
 								return (
-									<tr style={{display: 'flex'}} key={line.user + line.timestamp}>
-									<td>{line.user}</td><td style={{flex:'1'}}>{line.text}</td>
+									<tr style={{ display: 'flex' }} key={line.user + line.timestamp}>
+										<td>{line.user}</td><td style={{ flex: '1' }}>{line.text}</td>
 									</tr>
 								)
 							})
@@ -113,20 +115,21 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 		delete this.interval;
 	}
 
-	_inputChange(event: KeyboardEvent) {
-		this.setState({ sendText: event.target.value });
+	@autobind
+	private inputChange(event: React.FormEvent<React.Component<ReactBootstrap.FormControlProps,{}>>) {
+		this.setState({ sendText: (event.target as any).value });
 	}
-
-	_handleKeyPress(event: KeyboardEvent) {
-		const {sendChat} = this.props;
-		const {sendText} = this.state;
-		if (event.charCode != 13 || !sendText) {
+	@autobind
+	private handleKeyPress(event: React.KeyboardEvent<React.Component<ReactBootstrap.FormControlProps,{}>>) {
+		const { sendChat } = this.props;
+		const { sendText } = this.state;
+		if (event.charCode !== 13 || !sendText) {
 			return;
 		}
 
 		RequestChange.post({ type: 'sendChat', text: sendText });
 
-		this.setState({ sendText: ''});
+		this.setState({ sendText: '' });
 
 		// for some reason this function gets called twice? questionmark?
 		this.state.sendText = '';

@@ -3,6 +3,7 @@
 import { SyncEvent } from 'ts-events';
 import config from './config';
 import { log } from './logger';
+import Entity from './units/entity';
 const t = require('flow-runtime');
 
 // ------------------------------------------
@@ -11,7 +12,7 @@ const t = require('flow-runtime');
 // - runtime types
 
 interface SelectedUnitsEvent {
-	unit: Object;
+	units: Entity[];
 }
 
 const SelectedUnitsEventType = t.object({
@@ -19,8 +20,8 @@ const SelectedUnitsEventType = t.object({
 })
 
 interface TransferEvent {
-	source: Object;
-	dest: Object;
+	source: Entity;
+	dest: Entity;
 }
 
 const TransferEventType = t.object({
@@ -45,7 +46,7 @@ const DisplayErrorEventType = t.object({
 interface LoginEvent {}
 
 interface SetDestinationEvent {
-	loc: Object;
+	loc: any;
 }
 
 type GameStageType = 'login' | 'planet';

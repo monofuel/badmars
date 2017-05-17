@@ -35,11 +35,10 @@ export default class Map {
 	units: Array<Entity>;
 	planetData: any;
 	worldSettings: any;
-	attackListener: Function;
-	killListener: Function;
-	ghostUnitListener: Function;
-	chunkListener: Function;
-	updateUnitsListener: Function;
+	attackListener: (data: AttackEvent) => void;
+	killListener: (data: KillEvent) => void;
+	chunkListener: (data: ChunkEvent) => void;
+	updateUnitsListener: (data: UnitEvent) => void;
 	chunkCache: any;
 	viewRange: number;
 	unloadRange: number;
@@ -154,15 +153,15 @@ export default class Map {
 		const loc = new PlanetLoc(this, unit.location.x, unit.location.y);
 		let newUnit;
 		if (unit.details.owner) {
-			newUnit = new PlayerUnit(loc, unit.details.owner, unit.uuid, unit.details.type, unit.graphical.scale);
+			newUnit = new PlayerUnit(this.state, loc, unit.details.owner, unit.uuid, unit.details.type, unit.graphical.scale);
 		} else {
 			console.log('asdf', unit.graphical.scale);
 			switch (unit.details.type) {
 				case 'iron':
-					newUnit = new Iron(loc, unit.rate, unit.uuid, unit.graphical.scale);
+					newUnit = new Iron(this.state, loc, unit.rate, unit.uuid, unit.graphical.scale);
 					break;
 				case 'oil':
-					newUnit = new Oil(loc, unit.rate, unit.uuid, unit.graphical.scale);
+					newUnit = new Oil(this.state, loc, unit.rate, unit.uuid, unit.graphical.scale);
 					break;
 				default:
 					console.log('unknown type: ', unit);
@@ -180,12 +179,12 @@ export default class Map {
 		AttackChange.detach(this.attackListener);
 		KillChange.detach(this.killListener);
 		ChunkChange.detach(this.chunkListener);
-			for (const mesh of this.landMeshes) {
-				display.removeMesh(mesh);
-			}
-			for (const mesh of this.waterMeshes) {
-				display.removeMesh(mesh);
-			}
+		for (const mesh of this.landMeshes) {
+			display.removeMesh(mesh);
+		}
+		for (const mesh of this.waterMeshes) {
+			display.removeMesh(mesh);
+		}
 		const unitListCopy = this.units.slice();
 		for (var unit of unitListCopy) {
 			unit.destroy();
@@ -484,10 +483,10 @@ export default class Map {
 
 	requestChunk(x: number, y: number): void {
 		let chunkHash = x + ":" + y;
-		//console.log('requesting chunk', {type:"getChunk",x:x,y:y});
+		// console.log('requesting chunk', {type:"getChunk",x:x,y:y});
 		if (this.requestedChunks[chunkHash] &&
 			Date.now() - this.requestedChunks[chunkHash] < 5000) {
-			//console.log('HALTING DUPLICATE CHUNK REQUEST');
+			// console.log('HALTING DUPLICATE CHUNK REQUEST');
 			return;
 		}
 
@@ -495,7 +494,7 @@ export default class Map {
 			this.requestedChunks[chunkHash] = Date.now();
 		}
 		RequestChange.post({
- type: "getChunk", x: x, y: y 
+			type: 'getChunk', x: x, y: y
 		});
 	}
 

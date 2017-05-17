@@ -56,13 +56,13 @@ interface SpawnEvent extends BaseEvent {
 }
 
 export interface UnitEvent extends BaseEvent {
-	type: 'unit';
+	type: 'units';
 	units: any; // TODO
 }
 
 interface UnitStatsEvent extends BaseEvent {
 	type: 'unitStats';
-	units: any[] // TODO
+	units: any[]; // TODO
 }
 
 interface ChatEvent extends BaseEvent {
@@ -98,7 +98,7 @@ export interface KillEvent extends BaseEvent {
 // ------------------------------------------
 // request event types
 
-type RequestType = UnitStatsEvent | GetUnitsRequest | LoginRequest | SetDestinationRequest;
+type RequestType = UnitStatsEvent | GetUnitsRequest | LoginRequest | SetDestinationRequest | ChatRequest | ChunkRequest;
 
 interface UnitStatsRequest {
 	type: 'unitStats';
@@ -128,10 +128,22 @@ interface FactoryOrderRequest {
 	unitType: string;
 }
 
+interface ChatRequest {
+	type: 'sendChat';
+	text: string;
+}
+
+interface ChunkRequest {
+	type: 'getChunk';
+	x: number;
+	y: number;
+	unitsOnly?: boolean;
+}
+
 // ------------------------------------------
 // event emitters
 
-export const MapChange = new AsyncEvent<MaptEvent>();
+export const MapChange = new AsyncEvent<MapEvent>();
 export const ConnectedChange = new AsyncEvent<ConnectedEvent>();
 export const PlayersChange = new AsyncEvent<PlayersEvent>();
 export const SpawnChange = new AsyncEvent<SpawnEvent>();
@@ -237,7 +249,7 @@ export default class Net {
 			case 'spawn':
 				SpawnChange.post(data);
 				return;
-			case 'unit':
+			case 'units':
 				UnitChange.post(data);
 				return;
 			default:

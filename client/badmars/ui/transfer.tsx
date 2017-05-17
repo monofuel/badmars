@@ -1,43 +1,47 @@
-/* @flow */
-'use strict';
-
 // monofuel
-// 6-18-2016
 
-import React from 'react';
-import { Button,Modal } from 'react-bootstrap';
-import {Entity} from '../units/entity.js';
-import { setHudFocus, unsetHudFocus } from '../client.js';
+import * as React from 'react';
+import * as PropTypes from 'prop-types';
+import * as _ from 'lodash';
+import { Button, Modal } from 'react-bootstrap';
+import Entity from '../units/entity';
+import State from '../state';
 
-type Props = {
-	onClose: () => void,
-	onTransfer: (selectedUnit: Entity,transferUnit: Entity,iron: number,fuel: number) => void,
-	selectedUnit: Entity,
-	transferUnit: Entity,
+interface TransferProps {
+	onClose: () => void;
+	selectedUnit: Entity;
+	transferUnit: Entity;
 }
-type State = {
-	iron: number,
-	fuel: number
+interface TransferState {
+	iron: number;
+	fuel: number;
 }
 
-export default class Transfer extends React.Component {
-	props: Props;
-	state: State = {
+export default class Transfer extends React.Component<TransferProps, TransferState> {
+	public static contextTypes = {
+		state: PropTypes.any.isRequired
+	};
+	context: {
+		state: State,
+	};
+
+	props: TransferProps;
+	state: TransferState = {
 		iron: 0,
 		fuel: 0
 	};
 
 	componentDidMount() {
-		setHudFocus();
+		this.context.state.focused = 'hud';
 	}
 
 	componentWillUnmount() {
-		unsetHudFocus();
+		this.context.state.focused = 'game';
 	}
 
 	render() {
-		const {onClose, onTransfer, selectedUnit, transferUnit} = this.props;
-		const {iron, fuel} = this.state;
+		const { onClose, selectedUnit, transferUnit } = this.props;
+		const { iron, fuel } = this.state;
 
 		const selectedStorage = selectedUnit.storage;
 		const transferStorage = transferUnit.storage;
@@ -47,10 +51,11 @@ export default class Transfer extends React.Component {
 		}
 
 		return (
-			<div id="transfer">
+			<div id='transfer'>
 				<Modal
 					show={true}
-					backdrop='static'>
+					backdrop='static'
+					onHide={_.noop}>
 					<Modal.Header closeButton>
 						<Modal.Title>Resource Transfer</Modal.Title>
 					</Modal.Header>
@@ -59,16 +64,16 @@ export default class Transfer extends React.Component {
 							{'transfering from ' + selectedUnit.details.type + ' to ' + transferUnit.details.type}
 						</div>
 						<div>
-							{'Source unit Iron: ' + (parseInt(iron) + selectedStorage.iron) + "/" + selectedStorage.maxIron};
+							{'Source unit Iron: ' + (iron + selectedStorage.iron) + '/' + selectedStorage.maxIron};
 						</div>
 						<div>
-							{'Source unit Fuel: ' + (parseInt(fuel) + selectedStorage.fuel) + "/" + selectedStorage.maxFuel};
+							{'Source unit Fuel: ' + (fuel + selectedStorage.fuel) + '/' + selectedStorage.maxFuel};
 						</div>
 						<div>
-							{'Destination unit Iron: ' + (transferStorage.iron - parseInt(iron)) + "/" + transferStorage.maxIron};
+							{'Destination unit Iron: ' + (transferStorage.iron - iron) + '/' + transferStorage.maxIron};
 						</div>
 						<div>
-							{'Destination unit Fuel: ' + (transferStorage.fuel - parseInt(fuel)) + "/" + transferStorage.maxFuel};
+							{'Destination unit Fuel: ' + (transferStorage.fuel - fuel) + '/' + transferStorage.maxFuel};
 						</div>
 						<div>
 							{'Iron: ' + iron}
@@ -78,7 +83,7 @@ export default class Transfer extends React.Component {
 								type='range'
 								value={iron}
 								onChange={(event) => {
-									this.setState({iron: event.target.value});
+									this.setState({ iron: parseInt(event.target.value) });
 								}}
 								min={-Math.min(transferStorage.maxIron - transferStorage.iron, selectedStorage.iron)}
 								max={Math.min(transferStorage.iron, selectedStorage.maxIron - selectedStorage.iron)}
@@ -92,7 +97,7 @@ export default class Transfer extends React.Component {
 								type='range'
 								value={fuel}
 								onChange={(event) => {
-									this.setState({fuel: event.target.value});
+									this.setState({ fuel: parseInt(event.target.value) });
 								}}
 								min={-Math.min(transferStorage.maxFuel - transferStorage.fuel, selectedStorage.fuel)}
 								max={Math.min(transferStorage.fuel, selectedStorage.maxFuel - selectedStorage.fuel)}
@@ -101,14 +106,17 @@ export default class Transfer extends React.Component {
 					</Modal.Body>
 					<Modal.Footer>
 						<Button onClick={() => {
-								onTransfer(selectedUnit,transferUnit,iron,fuel);
-								onClose();
-							}}
+							this.onTransfer(selectedUnit, transferUnit, iron, fuel);
+							onClose();
+						}}
 						>Transfer</Button>
 						<Button onClick={onClose}>Cancel</Button>
 					</Modal.Footer>
 				</Modal>
 			</div>
 		)
+	}
+	private onTransfer(selectedUnit: Entity, transferUnit: Entity, iron: number, fuel: number) {
+		// TODO
 	}
 }

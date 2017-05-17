@@ -23,7 +23,7 @@ interface MouseMoveEvent {
 	event: any; // TODO
 }
 
-interface MouseReleaseEvent {
+export interface MouseReleaseEvent {
 	type: 'mouseRelease';
 	event: any; // TODO
 }
@@ -39,7 +39,7 @@ export default class Input {
 	dragStart: THREE.Vector2;
 	dragCurrent: THREE.Vector2;
 	public mouseMode: MouseMode;
-	private mouseAction: Function;
+	public mouseAction: Function;
 
 	constructor(state: State) {
 		this.state = state;

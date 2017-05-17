@@ -2,6 +2,7 @@
 
 import { autobind } from 'core-decorators';
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import { Button } from 'react-bootstrap';
 
@@ -13,7 +14,7 @@ import AboutModal from './about';
 import SelectedUnitWell from './selectedUnit';
 import Transfer from './transfer';
 import Entity from '../units/entity';
-
+import State from '../state';
 import {
 	DisplayErrorChange,
 	LoginChange,
@@ -27,15 +28,17 @@ import {
 	UnitChange
 } from '../net';
 
-interface Props { }
-interface State {
+interface HUDProps {
+	state: State;
+}
+interface HUDState {
 	login: boolean;
 	selectedUnit: Entity | null;
 	transferUnit: Entity | null;
 	errorMessage: string | null;
 	aboutOpen: boolean;
 	transfering: boolean;
-	chatLog: Object[];
+	chatLog: any[];
 }
 
 const hudStyle = {
@@ -53,32 +56,46 @@ const aboutButtonStyle = {
 	width: '60px'
 };
 
-export default class HUD extends React.Component<Props, State> {
-	state: State;
-	props: Props;
+export default class HUD extends React.Component<HUDProps, HUDState> {
+	public static contextTypes = {
+		state: PropTypes.any.isRequired
+	};
+	context: {
+		state: State,
+	};
 
-	constructor(props: Props) {
-		super(props);
-		this.state = {
-			login: false,
-			selectedUnit: null,
-			transferUnit: null,
-			errorMessage: null,
-			aboutOpen: false,
-			transfering: false,
-			chatLog: []
-		};
+	public static PropTypes = {
+		state: PropTypes.any.isRequired
+	};
+	public props: HUDProps;
 
-		SelectedUnitsChange.attach(({ units }) => this.selectedUnitHandler(units));
+	public state: HUDState = {
+		login: false,
+		selectedUnit: null,
+		transferUnit: null,
+		errorMessage: null,
+		aboutOpen: false,
+		transfering: false,
+		chatLog: []
+	};
+
+	// passing globals, Deal with it (⌐■_■)
+	public getChildContext() {
+		const { state } = this.props;
+		return { state };
+	}
+
+	public componentDidMount() {
+		SelectedUnitsChange.attach(({ units }) => this.selectedUnitsHandler(units));
 		UnitChange.attach(({ unit }) => this.updateUnitsHandler(unit));
-		TransferChange.attach(({ unit }) => this.unitTransferHandler(unit));
+		TransferChange.attach(({ source, dest }) => this.unitTransferHandler(source));
 		ChatChange.attach((msg) => this._addChatMessage(msg));
 		GameStageChange.attach(this._gameStateChange);
 	}
 
-	render() {
+	public render() {
+		const { state } = this.props;
 		const { login, selectedUnit, transferUnit, errorMessage, aboutOpen, transfering, chatLog } = this.state;
-
 
 		return (
 			<MuiThemeProvider>
@@ -86,9 +103,9 @@ export default class HUD extends React.Component<Props, State> {
 					? <LoginModal />
 					: <div
 						id='primaryHUD'
-						style={hudStyle}
-						onFocus={setHudFocus}
-						onBlur={unsetHudFocus}>
+						style={hudStyle as any}
+						onFocus={() => state.focused = 'hud'}
+						onBlur={() => state.focused = 'game'}>
 						{errorMessage
 							? <ErrorAlert
 								errorMessage={errorMessage}
@@ -111,8 +128,7 @@ export default class HUD extends React.Component<Props, State> {
 								transferUnit={transferUnit}
 								onClose={() => {
 									this.setState({ transfering: false });
-								}}
-								onTransfer={performTransfer} />
+								}} />
 							: null
 						}
 						{selectedUnit
@@ -120,25 +136,25 @@ export default class HUD extends React.Component<Props, State> {
 							: null
 						}
 						<Chat
-							chatLog={chatLog}
-							sendChat={sendChat} />
+							chatLog={chatLog}/>
 						<Button
 							onClick={() => this._openAboutClicked()}
-							style={aboutButtonStyle}>
+							style={aboutButtonStyle as any}>
 							About
 					</Button>
 						<MenuButtons
-							selectedUnit={selectedUnit}
-							constructClicked={construct}
-							factoryConstructClicked={factoryOrder} />
+							selectedUnit={selectedUnit}/>
 					</div>
 				}
 			</MuiThemeProvider>
 		)
 	}
-
-	selectedUnitHandler(unit: Entity) {
-		this.setState({ selectedUnit: unit, transferUnit: null });
+	@autobind
+	private selectedUnitsHandler(units: Entity[]) {
+		if (units.length === 0) {
+			return;
+		}
+		this.setState({ selectedUnit: units[0], transferUnit: null });
 	}
 	updateUnitsHandler(unit: Entity) {
 		if (this.state.selectedUnit && this.state.selectedUnit.uuid === unit.uuid) {
@@ -147,7 +163,7 @@ export default class HUD extends React.Component<Props, State> {
 	}
 
 	@autobind
-	_gameStateChange(event: GameStateEvent) {
+	_gameStateChange(event: GameStageEvent) {
 		this.setState({
 			login: event.stage === 'login'
 		})

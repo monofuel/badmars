@@ -1,12 +1,20 @@
 // monofuel
 
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
+import * as _ from 'lodash';
 import { Button, Modal, Alert } from 'react-bootstrap';
 import config from '../config';
 import { RequestChange } from '../net';
-import * as _ from 'lodash';
+import State from '../state';
 
 export default class LoginModal extends React.Component<{}, {}> {
+	public static contextTypes = {
+		state: PropTypes.any.isRequired
+	};
+	context: {
+		state: State,
+	};
 
 	usernameField: HTMLInputElement;
 	colorField: HTMLInputElement;
@@ -24,7 +32,6 @@ export default class LoginModal extends React.Component<{}, {}> {
 	}
 
 	render() {
-
 		let randomColor = (Math.round(Math.random() * 0xffffff)).toString(16);
 
 		return (

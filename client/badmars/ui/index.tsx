@@ -7,5 +7,5 @@ import HUD from './hud';
 import State from '../state';
 
 export default function ui(state: State) {
-	ReactDOM.render(<HUD/>, document.getElementById('content'));
+	ReactDOM.render(<HUD state={state}/>, document.getElementById('content'));
 }

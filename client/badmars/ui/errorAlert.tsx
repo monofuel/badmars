@@ -1,8 +1,9 @@
 // monofuel
 
 import * as React from 'react';
-
+import * as PropTypes from 'prop-types';
 import {Alert} from 'react-bootstrap';
+import State from '../state';
 
 const errorStyle: any = {
 	top: '100px',
@@ -17,6 +18,13 @@ type Props = {
 }
 
 export default class ErrorAlert extends React.Component<Props,{}> {
+	public static contextTypes = {
+		state: PropTypes.any.isRequired
+	};
+	context: {
+		state: State,
+	};
+
 	props: Props;
 	constructor(props: Props) {
 		super(props);

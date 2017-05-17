@@ -1,14 +1,16 @@
 // monofuel
+
+import { autobind } from 'core-decorators';
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
 
 import { Button, Well } from 'react-bootstrap';
 import { Paper } from 'material-ui';
 import Entity from '../units/entity';
+import State from '../state';
 
 type Props = {
 	selectedUnit: Entity,
-	constructClicked: (type: string) => void,
-	factoryConstructClicked: (type: string) => void
 }
 
 const constructButtonStyle = {
@@ -29,11 +31,17 @@ const buildButtonStyle = {
 	zIndex: '5'
 };
 
-export default class MenuButtons extends React.Component{
+export default class MenuButtons extends React.Component<Props,{}> {
+	public static contextTypes = {
+		state: PropTypes.any.isRequired
+	};
+	context: {
+		state: State,
+	};
 
 	render() {
-		const {selectedUnit, constructClicked, factoryConstructClicked} = this.props;
-		const selectedUnitType = selectedUnit ? selectedUnit.details.type : null
+		const {selectedUnit } = this.props;
+		const selectedUnitType = selectedUnit ? selectedUnit.details.type : null;
 
 		let buttons;
 		let queuePane = <div>Nothing queued</div>;
@@ -63,11 +71,11 @@ export default class MenuButtons extends React.Component{
 		if (selectedUnitType !== 'factory') {
 			buttons = (
 				<div>
-					<Button style={constructButtonStyle} onClick={() => constructClicked('storage')}>Storage</Button>
-					<Button style={constructButtonStyle} onClick={() => constructClicked('mine')}>Mine</Button>
-					<Button style={constructButtonStyle} onClick={() => constructClicked('factory')}>Factory</Button>
-					<Button style={constructButtonStyle} onClick={() => constructClicked('wall')}>Wall</Button>
-					<Button style={constructButtonStyle} onClick={() => constructClicked('cancel')}>Cancel</Button>
+					<Button style={constructButtonStyle} onClick={() => this.constructClicked('storage')}>Storage</Button>
+					<Button style={constructButtonStyle} onClick={() => this.constructClicked('mine')}>Mine</Button>
+					<Button style={constructButtonStyle} onClick={() => this.constructClicked('factory')}>Factory</Button>
+					<Button style={constructButtonStyle} onClick={() => this.constructClicked('wall')}>Wall</Button>
+					<Button style={constructButtonStyle} onClick={() => this.constructClicked('cancel')}>Cancel</Button>
 				</div>
 			);
 		} else {
@@ -75,10 +83,10 @@ export default class MenuButtons extends React.Component{
 				<div style={{display: 'flex'}}>
 					{queuePane}
 					<div>
-						<Button style={constructButtonStyle} onClick={() => factoryConstructClicked('tank')}>Tank</Button>
-						<Button style={constructButtonStyle} onClick={() => factoryConstructClicked('builder')}>Builder</Button>
-						<Button style={constructButtonStyle} onClick={() => factoryConstructClicked('transport')}>Transport</Button>
-						<Button style={constructButtonStyle} onClick={() => factoryConstructClicked('cancel')}>Cancel</Button>
+						<Button style={constructButtonStyle} onClick={() => this.factoryConstructClicked('tank')}>Tank</Button>
+						<Button style={constructButtonStyle} onClick={() => this.factoryConstructClicked('builder')}>Builder</Button>
+						<Button style={constructButtonStyle} onClick={() => this.factoryConstructClicked('transport')}>Transport</Button>
+						<Button style={constructButtonStyle} onClick={() => this.factoryConstructClicked('cancel')}>Cancel</Button>
 					</div>
 				</div>
 			);
@@ -86,10 +94,19 @@ export default class MenuButtons extends React.Component{
 
 		return (
 			<Paper
-				id="buttons"
-				style={buildButtonStyle}>
+				id='buttons'
+				style={buildButtonStyle as any}>
 				{buttons}
 			</Paper>
 		);
+	}
+	@autobind
+	private constructClicked(type: string) {
+		throw new Error('not implemented');
+	}
+
+	@autobind
+	private factoryConstructClicked(type: string) {
+		throw new Error('not implemented');
 	}
 };
