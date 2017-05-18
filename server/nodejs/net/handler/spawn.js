@@ -7,6 +7,7 @@
 import MonoContext from '../../util/monoContext';
 import Client from '../client';
 import Unit from '../../unit/unit';
+import filter from '../../util/socketFilter';
 
 export default async function handleSpawn(ctx: MonoContext, client: Client): Promise<void> {
 	let units: Array<Unit> = await ctx.db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
@@ -19,5 +20,21 @@ export default async function handleSpawn(ctx: MonoContext, client: Client): Pro
 	units = await ctx.db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
 
 	client.send('spawn');
+
+	// load chunks that user has units on
+	const chunkSet = new Set();
+	units.forEach((unit: Unit) => {
+		unit.location.chunkHash.forEach((hash: ChunkHash) => {
+			chunkSet.add(hash);
+		});
+	});
+	const list: ChunkHash[] = Array.from(chunkSet).slice(0, 10);
+	await Promise.all(list.map(async (hash: ChunkHash): Promise<void> => {
+		client.loadedChunks.push(hash);
+		const x = parseInt(hash.split(':')[0]);
+		const y = parseInt(hash.split(':')[1]);
+		const chunk = await client.planet.getChunk(ctx, x, y);
+		client.send('chunk', { chunk: filter.sanitizeChunk(chunk) });
+	}));
 	client.send('units', { units: units });
 }

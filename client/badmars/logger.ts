@@ -43,7 +43,7 @@ LogChange.attach(async (event: LogEvent): Promise<void> => {
 		...optional,
 	}
 
-	await axios.post('https://japura.net:9001/track/event', kargs)
+	// await axios.post('http://japura.net:9001/track/event', kargs)
 })
 
 LogChange.attach(async (event: LogEvent): Promise<void> => {

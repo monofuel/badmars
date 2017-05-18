@@ -74,7 +74,6 @@ async function gameInit(): Promise<State> {
 window.onload = async (): Promise<void> => {
 	const state = await gameInit();
 	if (state.username && state.apiKey) {
-		await state.net.connect()
 		RequestChange.post({
 			type: 'login',
 			username: state.username,
@@ -120,4 +119,8 @@ function attachGlobalListeners(state: State) {
 		}
 	};
 	LoginChange.attach(loginListener);
+
+	MapChange.attach((event) => {
+		state.map = new Map(state, event.map);
+	})
 }

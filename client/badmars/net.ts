@@ -28,6 +28,7 @@ type NetworkEvent = MapEvent |
 	MapEvent |
 	UnitStatsEvent |
 	KillEvent |
+	UnitStatsEvent |
 	AttackEvent;
 
 interface BaseEvent {
@@ -37,7 +38,9 @@ interface BaseEvent {
 
 interface MapEvent extends BaseEvent {
 	type: 'map';
+	map: any; // TODO type this
 }
+
 export interface ConnectedEvent extends BaseEvent {
 	type: 'connected';
 }
@@ -98,7 +101,16 @@ export interface KillEvent extends BaseEvent {
 // ------------------------------------------
 // request event types
 
-type RequestType = UnitStatsEvent | GetUnitsRequest | LoginRequest | SetDestinationRequest | ChatRequest | ChunkRequest | GhostRequest  | TransferRequest | GetMapRequest;
+type RequestType = UnitStatsEvent |
+	SpawnRequest |
+	GetUnitsRequest |
+	LoginRequest |
+	SetDestinationRequest |
+	ChatRequest |
+	ChunkRequest |
+	GhostRequest |
+	TransferRequest |
+	GetMapRequest;
 
 interface UnitStatsRequest {
 	type: 'unitStats';
@@ -110,6 +122,10 @@ interface GetUnitsRequest {
 
 interface GetMapRequest {
 	type: 'getMap';
+}
+
+interface SpawnRequest {
+	type: 'spawn';
 }
 
 interface LoginRequest {
@@ -246,7 +262,7 @@ export default class Net {
 		if (!data.success) {
 			log('debug', `message failed: ${data.type} reason: ${data.reason}`)
 		}
-		log('debug', `recieved message ${data.type}`, { keys: Object.keys(data)});
+		log('debug', `recieved message ${data.type}`, { keys: Object.keys(data) });
 
 		// TODO ask for unit stats
 		// TODO load planet information for map
@@ -273,6 +289,11 @@ export default class Net {
 			case 'login':
 				LoginChange.post(data);
 				return;
+			case 'chunk':
+				ChunkChange.post(data);
+				return;
+			case 'unitStats':
+				UnitStatsChange.post(data);
 			default:
 				log('debug', `unknown message type: ${(data as any).type} with fields ${Object.keys(data)}`)
 		}
@@ -280,7 +301,7 @@ export default class Net {
 
 	@autobind
 	private send(data: RequestType) {
-		log('debug', `sending message ${data.type}`, { keys: Object.keys(data)});
+		log('debug', `sending message ${data.type}`, { keys: Object.keys(data) });
 		try {
 			this.ws.send(JSON.stringify(data));
 		} catch (err) {

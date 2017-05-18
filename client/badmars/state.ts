@@ -10,6 +10,8 @@ import MainLoop from './mainLoop';
 import Entity from './units/entity';
 import Hilight from './ui/hilight';
 import { GameStageChange } from './gameEvents';
+import { MapChange, RequestChange, PlayersChange } from './net';
+import sleep from './util/sleep';
 
 export type GameStageType = 'login' | 'planet';
 export type Focused = 'chat' | 'hud' | 'game';
@@ -59,7 +61,25 @@ export default class State {
 		(window as any).state = this;
 		GameStageChange.attach((event) => {
 			this.stage = event.stage;
+		});
+		PlayersChange.attach((event) => {
+			const self = _.find(event.players, (player) => player.name === this.username);
+			this.playerInfo = new Player(self.uuid, self.name, self.color);
+		});
+
+		MapChange.attach(async (event) => {
+			// wait for the server to send units with request
+			await sleep(300);
+			for (let unit of this.map.units) {
+				if (unit.details.owner === this.playerInfo.uuid) {
+					return;
+				}
+			}
+
+			// otherwise ask to be spawned
+			RequestChange.post({ type: 'spawn' });
 		})
+
 	}
 
 	public getPlayerByName(username: string): Player | null {
