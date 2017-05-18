@@ -30,6 +30,7 @@ export default class Client {
 	user: User;
 	username: string;
 	ctx: MonoContext;
+	loadedChunks: ChunkHash[];
 
 	constructor(ctx: MonoContext, ws: WebSocket) {
 		this.ws = ws;
@@ -37,6 +38,7 @@ export default class Client {
 		this.handlers = {};
 		this.ctx = ctx;
 		ctx.setMaxListeners(40);
+		this.loadedChunks = [];
 		this.handlers['login'] = require('./handler/auth').default;
 
 		ctx.logger.info(ctx, 'client connected');
@@ -143,6 +145,7 @@ export default class Client {
 
 	//TODO also handle player list updates
 	handleUnitUpdate(err: Error, delta: Object) {
+
 		if(!delta.new_val) {
 			if(delta.old_val) {
 				//TODO update client for new 'kill' system.
@@ -154,6 +157,10 @@ export default class Client {
 			//TODO compare old vs new and optimize network usage. only send changes and only send things that the client should act on.
 			//TODO like seriously
 			//TODO this is awful
+
+			if (_.intersection(delta.new_val.location.chunkHash, this.loadedChunks).length === 0) {
+				return;
+			}
 
 			const newUnit = filter.sanitizeUnit(delta.new_val);
 

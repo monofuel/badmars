@@ -24,7 +24,9 @@ export default class MainLoop {
 		try {
 			const delta = this.clock.getDelta();
 			this.state.input.update(delta);
-			this.state.map.update(delta);
+			if (this.state.map) {
+				this.state.map.update(delta);
+			}
 			this.state.display.render(delta);
 		} catch (err) {
 			logError(err);

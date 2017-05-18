@@ -34,5 +34,5 @@ const config: Config = {
 
 ConfigType.assert(config);
 
-(window as any).debug.config = config;
+(window as any).config = config;
 export default config;

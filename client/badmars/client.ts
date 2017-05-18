@@ -1,7 +1,5 @@
 // monofuel
 
-(window as any).debug = {};
-
 import Display from './display';
 import Map from './map/map';
 import Input from './input';
@@ -51,6 +49,7 @@ async function gameInit(): Promise<State> {
 	state.mainLoop = new MainLoop(state);
 
 	ui(state);
+	attachGlobalListeners(state);
 
 	// TODO these could be done in parallel
 	loadAllSounds();
@@ -58,11 +57,11 @@ async function gameInit(): Promise<State> {
 	state.net.connect();
 
 	ConnectedChange.once((event: ConnectedEvent) => {
-		if (this.state.username && this.state.apiKey) {
+		if (state.username && state.apiKey) {
 			RequestChange.post({
 				type: 'login',
-				username: this.state.username,
-				apiKey: this.state.apiKey,
+				username: state.username,
+				apiKey: state.apiKey,
 				planet: 'testmap',
 			});
 		}
@@ -103,20 +102,20 @@ function attachGlobalListeners(state: State) {
 	function loginListener(data: LoginEvent) {
 		if (data.success) {
 			if (data.apiKey) {
-				$.cookie('username', this.state.username, {
+				$.cookie('username', state.username, {
 					expires: 360
 				});
 				$.cookie('apiKey', data.apiKey, {
 					expires: 360
 				});
-				this.state.apiKey = data.apiKey;
+				state.apiKey = data.apiKey;
 			}
-			this.state.net.send({
+			RequestChange.post({
 				type: 'getMap'
 			});
 
 			GameStageChange.post({ stage: 'planet' });
-			this.state.input.mouseMode = 'select';
+			state.input.mouseMode = 'select';
 			LoginChange.detach(loginListener);
 		}
 	};

@@ -57,11 +57,8 @@ const aboutButtonStyle = {
 };
 
 export default class HUD extends React.Component<HUDProps, HUDState> {
-	public static contextTypes = {
+	public static childContextTypes = {
 		state: PropTypes.any.isRequired
-	};
-	context: {
-		state: State,
 	};
 
 	public static PropTypes = {

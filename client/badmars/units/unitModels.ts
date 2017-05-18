@@ -2,6 +2,7 @@
 
 import * as _ from 'lodash';
 import * as THREE from 'three';
+require('three-obj-loader')(THREE);
 
 export class ModelInfo {
 	name: string;

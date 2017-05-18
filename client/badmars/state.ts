@@ -9,7 +9,9 @@ import Input from './input';
 import MainLoop from './mainLoop';
 import Entity from './units/entity';
 import Hilight from './ui/hilight';
+import { GameStageChange } from './gameEvents';
 
+export type GameStageType = 'login' | 'planet';
 export type Focused = 'chat' | 'hud' | 'game';
 
 declare const $: any;
@@ -37,6 +39,7 @@ export default class State {
 
 	public selectedUnits: Entity[];
 	public hilight: Hilight;
+	public stage: GameStageType;
 
 	constructor() {
 		this.players = [];
@@ -51,7 +54,12 @@ export default class State {
 		this.apiKey = $.cookie('apiKey');
 		this.loggedIn = false;
 
+		this.stage = 'login';
 		this.selectedUnits = [];
+		(window as any).state = this;
+		GameStageChange.attach((event) => {
+			this.stage = event.stage;
+		})
 	}
 
 	public getPlayerByName(username: string): Player | null {

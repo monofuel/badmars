@@ -20,6 +20,7 @@ export default class Display {
 	private panel: HTMLCanvasElement;
 
 	constructor(state: State) {
+		this.state = state;
 		this.scene = new THREE.Scene();
 
 		const aspectRatio = window.innerWidth / window.innerHeight;

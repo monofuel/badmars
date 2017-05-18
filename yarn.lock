@@ -4380,6 +4380,10 @@ text-table@~0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
 
+three-obj-loader@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/three-obj-loader/-/three-obj-loader-1.1.2.tgz#d2c0e30a1acfdb344eac014375594429a0e25a53"
+
 three@^0.85.2:
   version "0.85.2"
   resolved "https://registry.yarnpkg.com/three/-/three-0.85.2.tgz#8936f89c3668f7bf12f9b085ddf5dd409916ea27"

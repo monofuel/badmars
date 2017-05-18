@@ -5,7 +5,7 @@ import config from './config';
 import { AsyncEvent } from 'ts-events';
 
 interface MetaType {
-	[key: string]: string | number | boolean;
+	[key: string]: string | number | boolean | string[] | number[];
 }
 
 export type LogLevelType = 'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'silly';

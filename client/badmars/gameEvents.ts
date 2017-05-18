@@ -4,6 +4,7 @@ import { SyncEvent } from 'ts-events';
 import config from './config';
 import { log } from './logger';
 import Entity from './units/entity';
+import { GameStageType } from './state';
 const t = require('flow-runtime');
 
 // ------------------------------------------
@@ -49,7 +50,6 @@ interface SetDestinationEvent {
 	loc: any;
 }
 
-type GameStageType = 'login' | 'planet';
 export interface GameStageEvent {
 	stage: GameStageType;
 }

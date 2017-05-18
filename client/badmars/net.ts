@@ -98,7 +98,7 @@ export interface KillEvent extends BaseEvent {
 // ------------------------------------------
 // request event types
 
-type RequestType = UnitStatsEvent | GetUnitsRequest | LoginRequest | SetDestinationRequest | ChatRequest | ChunkRequest | GhostRequest  | TransferRequest;
+type RequestType = UnitStatsEvent | GetUnitsRequest | LoginRequest | SetDestinationRequest | ChatRequest | ChunkRequest | GhostRequest  | TransferRequest | GetMapRequest;
 
 interface UnitStatsRequest {
 	type: 'unitStats';
@@ -106,6 +106,10 @@ interface UnitStatsRequest {
 
 interface GetUnitsRequest {
 	type: 'getUnits';
+}
+
+interface GetMapRequest {
+	type: 'getMap';
 }
 
 interface LoginRequest {
@@ -242,6 +246,7 @@ export default class Net {
 		if (!data.success) {
 			log('debug', `message failed: ${data.type} reason: ${data.reason}`)
 		}
+		log('debug', `recieved message ${data.type}`, { keys: Object.keys(data)});
 
 		// TODO ask for unit stats
 		// TODO load planet information for map
@@ -265,6 +270,9 @@ export default class Net {
 			case 'units':
 				UnitChange.post(data);
 				return;
+			case 'login':
+				LoginChange.post(data);
+				return;
 			default:
 				log('debug', `unknown message type: ${(data as any).type} with fields ${Object.keys(data)}`)
 		}
@@ -272,6 +280,7 @@ export default class Net {
 
 	@autobind
 	private send(data: RequestType) {
+		log('debug', `sending message ${data.type}`, { keys: Object.keys(data)});
 		try {
 			this.ws.send(JSON.stringify(data));
 		} catch (err) {

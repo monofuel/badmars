@@ -55,6 +55,7 @@
     "source-map-support": "^0.4.15",
     "stats.js": "^0.17.0",
     "three": "^0.85.2",
+    "three-obj-loader": "^1.1.2",
     "ts-events": "^3.2.0",
     "tsify": "^3.0.1",
     "typescript": "^2.3.2",
