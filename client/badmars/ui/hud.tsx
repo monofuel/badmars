@@ -133,14 +133,14 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 							: null
 						}
 						<Chat
-							chatLog={chatLog}/>
+							chatLog={chatLog} />
 						<Button
 							onClick={() => this._openAboutClicked()}
 							style={aboutButtonStyle as any}>
 							About
 					</Button>
 						<MenuButtons
-							selectedUnit={selectedUnit}/>
+							selectedUnit={selectedUnit} />
 					</div>
 				}
 			</MuiThemeProvider>

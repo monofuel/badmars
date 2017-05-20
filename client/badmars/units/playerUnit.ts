@@ -12,7 +12,7 @@ export default class PlayerUnit extends GroundUnit {
 	constructor(state: State, location: PlanetLoc, player: Player, uuid: string, type: string, scale: number) {
 		let color;
 		if (!player || !player.color) {
-			console.log('unknown player color');
+			console.log('player missing color: ', JSON.stringify(player));
 			color = new THREE.Color();
 		} else {
 			color = player.color;

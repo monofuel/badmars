@@ -97,6 +97,7 @@ export default class Entity {
 	};
 
 	constructor(state: State, loc: PlanetLoc, uuid: string, color: THREE.Color, type: string, scale: number) {
+		this.state = state;
 		const { display } = state;
 		if (!loc) {
 			throw new Error('missing location');

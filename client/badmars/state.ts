@@ -9,6 +9,7 @@ import Input from './input';
 import MainLoop from './mainLoop';
 import Entity from './units/entity';
 import Hilight from './ui/hilight';
+import PlanetLoc from './map/planetLoc';
 import { GameStageChange } from './gameEvents';
 import { MapChange, RequestChange, PlayersChange } from './net';
 import sleep from './util/sleep';
@@ -43,6 +44,8 @@ export default class State {
 	public hilight: Hilight;
 	public stage: GameStageType;
 
+	public playerLocation: PlanetLoc;
+
 	constructor() {
 		this.players = [];
 		this.connected = false;
@@ -69,9 +72,10 @@ export default class State {
 
 		MapChange.attach(async (event) => {
 			// wait for the server to send units with request
-			await sleep(300);
+			await sleep(1000);
 			for (let unit of this.map.units) {
 				if (unit.details.owner === this.playerInfo.uuid) {
+					this.display.viewTile(unit.loc);
 					return;
 				}
 			}

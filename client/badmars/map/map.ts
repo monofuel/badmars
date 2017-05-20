@@ -61,8 +61,12 @@ export default class Map {
 
 		this.worldSettings = planet.settings;
 
-		this.chunkInterval = setInterval(() => {
-			this.loadChunksNearCamera();
+		this.chunkInterval = setInterval(async () => {
+			await Promise.resolve(this.fixAllLocations());
+			await Promise.resolve(this.loadChunksNearCamera());
+			await Promise.resolve(() => {
+				this.state.playerLocation = this.getTileAtRay(new THREE.Vector2(0, 0));
+			})
 		}, 750);
 
 		this.chunkListener = (data: ChunkEvent) => {
@@ -476,9 +480,7 @@ export default class Map {
 	}
 
 	update(delta: number) {
-		for (var unit of this.units) {
-			unit.update(delta);
-		}
+		this.units.forEach((unit) => unit.update(delta));
 	}
 
 	requestChunk(x: number, y: number): void {
@@ -588,7 +590,6 @@ export default class Map {
 	loadChunksNearCamera() {
 		var tile = this.getTileAtRay(new THREE.Vector2(0, 0));
 		if (!tile) {
-			console.log('no tile found at camera');
 			return;
 		}
 		this.loadChunksNearTile(tile);

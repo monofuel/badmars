@@ -9,6 +9,7 @@ import State from './state';
 import { log, logError } from './logger';
 import { AsyncEvent } from 'ts-events';
 import config from './config';
+const t = require('flow-runtime');
 
 // set by server as global values
 declare var SERVER_URL: string;
@@ -58,10 +59,24 @@ interface SpawnEvent extends BaseEvent {
 	type: 'spawn';
 }
 
+interface ServerUnit {
+	uuid: string;
+	awake: boolean;
+}
+const UnitType = t.object({
+	uuid: t.string(),
+	awake: t.boolean()
+})
+
 export interface UnitEvent extends BaseEvent {
 	type: 'units';
-	units: any; // TODO
+	units: ServerUnit[];
 }
+
+const UnitEventType = t.object({
+	type: 'units',
+	units: t.array(UnitType)
+})
 
 interface UnitStatsEvent extends BaseEvent {
 	type: 'unitStats';
@@ -197,6 +212,11 @@ export const RequestChange = new AsyncEvent<RequestType>();
 
 if (config.debug) {
 	log('debug', 'mounted runtime server type checkers');
+
+	UnitChange.attach((event) => {
+		UnitEventType.assert(event);
+	})
+
 }
 
 // ------------------------------------------

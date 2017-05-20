@@ -29,6 +29,7 @@ export default class MainLoop {
 			}
 			this.state.display.render(delta);
 		} catch (err) {
+			console.error(err);
 			logError(err);
 		}
 		this.statsMonitor.end();

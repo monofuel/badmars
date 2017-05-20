@@ -18,6 +18,7 @@ export default class Display {
 	public renderer: THREE.WebGLRenderer;
 	private state: State;
 	private panel: HTMLCanvasElement;
+	private HUDPanel: HTMLCanvasElement;
 
 	constructor(state: State) {
 		this.state = state;
@@ -34,6 +35,7 @@ export default class Display {
 		}
 
 		this.panel = document.getElementById('threePanel') as HTMLCanvasElement;
+		this.HUDPanel = document.getElementById('HUDPanel') as HTMLCanvasElement;
 
 		this.renderer = new THREE.WebGLRenderer({
 			antialias: false,
@@ -182,8 +184,8 @@ export default class Display {
 		// convert from vector back to x and y
 		// dragCurrent.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1;
 		// dragCurrent.y = -(event.clientY / display.renderer.domElement.clientHeight) * 2 + 1;
-		var widthHalf = 0.5 * this.panel.width;
-		var heightHalf = 0.5 * this.panel.height;
+		var widthHalf = 0.5 * this.HUDPanel.width;
+		var heightHalf = 0.5 * this.HUDPanel.height;
 
 		var startVec = new THREE.Vector2();
 		startVec.x = (dragStart.x * widthHalf) + widthHalf;
@@ -197,7 +199,7 @@ export default class Display {
 		var maxY = Math.round(Math.max(startVec.y, curVec.y));
 		var minY = Math.round(Math.min(startVec.y, curVec.y));
 
-		const hudContext = this.panel.getContext('2d');
+		const hudContext = this.HUDPanel.getContext('2d');
 		hudContext.strokeStyle = '#7CFC00';
 		hudContext.lineWidth = 1;
 		hudContext.strokeRect(minX, minY, maxX - minX, maxY - minY);

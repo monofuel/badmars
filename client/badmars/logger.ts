@@ -19,7 +19,7 @@ interface LogEvent {
 const LogChange = new AsyncEvent<LogEvent>();
 
 export function log(level: LogLevelType, name: string, meta: MetaType = {}) {
-	LogChange.post({ name, meta, level})
+	LogChange.post({ name, meta, level })
 }
 export function logError(err: Error) {
 	const meta = {

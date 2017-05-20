@@ -127,10 +127,6 @@ export default class Input {
 
 	@autobind
 	private keyUpHandler(key: KeyboardEvent): void {
-		if (this.state.focused !== 'game') {
-			return;
-		}
-
 		this.keysDown = _.remove(this.keysDown, (keyDown) => key.keyCode === keyDown)
 	}
 
