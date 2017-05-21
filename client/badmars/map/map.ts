@@ -287,9 +287,9 @@ export default class Map {
 
 		gridGeom.normalsNeedUpdate = true;
 
-		var planetMaterials = new THREE.MeshFaceMaterial([landMaterial, cliffMaterial]);
+		var planetMaterials = [landMaterial, cliffMaterial];
 
-		var gridMesh = new THREE.Mesh(gridGeom, planetMaterials);
+		var gridMesh = new THREE.Mesh(gridGeom, (planetMaterials as any) as THREE.Material); // types not updated
 		var waterMesh = new THREE.Mesh(waterGeom, waterMaterial);
 
 		var centerMatrix = new THREE.Matrix4()
