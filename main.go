@@ -109,9 +109,9 @@ func defaultEnv(key string, defaultValue string) {
 
 func startNodeModule(name string) error {
 	if hotReload && !Contains(hotReloadBlacklist, name) {
-		return startProgram("babel-watch", "./server/nodejs/", fmt.Sprintf("%s.js", name))
+		return startProgram("supervisor", "./bin/server/nodejs/", fmt.Sprintf("%s.js", name))
 	} else {
-		return startProgram("babel-cli", "./server/nodejs/", name)
+		return startProgram("node", "./bin/server/nodejs/", name)
 	}
 }
 
@@ -156,13 +156,14 @@ func startProgram(name string, path string, args ...string) error {
 	if err != nil {
 		return err
 	}
+
+	go io.Copy(os.Stdout, cmdOut)
+	go io.Copy(os.Stderr, cmdErr)
+
 	err = cmd.Start()
 	if err != nil {
 		return err
 	}
-
-	go io.Copy(os.Stdout, cmdOut)
-	go io.Copy(os.Stderr, cmdErr)
 
 	go func() {
 		err := cmd.Wait()

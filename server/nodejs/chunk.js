@@ -8,6 +8,7 @@ import DB from './db/db';
 import Logger from './util/logger';
 import Health from './core/health';
 import Chunk from './core/chunk';
+import env from './config/env';
 require('source-map-support').install();
 
 const logger = new Logger('chunk');
@@ -23,8 +24,10 @@ async function init(): Promise<void> {
 		await chunk.init();
 		logger.info(null, 'chunk service started');
 
-		const health = new Health(db, logger);
-		await health.init();
+		if (env.envType === 'prod') {
+			const health = new Health(db, logger);
+			await health.init();
+		}
 		logger.info(null, 'READY');
 
 	} catch (err) {

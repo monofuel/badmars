@@ -141,3 +141,9 @@ services:
     image: rethinkdb
     ports:
       - "8085:8080"
+    volumes:
+      - rethinkdb_data:/data
+
+volumes:
+  rethinkdb_data:
+    driver: local
