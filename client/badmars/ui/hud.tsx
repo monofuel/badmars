@@ -207,4 +207,4 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 	_openAboutClicked() {
 		this.setState({ aboutOpen: true });
 	}
-};
+}

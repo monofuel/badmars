@@ -55,6 +55,14 @@ interface PlayersEvent extends BaseEvent {
 		color: string,
 	}[];
 }
+const PlayersEventType = t.object({
+	type: t.string('players'),
+	players: t.array(t.object({
+		uuid: t.string(),
+		name: t.string(),
+		color: t.string(),
+	}))
+});
 
 interface SpawnEvent extends BaseEvent {
 	type: 'spawn';
@@ -63,11 +71,61 @@ interface SpawnEvent extends BaseEvent {
 interface ServerUnit {
 	uuid: string;
 	awake: boolean;
-	[key: string]: any;
+	details: {
+		type: string;
+		health: number;
+		ghosting: boolean;
+		owner: string;
+	};
+	location: {
+		hash: TileHash[];
+		x: number;
+		y: number;
+		chunkHash: TileHash[];
+		chunkX: number;
+		chunkY: number;
+	};
+	movable?: {
+
+	};
+	attack?: {
+
+	};
+
+	storage?: {
+
+	};
+	graphical?: {
+
+	};
+	stationary?: {
+
+	};
+	construct?: {
+
+	};
 }
 const UnitType = t.object({
 	uuid: t.string(),
-	awake: t.boolean()
+	awake: t.boolean(),
+	details: t.object({
+		type: t.string(),
+		health: t.number(),
+		ghosting: t.boolean(),
+		owner: t.string(),
+	}),
+	location: t.object({
+		hash: t.array(t.string()),
+		chunkHash: t.array(t.string()),
+		x: t.number(),
+		y: t.number(),
+		chunkX: t.number(),
+		chunkY: t.number(),
+	}),
+	graphical: t.nullable(t.object({
+		model: t.string(),
+		scale: t.number(),
+	}))
 });
 
 export interface UnitEvent extends BaseEvent {
@@ -236,6 +294,10 @@ if (config.debug) {
 		UnitDeltaType.assert(event);
 	});
 
+	PlayersChange.attach((event) => {
+		PlayersEventType.assert(event);
+	});
+
 }
 
 // ------------------------------------------
@@ -266,13 +328,13 @@ export default class Net {
 		setInterval(() => {
 			if (this.getState() !== 1) {
 				this.connectionError(new Error(`bad connection state: ${this.getState()}`));
-			};
+			}
 		}, 1000);
 
 
 		this.ws.onerror = () => {
 			DisplayErrorChange.post({ errMsg: 'The connection to the server was lost. You should reload' });
-		}
+		};
 
 		this.ws.onmessage = this.onmessage;
 
@@ -287,7 +349,7 @@ export default class Net {
 				log('debug', 'connected!');
 				RequestChange.attach(this.send);
 				resolve();
-			}
+			};
 		});
 	}
 
@@ -299,7 +361,7 @@ export default class Net {
 			return;
 		}
 		if (!data.success) {
-			log('debug', `message failed: ${data.type} reason: ${data.reason}`)
+			log('debug', `message failed: ${data.type} reason: ${data.reason}`);
 		}
 		log('debug', `recieved message ${data.type}`, { keys: Object.keys(data) });
 
@@ -338,7 +400,7 @@ export default class Net {
 				UnitDeltaChange.post(data);
 				return;
 			default:
-				log('debug', `unknown message type: ${(data as any).type} with fields ${Object.keys(data)}`)
+				log('debug', `unknown message type: ${(data as any).type} with fields ${Object.keys(data)}`);
 		}
 	}
 

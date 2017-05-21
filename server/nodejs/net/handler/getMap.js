@@ -7,12 +7,16 @@
 import type MonoContext from '../../util/monoContext';
 import type Client from '../client';
 import type Unit from '../../unit/unit';
+import sleep from '../../util/sleep';
 import { sanitizeChunk, sanitizeUnit } from '../../util/socketFilter';
 
 export default async function getMap(ctx: MonoContext, client: Client): Promise<void> {
 	const units: Array<Unit> = await ctx.db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
 	client.planet.isSpawned = units.length !== 0;
 	client.send('map', { map: client.planet });
+
+	// HACK make sure 'map' arrives before data about the map
+	await sleep(1000);
 
 	const unitStats = await ctx.db.unitStats[client.planet.name].getAll(ctx);
 	client.send('unitStats', { units: unitStats });
@@ -32,15 +36,12 @@ export default async function getMap(ctx: MonoContext, client: Client): Promise<
 		});
 	});
 	const list: ChunkHash[] = Array.from(chunkSet).slice(0, 10);
-	console.log('got chunks: ', list);
 	await Promise.all(list.map(async (hash: ChunkHash): Promise<void> => {
 		client.loadedChunks.push(hash);
 		const x = parseInt(hash.split(':')[0]);
 		const y = parseInt(hash.split(':')[1]);
 		const chunk = await client.planet.getChunk(ctx, x, y);
-		console.log('sending chunk');
 		client.send('chunk', { chunk: sanitizeChunk(chunk) });
 	}));
-	console.log('sending units');
 	client.send('units', { units: units.map((unit) => sanitizeUnit(unit, client.user.uuid))});
 }

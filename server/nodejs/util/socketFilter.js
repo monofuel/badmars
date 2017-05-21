@@ -22,7 +22,9 @@ export function sanitizeUnit(unit: Unit, owner: UUID): Object {
 	} = unit;
 	const owned: boolean = details.owner === owner;
 	const optional = {};
-
+	if (unit.graphical) {
+		optional.graphical = sanitizeUnitGraphical(unit);
+	}
 	return {
 		uuid,
 		awake,
@@ -79,7 +81,17 @@ function sanitizeUnitStorage(unit: Unit): Object {
 	return {};
 }
 function sanitizeUnitGraphical(unit: Unit): Object {
-	return {};
+	if (!unit.graphical) {
+		return {};
+	}
+	const {
+		model,
+		scale
+	} = unit.graphical;
+	return {
+		model,
+		scale,
+	};
 }
 
 function sanitizeUnitStationary(unit: Unit): Object {
@@ -121,7 +133,7 @@ function sanitizeOwnedUnitStorage(unit: Unit): Object {
 	return {};
 }
 function sanitizeOwnedUnitGraphical(unit: Unit): Object {
-	return {};
+	return sanitizeUnitGraphical(unit);
 }
 
 function sanitizeOwnedUnitStationary(unit: Unit): Object {

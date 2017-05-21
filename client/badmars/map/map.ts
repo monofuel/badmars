@@ -136,18 +136,6 @@ export default class Map {
 	}
 	private addUnit(unit: any) {
 		const { playerInfo } = this.state;
-		for (const oldUnit of this.units) {
-			if (oldUnit.uuid === unit.uuid) {
-				Object.assign(oldUnit, unit);
-				const skipChunk = playerInfo && unit.details.owner !== playerInfo.uuid;
-				let tile = new PlanetLoc(this, unit.location.x, unit.location.y, (playerInfo && unit && unit.details.owner !== playerInfo.uuid));
-
-				if (oldUnit.movable && oldUnit instanceof GroundUnit && !oldUnit.loc.equals(tile)) {
-					oldUnit.updateNextMove(tile, oldUnit.movable.speed);
-				}
-				return;
-			}
-		}
 		if (playerInfo && unit.details.owner !== playerInfo.uuid) {
 			let tile = new PlanetLoc(this, unit.location.x, unit.location.y, true);
 			if (!tile.chunk) {
