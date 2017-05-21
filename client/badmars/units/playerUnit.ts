@@ -9,7 +9,8 @@ import State from '../state';
 import * as THREE from 'three';
 
 export default class PlayerUnit extends GroundUnit {
-	constructor(state: State, location: PlanetLoc, player: Player, uuid: string, type: string, scale: number) {
+	constructor(state: State, location: PlanetLoc, userUUID: UUID, uuid: string, type: string, scale: number) {
+		const player = state.getPlayerByUUID(userUUID);
 		let color;
 		if (!player || !player.color) {
 			console.log('player missing color: ', JSON.stringify(player));

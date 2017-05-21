@@ -10,6 +10,7 @@ import PlayerUnit from '../units/playerUnit';
 import GroundUnit from '../units/groundUnit';
 import { updateUnit } from '../units/unitBalance';
 import { N, S, E, W, C } from '../units/directions';
+import { log } from '../logger';
 import jsonpatch from 'fast-json-patch';
 import * as THREE from 'three';
 import * as _ from 'lodash';
@@ -26,6 +27,7 @@ import {
 	UnitDeltaEvent,
 	UnitDeltaChange,
 	RequestChange,
+	ServerUnit,
 } from '../net';
 
 // TODO chunk should be a type
@@ -134,7 +136,11 @@ export default class Map {
 		UnitDeltaChange.attach(this.updateUnitDeltaListener);
 
 	}
-	private addUnit(unit: any) {
+	private addUnit(unit: ServerUnit) {
+		if (!unit.graphical) {
+			log('debug', 'unit without graphical component added');
+			return;
+		}
 		const { playerInfo } = this.state;
 		if (playerInfo && unit.details.owner !== playerInfo.uuid) {
 			let tile = new PlanetLoc(this, unit.location.x, unit.location.y, true);
@@ -164,17 +170,17 @@ export default class Map {
 			console.log('asdf', unit.graphical.scale);
 			switch (unit.details.type) {
 				case 'iron':
-					newUnit = new Iron(this.state, loc, unit.rate, unit.uuid, unit.graphical.scale);
+					newUnit = new Iron(this.state, loc, 0, unit.uuid, unit.graphical.scale);
 					break;
 				case 'oil':
-					newUnit = new Oil(this.state, loc, unit.rate, unit.uuid, unit.graphical.scale);
+					newUnit = new Oil(this.state, loc, 0, unit.uuid, unit.graphical.scale);
 					break;
 				default:
 					console.log('unknown type: ', unit);
 					return;
 			}
 		}
-		Object.assign(newUnit, unit);
+		_.merge(newUnit, unit);
 		updateUnit(newUnit);
 		this.units.push(newUnit);
 	}

@@ -68,7 +68,7 @@ interface SpawnEvent extends BaseEvent {
 	type: 'spawn';
 }
 
-interface ServerUnit {
+export interface ServerUnit {
 	uuid: string;
 	awake: boolean;
 	details: {
@@ -96,7 +96,8 @@ interface ServerUnit {
 
 	};
 	graphical?: {
-
+		model: string;
+		scale: number;
 	};
 	stationary?: {
 

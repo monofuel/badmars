@@ -111,7 +111,7 @@ export default class Entity {
 		this.takingDamage = 0;
 		this.selectionSize = 1.1;
 
-		const material = new THREE.MeshLambertMaterial({ color: color.getHexString() });
+		const material = new THREE.MeshLambertMaterial({ color: color.getHex() });
 
 		const geometry = getMesh(type);
 		if (!geometry) {
