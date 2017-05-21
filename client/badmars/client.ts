@@ -116,11 +116,13 @@ function attachGlobalListeners(state: State) {
 			GameStageChange.post({ stage: 'planet' });
 			state.input.mouseMode = 'select';
 			LoginChange.detach(loginListener);
+		} else {
+			GameStageChange.post({ stage: 'login' });
 		}
-	};
+	}
 	LoginChange.attach(loginListener);
 
 	MapChange.attach((event) => {
 		state.map = new Map(state, event.map);
-	})
+	});
 }

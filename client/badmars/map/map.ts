@@ -10,7 +10,9 @@ import PlayerUnit from '../units/playerUnit';
 import GroundUnit from '../units/groundUnit';
 import { updateUnit } from '../units/unitBalance';
 import { N, S, E, W, C } from '../units/directions';
+import jsonpatch from 'fast-json-patch';
 import * as THREE from 'three';
+import * as _ from 'lodash';
 
 import {
 	ChunkEvent,
@@ -21,6 +23,8 @@ import {
 	KillChange,
 	UnitEvent,
 	UnitChange,
+	UnitDeltaEvent,
+	UnitDeltaChange,
 	RequestChange,
 } from '../net';
 
@@ -39,6 +43,7 @@ export default class Map {
 	killListener: (data: KillEvent) => void;
 	chunkListener: (data: ChunkEvent) => void;
 	updateUnitsListener: (data: UnitEvent) => void;
+	updateUnitDeltaListener: (data: UnitDeltaEvent) => void;
 	chunkCache: any;
 	viewRange: number;
 	unloadRange: number;
@@ -102,7 +107,7 @@ export default class Map {
 		this.killListener = (data: KillEvent) => {
 			const unit = this.getUnitById(data.unitId);
 			unit.destroy();
-		}
+		};
 		KillChange.attach(this.killListener);
 
 		this.updateUnitsListener = (data: UnitEvent) => {
@@ -116,8 +121,17 @@ export default class Map {
 					this.addUnit(updated);
 				}
 			}
-		}
+		};
 		UnitChange.attach(this.updateUnitsListener);
+
+		this.updateUnitDeltaListener = (data: UnitDeltaEvent) => {
+			const unit = _.find(this.units, (unit) => unit.uuid === data.uuid);
+			if (!unit) {
+				throw new Error(`unit ${data.uuid} does not exist`);
+			}
+			jsonpatch.apply(unit, data.delta);
+		};
+		UnitDeltaChange.attach(this.updateUnitDeltaListener);
 
 	}
 	private addUnit(unit: any) {
@@ -133,7 +147,7 @@ export default class Map {
 				}
 				return;
 			}
-		};
+		}
 		if (playerInfo && unit.details.owner !== playerInfo.uuid) {
 			let tile = new PlanetLoc(this, unit.location.x, unit.location.y, true);
 			if (!tile.chunk) {

@@ -30,6 +30,7 @@ type NetworkEvent = MapEvent |
 	UnitStatsEvent |
 	KillEvent |
 	UnitStatsEvent |
+	UnitDeltaEvent |
 	AttackEvent;
 
 interface BaseEvent {
@@ -62,11 +63,12 @@ interface SpawnEvent extends BaseEvent {
 interface ServerUnit {
 	uuid: string;
 	awake: boolean;
+	[key: string]: any;
 }
 const UnitType = t.object({
 	uuid: t.string(),
 	awake: t.boolean()
-})
+});
 
 export interface UnitEvent extends BaseEvent {
 	type: 'units';
@@ -74,9 +76,21 @@ export interface UnitEvent extends BaseEvent {
 }
 
 const UnitEventType = t.object({
-	type: 'units',
+	type: t.string('units'),
 	units: t.array(UnitType)
-})
+});
+
+export interface UnitDeltaEvent extends BaseEvent {
+	type: 'unitDelta';
+	uuid: UUID;
+	delta: any[];
+}
+
+const UnitDeltaType = t.object({
+	type: t.string('unitDelta'),
+	uuid: t.string(),
+	delta: t.array(t.object()),
+});
 
 interface UnitStatsEvent extends BaseEvent {
 	type: 'unitStats';
@@ -196,6 +210,7 @@ export const ConnectedChange = new AsyncEvent<ConnectedEvent>();
 export const PlayersChange = new AsyncEvent<PlayersEvent>();
 export const SpawnChange = new AsyncEvent<SpawnEvent>();
 export const UnitChange = new AsyncEvent<UnitEvent>();
+export const UnitDeltaChange = new AsyncEvent<UnitDeltaEvent>();
 export const UnitStatsChange = new AsyncEvent<UnitStatsEvent>();
 export const ChatChange = new AsyncEvent<ChatEvent>();
 export const LoginChange = new AsyncEvent<LoginEvent>();
@@ -215,7 +230,11 @@ if (config.debug) {
 
 	UnitChange.attach((event) => {
 		UnitEventType.assert(event);
-	})
+	});
+
+	UnitDeltaChange.attach((event) => {
+		UnitDeltaType.assert(event);
+	});
 
 }
 
@@ -314,6 +333,10 @@ export default class Net {
 				return;
 			case 'unitStats':
 				UnitStatsChange.post(data);
+				return;
+			case 'unitDelta':
+				UnitDeltaChange.post(data);
+				return;
 			default:
 				log('debug', `unknown message type: ${(data as any).type} with fields ${Object.keys(data)}`)
 		}

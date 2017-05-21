@@ -71,18 +71,20 @@ export default class State {
 		});
 
 		MapChange.attach(async (event) => {
-			// wait for the server to send units with request
-			await sleep(1000);
+			if (!event.map.isSpawned) {
+				RequestChange.post({ type: 'spawn' });
+				return;
+			}
+
+			// wait for units to load
+			await sleep(5000);
 			for (let unit of this.map.units) {
 				if (unit.details.owner === this.playerInfo.uuid) {
 					this.display.viewTile(unit.loc);
 					return;
 				}
 			}
-
-			// otherwise ask to be spawned
-			RequestChange.post({ type: 'spawn' });
-		})
+		});
 
 	}
 

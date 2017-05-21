@@ -7,7 +7,7 @@
 import MonoContext from '../../util/monoContext';
 import Client from '../client';
 import Unit from '../../unit/unit';
-import filter from '../../util/socketFilter';
+import { sanitizeChunk, sanitizeUnit } from '../../util/socketFilter';
 
 export default async function handleSpawn(ctx: MonoContext, client: Client): Promise<void> {
 	let units: Array<Unit> = await ctx.db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
@@ -34,7 +34,7 @@ export default async function handleSpawn(ctx: MonoContext, client: Client): Pro
 		const x = parseInt(hash.split(':')[0]);
 		const y = parseInt(hash.split(':')[1]);
 		const chunk = await client.planet.getChunk(ctx, x, y);
-		client.send('chunk', { chunk: filter.sanitizeChunk(chunk) });
+		client.send('chunk', { chunk: sanitizeChunk(chunk) });
 	}));
-	client.send('units', { units: units });
+	client.send('units', { units: units.map((unit) => sanitizeUnit(unit, client.user.uuid)) });
 }

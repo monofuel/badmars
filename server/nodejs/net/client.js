@@ -8,10 +8,11 @@ import WebSocket from 'ws';
 import _ from 'lodash';
 
 import { DetailedError, WrappedError } from '../util/logger';
-import filter from '../util/socketFilter';
+import { sanitizeUnit, sanitizeChunk } from '../util/socketFilter';
 import MonoContext from '../util/monoContext';
 import type User from '../user/user';
 import type Map from '../map/map';
+import jsonpatch from 'fast-json-patch';
 
 const KEEP_ALIVE = 5000;
 
@@ -154,26 +155,21 @@ export default class Client {
 				});
 			}
 		} else {
-			//TODO compare old vs new and optimize network usage. only send changes and only send things that the client should act on.
-			//TODO like seriously
-			//TODO this is awful
-
+			// check if unit is on a chunk the player sees
 			if (_.intersection(delta.new_val.location.chunkHash, this.loadedChunks).length === 0) {
 				return;
 			}
+			// TODO fog of war
 
-			const newUnit = filter.sanitizeUnit(delta.new_val);
+			const newUnit = sanitizeUnit(delta.new_val, this.user.uuid);
 
 			if(delta.old_val) {
 				//console.log('unit change');
-				const oldUnit = filter.sanitizeUnit(delta.old_val);
+				const oldUnit = sanitizeUnit(delta.old_val, this.user.uuid);
 				if(!_.isEqual(newUnit, oldUnit)) {
-					//console.log('sending unit update');
-					//if (newUnit.iron != oldUnit.iron) {
-					//	console.log('sending iron change');
-					//}
-					this.send('units', {
-						units: [newUnit]
+					this.send('unitDelta', {
+						uuid: newUnit.uuid,
+						delta: jsonpatch.compare(newUnit, oldUnit)
 					});
 				}
 			} else {
@@ -200,21 +196,21 @@ export default class Client {
 		switch(gameEvent.type) {
 		case 'attack':
 			if(!gameEvent.enemyId) {
-				this.ctx.logger.trackError(new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
+				this.ctx.logger.trackError(this.ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
 			}
 			if(!gameEvent.unitId) {
-				this.ctx.logger.trackError(new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
+				this.ctx.logger.trackError(this.ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
 			}
 			this.send('attack', { enemyId: gameEvent.enemyId, unitId: gameEvent.unitId });
 			break;
 		case 'kill':
 			if(!gameEvent.unitId) {
-				this.ctx.logger.trackError(new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
+				this.ctx.logger.trackError(this.ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
 			}
 			this.send('attack', { unitId: gameEvent.unitId });
 			break;
 		default:
-			this.ctx.logger.trackError(new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
+			this.ctx.logger.trackError(this.ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
 		}
 	}
 

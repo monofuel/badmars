@@ -13,7 +13,8 @@
     "plugins": [
         "transform-class-properties",
         "transform-strict-mode",
-        "transform-runtime"
+        "transform-runtime",
+        "transform-object-rest-spread"
     ],
     "env": {
         "development": {

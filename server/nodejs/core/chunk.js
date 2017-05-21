@@ -96,6 +96,15 @@ export default class PlanetService {
 		for (let i = 0; i < chunk.grid.length; i++) {
 			chunk.grid[i] = { items: chunk.grid[i] };
 		}
-		return filter.sanitizeChunk(chunk);
+
+		return {
+			x: chunk.x,
+			y: chunk.y,
+			map: chunk.map,
+			hash: chunk.hash,
+			grid: chunk.grid,
+			navGrid: chunk.navGrid,
+			chunkSize: chunk.chunkSize,
+		};
 	}
 }

@@ -87,7 +87,7 @@ dockerBuildPrepare:
 	 docker build -t badmars-node-build -f ./Dockerfile-node-build .
 
 dockerBuild: dockerBuildPrepare
-	 docker run -v `pwd`/bin:/badmars/bin -v `pwd`/server:/badmars/server badmars-node-build make buildServer -j 4
+	 docker run -v `pwd`:/badmars badmars-node-build make buildServer -j 4
 
 dockerWatch: dockerBuildPrepare
-	 docker run  -v `pwd`/bin:/badmars/bin -v `pwd`/server:/badmars/server badmars-node-build make watchServer -j 10
+	 docker run -v `pwd`:/badmars badmars-node-build make watchServer -j 10

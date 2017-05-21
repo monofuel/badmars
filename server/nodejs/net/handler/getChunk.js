@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import filter from '../../util/socketFilter';
+import { sanitizeChunk, sanitizeUnit } from '../../util/socketFilter';
 import MonoContext from '../../util/monoContext';
 import Client from '../client';
 import Chunk from '../../map/chunk';
@@ -20,7 +20,7 @@ export default async function getChunk(ctx: MonoContext, client: Client, data: O
 	const chunk: Chunk = await client.planet.getChunk(ctx, x, y);
 	if(!unitsOnly) {
 		// ctx.logger.info(ctx, 'client getChunk', { x, y });
-		client.send('chunk', { chunk: filter.sanitizeChunk(chunk) });
+		client.send('chunk', { chunk: sanitizeChunk(chunk) });
 	}
 
 	const units = await chunk.getUnits(ctx);
@@ -30,7 +30,7 @@ export default async function getChunk(ctx: MonoContext, client: Client, data: O
 			if(!unit) {
 				continue;
 			}
-			sanitized.push(filter.sanitizeUnit(unit));
+			sanitized.push(sanitizeUnit(unit, client.user.uuid));
 		}
 		//TODO sanitize unit data
 		client.send('units', { units: sanitized });

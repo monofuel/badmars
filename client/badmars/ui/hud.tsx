@@ -153,10 +153,11 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 		}
 		this.setState({ selectedUnit: units[0], transferUnit: null });
 	}
-	updateUnitsHandler(unit: Entity) {
-		if (this.state.selectedUnit && this.state.selectedUnit.uuid === unit.uuid) {
-			this.forceUpdate();
-		}
+	updateUnitsHandler(units: any[]) {
+		// TODO update this
+		// if (this.state.selectedUnit && this.state.selectedUnit.uuid === unit.uuid) {
+		// 	this.forceUpdate();
+		// }
 	}
 
 	@autobind

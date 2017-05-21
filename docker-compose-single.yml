@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile-go
     command: go run server/go/core/simulate/simulate.go
     volumes:
-      - ./server:/go/src/github.com/monofuel/badmars/server
+      - ./:/go/src/github.com/monofuel/badmars
     links:
       - rethinkdb
       - ai
@@ -21,8 +21,7 @@ services:
       dockerfile: Dockerfile-go
     command: go run server/go/core/dashboard/dashboard.go
     volumes:
-      - ./server:/go/src/github.com/monofuel/badmars/server
-      - ./public:/go/src/github.com/monofuel/badmars/public
+      - ./:/go/src/github.com/monofuel/badmars
     links:
       - rethinkdb
     ports:
@@ -32,9 +31,10 @@ services:
       - TRACKING_SERVER=http://japura.net
   chunk:
     build: .
-    command: sh -c 'cd server/nodejs && babel-watch chunk.js'
+    command: sh -c 'cd bin/server/nodejs && supervisor chunk.js'
     volumes:
-      - ./server:/badmars/server
+      - ./:/badmars
+      - /badmars/node_modules
     links:
       - rethinkdb
     environment:
@@ -44,9 +44,10 @@ services:
       - TRACKING_SERVER=http://japura.net
   ai:
     build: .
-    command: sh -c 'cd server/nodejs && babel-watch ai.js'
+    command: sh -c 'cd bin/server/nodejs && supervisor ai.js'
     volumes:
-      - ./server:/badmars/server
+      - ./:/badmars
+      - /badmars/node_modules
     links:
       - rethinkdb
       - chunk
@@ -57,9 +58,10 @@ services:
       - TRACKING_SERVER=http://japura.net
   pathfinder:
     build: .
-    command: sh -c 'cd server/nodejs && babel-watch pathfinder.js'
+    command: sh -c 'cd bin/server/nodejs && supervisor pathfinder.js'
     volumes:
-      - ./server:/badmars/server
+      - ./:/badmars
+      - /badmars/node_modules
     links:
       - rethinkdb
       - chunk
@@ -70,9 +72,10 @@ services:
       - TRACKING_SERVER=http://japura.net
   validator:
     build: .
-    command: sh -c 'cd server/nodejs && babel-watch validator.js'
+    command: sh -c 'cd bin/server/nodejs && node validator.js'
     volumes:
-      - ./server:/badmars/server
+      - ./:/badmars
+      - /badmars/node_modules
     links:
       - rethinkdb
       - chunk
@@ -83,11 +86,10 @@ services:
       - TRACKING_SERVER=http://japura.net
   web:
     build: .
-    command: sh -c 'cd server/nodejs && babel-watch web.js'
+    command: sh -c 'cd bin/server/nodejs && supervisor web.js'
     volumes:
-      - ./server:/badmars/server
-      - ./client:/badmars/client
-      - ./public:/badmars/public
+      - ./:/badmars
+      - /badmars/node_modules
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
@@ -102,9 +104,7 @@ services:
     build: .
     command: sh -c 'make watchClient'
     volumes:
-      - ./server:/badmars/server
-      - ./client:/badmars/client
-      - ./public:/badmars/public
+      - ./:/badmars
     ports:
       - "4474:4474"
     links:
@@ -116,17 +116,17 @@ services:
     build: .
     command: sh -c 'make watchDashboard'
     volumes:
-      - ./client:/badmars/client
-      - ./public:/badmars/public
+      - ./:/badmars
     links:
       - rethinkdb
     environment:
       - BADMARS_DB=rethinkdb
   net:
     build: .
-    command: sh -c 'cd server/nodejs && babel-watch -d 5858 net.js'
+    command: sh -c 'cd bin/server/nodejs && supervisor net.js'
     volumes:
-      - ./server:/badmars/server
+      - ./:/badmars
+      - /badmars/node_modules
     ports:
       - "7005:7005"
       - "5858:5858"
