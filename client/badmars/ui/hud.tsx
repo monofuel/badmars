@@ -100,9 +100,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 					? <LoginModal />
 					: <div
 						id='primaryHUD'
-						style={hudStyle as any}
-						onFocus={() => state.focused = 'hud'}
-						onBlur={() => state.focused = 'game'}>
+						style={hudStyle as any}>
 						{errorMessage
 							? <ErrorAlert
 								errorMessage={errorMessage}

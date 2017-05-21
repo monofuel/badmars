@@ -167,7 +167,6 @@ export default class Map {
 		if (unit.details.owner) {
 			newUnit = new PlayerUnit(this.state, loc, unit.details.owner, unit.uuid, unit.details.type, unit.graphical.scale);
 		} else {
-			console.log('asdf', unit.graphical.scale);
 			switch (unit.details.type) {
 				case 'iron':
 					newUnit = new Iron(this.state, loc, 0, unit.uuid, unit.graphical.scale);

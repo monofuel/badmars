@@ -60,7 +60,7 @@ export default class Input {
 			if (this.mouseAction) {
 				this.mouseAction(event);
 			}
-		})
+		});
 	}
 
 	public update(delta: number) {
@@ -92,12 +92,6 @@ export default class Input {
 				case 70: // f
 					this.state.display.cameraDown(delta);
 					break;
-				case 81: // q
-					this.state.display.cameraRotateRight(delta);
-					break;
-				case 69: // e
-					this.state.display.cameraRotateLeft(delta);
-					break;
 				default:
 				// console.log("key press: " + key);
 			}
@@ -115,7 +109,7 @@ export default class Input {
 		}
 		this.ctrlKey = key.ctrlKey;
 
-		if (this.keysDown.indexOf(key.keyCode) !== -1) {
+		if (_.includes(this.keysDown, key.keyCode)) {
 			return;
 		}
 
@@ -127,7 +121,7 @@ export default class Input {
 
 	@autobind
 	private keyUpHandler(key: KeyboardEvent): void {
-		this.keysDown = _.remove(this.keysDown, (keyDown) => key.keyCode === keyDown)
+		this.keysDown = _.remove(this.keysDown, (keyDown) => key.keyCode !== keyDown);
 	}
 
 	@autobind
@@ -145,6 +139,7 @@ export default class Input {
 
 	@autobind
 	private mouseDownHandler(event: MouseEvent): void {
+		this.state.focused = 'game';
 		switch (event.button) {
 			case LEFT_MOUSE:
 				if (this.state.focused !== 'game') {
@@ -185,8 +180,8 @@ export default class Input {
 		setTimeout(() => { // hacky fix to make sure this always runs after hud onmouseup
 
 			const mouse = new THREE.Vector2();
-			mouse.x = (event.clientX / this.state.display.renderer.domElement.clientWidth) * 2 - 1
-			mouse.y = -(event.clientY / this.state.display.renderer.domElement.clientHeight) * 2 + 1
+			mouse.x = (event.clientX / this.state.display.renderer.domElement.clientWidth) * 2 - 1;
+			mouse.y = -(event.clientY / this.state.display.renderer.domElement.clientHeight) * 2 + 1;
 
 			if (this.isMouseDown) { // for dragging actions
 				this.isMouseDown = false;
@@ -199,7 +194,7 @@ export default class Input {
 						break;
 				}
 			}
-			if (this.state.focused = 'hud') {
+			if (this.state.focused === 'hud') {
 				return;
 			}
 
