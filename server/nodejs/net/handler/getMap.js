@@ -42,6 +42,6 @@ export default async function getMap(ctx: MonoContext, client: Client): Promise<
 		const y = parseInt(hash.split(':')[1]);
 		const chunk = await client.planet.getChunk(ctx, x, y);
 		client.send('chunk', { chunk: sanitizeChunk(chunk) });
+		client.send('units', { units: units.map((unit) => sanitizeUnit(unit, client.user.uuid))});
 	}));
-	client.send('units', { units: units.map((unit) => sanitizeUnit(unit, client.user.uuid))});
 }

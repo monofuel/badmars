@@ -407,6 +407,9 @@ export default class Net {
 
 	@autobind
 	private send(data: RequestType) {
+		if (this.ws.readyState !== 1) {
+			return;
+		}
 		log('debug', `sending message ${data.type}`, { keys: Object.keys(data) });
 		try {
 			this.ws.send(JSON.stringify(data));

@@ -595,7 +595,7 @@ export default class Map {
 	}
 
 	loadChunksNearCamera() {
-		var tile = this.getTileAtRay(new THREE.Vector2(0, 0));
+		var tile = this.getTileAtRay(new THREE.Vector2(0, 0.25));
 		if (!tile) {
 			return;
 		}
