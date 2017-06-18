@@ -10,6 +10,7 @@ import PlanetLoc from './map/planetLoc';
 import { SelectedUnitsChange, TransferChange } from './gameEvents';
 import { RequestChange } from './net';
 import * as THREE from 'three';
+import Hilight from './ui/hilight';
 
 export type MouseMode = 'select' | 'move' | 'focus';
 
@@ -40,6 +41,8 @@ export default class Input {
 	dragCurrent: THREE.Vector2;
 	public mouseMode: MouseMode;
 	public mouseAction: Function;
+
+	hilight: Hilight;
 
 	constructor(state: State) {
 		this.state = state;
@@ -100,7 +103,7 @@ export default class Input {
 
 	@autobind
 	private keyDownHandler(key: KeyboardEvent): void {
-		if (this.state.focused !== 'game') {
+		if (this.state.focused === 'hud' || this.state.focused === 'chat') {
 			return;
 		}
 		// ignore alt because alt tab can get funky
@@ -247,18 +250,32 @@ export default class Input {
 
 	@autobind
 	public construct(unitType: string) {
-		const { hilight } = this.state;
 		this.mouseMode = 'focus';
 		console.log('adding mouse click function for ' + unitType);
-		hilight.enabled = true;
+		this.hilight = new Hilight(this.state)
 		if (unitType !== 'cancel') {
 			console.log('building ' + unitType);
-			hilight.setDeconstruct(false);
+			this.hilight.setDeconstruct(false);
 		} else {
-			hilight.setDeconstruct(true);
+			this.hilight.setDeconstruct(true);
 		}
+		const mouseMoveHandler = (e: MouseMoveEvent) => {
+			if (this.mouseMode !== 'focus') {
+				this.hilight.destroy();
+				MouseMoveChanged.detach(mouseMoveHandler);
+			}
+			const tile = this.getTileUnderCursor(e.event);
+			this.hilight.updateLocation(tile);
+		}
+		MouseMoveChanged.attach(mouseMoveHandler);
+
 		this.mouseAction = (event: MouseReleaseEvent) => {
-			hilight.enabled = false;
+			
+			this.hilight.destroy();
+			MouseMoveChanged.detach(mouseMoveHandler);
+			if (this.mouseMode !== 'focus') {
+				return
+			}
 			const selectedTile = this.getTileUnderCursor(event.event);
 			const newLoc = [
 				Math.floor(selectedTile.real_x),

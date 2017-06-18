@@ -8,7 +8,6 @@ import Display from './display';
 import Input from './input';
 import MainLoop from './mainLoop';
 import Entity from './units/entity';
-import Hilight from './ui/hilight';
 import PlanetLoc from './map/planetLoc';
 import { GameStageChange } from './gameEvents';
 import { MapChange, RequestChange, PlayersChange } from './net';
@@ -42,7 +41,6 @@ export default class State {
 	public mainLoop: MainLoop;
 
 	public selectedUnits: Entity[];
-	public hilight: Hilight;
 	public stage: GameStageType;
 
 	public playerLocation: PlanetLoc;
@@ -59,8 +57,6 @@ export default class State {
 		this.username = $.cookie('username');
 		this.apiKey = $.cookie('apiKey');
 		this.loggedIn = false;
-
-		this.hilight = new Hilight(this);
 
 		this.stage = 'login';
 		this.selectedUnits = [];
@@ -110,7 +106,11 @@ export default class State {
 	}
 
 	public setFocus(focus: Focused) {
-		log('info', 'changed state', { prev: this.focused, focus });
+		if (focus === this.focused) {
+			return;
+		}
+
+		log('debug', 'changed focus', { prev: this.focused, focus });
 		this.focused = focus;
 	}
 }

@@ -84,10 +84,10 @@ watchValidator:
 #commands that use docker
 
 dockerBuildPrepare:
-	 docker build -t badmars-node-build -f ./Dockerfile-node-build .
+	docker-compose -f docker-compose-build.yml build
 
 dockerBuild: dockerBuildPrepare
-	 docker run -v `pwd`:/badmars badmars-node-build make buildServer -j 4
+	docker-compose -f docker-compose-build.yml run node-build make buildServer -j 2
 
 dockerWatch: dockerBuildPrepare
-	 docker run -v `pwd`:/badmars badmars-node-build make watchServer -j 10
+	 docker-compose -f docker-compose-build.yml run node-build make watchServer -j 10

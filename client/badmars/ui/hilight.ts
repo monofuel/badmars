@@ -11,20 +11,20 @@ import {
 import State from '../state';
 import * as THREE from 'three';
 import { MouseReleaseEvent } from '../input';
+import { log } from '../logger';
 
 export default class Hilight {
-	enabled: boolean;
-	location: number[];
+	tile: PlanetLoc;
 	hilightPlane: THREE.Mesh;
 	color: number;
 	deconstruct: boolean;
 	state: State;
 
-	constructor(state: State) {
+	constructor(state: State, tile?: PlanetLoc) {
 		this.state = state;
-		this.enabled = false;
 		this.deconstruct = false;
 		this.setGoodColor();
+		this.updateLocation(tile);
 	}
 
 	setGoodColor() {
@@ -40,83 +40,72 @@ export default class Hilight {
 		this.deconstruct = bool;
 	}
 
-	update() {
+	updateLocation(nextTile?: PlanetLoc) {
+		const prevTile = this.tile;
+		this.tile = nextTile;
+		if (!this.tile) {
+			return;
+		}
 		const { display, input, map } = this.state;
 		const { mouseMode } = input;
 		if (mouseMode !== 'focus') {
-			this.enabled = false;
+			log('debug', 'ran update on hilight with bad mouseMode', { mouseMode });
 		}
 
-		if (mouseMode === 'focus' && !this.enabled) {
-			this.enabled = true;
-			const thisHilight = this;
+		this.setGoodColor();
 
-			input.mouseAction = ({ event }: MouseReleaseEvent) => {
-
-				let mouse = new THREE.Vector2();
-				mouse.x = (event.clientX / display.renderer.domElement.clientWidth) * 2 - 1
-				mouse.y = -(event.clientY / display.renderer.domElement.clientHeight) * 2 + 1
-				const selectedTile = map.getTileAtRay(mouse);
+		if (this.deconstruct) {
+			this.setBadColor();
+			if (this.tile.planet.unitTileCheck(this.tile) != null) {
 				this.setGoodColor();
-				if (!selectedTile || !selectedTile.tileType) {
-					return;
-				}
-				if (this.deconstruct) {
-					this.setBadColor();
-					if (selectedTile.planet.unitTileCheck(selectedTile) != null) {
-						this.setGoodColor();
-					}
-				} else {
-					if (selectedTile.tileType !== TILE_LAND) {
-						this.setBadColor();
-					}
-					if (selectedTile.planet.unitTileCheck(selectedTile) != null) {
-						this.setBadColor();
-					}
-				}
-
-				const newLoc = [Math.round(selectedTile.real_x - 0.5), Math.round(selectedTile.real_y - 0.5)];
-				if (!thisHilight.location || this.location.length !== 2 || newLoc[0] !== thisHilight.location[0] || newLoc[1] !== thisHilight.location[1]) {
-					thisHilight.location = newLoc;
-					const waterHeight = selectedTile.planet.worldSettings.waterHeight + 0.1;
-					const geometry = new THREE.Geometry();
-					geometry.vertices.push(new THREE.Vector3(0, 0, Math.max(selectedTile.corners[0], waterHeight)));
-					geometry.vertices.push(new THREE.Vector3(1, 0, Math.max(selectedTile.corners[1], waterHeight)));
-					geometry.vertices.push(new THREE.Vector3(0, 1, Math.max(selectedTile.corners[2], waterHeight)));
-					geometry.vertices.push(new THREE.Vector3(1, 1, Math.max(selectedTile.corners[3], waterHeight)));
-
-					// 0 goes in bottom right
-
-					geometry.faces.push(new THREE.Face3(0, 1, 2));
-					geometry.faces.push(new THREE.Face3(1, 2, 3));
-
-
-					geometry.computeBoundingSphere();
-					geometry.computeFaceNormals();
-					geometry.computeVertexNormals();
-
-					var material = new THREE.MeshBasicMaterial({
-						color: thisHilight.color,
-						side: THREE.DoubleSide
-					});
-					if (thisHilight.hilightPlane) {
-						display.removeMesh(thisHilight.hilightPlane);
-					}
-					thisHilight.hilightPlane = new THREE.Mesh(geometry, material);
-					thisHilight.hilightPlane.position.x = thisHilight.location[0];
-					thisHilight.hilightPlane.position.z = -thisHilight.location[1];
-					thisHilight.hilightPlane.position.y = 0.2;
-					thisHilight.hilightPlane.rotation.x = -Math.PI / 2;
-					display.addMesh(thisHilight.hilightPlane);
-				}
-			};
-		}
-
-		if (!this.enabled) {
-			if (this.hilightPlane) {
-				display.removeMesh(this.hilightPlane);
-				this.hilightPlane = null;
+			}
+		} else {
+			if (this.tile.tileType !== TILE_LAND) {
+				this.setBadColor();
+			}
+			if (this.tile.planet.unitTileCheck(this.tile) != null) {
+				this.setBadColor();
 			}
 		}
+
+		if (!this.hilightPlane || !this.tile.equals(prevTile)) {
+			console.log('new hilight tile', this.tile);
+			const waterHeight = this.tile.planet.worldSettings.waterHeight + 0.1;
+			const geometry = new THREE.Geometry();
+			geometry.vertices.push(new THREE.Vector3(0, 0, Math.max(this.tile.corners[0], waterHeight)));
+			geometry.vertices.push(new THREE.Vector3(1, 0, Math.max(this.tile.corners[1], waterHeight)));
+			geometry.vertices.push(new THREE.Vector3(0, 1, Math.max(this.tile.corners[2], waterHeight)));
+			geometry.vertices.push(new THREE.Vector3(1, 1, Math.max(this.tile.corners[3], waterHeight)));
+
+			// 0 goes in bottom right
+
+			geometry.faces.push(new THREE.Face3(0, 1, 2));
+			geometry.faces.push(new THREE.Face3(1, 2, 3));
+
+
+			geometry.computeBoundingSphere();
+			geometry.computeFaceNormals();
+			geometry.computeVertexNormals();
+
+			var material = new THREE.MeshBasicMaterial({
+				color: this.color,
+				side: THREE.DoubleSide
+			});
+			if (this.hilightPlane) {
+				display.removeMesh(this.hilightPlane);
+			}
+			this.hilightPlane = new THREE.Mesh(geometry, material);
+			this.hilightPlane.position.x = this.tile.x;
+			this.hilightPlane.position.z = -this.tile.y;
+			this.hilightPlane.position.y = 0.2;
+			this.hilightPlane.rotation.x = -Math.PI / 2;
+			display.addMesh(this.hilightPlane);
+		}
+	}
+
+	destroy() {
+		const { display } = this.state;
+		display.removeMesh(this.hilightPlane);
+		this.hilightPlane = null;
 	}
 }
