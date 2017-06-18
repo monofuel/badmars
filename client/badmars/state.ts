@@ -13,6 +13,7 @@ import PlanetLoc from './map/planetLoc';
 import { GameStageChange } from './gameEvents';
 import { MapChange, RequestChange, PlayersChange } from './net';
 import sleep from './util/sleep';
+import { log } from './logger';
 
 export type GameStageType = 'login' | 'planet';
 export type Focused = 'chat' | 'hud' | 'game';
@@ -59,6 +60,8 @@ export default class State {
 		this.apiKey = $.cookie('apiKey');
 		this.loggedIn = false;
 
+		this.hilight = new Hilight(this);
+
 		this.stage = 'login';
 		this.selectedUnits = [];
 		(window as any).state = this;
@@ -104,5 +107,10 @@ export default class State {
 			player.username = username;
 			player.setColor(color);
 		}
+	}
+
+	public setFocus(focus: Focused) {
+		log('info', 'changed state', { prev: this.focused, focus });
+		this.focused = focus;
 	}
 }

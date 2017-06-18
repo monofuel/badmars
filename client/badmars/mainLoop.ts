@@ -27,6 +27,9 @@ export default class MainLoop {
 			if (this.state.map) {
 				this.state.map.update(delta);
 			}
+			if (this.state.hilight) {
+				this.state.hilight.update();
+			}
 			this.state.display.render(delta);
 		} catch (err) {
 			console.error(err);

@@ -8,6 +8,8 @@ import { Button, Well } from 'react-bootstrap';
 import { Paper } from 'material-ui';
 import Entity from '../units/entity';
 import State from '../state';
+import { RequestChange } from '../net';
+import { MouseReleaseEvent } from '../input';
 
 type Props = {
 	selectedUnit: Entity,
@@ -94,19 +96,39 @@ export default class MenuButtons extends React.Component<Props,{}> {
 
 		return (
 			<Paper
+				onClick={this.setHUDFocus}
 				id='buttons'
 				style={buildButtonStyle as any}>
 				{buttons}
 			</Paper>
 		);
 	}
+
 	@autobind
-	private constructClicked(type: string) {
-		throw new Error('not implemented');
+	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
+		this.context.state.setFocus('hud');
+		e.stopPropagation();
 	}
 
 	@autobind
-	private factoryConstructClicked(type: string) {
-		throw new Error('not implemented');
+	private constructClicked(unitType: string) {
+		const { input } = this.context.state;
+		input.construct(unitType);
+	}
+
+	@autobind
+	private factoryConstructClicked(unitType: string) {
+		const { selectedUnits } = this.context.state;
+		if (selectedUnits.length != 1) {
+			throw new Error('multiple unit selected not supported yet');
+		}
+		if (selectedUnits[0].details.type !== 'factory') {
+			throw new Error('invalid unit type');
+		}
+		RequestChange.post({
+			type: 'factoryOrder',
+			factory: selectedUnits[0].uuid,
+			unitType,
+		});
 	}
 };

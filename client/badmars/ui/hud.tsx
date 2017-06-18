@@ -100,6 +100,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 					? <LoginModal />
 					: <div
 						id='primaryHUD'
+						onClick={this.setGameFocus}
 						style={hudStyle as any}>
 						{errorMessage
 							? <ErrorAlert
@@ -144,6 +145,12 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 			</MuiThemeProvider>
 		)
 	}
+
+	@autobind
+	private setGameFocus(e: React.MouseEvent<HTMLDivElement>) {
+		this.props.state.setFocus('game');
+	}
+
 	@autobind
 	private selectedUnitsHandler(units: Entity[]) {
 		if (units.length === 0) {

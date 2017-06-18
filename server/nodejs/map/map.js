@@ -54,7 +54,6 @@ type ChunkCacheMapType = {
 
 export default class Map {
 	name: string;
-	isSpawned: boolean;
 	settings: Object;
 	lastTickTimestamp: number;
 	lastTick: number;

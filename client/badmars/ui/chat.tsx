@@ -73,8 +73,8 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 						value={sendText}
 						onChange={this.inputChange}
 						onKeyPress={this.handleKeyPress}
-						onFocus={() => this.context.state.focused = 'chat'}
-						onBlur={() => this.context.state.focused = 'game'} />
+						onFocus={() => this.context.state.setFocus('chat')}
+						onBlur={() => this.context.state.setFocus('game')} />
 					<Button onClick={() => this.setState({ minimized: !minimized })}>{minimized ? '+' : '-'}</Button>
 				</span>
 				<Table condensed style={chatTableStyle as any}>

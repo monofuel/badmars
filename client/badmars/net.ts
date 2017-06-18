@@ -40,8 +40,57 @@ interface BaseEvent {
 
 interface MapEvent extends BaseEvent {
 	type: 'map';
-	map: any; // TODO type this
+	map: ServerMap;
 }
+
+interface ServerMap {
+	settings: {
+		chunkSize: number,
+		waterHeight: number,
+		cliffDelta: number,
+		water: boolean,
+		bigNoise: number,
+		medNoise: number,
+		smallNoise: number,
+		bigNoiseScale: number,
+		medNoiseScale: number,
+		smallNoiseScale: number,
+		ironChance: number,
+		oilChance: number,
+	};
+	seed: number;
+	isSpawned: boolean;
+	name: string;
+	paused: boolean;
+	users: UUID[];
+}
+
+const ServerMapType = t.object({
+	settings: t.object({
+		chunkSize: t.number(),
+		waterHeight: t.number(),
+		cliffDelta: t.number(),
+		water: t.boolean(),
+		bigNoise: t.number(),
+		medNoise: t.number(),
+		smallNoise: t.number(),
+		bigNoiseScale: t.number(),
+		medNoiseScale: t.number(),
+		smallNoiseScale: t.number(),
+		ironChance: t.number(),
+		oilChance: t.number(),
+	}),
+	seed: t.number(),
+	isSpawned: t.boolean(),
+	name: t.string(),
+	paused: t.boolean(),
+	users: t.array(t.string()),
+})
+
+const MapEventType = t.object({
+	type: t.string('map'),
+	map: ServerMapType,
+})
 
 export interface ConnectedEvent extends BaseEvent {
 	type: 'connected';
@@ -169,6 +218,11 @@ export interface LoginEvent extends BaseEvent {
 	apiKey?: string;
 }
 
+const LoginEventType = t.object({
+	type: t.string('login'),
+	apiKey: t.nullable(t.string()),
+})
+
 export interface ChunkEvent extends BaseEvent {
 	type: 'chunk';
 	hash: string;
@@ -197,6 +251,7 @@ type RequestType = UnitStatsEvent |
 	ChatRequest |
 	ChunkRequest |
 	GhostRequest |
+	FactoryOrderRequest |
 	TransferRequest |
 	GetMapRequest;
 
@@ -236,6 +291,12 @@ interface FactoryOrderRequest {
 	unitType: string;
 }
 
+const FactoryOrderRequestType = t.object({
+	type: t.string('factoryOrder'),
+	factory: t.string(),
+	unitType: t.string(),
+})
+
 interface ChatRequest {
 	type: 'sendChat';
 	text: string;
@@ -250,8 +311,14 @@ interface ChunkRequest {
 interface GhostRequest {
 	type: 'createGhost';
 	unitType: string;
-	location: any;
+	location: number[];
 }
+
+const GhostRequestType = t.object({
+	type: t.string('createGhost'),
+	unitType: t.string(),
+	location: t.tuple(t.number(), t.number()),
+})
 
 interface TransferRequest {
 	type: 'transferResource';
@@ -287,6 +354,10 @@ export const RequestChange = new AsyncEvent<RequestType>();
 if (config.debug) {
 	log('debug', 'mounted runtime server type checkers');
 
+	MapChange.attach((event) => {
+		MapEventType.assert(event);
+	})
+
 	UnitChange.attach((event) => {
 		UnitEventType.assert(event);
 	});
@@ -298,6 +369,22 @@ if (config.debug) {
 	PlayersChange.attach((event) => {
 		PlayersEventType.assert(event);
 	});
+
+	LoginChange.attach((event) => {
+		LoginEventType.assert(event);
+	});
+
+	RequestChange.attach((event) => {
+		switch (event.type) {
+			case 'createGhost':
+				GhostRequestType.assert(event);
+				break;
+			case 'factoryOrder':
+				FactoryOrderRequestType.assert(event);
+				break;
+		}
+
+	})
 
 }
 
@@ -410,6 +497,7 @@ export default class Net {
 		if (this.ws.readyState !== 1) {
 			return;
 		}
+
 		log('debug', `sending message ${data.type}`, { keys: Object.keys(data) });
 		try {
 			this.ws.send(JSON.stringify(data));

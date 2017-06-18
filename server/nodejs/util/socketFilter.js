@@ -5,6 +5,7 @@
 //	Licensed under included modified BSD license
 
 import type Unit from '../unit/unit';
+import type Map from '../map/map';
 
 export function sanitizeUnit(unit: Unit, owner: UUID): Object {
 
@@ -171,3 +172,20 @@ export function sanitizeChunk(chunk: Object): Object {
 		resources,
 	}
 };
+
+export function sanitizePlanet(map: Map): Object {
+	const {
+		name,
+		seed,
+		settings,
+		paused,
+		users,
+	} = map;
+	return {
+		name,
+		seed,
+		settings,
+		paused,
+		users,
+	}
+}

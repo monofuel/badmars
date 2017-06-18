@@ -139,7 +139,7 @@ export default class Input {
 
 	@autobind
 	private mouseDownHandler(event: MouseEvent): void {
-		this.state.focused = 'game';
+		// TODO put this somewhere else // this.state.focused = 'game';
 		switch (event.button) {
 			case LEFT_MOUSE:
 				if (this.state.focused !== 'game') {
@@ -236,7 +236,8 @@ export default class Input {
 			}
 		}, 0);
 	}
-
+	
+	@autobind
 	private getTileUnderCursor(event: MouseEvent): PlanetLoc {
 		const mouse = new THREE.Vector2();
 		mouse.x = (event.clientX / this.state.display.renderer.domElement.clientWidth) * 2 - 1;
@@ -245,26 +246,25 @@ export default class Input {
 	}
 
 	@autobind
-	private construct(unitType: string) {
+	public construct(unitType: string) {
+		const { hilight } = this.state;
+		this.mouseMode = 'focus';
 		console.log('adding mouse click function for ' + unitType);
+		hilight.enabled = true;
+		if (unitType !== 'cancel') {
+			console.log('building ' + unitType);
+			hilight.setDeconstruct(false);
+		} else {
+			hilight.setDeconstruct(true);
+		}
 		this.mouseAction = (event: MouseReleaseEvent) => {
-
+			hilight.enabled = false;
 			const selectedTile = this.getTileUnderCursor(event.event);
-			var type = unitType;
-			if (this.state.hilight) {
-				if (type !== 'cancel') {
-					console.log('building ' + unitType);
-					this.state.hilight.setDeconstruct(false);
-				} else {
-					this.state.hilight.setDeconstruct(true);
-				}
-			}
-
-			var newLoc = [
+			const newLoc = [
 				Math.floor(selectedTile.real_x),
 				Math.floor(selectedTile.real_y)
 			];
-			RequestChange.post({ type: 'createGhost', unitType: unitType, location: newLoc });
+			RequestChange.post({ type: 'createGhost', unitType, location: newLoc });
 		};
 	}
 }

@@ -32,11 +32,11 @@ export default class Transfer extends React.Component<TransferProps, TransferSta
 	};
 
 	componentDidMount() {
-		this.context.state.focused = 'hud';
+		this.context.state.setFocus('hud');
 	}
 
 	componentWillUnmount() {
-		this.context.state.focused = 'game';
+		this.context.state.setFocus('game');
 	}
 
 	render() {
