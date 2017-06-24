@@ -21,12 +21,14 @@ check:
 test:
 	go test -cover
 
+nodeSetup:
+	yarn install
+
 goSetup:
 	cd server/go/core/simulate && go get
 	cd server/go/core/dashboard && go get
 
-setup: goSetup
-	npm install
+setup: goSetup nodeSetup
 
 prepareBin:
 	cp -r server/protos bin/
@@ -36,47 +38,53 @@ prepareBin:
 	cp -r server/nodejs/web/views bin/server/nodejs/web/
 	cp -r ./public bin/
 
-buildServer: prepareBin buildChunk buildAI buildNet buildPathfinder buildValidator buildWeb
+buildServer: prepareBin buildChunk buildAI buildNet buildPathfinder buildValidator buildWeb buildSchema
 
-buildChunk:
+buildChunk: nodeSetup
 	browserify ./server/nodejs/chunk.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/chunk.js --node --im --debug
 
-buildAI:
+buildAI: nodeSetup
 	browserify ./server/nodejs/ai.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/ai.js --node --im --debug
 
-buildNet:
+buildNet: nodeSetup
 	browserify ./server/nodejs/net.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/net.js --node --im --debug
 
-buildWeb:
+buildWeb: nodeSetup
 	browserify ./server/nodejs/web.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/web.js --node --im --debug
 
-buildPathfinder:
+buildPathfinder: nodeSetup
 	browserify ./server/nodejs/pathfinder.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/pathfinder.js --node --im --debug
 
-buildValidator:
+buildValidator: nodeSetup
 	browserify ./server/nodejs/validator.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/validator.js --node --im --debug
+
+buildSchema: nodeSetup
+	browserify ./server/nodejs/schema.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/schema.js --node --im --debug
 
 # TODO build for go services
 
-watchServer: prepareBin watchChunk watchAI watchNet watchWeb watchPathfinder watchValidator watchWeb
+watchServer: prepareBin watchChunk watchAI watchNet watchWeb watchPathfinder watchValidator watchWeb watchSchema
 
-watchChunk:
+watchChunk: nodeSetup
 	watchify ./server/nodejs/chunk.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/chunk.js --node --im --debug -v
 
-watchAI:
+watchAI: nodeSetup
 	watchify ./server/nodejs/ai.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/ai.js --node --im --debug -v
 
-watchNet:
+watchNet: nodeSetup
 	watchify ./server/nodejs/net.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/net.js --node --im --debug -v
 
-watchWeb:
+watchWeb: nodeSetup
 	watchify ./server/nodejs/web.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/web.js --node --im --debug -v
 
-watchPathfinder:
+watchPathfinder: nodeSetup
 	watchify ./server/nodejs/pathfinder.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/pathfinder.js --node --im --debug -v
 
-watchValidator:
+watchValidator: nodeSetup
 	watchify ./server/nodejs/validator.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/validator.js --node --im --debug -v
+
+watchSchema: nodeSetup
+	watchify ./server/nodejs/schema.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/schema.js --node --im --debug -v
 
 # TODO add watch for go services
 

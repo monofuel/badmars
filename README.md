@@ -14,11 +14,16 @@ awesome webGL MMORTS with an infinite procedurally generated map.
 ## docker-compose method
 - run `docker-compose build`
 - run `make dockerWatch` so that it hot reloads on the fly, or `make dockerBuild` to rebuild once.
+	- to build outside of docker (faster):
+		- install yarn
+		- run `npm install -g browserify watchify flow-bin babel-watch babel-core node-gyp babel-cli`
+		- run `make buildServer -j 4` or `make watchServer -j 10`
 - then `docker-compose up`
 - http://localhost:3002/badmars for the game server
-- http://localhost:8080/ for rethinkdb
+- http://localhost:8085/ for rethinkdb
 
 ## running a dev server without docker
+warning: these instructions are outdated since the build system refactoring
 - install go, and setup your gopath
 - install nodejs
 - install rethinkdb
@@ -27,8 +32,13 @@ awesome webGL MMORTS with an infinite procedurally generated map.
 - if rethinkdb is on your path, badmars will run it, otherwise you can run it from a separate terminal or as a daemon.
 - run `make run` or `go run main.go`
 - http://localhost:3002/badMars_v1 for the game server
-- http://localhost:8080/ for rethinkdb
+- http://localhost:8085/ for rethinkdb
 - run `make check` to check that everything looks good while running the server
+
+## VSC notes
+
+- install tslint, eslint and flow language support plugins
+- set `javascript.validate.enable` to false for working on flowtyped code
 
 ## Architecture
 Frontend talks to the net backend service via websockets. All of the backend services

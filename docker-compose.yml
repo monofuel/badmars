@@ -15,6 +15,8 @@ services:
       - AI_HOST=ai
       - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
+    depends_on:
+      - schema
   dashboard:
     build:
       context: .
@@ -29,6 +31,8 @@ services:
     environment:
       - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
+    depends_on:
+      - schema
   chunk:
     build: .
     command: sh -c 'cd bin/server/nodejs && supervisor chunk.js'
@@ -56,6 +60,8 @@ services:
       - AI_HOST=ai
       - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
+    depends_on:
+      - schema
   pathfinder:
     build: .
     command: sh -c 'cd bin/server/nodejs && supervisor pathfinder.js'
@@ -70,6 +76,8 @@ services:
       - AI_HOST=ai
       - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
+    depends_on:
+      - schema
   validator:
     build: .
     command: sh -c 'cd bin/server/nodejs && node validator.js'
@@ -84,6 +92,8 @@ services:
       - AI_HOST=ai
       - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
+    depends_on:
+      - schema
   web:
     build: .
     command: sh -c 'cd bin/server/nodejs && supervisor web.js'
@@ -100,6 +110,8 @@ services:
       - "3002:3002"
     links:
       - rethink
+    depends_on:
+      - schema
   client:
     build: .
     command: sh -c 'make watchClient'
@@ -121,6 +133,8 @@ services:
       - rethink
     environment:
       - BADMARS_DB=rethink
+    depends_on:
+      - schema
   net:
     build: .
     command: sh -c 'cd bin/server/nodejs && supervisor net.js'
@@ -137,12 +151,26 @@ services:
       - AI_HOST=ai
       - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
+    depends_on:
+      - schema
   rethink:
     image: rethinkdb
     ports:
       - "8085:8080"
     volumes:
       - rethink_data:/data
+  schema:
+    build: .
+    command: sh -c 'cd bin/server/nodejs && node schema.js'
+    volumes:
+      - ./:/badmars
+      - /badmars/node_modules
+    links:
+      - rethink
+    environment:
+      - BADMARS_DB=rethink
+      - TRACKING_SERVER=http://japura.net
+
 
 volumes:
   rethink_data:
