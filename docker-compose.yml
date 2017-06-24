@@ -138,7 +138,7 @@ services:
       - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
   rethink:
-    image: rethink
+    image: rethinkdb
     ports:
       - "8085:8080"
     volumes:
