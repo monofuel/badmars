@@ -8,12 +8,13 @@ services:
     volumes:
       - ./:/go/src/github.com/monofuel/badmars
     links:
-#      - rethinkdb
+      - rethinkdb
       - ai
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_DB=rethinkdb.mono
+      - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   dashboard:
     build:
       context: .
@@ -21,24 +22,26 @@ services:
     command: go run server/go/core/dashboard/dashboard.go
     volumes:
       - ./:/go/src/github.com/monofuel/badmars
-#    links:
-#      - rethinkdb
+    links:
+      - rethinkdb
     ports:
       - '8090:8090'
     environment:
-      - BADMARS_DB=rethinkdb.mono
+      - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   chunk:
     build: .
     command: sh -c 'cd bin/server/nodejs && supervisor chunk.js'
     volumes:
       - ./:/badmars
       - /badmars/node_modules
-#    links:
-#      - rethinkdb
+    links:
+      - rethinkdb
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_DB=rethinkdb.mono
+      - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   ai:
     build: .
     command: sh -c 'cd bin/server/nodejs && supervisor ai.js'
@@ -46,12 +49,13 @@ services:
       - ./:/badmars
       - /badmars/node_modules
     links:
-#      - rethinkdb
+      - rethinkdb
       - chunk
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_DB=rethinkdb.mono
+      - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   pathfinder:
     build: .
     command: sh -c 'cd bin/server/nodejs && supervisor pathfinder.js'
@@ -59,12 +63,13 @@ services:
       - ./:/badmars
       - /badmars/node_modules
     links:
-#      - rethinkdb
+      - rethinkdb
       - chunk
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_DB=rethinkdb.mono
+      - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   validator:
     build: .
     command: sh -c 'cd bin/server/nodejs && node validator.js'
@@ -72,12 +77,13 @@ services:
       - ./:/badmars
       - /badmars/node_modules
     links:
-#      - rethinkdb
+      - rethinkdb
       - chunk
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_DB=rethinkdb.mono
+      - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   web:
     build: .
     command: sh -c 'cd bin/server/nodejs && supervisor web.js'
@@ -87,33 +93,34 @@ services:
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_WS_SERVER=ws://192.168.11.119
-      - BADMARS_DB=rethinkdb.mono
+      - BADMARS_WS_SERVER=ws://localhost
+      - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
     ports:
       - "3002:3002"
-#    links:
-#      - rethinkdb
+    links:
+      - rethinkdb
   client:
     build: .
-    command: make watchClient
+    command: sh -c 'make watchClient'
     volumes:
       - ./:/badmars
-      - /badmars/node_modules
     ports:
       - "4474:4474"
-#    links:
-#      - rethinkdb
+    links:
+      - rethinkdb
     environment:
-      - BADMARS_DB=rethinkdb.mono
+      - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
   dashboard-frontend:
     build: .
-    command: make watchDashboard
+    command: sh -c 'make watchDashboard'
     volumes:
       - ./:/badmars
-#    links:
-#      - rethinkdb
+    links:
+      - rethinkdb
     environment:
-      - BADMARS_DB=rethinkdb.mono
+      - BADMARS_DB=rethinkdb
   net:
     build: .
     command: sh -c 'cd bin/server/nodejs && supervisor net.js'
@@ -123,9 +130,20 @@ services:
     ports:
       - "7005:7005"
       - "5858:5858"
-#    links:
-#      - rethinkdb
+    links:
+      - rethinkdb
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_DB=rethinkdb.mono
+      - BADMARS_DB=rethinkdb
+      - TRACKING_SERVER=http://japura.net
+  rethinkdb:
+    image: rethinkdb
+    ports:
+      - "8085:8080"
+    volumes:
+      - rethinkdb_data:/data
+
+volumes:
+  rethinkdb_data:
+    driver: local

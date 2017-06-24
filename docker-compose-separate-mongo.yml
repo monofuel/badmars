@@ -1,0 +1,131 @@
+version: '2'
+services:
+  simulate:
+    build:
+      context: .
+      dockerfile: Dockerfile-go
+    command: go run server/go/core/simulate/simulate.go
+    volumes:
+      - ./:/go/src/github.com/monofuel/badmars
+    links:
+#      - rethinkdb
+      - ai
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
+      - BADMARS_DB=rethinkdb.mono
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile-go
+    command: go run server/go/core/dashboard/dashboard.go
+    volumes:
+      - ./:/go/src/github.com/monofuel/badmars
+#    links:
+#      - rethinkdb
+    ports:
+      - '8090:8090'
+    environment:
+      - BADMARS_DB=rethinkdb.mono
+  chunk:
+    build: .
+    command: sh -c 'cd bin/server/nodejs && supervisor chunk.js'
+    volumes:
+      - ./:/badmars
+      - /badmars/node_modules
+#    links:
+#      - rethinkdb
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
+      - BADMARS_DB=rethinkdb.mono
+  ai:
+    build: .
+    command: sh -c 'cd bin/server/nodejs && supervisor ai.js'
+    volumes:
+      - ./:/badmars
+      - /badmars/node_modules
+    links:
+#      - rethinkdb
+      - chunk
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
+      - BADMARS_DB=rethinkdb.mono
+  pathfinder:
+    build: .
+    command: sh -c 'cd bin/server/nodejs && supervisor pathfinder.js'
+    volumes:
+      - ./:/badmars
+      - /badmars/node_modules
+    links:
+#      - rethinkdb
+      - chunk
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
+      - BADMARS_DB=rethinkdb.mono
+  validator:
+    build: .
+    command: sh -c 'cd bin/server/nodejs && node validator.js'
+    volumes:
+      - ./:/badmars
+      - /badmars/node_modules
+    links:
+#      - rethinkdb
+      - chunk
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
+      - BADMARS_DB=rethinkdb.mono
+  web:
+    build: .
+    command: sh -c 'cd bin/server/nodejs && supervisor web.js'
+    volumes:
+      - ./:/badmars
+      - /badmars/node_modules
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
+      - BADMARS_WS_SERVER=ws://192.168.11.119
+      - BADMARS_DB=rethinkdb.mono
+    ports:
+      - "3002:3002"
+#    links:
+#      - rethinkdb
+  client:
+    build: .
+    command: make watchClient
+    volumes:
+      - ./:/badmars
+      - /badmars/node_modules
+    ports:
+      - "4474:4474"
+#    links:
+#      - rethinkdb
+    environment:
+      - BADMARS_DB=rethinkdb.mono
+  dashboard-frontend:
+    build: .
+    command: make watchDashboard
+    volumes:
+      - ./:/badmars
+#    links:
+#      - rethinkdb
+    environment:
+      - BADMARS_DB=rethinkdb.mono
+  net:
+    build: .
+    command: sh -c 'cd bin/server/nodejs && supervisor net.js'
+    volumes:
+      - ./:/badmars
+      - /badmars/node_modules
+    ports:
+      - "7005:7005"
+      - "5858:5858"
+#    links:
+#      - rethinkdb
+    environment:
+      - MAP_HOST=chunk
+      - AI_HOST=ai
+      - BADMARS_DB=rethinkdb.mono

@@ -13,6 +13,7 @@ awesome webGL MMORTS with an infinite procedurally generated map.
 
 ## docker-compose method
 - run `docker-compose build`
+- run `make dockerWatch` so that it hot reloads on the fly, or `make dockerBuild` to rebuild once.
 - then `docker-compose up`
 - http://localhost:3002/badmars for the game server
 - http://localhost:8080/ for rethinkdb
