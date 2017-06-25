@@ -21,7 +21,7 @@ const chunkService = grpc.load(__dirname + '/../../protos/chunk.proto').chunk;
 const mapClient = new chunkService.Map(env.mapHost + ':' + env.mapPort, grpc.credentials.createInsecure());
 
 const defaultSettings = {
-	chunkSize: 8,
+	chunkSize: 16,
 	waterHeight: 0,
 	cliffDelta: 0.4,
 	water: true,

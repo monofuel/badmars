@@ -11,6 +11,10 @@ import MonoContext from '../util/monoContext';
 import type Logger from '../util/logger';
 import { checkContext } from '../util/logger';
 
+import DBChunk from './chunk';
+import DBUnit from './unit';
+import DBUnitStat from './unitStat';
+
 class DBCall {
 	profile: ProfileKey;
 	name: string;
@@ -80,4 +84,15 @@ export async function clearSpareIndices(conn: r.Connection, table: r.Table, vali
 export function startDBCall(ctx: MonoContext, name: string): DBCall {
 	checkContext(ctx, `startDBCall ${name}`);
 	return new DBCall(ctx, name);
+}
+
+export async function setupPlanet(conn: r.Connection, logger: Logger, name: string): Promise<any> {
+	const chunk = new DBChunk(conn, name);
+	const unit = new DBUnit(conn, logger, name);
+	const unitStats = new DBUnitStat(conn, logger, name);
+	return Promise.all([
+		chunk.setup(logger),
+		unit.setup(),
+		unitStats.setup(),
+	]);
 }

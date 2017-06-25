@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import { createTable, startDBCall } from './helper';
+import { createTable, startDBCall, setupPlanet } from './helper';
 import Map from '../map/map';
 
 import type Logger from '../util/logger';
@@ -13,6 +13,7 @@ import type MonoContext from '../util/monoContext';
 
 export default class DBMap {
 	mapCache: Object;
+	logger: Logger;
 	conn: r.Connection;
 	table: r.Table;
 	tableName: string;
@@ -22,14 +23,16 @@ export default class DBMap {
 		this.tableName = 'map';
 	}
 
-	async init(conn: r.Connection): Promise<void> {
+	async init(conn: r.Connection, logger: Logger): Promise<void> {
 		this.conn = conn;
+		this.logger = logger;
 		this.table = r.table(this.tableName);
 
 	}
 
 	async setup(conn: r.Connection, logger: Logger): Promise<void> {
 		this.conn = conn;
+		this.logger = logger;
 		this.table = await createTable(conn, logger, this.tableName, 'name');
 	}
 
@@ -85,6 +88,8 @@ export default class DBMap {
 	}
 
 	async createRandomMap(name: string): Promise<Object> {
-		return this.createMap(new Map(name));
+		const planet = await this.createMap(new Map(name));
+		await setupPlanet(this.conn, this.logger, name);
+		return planet;
 	}
 }

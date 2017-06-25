@@ -14,7 +14,7 @@ import DBUnitStat from './unitStat';
 import DBUser from './user';
 import DBChat from './chat';
 import DBEvent from './event';
-
+import { setupPlanet } from './helper';
 import { WrappedError } from '../util/logger';
 
 import sleep from '../util/sleep';
@@ -87,7 +87,7 @@ export default class DB {
 		r.db('badmars');
 
 		try {
-			await this.map.init(this.conn);
+			await this.map.init(this.conn, this.logger);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to initialize map table');
 		}
@@ -176,20 +176,11 @@ export default class DB {
 		} catch (err) {
 			throw new WrappedError(err, 'failed to setup user table');
 		}
-
+		await this.map.init(this.conn, this.logger);
 		await this.map.createRandomMap('testmap');
 
 		const mapNames = await this.map.listNames();
-		await Promise.all(mapNames.map((name: string): Promise<any> => {
-			const chunk = new DBChunk(this.conn, name);
-			const unit = new DBUnit(this.conn, this.logger, name);
-			const unitStats = new DBUnitStat(this.conn,this.logger, name);
-			return Promise.all([
-				chunk.setup(this.logger),
-				unit.setup(),
-				unitStats.setup(),
-			]);
-		}));
+		await Promise.all(mapNames.map((name: string): Promise<void> => setupPlanet(this.conn, this.logger, name)));
 
 		// TODO
 		this.logger.info(null, 'Schema Initialized');

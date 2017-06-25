@@ -63,8 +63,8 @@ export default class Map {
 		this.chunkMap = {};
 		this.chunkCache = {};
 		this.requestedChunks = {};
-		this.viewRange = 7;
-		this.unloadRange = this.viewRange + 5;
+		this.viewRange = 5;
+		this.unloadRange = this.viewRange + 3;
 
 		this.worldSettings = planet.settings;
 
