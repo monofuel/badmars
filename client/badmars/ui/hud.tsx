@@ -4,8 +4,10 @@ import { autobind } from 'core-decorators';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import { Button } from 'react-bootstrap';
 
+import config from '../config';
 import LoginModal from './login';
 import ErrorAlert from './errorAlert';
 import MenuButtons from './menuButtons';
@@ -15,6 +17,7 @@ import SelectedUnitWell from './selectedUnit';
 import Transfer from './transfer';
 import Entity from '../units/entity';
 import State from '../state';
+import BMDatGui from './datgui';
 import {
 	DisplayErrorChange,
 	LoginChange,
@@ -56,6 +59,16 @@ const aboutButtonStyle = {
 	width: '60px'
 };
 
+const muiTheme = getMuiTheme({
+	palette: {
+		primary1Color: config.palette.uiPrimary,
+		primary2Color: config.palette.uiSecondary,
+		primary3Color: config.palette.uiTertiary,
+		textColor: config.palette.fontColor,
+		canvasColor: config.palette.uiBackground,
+	}
+})
+
 export default class HUD extends React.Component<HUDProps, HUDState> {
 	public static childContextTypes = {
 		state: PropTypes.any.isRequired
@@ -88,6 +101,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 		TransferChange.attach(({ source, dest }) => this.unitTransferHandler(source));
 		ChatChange.attach((msg) => this._addChatMessage(msg));
 		GameStageChange.attach(this._gameStateChange);
+		BMDatGui();
 	}
 
 	public render() {
@@ -95,7 +109,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 		const { login, selectedUnit, transferUnit, errorMessage, aboutOpen, transfering, chatLog } = this.state;
 
 		return (
-			<MuiThemeProvider>
+			<MuiThemeProvider muiTheme={muiTheme}>
 				{login
 					? <LoginModal />
 					: <div

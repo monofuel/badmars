@@ -15,6 +15,7 @@ export class ModelInfo {
 	}
 }
 
+// TODO should get model info from unit stats from server
 const models: ModelInfo[] = [
 	(new ModelInfo('tank', 'tank_mockup.obj')),
 	(new ModelInfo('iron', 'iron_mockup.obj')),
@@ -23,7 +24,8 @@ const models: ModelInfo[] = [
 	(new ModelInfo('mine', 'mine.obj')),
 	(new ModelInfo('storage', 'storage.obj')),
 	(new ModelInfo('factory', 'factory.obj')),
-	(new ModelInfo('transport', 'transport.obj'))
+	(new ModelInfo('transport', 'transport.obj')),
+	(new ModelInfo('wall', 'wall.obj'))
 ];
 
 let loaded: number;
@@ -35,7 +37,7 @@ export function getMesh(name: string): any {
 	if (model) {
 		return model.model.children[0].geometry;
 	}
-	throw new Error(`no model for ${name}`);
+	throw new Error(`model ${model.fileName} for ${name} not found`);
 }
 
 /**

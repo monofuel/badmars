@@ -85,8 +85,8 @@
 			"layer": "ground"
 		},
 		"graphical": {
-			"model": "cube.obj",
-			"scale": 1
+			"model": "wall.obj",
+			"scale": 0.3
 		}
 	},
 	"mine": {

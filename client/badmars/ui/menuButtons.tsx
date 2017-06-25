@@ -4,21 +4,21 @@ import { autobind } from 'core-decorators';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 
-import { Button, Well } from 'react-bootstrap';
+import RaisedButton from 'material-ui/RaisedButton';
 import { Paper } from 'material-ui';
 import Entity from '../units/entity';
 import State from '../state';
 import { RequestChange } from '../net';
 import { MouseReleaseEvent } from '../input';
+import { log } from '../logger';
 
 type Props = {
 	selectedUnit: Entity,
 }
 
-const constructButtonStyle = {
-	width: '100px',
-	paddingRight: '10px'
-};
+const buttonStyle = {
+	margin: '5px',
+}
 
 const buildButtonStyle = {
 	position: 'absolute',
@@ -33,7 +33,7 @@ const buildButtonStyle = {
 	zIndex: '5'
 };
 
-export default class MenuButtons extends React.Component<Props,{}> {
+export default class MenuButtons extends React.Component<Props, {}> {
 	public static contextTypes = {
 		state: PropTypes.any.isRequired
 	};
@@ -42,7 +42,7 @@ export default class MenuButtons extends React.Component<Props,{}> {
 	};
 
 	render() {
-		const {selectedUnit } = this.props;
+		const { selectedUnit } = this.props;
 		const selectedUnitType = selectedUnit ? selectedUnit.details.type : null;
 
 		let buttons;
@@ -53,15 +53,15 @@ export default class MenuButtons extends React.Component<Props,{}> {
 			let remaining = buildingUnit.remaining;
 			let constructing = buildingUnit.cost === 0;
 			queuePane = (
-				<div style={{width: '110px'}}>
+				<div style={{ width: '110px' }}>
 					<div>
-					{constructing?
-						'remaining: ' + remaining + 's'
-						:
-						'need iron'
-					}
+						{constructing ?
+							'remaining: ' + remaining + 's'
+							:
+							'need iron'
+						}
 					</div>
-					<ul style={{overflow: 'auto', maxHeight: '60%'}}>
+					<ul style={{ overflow: 'auto', maxHeight: '60%' }}>
 						{selectedUnit.construct.factoryQueue.map((queueElement) => {
 							return <li>{queueElement.type}</li>;
 						})}
@@ -73,22 +73,22 @@ export default class MenuButtons extends React.Component<Props,{}> {
 		if (selectedUnitType !== 'factory') {
 			buttons = (
 				<div>
-					<Button style={constructButtonStyle} onClick={() => this.constructClicked('storage')}>Storage</Button>
-					<Button style={constructButtonStyle} onClick={() => this.constructClicked('mine')}>Mine</Button>
-					<Button style={constructButtonStyle} onClick={() => this.constructClicked('factory')}>Factory</Button>
-					<Button style={constructButtonStyle} onClick={() => this.constructClicked('wall')}>Wall</Button>
-					<Button style={constructButtonStyle} onClick={() => this.constructClicked('cancel')}>Cancel</Button>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('storage')}>Storage</RaisedButton>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('mine')}>Mine</RaisedButton>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('factory')}>Factory</RaisedButton>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('wall')}>Wall</RaisedButton>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('cancel')}>Cancel</RaisedButton>
 				</div>
 			);
 		} else {
 			buttons = (
-				<div style={{display: 'flex'}}>
+				<div style={{ display: 'flex' }}>
 					{queuePane}
 					<div>
-						<Button style={constructButtonStyle} onClick={() => this.factoryConstructClicked('tank')}>Tank</Button>
-						<Button style={constructButtonStyle} onClick={() => this.factoryConstructClicked('builder')}>Builder</Button>
-						<Button style={constructButtonStyle} onClick={() => this.factoryConstructClicked('transport')}>Transport</Button>
-						<Button style={constructButtonStyle} onClick={() => this.factoryConstructClicked('cancel')}>Cancel</Button>
+						<RaisedButton style={buttonStyle} secondary onTouchTap={() => this.factoryConstructClicked('tank')}>Tank</RaisedButton>
+						<RaisedButton style={buttonStyle} secondary onTouchTap={() => this.factoryConstructClicked('builder')}>Builder</RaisedButton>
+						<RaisedButton style={buttonStyle} secondary onTouchTap={() => this.factoryConstructClicked('transport')}>Transport</RaisedButton>
+						<RaisedButton style={buttonStyle} secondary onTouchTap={() => this.factoryConstructClicked('cancel')}>Cancel</RaisedButton>
 					</div>
 				</div>
 			);
@@ -113,6 +113,7 @@ export default class MenuButtons extends React.Component<Props,{}> {
 	@autobind
 	private constructClicked(unitType: string) {
 		const { input } = this.context.state;
+		log('debug', `construct ${unitType} clicked`);
 		input.construct(unitType);
 	}
 

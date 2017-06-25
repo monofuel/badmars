@@ -20,13 +20,12 @@ button {
     padding: 5px;
 }
 
-#buttons .btn {
-    width: 100%;
-    padding-bottom: 10px;
-}
-
 #info .progress-bar {
     padding: 5px;
+}
+
+.dg.ac {
+	z-index: 5 !important;
 }
 
 #info {

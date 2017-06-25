@@ -65,7 +65,7 @@ export default class DBUnitStat {
 	}
 
 	async init(): Promise<void> {
-		this.table = r.table(this.tableName)
+		this.table = r.table(this.tableName);
 		await loadDefaults();
 
 		fs.watchFile(UNIT_STAT_FILE, async(): Promise<void> => {

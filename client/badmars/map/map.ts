@@ -11,6 +11,7 @@ import GroundUnit from '../units/groundUnit';
 import { updateUnit } from '../units/unitBalance';
 import { N, S, E, W, C } from '../units/directions';
 import { log } from '../logger';
+import config from '../config';
 import jsonpatch from 'fast-json-patch';
 import * as THREE from 'three';
 import * as _ from 'lodash';
@@ -47,8 +48,6 @@ export default class Map {
 	updateUnitsListener: (data: UnitEvent) => void;
 	updateUnitDeltaListener: (data: UnitDeltaEvent) => void;
 	chunkCache: any;
-	viewRange: number;
-	unloadRange: number;
 	requestedChunks: any;
 
 	chunkInterval: NodeJS.Timer;
@@ -63,8 +62,6 @@ export default class Map {
 		this.chunkMap = {};
 		this.chunkCache = {};
 		this.requestedChunks = {};
-		this.viewRange = 5;
-		this.unloadRange = this.viewRange + 3;
 
 		this.worldSettings = planet.settings;
 
@@ -210,13 +207,13 @@ export default class Map {
 		var waterGeom = new THREE.PlaneBufferGeometry(this.worldSettings.chunkSize, this.worldSettings.chunkSize);
 
 		var landMaterial = new THREE.MeshPhongMaterial({
-			color: 0x37DB67
+			color: config.palette.land
 		});
 		var cliffMaterial = new THREE.MeshPhongMaterial({
-			color: 0x2C3A4E
+			color: config.palette.cliff
 		});
 		var waterMaterial = new THREE.MeshLambertMaterial({
-			color: 0x54958A
+			color: config.palette.water
 		});
 
 		for (var x = 0; x <= this.worldSettings.chunkSize; x++) {
@@ -509,9 +506,9 @@ export default class Map {
 
 	getChunksAroundTile(tile: PlanetLoc): Array<string> {
 		var chunks: Array<string> = [];
-		for (var i = -this.viewRange; i < this.viewRange; i++) {
-			for (var j = -this.viewRange; j < this.viewRange; j++) {
-				if (Math.sqrt(i * i + j * j) < this.viewRange) {
+		for (var i = -config.loadDistance; i < config.loadDistance; i++) {
+			for (var j = -config.loadDistance; j < config.loadDistance; j++) {
+				if (Math.sqrt(i * i + j * j) < config.loadDistance) {
 					let chunkX = tile.chunkX + i;
 					let chunkY = tile.chunkY + j;
 					chunks.push(chunkX + ":" + chunkY);
@@ -565,7 +562,7 @@ export default class Map {
 			let y = parseInt(hash.split(":")[1]);
 			var xdist = Math.abs(tile.chunkX - x);
 			var ydist = Math.abs(tile.chunkY - y);
-			if (Math.sqrt(xdist * xdist + ydist * ydist) > this.unloadRange) {
+			if (Math.sqrt(xdist * xdist + ydist * ydist) > config.loadDistance + 2) {
 				//console.log("removing chunk:" + hash);
 				this.destroyUnits(this.getUnitsOnChunk(hash));
 
