@@ -129,3 +129,12 @@ services:
       - MAP_HOST=chunk
       - AI_HOST=ai
       - BADMARS_DB=rethinkdb.mono
+  schema:
+    build: .
+    command: sh -c 'cd bin/server/nodejs && node schema.js'
+    volumes:
+      - ./:/badmars
+      - /badmars/node_modules
+    environment:
+      - BADMARS_DB=rethinkdb.mono
+      - TRACKING_SERVER=http://japura.net

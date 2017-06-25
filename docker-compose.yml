@@ -103,7 +103,7 @@ services:
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_WS_SERVER=ws://localhost
+      - BADMARS_WS_SERVER=ws://192.168.11.102
       - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
     ports:

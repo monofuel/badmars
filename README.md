@@ -12,9 +12,10 @@ awesome webGL MMORTS with an infinite procedurally generated map.
 	- threejs
 
 ## docker-compose method
+- install yarn
 - run `docker-compose build`
 - run `make dockerWatch` so that it hot reloads on the fly, or `make dockerBuild` to rebuild once.
-	- to build outside of docker (faster):
+	- building outside of docker is currently broken because of an issue with grpc otherwise, these are the instructions:
 		- install yarn
 		- run `npm install -g browserify watchify flow-bin babel-watch babel-core node-gyp babel-cli`
 		- run `make buildServer -j 4` or `make watchServer -j 10`

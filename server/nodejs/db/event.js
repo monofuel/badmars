@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import {safeCreateTable} from './helper';
+import {createTable} from './helper';
 
 import type Logger from '../util/logger';
 
@@ -18,9 +18,12 @@ export default class DBEvent {
 		this.tableName = 'event';
 	}
 
-	async init(conn: r.Connection, logger: Logger): Promise<void> {
+	async init(conn: r.Connection): Promise<void> {
 		this.conn = conn;
-		this.table = await safeCreateTable(conn, logger, this.tableName);
+		this.table = r.table(this.tableName);
+	}
+	async setup(conn: r.Connection, logger: Logger): Promise<void> {
+		this.table = await createTable(conn, logger, this.tableName);
 	}
 
 	async addEvent(object: Object): Promise<void> {

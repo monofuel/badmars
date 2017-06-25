@@ -11,7 +11,7 @@ watchClient:
 	 watchify ./client/badmars/client.ts -p tsify -v --debug -o ./bin/public/badmars/js/badmars.js
 
 watchDashboard:
-	 watchify ./client/dashboard/index.jsx -t babelify -p tfsify -p livereactload --debug -o ./bin/public/dashboard/js/index.js
+	 watchify ./client/dashboard/index.jsx -t babelify -p tsify -p livereactload --debug -o ./bin/public/dashboard/js/index.js
 
 check:
 	go vet .
@@ -40,50 +40,50 @@ prepareBin:
 
 buildServer: prepareBin buildChunk buildAI buildNet buildPathfinder buildValidator buildWeb buildSchema
 
-buildChunk: nodeSetup
+buildChunk: 
 	browserify ./server/nodejs/chunk.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/chunk.js --node --im --debug
 
-buildAI: nodeSetup
+buildAI: 
 	browserify ./server/nodejs/ai.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/ai.js --node --im --debug
 
-buildNet: nodeSetup
+buildNet: 
 	browserify ./server/nodejs/net.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/net.js --node --im --debug
 
-buildWeb: nodeSetup
+buildWeb:
 	browserify ./server/nodejs/web.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/web.js --node --im --debug
 
-buildPathfinder: nodeSetup
+buildPathfinder: 
 	browserify ./server/nodejs/pathfinder.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/pathfinder.js --node --im --debug
 
-buildValidator: nodeSetup
+buildValidator:
 	browserify ./server/nodejs/validator.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/validator.js --node --im --debug
 
-buildSchema: nodeSetup
+buildSchema:
 	browserify ./server/nodejs/schema.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/schema.js --node --im --debug
 
 # TODO build for go services
 
 watchServer: prepareBin watchChunk watchAI watchNet watchWeb watchPathfinder watchValidator watchWeb watchSchema
 
-watchChunk: nodeSetup
+watchChunk: 
 	watchify ./server/nodejs/chunk.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/chunk.js --node --im --debug -v
 
-watchAI: nodeSetup
+watchAI: 
 	watchify ./server/nodejs/ai.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/ai.js --node --im --debug -v
 
-watchNet: nodeSetup
+watchNet: 
 	watchify ./server/nodejs/net.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/net.js --node --im --debug -v
 
-watchWeb: nodeSetup
+watchWeb: 
 	watchify ./server/nodejs/web.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/web.js --node --im --debug -v
 
-watchPathfinder: nodeSetup
+watchPathfinder: 
 	watchify ./server/nodejs/pathfinder.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/pathfinder.js --node --im --debug -v
 
-watchValidator: nodeSetup
+watchValidator: 
 	watchify ./server/nodejs/validator.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/validator.js --node --im --debug -v
 
-watchSchema: nodeSetup
+watchSchema: 
 	watchify ./server/nodejs/schema.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/schema.js --node --im --debug -v
 
 # TODO add watch for go services
@@ -91,7 +91,7 @@ watchSchema: nodeSetup
 #--------------------------------------------
 #commands that use docker
 
-dockerBuildPrepare:
+dockerBuildPrepare: nodeSetup
 	docker-compose -f docker-compose-build.yml build
 
 dockerBuild: dockerBuildPrepare

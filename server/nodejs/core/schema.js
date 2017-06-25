@@ -24,6 +24,7 @@ export default class SchemaService {
 
 	async init(): Promise<void> {
 		// const ctx = this.makeCtx();
+		await this.db.setupSchema();
 
 		process.exit();
 	}

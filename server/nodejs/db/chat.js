@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import {safeCreateTable} from './helper';
+import {createTable} from './helper';
 import type Logger from '../util/logger';
 import type User from '../user/user';
 
@@ -18,9 +18,13 @@ export default class DBChat {
 		this.tableName = 'chat';
 	}
 
-	async init(conn: r.Connection, logger: Logger): Promise<void> {
+	async init(conn: r.Connection): Promise<void> {
 		this.conn = conn;
-		this.table = await safeCreateTable(conn, logger, this.tableName);
+		this.table = r.table(this.tableName);
+	}
+
+	async setup(conn: r.Connection, logger: Logger): Promise<void> {
+		this.table = createTable(conn, logger, this.tableName);
 	}
 
 	async watchChat(func: Function): Promise<void> {

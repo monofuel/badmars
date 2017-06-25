@@ -46,17 +46,18 @@ export default class DB {
 		this.logger = logger;
 	}
 
-	async init(): Promise<void> {
+	async connect(): Promise<void> {
 		const options: {
 			host: string,
 			db: string,
 			port?: number,
 			user?: string,
 			password?: string
-		} = {
-			host: env.dbHost,
-			db: env.database,
-		};
+		} =
+			{
+				host: env.dbHost,
+				db: env.database,
+			};
 		if (env.dbPort) {
 			options.port = env.dbPort;
 		}
@@ -69,39 +70,42 @@ export default class DB {
 		try {
 			this.conn = await r.connect(options);
 		} catch (err) {
-			this.logger.trackError(null, err, 'failed to connect to DB, retrying in 5 seconds');
+			this.logger.trackError(null, new WrappedError(err, 'failed to connect to DB, retrying in 5 seconds'));
 			await sleep(5000);
 			return this.init();
 		}
+	}
+
+	async init(): Promise<void> {
+		await this.connect();
 		const dbList = await r.dbList().run(this.conn);
 
 		if (dbList.indexOf('badmars') == -1) {
-			this.logger.info(null, 'creating database');
-			await r.dbCreate('badmars').run(this.conn);
+			throw new Error('database "badmars" not ready');
 		}
 
 		r.db('badmars');
-		
+
 		try {
-			await this.map.init(this.conn, this.logger);
+			await this.map.init(this.conn);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to initialize map table');
 		}
 
 		try {
-			await this.chat.init(this.conn, this.logger);
+			await this.chat.init(this.conn);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to initialize chat table');
 		}
-		
+
 		try {
-			await this.event.init(this.conn, this.logger);
+			await this.event.init(this.conn);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to initialize event table');
 		}
 
 		try {
-			await this.user.init(this.conn, this.logger);
+			await this.user.init(this.conn);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to initialize user table');
 		}
@@ -111,15 +115,15 @@ export default class DB {
 		const chunkPromises = [];
 		for (const name of mapNames) {
 			const chunk = new DBChunk(this.conn, name);
-			chunkPromises.push(chunk.init(this.logger));
+			chunkPromises.push(chunk.init());
 			this.chunks[name] = chunk;
 		}
 		await Promise.all(chunkPromises);
 
 		const unitPromises = [];
 		for (const name of mapNames) {
-			const unit = new DBUnit(this.conn, name);
-			unitPromises.push(unit.init(this.logger));
+			const unit = new DBUnit(this.conn, this.logger, name);
+			unitPromises.push(unit.init());
 			this.units[name] = unit;
 		}
 		await Promise.all(unitPromises);
@@ -127,14 +131,68 @@ export default class DB {
 		const unitStatPromises = [];
 		for (const name of mapNames) {
 			const unitStat = new DBUnitStat(this.conn, this.logger, name);
-			unitStatPromises.push(unitStat.init(this.logger));
+			unitStatPromises.push(unitStat.init());
 			this.unitStats[name] = unitStat;
 		}
 		await Promise.all(unitStatPromises);
 
-		await this.map.createRandomMap('testmap');
 		//console.log('created map testmap');
 		this.logger.info(null, 'INITIALIZED');
+	}
+
+	async setupSchema(): Promise<void> {
+		await this.connect();
+		this.logger.info(null, 'Initializing Schema');
+
+		const dbList = await r.dbList().run(this.conn);
+
+		if (dbList.indexOf('badmars') == -1) {
+			this.logger.info(null, 'creating database');
+			await r.dbCreate('badmars').run(this.conn);
+		}
+
+		r.db('badmars');
+
+		try {
+			await this.map.setup(this.conn, this.logger);
+		} catch (err) {
+			throw new WrappedError(err, 'failed to setup map table');
+		}
+
+		try {
+			await this.chat.setup(this.conn, this.logger);
+		} catch (err) {
+			throw new WrappedError(err, 'failed to setup chat table');
+		}
+
+		try {
+			await this.event.setup(this.conn, this.logger);
+		} catch (err) {
+			throw new WrappedError(err, 'failed to setup event table');
+		}
+
+		try {
+			await this.user.setup(this.conn, this.logger);
+		} catch (err) {
+			throw new WrappedError(err, 'failed to setup user table');
+		}
+
+		await this.map.createRandomMap('testmap');
+
+		const mapNames = await this.map.listNames();
+		await Promise.all(mapNames.map((name: string): Promise<any> => {
+			const chunk = new DBChunk(this.conn, name);
+			const unit = new DBUnit(this.conn, this.logger, name);
+			const unitStats = new DBUnitStat(this.conn,this.logger, name);
+			return Promise.all([
+				chunk.setup(this.logger),
+				unit.setup(),
+				unitStats.setup(),
+			]);
+		}));
+
+		// TODO
+		this.logger.info(null, 'Schema Initialized');
 	}
 
 	async close(): Promise<void> {

@@ -30,11 +30,7 @@ class DBCall {
 	}
 }
 
-// rethinkdb does not atomically create tables
-// this function does a db-side check for table existance before
-// creation, and also adds some jitter
-export async function safeCreateTable(conn: r.Connection, logger: Logger, tableName: string, primaryKey?: string): r.Table {
-	// HACK disabling for now // await helper.sleep(20 * 1000 * Math.random());
+export async function createTable(conn: r.Connection, logger: Logger, tableName: string, primaryKey?: string): r.Table {
 	let results;
 	if (primaryKey) {
 		results = await r.tableList().contains(tableName).do((exists: boolean): any => {
@@ -55,7 +51,7 @@ export async function safeCreateTable(conn: r.Connection, logger: Logger, tableN
 	return r.table(tableName);
 }
 
-export async function safeCreateIndex(conn: r.Connection, logger: Logger, table: r.Table, name: string, multi?: boolean): Promise<void> {
+export async function createIndex(conn: r.Connection, logger: Logger, table: r.Table, name: string, multi?: boolean): Promise<void> {
 	const indexList = await table.indexList().run(conn);
 	if (multi) {
 		if (!indexList.includes(name)) {

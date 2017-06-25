@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import {safeCreateTable, safeCreateIndex} from './helper';
+import {createTable, createIndex} from './helper';
 import User from '../user/user';
 import type Logger from '../util/logger';
 
@@ -18,10 +18,14 @@ export default class DBUser {
 		this.tableName = 'user';
 	}
 
-	async init(conn: r.Connection, logger: Logger): Promise<void> {
+	async init(conn: r.Connection): Promise<void> {
 		this.conn = conn;
-		this.table = await safeCreateTable(this.conn, logger, this.tableName, 'uuid');
-		await safeCreateIndex(this.conn, logger, this.table, 'name');
+		this.table = r.table(this.tableName);
+	}
+
+	async setup(conn: r.Connection, logger: Logger): Promise<void> {
+		this.table = await createTable(conn, logger, this.tableName, 'uuid');
+		await createIndex(conn, logger, this.table, 'name');
 	}
 
 	async listAllSanitizedUsers(): Promise<Array<Object>> {

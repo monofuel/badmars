@@ -10,7 +10,7 @@ import fs from 'fs';
 import parseJson from 'parse-json';
 
 import UnitStat from '../unit/unitStat';
-import { safeCreateTable } from './helper';
+import { createTable } from './helper';
 import { DetailedError, WrappedError } from '../util/logger';
 
 import type Logger from '../util/logger';
@@ -60,8 +60,12 @@ export default class DBUnitStat {
 		this.tableName = this.mapName + '_unitStats';
 	}
 
+	async setup(): Promise<void> {
+		this.table = await createTable(this.conn, this.logger, this.tableName);
+	}
+
 	async init(): Promise<void> {
-		this.table = await safeCreateTable(this.conn, this.logger, this.tableName);
+		this.table = r.table(this.tableName)
 		await loadDefaults();
 
 		fs.watchFile(UNIT_STAT_FILE, async(): Promise<void> => {

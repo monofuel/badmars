@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import { safeCreateTable, startDBCall } from './helper';
+import { createTable, startDBCall } from './helper';
 import { checkContext, DetailedError } from '../util/logger';
 import Chunk from '../map/chunk';
 
@@ -23,8 +23,12 @@ export default class DBChunk {
 		this.tableName = this.mapName + '_chunk';
 	}
 
-	async init(logger: Logger): Promise<void> {
-		this.table = await safeCreateTable(this.conn, logger, this.tableName, 'hash');
+	async init(): Promise<void> {
+		this.table = r.table(this.tableName);
+	}
+
+	async setup(logger: Logger): Promise<void> {
+		this.table = await createTable(this.conn, logger, this.tableName, 'hash');
 	}
 
 	async each(func: Function): Promise<void> {

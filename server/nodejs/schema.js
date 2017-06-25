@@ -15,9 +15,6 @@ const db = new DB(logger);
 async function init(): Promise<void> {
 	try {
 		logger.info(null, 'start begin');
-		await db.init();
-		logger.info(null, 'db ready');
-
 		const schema = new Schema(db, logger);
 		await schema.init();
 		logger.info(null, 'start complete');

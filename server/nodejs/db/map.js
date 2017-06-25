@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import { safeCreateTable, startDBCall } from './helper';
+import { createTable, startDBCall } from './helper';
 import Map from '../map/map';
 
 import type Logger from '../util/logger';
@@ -22,9 +22,15 @@ export default class DBMap {
 		this.tableName = 'map';
 	}
 
-	async init(conn: r.Connection, logger: Logger): Promise<void> {
+	async init(conn: r.Connection): Promise<void> {
 		this.conn = conn;
-		this.table = await safeCreateTable(conn, logger, this.tableName, 'name');
+		this.table = r.table(this.tableName);
+
+	}
+
+	async setup(conn: r.Connection, logger: Logger): Promise<void> {
+		this.conn = conn;
+		this.table = await createTable(conn, logger, this.tableName, 'name');
 	}
 
 	async listNames(): Promise<Array<string>> {

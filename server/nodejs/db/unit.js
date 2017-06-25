@@ -9,7 +9,7 @@ import { DetailedError } from '../util/logger';
 import r from 'rethinkdb';
 import env from '../config/env';
 import Unit from '../unit/unit';
-import { safeCreateTable, safeCreateIndex, startDBCall, clearSpareIndices } from './helper';
+import { createTable, createIndex, startDBCall, clearSpareIndices } from './helper';
 
 import type Logger from '../util/logger';
 import type MonoContext from '../util/monoContext';
@@ -18,22 +18,28 @@ const VALID_INDICES = ['location.chunkHash', 'location.hash', 'details.lastTick'
 
 export default class DBunit {
 	conn: r.Connection;
+	logger: Logger;
 	mapName: string;
 	table: r.Table;
 	tableName: string;
 
-	constructor(connection: r.Connection, mapName: string) {
+	constructor(connection: r.Connection, logger: Logger, mapName: string) {
 		this.conn = connection;
+		this.logger = logger;
 		this.mapName = mapName;
 		this.tableName = mapName + '_unit';
 	}
 
-	async init(logger: Logger): Promise<void> {
-		this.table = await safeCreateTable(this.conn, logger, this.tableName, 'uuid');
-		await safeCreateIndex(this.conn, logger, this.table, 'location.hash', true);
-		await safeCreateIndex(this.conn, logger, this.table, 'location.chunkHash', true);
-		await safeCreateIndex(this.conn, logger, this.table, 'details.lastTick');
-		await safeCreateIndex(this.conn, logger, this.table, 'awake');
+	async init(): Promise<void> {
+		this.table = r.table(this.tableName);
+	}
+
+	async setup(): Promise<void> {
+		this.table = await createTable(this.conn, this.logger, this.tableName, 'uuid');
+		await createIndex(this.conn, this.logger, this.table, 'location.hash', true);
+		await createIndex(this.conn, this.logger, this.table, 'location.chunkHash', true);
+		await createIndex(this.conn, this.logger, this.table, 'details.lastTick');
+		await createIndex(this.conn, this.logger, this.table, 'awake');
 		await clearSpareIndices(this.conn, this.table, VALID_INDICES);
 	}	
 
