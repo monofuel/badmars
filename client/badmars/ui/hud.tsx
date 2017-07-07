@@ -69,6 +69,13 @@ const muiTheme = getMuiTheme({
 	}
 })
 
+/*
+	on default, all clicks go to the 'game' behind the hud.
+	to prevent this, all hud components must call
+	this.context.state.setFocus('hud');
+	and stop propogation in onClick
+*/
+
 export default class HUD extends React.Component<HUDProps, HUDState> {
 	public static childContextTypes = {
 		state: PropTypes.any.isRequired

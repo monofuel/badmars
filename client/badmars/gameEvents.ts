@@ -12,7 +12,7 @@ const t = require('flow-runtime');
 // - typescript types
 // - runtime types
 
-interface SelectedUnitsEvent {
+export interface SelectedUnitsEvent {
 	units: Entity[];
 }
 

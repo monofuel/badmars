@@ -1,39 +1,58 @@
 // monofuel
 
 import { autobind } from 'core-decorators';
+import * as _ from 'lodash';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 
 import RaisedButton from 'material-ui/RaisedButton';
+import FloatingActionButton from 'material-ui/FloatingActionButton';
+import ContentAdd from 'material-ui/svg-icons/content/add';
 import { Paper } from 'material-ui';
+
 import Entity from '../units/entity';
 import State from '../state';
 import { RequestChange } from '../net';
 import { MouseReleaseEvent } from '../input';
 import { log } from '../logger';
+import { SelectedUnitsChange, SelectedUnitsEvent } from '../gameEvents';
 
-type Props = {
-	selectedUnit: Entity,
+interface Props {
+	selectedUnit: Entity
+}
+
+interface MenuButtonsState {
+	menuMode: 'factory' | 'builder'
 }
 
 const buttonStyle = {
 	margin: '5px',
 }
 
-const buildButtonStyle = {
+const buildPanelStyle = {
 	position: 'absolute',
-	width: '50%',
-	top: '80%',
+	width: '60%',
+	top: 'auto',
+	bottom: 0,
 	left: 0,
 	right: 0,
 	marginLeft: 'auto',
 	marginRight: 'auto',
 	height: '100px',
 	padding: '5px',
-	zIndex: '5'
+	zIndex: '5',
 };
 
-export default class MenuButtons extends React.Component<Props, {}> {
+const addButtonStyle = {
+	position: 'absolute',
+	top: '90%',
+	right: '5%',
+	marginLeft: 'auto',
+	marginRight: 'auto',
+	zIndex: '5'
+}
+
+export default class MenuButtons extends React.Component<Props, MenuButtonsState> {
 	public static contextTypes = {
 		state: PropTypes.any.isRequired
 	};
@@ -41,7 +60,29 @@ export default class MenuButtons extends React.Component<Props, {}> {
 		state: State,
 	};
 
-	render() {
+	public state: MenuButtonsState = {
+		menuMode: 'builder'
+	};
+
+	public componentDidMount() {
+		SelectedUnitsChange.attach(this.onSelectionChange)
+	}
+
+	public componentWillUnmount() {
+		SelectedUnitsChange.detach(this.onSelectionChange)
+	}
+
+	@autobind
+	public onSelectionChange(e: SelectedUnitsEvent) {
+		const factories = _.filter(e.units, (unit) => unit.details.type === 'factory');
+
+		this.setState({
+			menuMode: factories.length === 0 ? 'factory' : 'builder',
+		});
+	}
+
+	public render() {
+		const { menuMode } = this.state;
 		const { selectedUnit } = this.props;
 		const selectedUnitType = selectedUnit ? selectedUnit.details.type : null;
 
@@ -93,12 +134,12 @@ export default class MenuButtons extends React.Component<Props, {}> {
 				</div>
 			);
 		}
-
 		return (
 			<Paper
+				zDepth={3}
 				onClick={this.setHUDFocus}
 				id='buttons'
-				style={buildButtonStyle as any}>
+				style={buildPanelStyle as any}>
 				{buttons}
 			</Paper>
 		);

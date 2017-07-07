@@ -103,7 +103,7 @@ export default class Input {
 
 	@autobind
 	private keyDownHandler(key: KeyboardEvent): void {
-		if (this.state.focused === 'hud' || this.state.focused === 'chat') {
+		if (this.state.focused === 'chat') {
 			return;
 		}
 		// ignore alt because alt tab can get funky
@@ -137,6 +137,9 @@ export default class Input {
 
 	@autobind
 	private mouseMoveHandler(event: MouseEvent): void {
+		this.dragCurrent = new THREE.Vector2();
+		this.dragCurrent.x = (event.clientX / this.state.display.renderer.domElement.clientWidth) * 2 - 1;
+		this.dragCurrent.y = -(event.clientY / this.state.display.renderer.domElement.clientHeight) * 2 + 1;
 		MouseMoveChanged.post({ type: 'mouseMove', event });
 	}
 
@@ -153,6 +156,7 @@ export default class Input {
 				this.dragStart.x = (event.clientX / this.state.display.renderer.domElement.clientWidth) * 2 - 1;
 				this.dragStart.y = -(event.clientY / this.state.display.renderer.domElement.clientHeight) * 2 + 1;
 				this.dragCurrent = this.dragStart;
+				event.preventDefault();
 				break;
 		}
 	}
@@ -212,6 +216,9 @@ export default class Input {
 					if (unit) {
 						this.setMoveHandler([unit]);
 					} else {
+						if (this.state.selectedUnits.length == 0) {
+							break;
+						}
 						this.state.selectedUnits = [];
 						this.mouseMode = 'select';
 						SelectedUnitsChange.post({ units: [] });

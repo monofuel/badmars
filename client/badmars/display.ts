@@ -19,6 +19,7 @@ export default class Display {
 	private state: State;
 	private panel: HTMLCanvasElement;
 	private HUDPanel: HTMLCanvasElement;
+	private HUDContext: CanvasRenderingContext2D;
 
 	constructor(state: State) {
 		this.state = state;
@@ -36,6 +37,9 @@ export default class Display {
 
 		this.panel = document.getElementById('threePanel') as HTMLCanvasElement;
 		this.HUDPanel = document.getElementById('HUDPanel') as HTMLCanvasElement;
+		this.HUDContext = this.HUDPanel.getContext('2d');
+		this.HUDPanel.width = window.innerWidth;
+		this.HUDPanel.height = window.innerHeight;
 
 		this.renderer = new THREE.WebGLRenderer({
 			antialias: false,
@@ -43,6 +47,7 @@ export default class Display {
 		});
 
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
+
 		this.hemLight = new THREE.HemisphereLight(0xffffff, 0xFFBF00, 0.3);
 		this.scene.add(this.hemLight);
 		this.moonLight = new THREE.DirectionalLight(this.state.moonColor, 0.2);
@@ -161,6 +166,8 @@ export default class Display {
 			perspective.aspect = aspectRatio;
 			perspective.updateProjectionMatrix();
 		}
+		this.HUDPanel.width = window.innerWidth;
+		this.HUDPanel.height = window.innerHeight;
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 	}
 
@@ -174,11 +181,10 @@ export default class Display {
 	}
 
 	private drawSelectionBox() {
-		if (!this.state.input.isMouseDown || this.state.input.mouseMode !== 'select') {
+		const { isMouseDown, mouseMode, dragStart, dragCurrent } = this.state.input;
+		if (!isMouseDown) {
 			return;
 		}
-		const dragStart = this.state.input.dragStart;
-		const dragCurrent = this.state.input.dragCurrent;
 
 		// draw from dragStart to dragCurrent
 		// convert from vector back to x and y
@@ -199,15 +205,15 @@ export default class Display {
 		var maxY = Math.round(Math.max(startVec.y, curVec.y));
 		var minY = Math.round(Math.min(startVec.y, curVec.y));
 
-		const hudContext = this.HUDPanel.getContext('2d');
-		hudContext.strokeStyle = '#7CFC00';
-		hudContext.lineWidth = 1;
-		hudContext.strokeRect(minX, minY, maxX - minX, maxY - minY);
-
+		
+		this.HUDContext.strokeStyle = '#7CFC00';
+		this.HUDContext.lineWidth = 1;
+		this.HUDContext.strokeRect(minX, minY, maxX - minX, maxY - minY);
 	}
 
 	public render(delta: number) {
 		this.updateSunPosition(delta);
+		this.HUDContext.clearRect(0, 0, this.HUDPanel.width, this.HUDPanel.height);
 		this.renderer.render(this.scene, this.camera);
 		this.drawSelectionBox();
 	}

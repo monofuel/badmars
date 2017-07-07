@@ -4,7 +4,10 @@ import { autobind } from 'core-decorators';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 
-import { Well, FormControl, Table, Button } from 'react-bootstrap';
+import { FormControl, Table, Button } from 'react-bootstrap';
+
+import TextField from 'material-ui/TextField';
+import { Paper } from 'material-ui';
 
 import State from '../state';
 import { RequestChange } from '../net';
@@ -66,14 +69,18 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 			}
 		});
 		return (
-			<Well id='chatWell' style={chatWellStyle as any}>
+			<Paper
+				zDepth={3}
+				style={chatWellStyle as any}
+				onClick={(e) => { e.stopPropagation()}}>
 				<span style={{ display: 'flex', minHeight: '34px' }}>
-					<FormControl
+					<TextField
 						style={{ marginBottom: '0px', flex: '1', marginRight: '2px' }}
 						value={sendText}
+						hintText='Chat'
 						onChange={this.inputChange}
 						onKeyPress={this.handleKeyPress}
-						onFocus={() => this.context.state.setFocus('chat')}
+						onFocus={(e) => this.context.state.setFocus('chat')}
 						onBlur={() => this.context.state.setFocus('game')} />
 					<Button onClick={() => this.setState({ minimized: !minimized })}>{minimized ? '+' : '-'}</Button>
 				</span>
@@ -98,7 +105,7 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 						}
 					</tbody>
 				</Table>
-			</Well>
+			</Paper>
 		)
 	}
 
