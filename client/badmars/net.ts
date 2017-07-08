@@ -488,7 +488,7 @@ export default class Net {
 				UnitDeltaChange.post(data);
 				return;
 			default:
-				log('debug', `unknown message type: ${(data as any).type} with fields ${Object.keys(data)}`);
+				log('error', `unknown message type: ${(data as any).type} with fields ${Object.keys(data)}`);
 		}
 	}
 

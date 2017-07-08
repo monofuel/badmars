@@ -134,7 +134,6 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 
 	@autobind
 	private setChatFocus(e: React.MouseEvent<HTMLDivElement>) {
-		console.log('chat click fired');
 		this.context.state.setFocus('chat');
 		e.stopPropagation();
 	}

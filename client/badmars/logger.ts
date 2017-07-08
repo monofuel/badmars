@@ -50,10 +50,11 @@ LogChange.attach(async (event: LogEvent): Promise<void> => {
 	if (numberForLevel(event.level) > numberForLevel(config.logLevel)) {
 		return;
 	}
+	const logFn = event.level === 'error' ? console.error : console.log;
 	if (event.meta && Object.keys(event.meta).length > 0) {
-		console.log(`${event.level} | ${event.name} | ${JSON.stringify(event.meta)}`);
+		logFn(`${event.level} | ${event.name} | ${JSON.stringify(event.meta)}`);
 	} else {
-		console.log(`${event.level} | ${event.name}`);
+		logFn(`${event.level} | ${event.name}`);
 	}
 });
 
