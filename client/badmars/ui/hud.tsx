@@ -163,7 +163,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 						<Chat
 							chatLog={chatLog} />
 						<Paper
-							onClick={this.setHUDFocus}
+							onMouseDown={this.setHUDFocus}
 							style={aboutButtonStyle as any}>
 							<IconButton
 								onTouchTap={() => this._openAboutClicked()}>
