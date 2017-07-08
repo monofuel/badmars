@@ -9,7 +9,7 @@ import Input from './input';
 import MainLoop from './mainLoop';
 import Entity from './units/entity';
 import PlanetLoc from './map/planetLoc';
-import { GameStageChange } from './gameEvents';
+import { GameStageChange, GameFocusChange } from './gameEvents';
 import { MapChange, RequestChange, PlayersChange } from './net';
 import sleep from './util/sleep';
 import { log } from './logger';
@@ -112,5 +112,6 @@ export default class State {
 
 		log('debug', 'changed focus', { prev: this.focused, focus });
 		this.focused = focus;
+		GameFocusChange.post({ focus });
 	}
 }

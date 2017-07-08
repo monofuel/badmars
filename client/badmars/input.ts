@@ -55,9 +55,9 @@ export default class Input {
 		document.body.addEventListener('keyup', this.keyUpHandler);
 		document.body.addEventListener('contextmenu', this.contextMenuHandler);
 
-		document.body.addEventListener('mousemove', this.mouseMoveHandler);
-		document.body.addEventListener('mousedown', this.mouseDownHandler);
-		document.body.addEventListener('mouseup', this.mouseUpHandler, false);
+		// document.body.addEventListener('mousemove', this.mouseMoveHandler);
+		// document.body.addEventListener('mousedown', this.mouseDownHandler, false);
+		// document.body.addEventListener('mouseup', this.mouseUpHandler, false);
 
 		MouseReleaseChanged.attach((event: MouseReleaseEvent) => {
 			if (this.mouseAction) {
@@ -144,11 +144,11 @@ export default class Input {
 	}
 
 	@autobind
-	private mouseDownHandler(event: MouseEvent): void {
-		// TODO put this somewhere else // this.state.focused = 'game';
+	public mouseDownHandler(event: MouseEvent): void {
+
 		switch (event.button) {
 			case LEFT_MOUSE:
-				console.log(this.state.focused);
+				console.log('mouse click: ', this.state.focused);
 				if (this.state.focused !== 'game') {
 					break;
 				}
@@ -183,8 +183,9 @@ export default class Input {
 	}
 
 	@autobind
-	private mouseUpHandler(event: MouseEvent): void {
+	public mouseUpHandler(event: MouseEvent): void {
 		// event.preventDefault();
+		// TODO anything that overrides this should use mouseUpCapture
 		setTimeout(() => { // hacky fix to make sure this always runs after hud onmouseup
 
 			const mouse = new THREE.Vector2();

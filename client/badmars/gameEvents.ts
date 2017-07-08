@@ -4,7 +4,7 @@ import { SyncEvent } from 'ts-events';
 import config from './config';
 import { log } from './logger';
 import Entity from './units/entity';
-import { GameStageType } from './state';
+import { GameStageType, Focused } from './state';
 const t = require('flow-runtime');
 
 // ------------------------------------------
@@ -53,6 +53,9 @@ interface SetDestinationEvent {
 export interface GameStageEvent {
 	stage: GameStageType;
 }
+export interface GameFocusEvent {
+	focus: Focused
+}
 
 // ------------------------------------------
 // frontend event emitters
@@ -62,6 +65,7 @@ export const TransferChange = new SyncEvent<TransferEvent>();
 export const DisplayErrorChange = new SyncEvent<DisplayErrorEvent>();
 export const LoginChange = new SyncEvent<LoginEvent>();
 export const GameStageChange = new SyncEvent<GameStageEvent>();
+export const GameFocusChange = new SyncEvent<GameFocusEvent>();
 
 // ------------------------------------------
 // validator listeners

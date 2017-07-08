@@ -6,13 +6,14 @@ import * as PropTypes from 'prop-types';
 
 import IconButton from 'material-ui/IconButton';
 import FontIcon from 'material-ui/FontIcon';
-import { FormControl, Table } from 'react-bootstrap';
 
 import TextField from 'material-ui/TextField';
 import { Paper } from 'material-ui';
+import { Table, TableBody, TableRow, TableRowColumn } from 'material-ui/Table';
 
 import State from '../state';
 import { RequestChange } from '../net';
+import { GameFocusChange, GameFocusEvent } from '../gameEvents';
 
 const chatWellStyle = {
 	position: 'absolute',
@@ -59,6 +60,7 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 		minimized: true,
 		sendText: ''
 	};
+	textField: TextField;
 	interval: NodeJS.Timer;
 
 	render() {
@@ -73,15 +75,16 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 		return (
 			<Paper
 				zDepth={3}
-				style={chatWellStyle as any}>
+				style={chatWellStyle as any}
+				onMouseDown={this.setChatFocus}>
 				<span style={{ display: 'flex', minHeight: '34px' }}>
 					<TextField
+						ref={(r) => this.textField = r}
 						style={{ marginBottom: '0px', flex: '1', marginRight: '2px' }}
 						value={sendText}
 						hintText='Chat'
 						onChange={this.inputChange}
 						onKeyPress={this.handleKeyPress}
-						onFocus={this.setChatFocus}
 						onBlur={this.setGameFocus} />
 					<IconButton onTouchTap={() => this.setState({ minimized: !minimized })}>
 						{minimized
@@ -90,29 +93,38 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 						}
 					</IconButton>
 				</span>
-				<Table condensed style={chatTableStyle as any}>
-					<tbody style={chatBodyStyle}>
+				<Table style={chatTableStyle as any}>
+					<TableBody style={chatBodyStyle}>
 						{minimized ?
 							recentChat.map((line) => {
 								return (
-									<tr style={{ display: 'flex' }} key={line.user + line.timestamp}>
-										<td>{line.user}</td><td style={{ flex: '1' }}>{line.text}</td>
-									</tr>
+									<TableRow style={{ display: 'flex' }} key={line.user + line.timestamp}>
+										<TableRowColumn>{line.user}</TableRowColumn>
+										<TableRowColumn style={{ flex: '1' }}>{line.text}</TableRowColumn>
+									</TableRow>
 								)
 							})
 							:
 							chatLog.map((line) => {
 								return (
-									<tr style={{ display: 'flex' }} key={line.user + line.timestamp}>
-										<td>{line.user}</td><td style={{ flex: '1' }}>{line.text}</td>
-									</tr>
+									<TableRow style={{ display: 'flex' }} key={line.user + line.timestamp}>
+										<TableRowColumn>{line.user}</TableRowColumn>
+										<TableRowColumn style={{ flex: '1' }}>{line.text}</TableRowColumn>
+									</TableRow>
 								)
 							})
 						}
-					</tbody>
+					</TableBody>
 				</Table>
 			</Paper>
 		)
+	}
+
+	@autobind
+	private onFocusChange(e: GameFocusEvent) {
+		if (e.focus !== 'chat') {
+			this.textField.blur();
+		}
 	}
 
 	@autobind
@@ -121,8 +133,10 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 	}
 
 	@autobind
-	private setChatFocus() {
+	private setChatFocus(e: React.MouseEvent<HTMLDivElement>) {
+		console.log('chat click fired');
 		this.context.state.setFocus('chat');
+		e.stopPropagation();
 	}
 
 
@@ -132,10 +146,12 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 				this.forceUpdate();
 			}, 1000);
 		}
+		GameFocusChange.attach(this.onFocusChange);
 	}
 
 	componentWillUnmount() {
 		clearInterval(this.interval);
+		GameFocusChange.detach(this.onFocusChange);
 		delete this.interval;
 	}
 

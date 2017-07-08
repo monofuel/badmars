@@ -124,7 +124,11 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 					? <LoginModal />
 					: <div
 						id='primaryHUD'
-						onClick={this.setGameFocus}
+						onMouseDown={(e) => {
+							this.setGameFocus(e);
+							this.props.state.input.mouseDownHandler(e.nativeEvent);
+						}}
+						onMouseUp={(e) => this.props.state.input.mouseUpHandler(e.nativeEvent)}
 						style={hudStyle as any}>
 						{errorMessage
 							? <ErrorAlert
