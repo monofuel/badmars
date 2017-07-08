@@ -33,8 +33,8 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 	render() {
 		const { state } = this.context;
 		const { selectedUnit } = this.props;
-		const iron = (selectedUnit.storage ? selectedUnit.storage.iron : 0);
-		const fuel = (selectedUnit.storage ? selectedUnit.storage.fuel : 0);
+		const iron = (selectedUnit.storage ? selectedUnit.storage.iron : 0) || 0;
+		const fuel = (selectedUnit.storage ? selectedUnit.storage.fuel : 0) || 0;
 		const rate = 1;
 		const maxHealth = (selectedUnit.details.maxHealth ? selectedUnit.details.maxHealth : 0);
 

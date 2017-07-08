@@ -25,6 +25,7 @@ export function sanitizeUnit(unit: Unit, owner: UUID): Object {
 	const optional = {};
 	if (unit.graphical) {
 		optional.graphical = sanitizeUnitGraphical(unit);
+		optional.storage = owned ? sanitizeOwnedUnitStorage(unit) : sanitizeUnitStorage(unit);
 	}
 	return {
 		uuid,
@@ -82,9 +83,6 @@ function sanitizeUnitStorage(unit: Unit): Object {
 	return {};
 }
 function sanitizeUnitGraphical(unit: Unit): Object {
-	if (!unit.graphical) {
-		return {};
-	}
 	const {
 		model,
 		scale
@@ -111,9 +109,6 @@ function sanitizeOwnedUnitLocation(unit: Unit): Object {
 	return sanitizeUnitLocation(unit);
 }
 function sanitizeOwnedUnitMovable(unit: Unit): Object {
-	if (!unit.movable) {
-		return {};
-	}
 	const {
 		movementCooldown,
 		destination,
@@ -131,13 +126,14 @@ function sanitizeOwnedUnitAttack(unit: Unit): Object {
 }
 
 function sanitizeOwnedUnitStorage(unit: Unit): Object {
-	return {};
+	return unit.storage;
 }
 function sanitizeOwnedUnitGraphical(unit: Unit): Object {
 	return sanitizeUnitGraphical(unit);
 }
 
 function sanitizeOwnedUnitStationary(unit: Unit): Object {
+	if (!unit.stationary)
 	return {};
 }
 
