@@ -30,10 +30,11 @@ export default async function getMap(ctx: MonoContext, client: Client): Promise<
 	// if we don't know the users location, default to chunks the user has units on
 
 	// load chunks that user has units on
-	const chunkSet = new Set();
+	const chunkSet: Set<string> = new Set();
 	units.forEach((unit: Unit) => {
 		unit.location.chunkHash.forEach((hash: ChunkHash) => {
 			chunkSet.add(hash);
+			client.planet.getNearbyChunkHashes(hash, 2).forEach((i: string): void => chunkSet.add(i));
 		});
 	});
 	const list: ChunkHash[] = Array.from(chunkSet).slice(0, 10);
@@ -44,6 +45,6 @@ export default async function getMap(ctx: MonoContext, client: Client): Promise<
 		const chunk = await client.planet.getChunk(ctx, x, y);
 		const chunkUnits = await chunk.getUnits(ctx);
 		client.send('chunk', { chunk: sanitizeChunk(chunk) });
-		client.send('units', { units: chunkUnits.map((unit) => sanitizeUnit(unit, client.user.uuid))});
+		client.send('units', { units: chunkUnits.map((unit: Unit) => sanitizeUnit(unit, client.user.uuid))});
 	}));
 }

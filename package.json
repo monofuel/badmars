@@ -30,6 +30,7 @@
     "@types/winston": "^2.3.2",
     "alea": "0.0.9",
     "axios": "^0.16.1",
+    "babel-eslint": "^7.2.3",
     "babel-preset-env": "^1.4.0",
     "babel-preset-es2017": "^6.24.1",
     "bufferutil": "^3.0.0",
