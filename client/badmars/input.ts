@@ -148,6 +148,7 @@ export default class Input {
 		// TODO put this somewhere else // this.state.focused = 'game';
 		switch (event.button) {
 			case LEFT_MOUSE:
+				console.log(this.state.focused);
 				if (this.state.focused !== 'game') {
 					break;
 				}

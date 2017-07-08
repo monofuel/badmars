@@ -8,10 +8,10 @@ import Entity from '../units/entity';
 
 const infoStyle = {
 	position: 'absolute',
-	left: '10px',
-	top: '50px',
+	left: 0,
+	top: '100px',
 	bottom: 'auto',
-	width: '300px',
+	width: '20%',
 	height: 'auto',
 	padding: '5px'
 }

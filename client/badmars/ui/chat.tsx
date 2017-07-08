@@ -4,7 +4,9 @@ import { autobind } from 'core-decorators';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 
-import { FormControl, Table, Button } from 'react-bootstrap';
+import IconButton from 'material-ui/IconButton';
+import FontIcon from 'material-ui/FontIcon';
+import { FormControl, Table } from 'react-bootstrap';
 
 import TextField from 'material-ui/TextField';
 import { Paper } from 'material-ui';
@@ -36,7 +38,7 @@ const chatBodyStyle = {
 }
 
 interface ChatPropsType {
-	chatLog: any[];
+	chatLog: any[]; // TODO type this
 }
 
 interface ChatStateType {
@@ -71,8 +73,7 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 		return (
 			<Paper
 				zDepth={3}
-				style={chatWellStyle as any}
-				onClick={(e) => { e.stopPropagation()}}>
+				style={chatWellStyle as any}>
 				<span style={{ display: 'flex', minHeight: '34px' }}>
 					<TextField
 						style={{ marginBottom: '0px', flex: '1', marginRight: '2px' }}
@@ -80,9 +81,14 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 						hintText='Chat'
 						onChange={this.inputChange}
 						onKeyPress={this.handleKeyPress}
-						onFocus={(e) => this.context.state.setFocus('chat')}
-						onBlur={() => this.context.state.setFocus('game')} />
-					<Button onClick={() => this.setState({ minimized: !minimized })}>{minimized ? '+' : '-'}</Button>
+						onFocus={this.setChatFocus}
+						onBlur={this.setGameFocus} />
+					<IconButton onTouchTap={() => this.setState({ minimized: !minimized })}>
+						{minimized
+							? <FontIcon className="material-icons">keyboard_arrow_down</FontIcon>
+							: <FontIcon className="material-icons">keyboard_arrow_up</FontIcon>
+						}
+					</IconButton>
 				</span>
 				<Table condensed style={chatTableStyle as any}>
 					<tbody style={chatBodyStyle}>
@@ -109,6 +115,17 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 		)
 	}
 
+	@autobind
+	private setGameFocus() {
+		this.context.state.setFocus('game');
+	}
+
+	@autobind
+	private setChatFocus() {
+		this.context.state.setFocus('chat');
+	}
+
+
 	componentDidMount() {
 		if (!this.interval) {
 			this.interval = setInterval(() => {
@@ -123,11 +140,11 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 	}
 
 	@autobind
-	private inputChange(event: React.FormEvent<React.Component<ReactBootstrap.FormControlProps,{}>>) {
+	private inputChange(event: React.FormEvent<React.Component<ReactBootstrap.FormControlProps, {}>>) {
 		this.setState({ sendText: (event.target as any).value });
 	}
 	@autobind
-	private handleKeyPress(event: React.KeyboardEvent<React.Component<ReactBootstrap.FormControlProps,{}>>) {
+	private handleKeyPress(event: React.KeyboardEvent<React.Component<ReactBootstrap.FormControlProps, {}>>) {
 		const { sendText } = this.state;
 		if (event.charCode !== 13 || !sendText) {
 			return;

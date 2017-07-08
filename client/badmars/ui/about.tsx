@@ -1,5 +1,6 @@
 // monofuel
 
+import { autobind } from 'core-decorators';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import { Button, Modal } from 'react-bootstrap';
@@ -20,7 +21,7 @@ export default class AboutModal extends React.Component<Props, {}> {
 	render() {
 		const { onClose } = this.props;
 		return (
-			<div>
+			<div onClick={this.setHUDFocus}>
 				<Modal show={true} onHide={onClose}>
 					<Modal.Header closeButton>
 						<Modal.Title>BadMars v{config.version} alpha</Modal.Title>
@@ -36,5 +37,11 @@ export default class AboutModal extends React.Component<Props, {}> {
 				</Modal>
 			</div>
 		);
+	}
+	
+	@autobind
+	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
+		this.context.state.setFocus('hud');
+		e.stopPropagation();
 	}
 }

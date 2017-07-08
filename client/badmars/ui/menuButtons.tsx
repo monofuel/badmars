@@ -137,7 +137,7 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 		return (
 			<Paper
 				zDepth={3}
-				onClick={this.setHUDFocus}
+				onMouseDown={this.setHUDFocus}
 				id='buttons'
 				style={buildPanelStyle as any}>
 				{buttons}
@@ -148,6 +148,7 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 	@autobind
 	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
 		this.context.state.setFocus('hud');
+		console.log('set hud focus');
 		e.stopPropagation();
 	}
 

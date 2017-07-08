@@ -7,6 +7,10 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import { Button } from 'react-bootstrap';
 
+import IconButton from 'material-ui/IconButton';
+import FontIcon from 'material-ui/FontIcon';
+import { Paper } from 'material-ui';
+
 import config from '../config';
 import LoginModal from './login';
 import ErrorAlert from './errorAlert';
@@ -54,9 +58,8 @@ const hudStyle = {
 
 const aboutButtonStyle = {
 	position: 'absolute',
-	left: '100px',
-	top: '10px',
-	width: '60px'
+	left: 0,
+	top: 0,
 };
 
 const muiTheme = getMuiTheme({
@@ -135,6 +138,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 						{aboutOpen
 							? <AboutModal
 								onClose={() => {
+									this.props.state.setFocus('game');
 									this.setState({ aboutOpen: false });
 								}} />
 							: null
@@ -154,11 +158,14 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 						}
 						<Chat
 							chatLog={chatLog} />
-						<Button
-							onClick={() => this._openAboutClicked()}
+						<Paper
+							onClick={this.setHUDFocus}
 							style={aboutButtonStyle as any}>
-							About
-					</Button>
+							<IconButton
+								onTouchTap={() => this._openAboutClicked()}>
+								<FontIcon className="material-icons">info_outline</FontIcon>
+							</IconButton>
+						</Paper>
 						<MenuButtons
 							selectedUnit={selectedUnit} />
 					</div>
@@ -170,6 +177,12 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 	@autobind
 	private setGameFocus(e: React.MouseEvent<HTMLDivElement>) {
 		this.props.state.setFocus('game');
+	}
+
+	@autobind
+	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
+		this.props.state.setFocus('hud');
+		e.stopPropagation();
 	}
 
 	@autobind
