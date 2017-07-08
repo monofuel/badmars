@@ -55,7 +55,7 @@ export default class Input {
 		document.body.addEventListener('keyup', this.keyUpHandler);
 		document.body.addEventListener('contextmenu', this.contextMenuHandler);
 
-		// document.body.addEventListener('mousemove', this.mouseMoveHandler);
+		document.body.addEventListener('mousemove', this.mouseMoveHandler);
 		// document.body.addEventListener('mousedown', this.mouseDownHandler, false);
 		// document.body.addEventListener('mouseup', this.mouseUpHandler, false);
 
