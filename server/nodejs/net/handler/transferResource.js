@@ -28,7 +28,7 @@ export default async function transferResource(ctx: MonoContext, client: Client,
 		return client.sendError(ctx, 'transferResource', 'dest unit is not yours');
 	}
 
-	sourceUnit.setTransferGoal(destUnit.uuid, data.iron || 0, data.fuel || 0);
+	sourceUnit.setTransferGoal(ctx, destUnit.uuid, data.iron || 0, data.fuel || 0);
 
 	client.send('transferResource');
 

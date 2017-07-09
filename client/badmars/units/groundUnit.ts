@@ -69,12 +69,14 @@ export default class GroundUnit extends Entity {
 
 		// this code is bad and i should feel bad
 		if (this.movable && (this.loc.real_x - 0.5 !== this.location.x || this.loc.real_y - 0.5 !== this.location.y)) {
-			this.updateNextMove(new PlanetLoc(
+			const nextTile = new PlanetLoc(
 				this.loc.planet,
 				this.location.x,
 				this.location.y
-			),
-				this.movable.speed / 2); // TODO should divide by tickrate
+			);
+			if (!this.loc.equals(nextTile)) {
+				this.updateNextMove(nextTile, this.movable.speed / 2); // TODO should divide by tickrate
+			}
 		}
 
 		var deltaMove = 0;
