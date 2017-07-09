@@ -1,10 +1,12 @@
 // monofuel
 
+import { autobind } from 'core-decorators';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import { Button, Modal, Well, ProgressBar, ListGroup, ListGroupItem } from 'react-bootstrap';
 import State from '../state';
 import Entity from '../units/entity';
+import { UnitDeltaChange } from '../net';
 
 const infoStyle = {
 	position: 'absolute',
@@ -17,7 +19,7 @@ const infoStyle = {
 }
 
 interface SelectedUnitProps {
-	selectedUnit: Entity;
+	selectedUnits: Entity[];
 }
 
 export default class SelectedUnitWell extends React.Component<SelectedUnitProps,{}> {
@@ -30,9 +32,22 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 
 	props: SelectedUnitProps;
 
+	public componentDidMount() {
+		UnitDeltaChange.attach(this.onUnitChange);
+	}
+	public componentWillUnmount() {
+		UnitDeltaChange.detach(this.onUnitChange);
+	}
+
+	@autobind
+	private onUnitChange() {
+		this.forceUpdate();
+	}
+
 	render() {
 		const { state } = this.context;
-		const { selectedUnit } = this.props;
+		const { selectedUnits } = this.props;
+		const selectedUnit = selectedUnits[0];
 		const iron = (selectedUnit.storage ? selectedUnit.storage.iron : 0) || 0;
 		const fuel = (selectedUnit.storage ? selectedUnit.storage.fuel : 0) || 0;
 		const rate = 1;

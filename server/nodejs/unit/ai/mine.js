@@ -48,9 +48,9 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 			});
 		}
 		if(resource.details.type === 'iron') {
-			map.produceIron(ctx, unit, 10);
+			map.produceIron(ctx, unit, 1);
 		} else if(resource.details.type === 'oil') {
-			map.produceFuel(ctx, unit, 10);
+			map.produceFuel(ctx, unit, 1);
 		}
 
 	}

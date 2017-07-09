@@ -111,7 +111,8 @@ export default class State {
 		}
 
 		log('debug', 'changed focus', { prev: this.focused, focus });
+		const prev = this.focused;
 		this.focused = focus;
-		GameFocusChange.post({ focus });
+		GameFocusChange.post({ focus, prev });
 	}
 }

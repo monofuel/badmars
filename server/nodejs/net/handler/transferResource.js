@@ -21,10 +21,10 @@ export default async function transferResource(ctx: MonoContext, client: Client,
 	const sourceUnit = await ctx.db.units[client.planet.name].getUnit(ctx, data.source);
 	const destUnit = await ctx.db.units[client.planet.name].getUnit(ctx, data.dest);
 
-	if(!sourceUnit || sourceUnit.owner !== client.user.uuid) {
+	if(!sourceUnit || sourceUnit.details.owner !== client.user.uuid) {
 		return client.sendError(ctx, 'transferResource', 'source unit is not yours');
 	}
-	if(!destUnit || destUnit.owner !== client.user.uuid) {
+	if(!destUnit || destUnit.details.owner !== client.user.uuid) {
 		return client.sendError(ctx, 'transferResource', 'dest unit is not yours');
 	}
 

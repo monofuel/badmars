@@ -13,20 +13,28 @@ export function sanitizeUnit(unit: Unit, owner: UUID): Object {
 		uuid,
 		awake,
 		details,
-		location,
-		movable,
-		attack,
-		storage,
-		graphical,
-		stationary,
-		construct
 	} = unit;
 	const owned: boolean = details.owner === owner;
 	const optional = {};
 	if (unit.graphical) {
 		optional.graphical = sanitizeUnitGraphical(unit);
+	}
+	if (unit.storage) {
 		optional.storage = owned ? sanitizeOwnedUnitStorage(unit) : sanitizeUnitStorage(unit);
 	}
+	if (unit.stationary) {
+		optional.stationary = owned ? sanitizeOwnedUnitStationary(unit) : sanitizeUnitStationary(unit);
+	}
+	if (unit.construct) {
+		optional.construct = owned ? sanitizeOwnedUnitConstruct(unit) : sanitizeUnitConstruct(unit);
+	}
+	if (unit.movable) {
+		optional.movable = owned ? sanitizeOwnedUnitMovable(unit) : sanitizeUnitMovable(unit);
+	}
+	if (unit.attack) {
+		optional.attack = owned ? sanitizeOwnedUnitAttack(unit) : sanitizeUnitAttack(unit);
+	}
+
 	return {
 		uuid,
 		awake,
@@ -36,7 +44,7 @@ export function sanitizeUnit(unit: Unit, owner: UUID): Object {
 			sanitizeUnitLocation(unit),
 		...optional,
 	};
-};
+}
 
 function sanitizeUnitDetails(unit: Unit): Object {
 	const {
@@ -72,7 +80,14 @@ function sanitizeUnitLocation(unit: Unit): Object {
 	};
 }
 function sanitizeUnitMovable(unit: Unit): Object {
-	return {};
+	const {
+		layer,
+		speed,
+	} = unit.movable;
+	return {
+		layer,
+		speed
+	};
 }
 
 function sanitizeUnitAttack(unit: Unit): Object {
@@ -94,11 +109,16 @@ function sanitizeUnitGraphical(unit: Unit): Object {
 }
 
 function sanitizeUnitStationary(unit: Unit): Object {
-	return {};
+	return unit.stationary;
 }
 
 function sanitizeUnitConstruct(unit: Unit): Object {
-	return {};
+	const { 
+		type
+	} = unit.construct;
+	return {
+		type
+	};
 }
 
 function sanitizeOwnedUnitDetails(unit: Unit): Object {
@@ -110,11 +130,15 @@ function sanitizeOwnedUnitLocation(unit: Unit): Object {
 }
 function sanitizeOwnedUnitMovable(unit: Unit): Object {
 	const {
+		layer,
+		speed,
 		movementCooldown,
 		destination,
 		transferGoal,
 	} = unit.movable;
 	return {
+		layer,
+		speed,
 		movementCooldown,
 		destination,
 		transferGoal,
@@ -122,7 +146,7 @@ function sanitizeOwnedUnitMovable(unit: Unit): Object {
 }
 
 function sanitizeOwnedUnitAttack(unit: Unit): Object {
-	return {};
+	return unit.attack;
 }
 
 function sanitizeOwnedUnitStorage(unit: Unit): Object {
@@ -133,12 +157,11 @@ function sanitizeOwnedUnitGraphical(unit: Unit): Object {
 }
 
 function sanitizeOwnedUnitStationary(unit: Unit): Object {
-	if (!unit.stationary)
-	return {};
+	return unit.stationary;
 }
 
 function sanitizeOwnedUnitConstruct(unit: Unit): Object {
-	return {};
+	return unit.construct;
 }
 
 

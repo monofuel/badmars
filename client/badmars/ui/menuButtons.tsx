@@ -18,7 +18,7 @@ import { log } from '../logger';
 import { SelectedUnitsChange, SelectedUnitsEvent } from '../gameEvents';
 
 interface Props {
-	selectedUnit: Entity
+	selectedUnits: Entity[]
 }
 
 interface MenuButtonsState {
@@ -83,7 +83,8 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 
 	public render() {
 		const { menuMode } = this.state;
-		const { selectedUnit } = this.props;
+		const { selectedUnits } = this.props;
+		const selectedUnit = selectedUnits && selectedUnits.length > 0 ? selectedUnits[0] : null;
 		const selectedUnitType = selectedUnit ? selectedUnit.details.type : null;
 
 		let buttons;

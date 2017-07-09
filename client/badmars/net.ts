@@ -31,7 +31,9 @@ type NetworkEvent = MapEvent |
 	KillEvent |
 	UnitStatsEvent |
 	UnitDeltaEvent |
-	AttackEvent;
+	AttackEvent |
+	SetDestinationResponse |
+	TransferResourceResponse;
 
 interface BaseEvent {
 	success: boolean;
@@ -87,6 +89,15 @@ const ServerMapType = t.object({
 	users: t.array(t.string()),
 })
 
+
+interface SetDestinationResponse extends BaseEvent {
+	type: 'setDestination';
+}
+
+interface TransferResourceResponse extends BaseEvent {
+	type: 'transferResource';
+}
+
 const MapEventType = t.object({
 	type: t.string('map'),
 	map: ServerMapType,
@@ -104,6 +115,7 @@ interface PlayersEvent extends BaseEvent {
 		color: string,
 	}[];
 }
+
 const PlayersEventType = t.object({
 	type: t.string('players'),
 	players: t.array(t.object({
@@ -486,6 +498,10 @@ export default class Net {
 				return;
 			case 'unitDelta':
 				UnitDeltaChange.post(data);
+				return;
+			case 'setDestination':
+				return;
+			case 'transferResource':
 				return;
 			default:
 				log('error', `unknown message type: ${(data as any).type} with fields ${Object.keys(data)}`);

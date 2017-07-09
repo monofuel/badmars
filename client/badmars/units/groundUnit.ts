@@ -36,11 +36,11 @@ export default class GroundUnit extends Entity {
 			}
 			//pew
 			var sound = this.fireSound;
-			const loc  = this.loc;
+			const loc = this.loc;
 			setTimeout(() => { // work around issue with 'audio already playing'
 				sound.position.copy(loc.getLoc());
 				sound.play();
-			},10);
+			}, 10);
 
 		} else {
 			console.log("no firing sound");
@@ -66,6 +66,16 @@ export default class GroundUnit extends Entity {
 		super.update(delta);
 		this.selection();
 		this.hilightDestination();
+
+		// this code is bad and i should feel bad
+		if (this.movable && (this.loc.real_x - 0.5 !== this.location.x || this.loc.real_y - 0.5 !== this.location.y)) {
+			this.updateNextMove(new PlanetLoc(
+				this.loc.planet,
+				this.location.x,
+				this.location.y
+			),
+				this.movable.speed / 2); // TODO should divide by tickrate
+		}
 
 		var deltaMove = 0;
 		if (this.timeToMove != 0)
@@ -112,7 +122,7 @@ export default class GroundUnit extends Entity {
 			let destSplit = this.movable.destination.split(":");
 			let x = parseInt(destSplit[0]);
 			let y = parseInt(destSplit[1]);
-			let tile = new PlanetLoc(this.loc.planet, x,y);
+			let tile = new PlanetLoc(this.loc.planet, x, y);
 			if (!tile.corners) {
 				return;
 			}

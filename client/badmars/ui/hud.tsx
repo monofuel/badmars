@@ -27,6 +27,7 @@ import {
 	LoginChange,
 	SelectedUnitsChange,
 	TransferChange,
+	TransferEvent,
 	GameStageChange,
 	GameStageEvent,
 } from '../gameEvents';
@@ -40,8 +41,9 @@ interface HUDProps {
 }
 interface HUDState {
 	login: boolean;
-	selectedUnit: Entity | null;
+	selectedUnits: Entity[];
 	transferUnit: Entity | null;
+	transferDestUnit: Entity | null;
 	errorMessage: string | null;
 	aboutOpen: boolean;
 	transfering: boolean;
@@ -91,8 +93,9 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 
 	public state: HUDState = {
 		login: false,
-		selectedUnit: null,
+		selectedUnits: null,
 		transferUnit: null,
+		transferDestUnit: null,
 		errorMessage: null,
 		aboutOpen: false,
 		transfering: false,
@@ -108,7 +111,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 	public componentDidMount() {
 		SelectedUnitsChange.attach(({ units }) => this.selectedUnitsHandler(units));
 		UnitChange.attach(({ units }) => this.updateUnitsHandler(units));
-		TransferChange.attach(({ source, dest }) => this.unitTransferHandler(source));
+		TransferChange.attach(this.unitTransferHandler);
 		ChatChange.attach((msg) => this._addChatMessage(msg));
 		GameStageChange.attach(this._gameStateChange);
 		BMDatGui();
@@ -116,7 +119,8 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 
 	public render() {
 		const { state } = this.props;
-		const { login, selectedUnit, transferUnit, errorMessage, aboutOpen, transfering, chatLog } = this.state;
+		const { login, transferDestUnit, transferUnit, errorMessage, aboutOpen, transfering, chatLog } = this.state;
+		const { selectedUnits } = this.props.state;
 
 		return (
 			<MuiThemeProvider muiTheme={muiTheme}>
@@ -147,17 +151,17 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 								}} />
 							: null
 						}
-						{transfering && selectedUnit && transferUnit
+						{transfering && transferDestUnit && transferUnit
 							? <Transfer
-								selectedUnit={selectedUnit}
+								transferDestUnit={transferDestUnit}
 								transferUnit={transferUnit}
 								onClose={() => {
 									this.setState({ transfering: false });
 								}} />
 							: null
 						}
-						{selectedUnit
-							? <SelectedUnitWell selectedUnit={selectedUnit} />
+						{selectedUnits && selectedUnits.length > 0
+							? <SelectedUnitWell selectedUnits={selectedUnits} />
 							: null
 						}
 						<Chat
@@ -171,7 +175,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 							</IconButton>
 						</Paper>
 						<MenuButtons
-							selectedUnit={selectedUnit} />
+							selectedUnits={selectedUnits} />
 					</div>
 				}
 			</MuiThemeProvider>
@@ -191,10 +195,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 
 	@autobind
 	private selectedUnitsHandler(units: Entity[]) {
-		if (units.length === 0) {
-			return;
-		}
-		this.setState({ selectedUnit: units[0], transferUnit: null });
+		this.setState({ selectedUnits: units, transferUnit: null });
 	}
 	updateUnitsHandler(units: any[]) {
 		// TODO update this
@@ -210,21 +211,24 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 		})
 	}
 
+	@autobind
 	_addChatMessage(message: Object) {
 		this.setState({
 			chatLog: [message].concat(this.state.chatLog.slice(0, 199))
 		});
 	}
 
-	unitTransferHandler(transferUnit: Entity) {
+	@autobind
+	unitTransferHandler(e: TransferEvent) {
 		console.log('unit transfering');
-		console.log(transferUnit);
 		this.setState({
 			transfering: true,
-			transferUnit: transferUnit
+			transferUnit: e.source,
+			transferDestUnit: e.dest,
 		});
 	}
-
+	
+	@autobind
 	updateErrorMessage(msg: string, vanish?: boolean): void {
 		this.setState({
 			errorMessage: msg

@@ -122,7 +122,7 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 
 	@autobind
 	private onFocusChange(e: GameFocusEvent) {
-		if (e.focus !== 'chat') {
+		if (e.prev === 'chat' && e.focus !== 'chat') {
 			this.textField.blur();
 		}
 	}

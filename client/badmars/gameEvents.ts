@@ -20,14 +20,14 @@ const SelectedUnitsEventType = t.object({
 	units: t.array(t.object()), // TODO type this
 })
 
-interface TransferEvent {
+export interface TransferEvent {
 	source: Entity;
 	dest: Entity;
 }
 
 const TransferEventType = t.object({
-	unit: t.object(),
-	sender: t.object()
+	source: t.object(),
+	dest: t.object(),
 })
 
 // TODO properly type this
@@ -53,8 +53,10 @@ interface SetDestinationEvent {
 export interface GameStageEvent {
 	stage: GameStageType;
 }
+
 export interface GameFocusEvent {
 	focus: Focused
+	prev: Focused
 }
 
 // ------------------------------------------

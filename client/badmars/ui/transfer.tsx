@@ -6,11 +6,12 @@ import * as _ from 'lodash';
 import { Button, Modal } from 'react-bootstrap';
 import Entity from '../units/entity';
 import State from '../state';
+import { RequestChange } from '../net';
 
 interface TransferProps {
 	onClose: () => void;
-	selectedUnit: Entity;
 	transferUnit: Entity;
+	transferDestUnit: Entity;
 }
 interface TransferState {
 	iron: number;
@@ -40,11 +41,11 @@ export default class Transfer extends React.Component<TransferProps, TransferSta
 	}
 
 	render() {
-		const { onClose, selectedUnit, transferUnit } = this.props;
+		const { onClose, transferUnit, transferDestUnit } = this.props;
 		const { iron, fuel } = this.state;
 
-		const selectedStorage = selectedUnit.storage;
-		const transferStorage = transferUnit.storage;
+		const selectedStorage = transferUnit.storage;
+		const transferStorage = transferDestUnit.storage;
 
 		if (!selectedStorage || !transferStorage) {
 			throw new Error('invalid units for transfer');
@@ -61,7 +62,7 @@ export default class Transfer extends React.Component<TransferProps, TransferSta
 					</Modal.Header>
 					<Modal.Body>
 						<div>
-							{'transfering from ' + selectedUnit.details.type + ' to ' + transferUnit.details.type}
+							{'transfering from ' + transferUnit.details.type + ' to ' + transferDestUnit.details.type}
 						</div>
 						<div>
 							{'Source unit Iron: ' + (iron + selectedStorage.iron) + '/' + selectedStorage.maxIron};
@@ -106,7 +107,7 @@ export default class Transfer extends React.Component<TransferProps, TransferSta
 					</Modal.Body>
 					<Modal.Footer>
 						<Button onClick={() => {
-							this.onTransfer(selectedUnit, transferUnit, iron, fuel);
+							this.onTransfer(transferUnit, transferDestUnit, iron, fuel);
 							onClose();
 						}}
 						>Transfer</Button>
@@ -116,7 +117,13 @@ export default class Transfer extends React.Component<TransferProps, TransferSta
 			</div>
 		)
 	}
-	private onTransfer(selectedUnit: Entity, transferUnit: Entity, iron: number, fuel: number) {
-		// TODO
+	private onTransfer(selectedUnit: Entity, transferDestUnit: Entity, iron: number, fuel: number) {
+		RequestChange.post({
+			type: 'transferResource',
+			source: selectedUnit.uuid,
+			dest: transferDestUnit.uuid,
+			iron,
+			fuel,
+		})
 	}
 }
