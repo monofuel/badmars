@@ -13,6 +13,7 @@ import DIRECTION from '../../map/directions';
 import type Unit from '../unit';
 import type Map from '../../map/map';
 
+import { sendResource } from '../procedures';
 import { areUnitsAdjacent, getNearestAdjacentTile } from '../../map/tiles';
 
 
@@ -54,10 +55,9 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 		const transferUnit = await ctx.db.units[map.name].getUnit(ctx, movable.transferGoal.uuid);
 		if (await areUnitsAdjacent(ctx, unit, transferUnit)) {
 			ctx.logger.info(ctx, 'performing transfer', { uuid: unit.uuid });
-			// TODO
+			await performTransfer(ctx, unit, transferUnit);
 		} else {
 			const newDest = await getNearestAdjacentTile(ctx, unit, transferUnit);
-
 			ctx.logger.info(ctx, 'updating destination to transfer unit', { uuid: unit.uuid });
 			await unit.setDestination(ctx, newDest.x, newDest.y);
 		}
@@ -224,4 +224,17 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 
 	return;
 	*/
+}
+
+async function performTransfer(ctx: MonoContext, src: Unit, dest: Unit): Promise<void> {
+	if (src.movable && src.movable.transferGoal && src.movable.transferGoal.iron) {
+		await sendResource(ctx, 'iron', src.movable.transferGoal.iron, src, dest);
+	}
+
+	if (src.movable && src.movable.transferGoal && src.movable.transferGoal.fuel) {
+		await sendResource(ctx, 'fuel', src.movable.transferGoal.fuel, src, dest);
+	}
+
+	await src.update(ctx, { movable: { transferGoal: null }});
+
 }

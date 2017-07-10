@@ -150,23 +150,22 @@ export default class DBunit {
 		await call.end();
 	}
 
-	async getUnitsAtChunk(ctx: MonoContext, x: number, y: number): Promise<Array<Unit>> {
+	async getUnitsAtChunk(ctx: MonoContext, x: number, y: number): Promise<Unit[]> {
 		const call = await startDBCall(ctx,'getUnitsAtChunk');
 		const hash = x + ':' + y;
-		const unitDocs = await this.table.getAll(hash, {
+		const unitDocs: Object[] = await this.table.getAll(hash, {
 			index: 'chunkHash'
 		}).coerceTo('array').run(this.conn);
 		await call.check();
-		const units: Array<Unit> = [];
-		for (const doc: Object of unitDocs) {
+		const units: Unit[] = [];
+		for (const doc of unitDocs) {
 			units.push(await this.loadUnit(ctx, doc));
 		}
 		await call.end();
 		return units;
-
 	}
 
-	async loadUnits(ctx: MonoContext, unitsList: Array<Object> ): Promise<Array<Unit>> {
+	async loadUnits(ctx: MonoContext, unitsList: Object[]): Promise<Unit[]> {
 		const units = [];
 		_.each(unitsList, (doc: Object) => {
 			units.push(this.loadUnit(ctx, doc));
@@ -175,7 +174,7 @@ export default class DBunit {
 		return Promise.all(units);
 	}
 
-	async loadUnitsCursor(ctx: MonoContext, cursor: r.Cursor): Promise<Array<Unit>> {
+	async loadUnitsCursor(ctx: MonoContext, cursor: r.Cursor): Promise<Unit[]> {
 		const units = [];
 		await cursor.each((err: Error, doc: Object) => {
 			if (err) {
@@ -296,7 +295,7 @@ export default class DBunit {
 		const call = await startDBCall(ctx,'claimUnitTick');
 		const delta = await this.table.get(uuid).update((unit: any): any => {
 			return r.branch(
-				unit('details')('lastTick').ne(tick), { details:{lastTick: tick} }, {}
+				unit('details')('lastTick').ne(tick), { details: { lastTick: tick} }, {}
 			);
 		}, { returnChanges: true, durability: 'soft' }).run(this.conn);
 		await call.end();
@@ -315,6 +314,47 @@ export default class DBunit {
 		return await this.table.getAll(true, {
 			index: 'awake'
 		}).filter(r.row('details')('lastTick').lt(tick - 1).and(r.row('details')('lastTick').gt(0))).count().run(this.conn);
+	}
+
+	async pullResource(ctx: MonoContext, type: Resource, amount: number, unit: Unit): Promise<number> {
+
+		const delta = await this.table.get(unit.uuid).update((self: any): any => {
+			return {
+				storage: {
+					[type]: r.max([0, self('storage')(type).sub(amount)])
+				}
+			};
+		}, { returnChanges: true }).run(this.conn);
+
+		if (delta.replaced != 1 || delta.changes.length != 1) {
+			throw new DetailedError('failed to pull resource', { type, amount, uuid: unit.uuid });
+		}
+
+		const movedAmount = delta.changes[0].old_val.storage[type] -  delta.changes[0].new_val.storage[type];
+
+		await unit.refresh(ctx);
+		return movedAmount;
+	}
+
+	async putResource(ctx: MonoContext, type: Resource, amount: number, unit: Unit): Promise<number> {
+		const maxField = type === 'iron' ? 'maxIron' : 'maxFuel';
+		const delta = await this.table.get(unit.uuid).update((self: any): any => {
+			return {
+				storage: {
+					[type]: r.min([self('storage')(maxField), self('storage')(type).add(amount)])
+				}
+			};
+		}, { returnChanges: true }).run(this.conn);
+
+		if (delta.replaced != 1 || delta.changes.length != 1) {
+			throw new DetailedError('failed to put resource', { type, amount, uuid: unit.uuid });
+		}
+
+		const movedAmount = delta.changes[0].new_val.storage[type] -  delta.changes[0].old_val.storage[type];
+
+		await unit.refresh(ctx);
+		return movedAmount;
+
 	}
 
 	countAllUnits(): Promise<number> {

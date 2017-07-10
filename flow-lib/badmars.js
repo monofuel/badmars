@@ -15,6 +15,7 @@ type TileType = 'land' | 'cliff' | 'water' | 'coast' | 'unknown';
 type Dir = Symbol;
 type ProfileKey = string;
 type MovementLayer = string;
+type Resource = 'iron' | 'fuel';
 
 type Success = boolean;
 
