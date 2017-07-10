@@ -88,6 +88,13 @@ export default class Unit {
 		if (this.details.size === 1) {
 			hash = [x + ':' + y];
 			chunkHash = [chunkX + ':' + chunkY];
+		} else if (this.details.size === 2) {
+			//TODO multi-chunk should have all chunks listed
+			chunkHash = [chunkX + ':' + chunkY];
+			hash = [
+				(x) + ':' + (y), (x + 1) + ':' + (y),
+				(x) + ':' + (y + 1), (x + 1) + ':' + (y + 1)
+			];
 		} else if (this.details.size === 3) {
 			//TODO multi-chunk should have all chunks listed
 			chunkHash = [chunkX + ':' + chunkY];

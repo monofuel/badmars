@@ -115,6 +115,7 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 		if (selectedUnitType !== 'factory') {
 			buttons = (
 				<div>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('transfer_tower')}>Transfer Tower</RaisedButton>
 					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('storage')}>Storage</RaisedButton>
 					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('mine')}>Mine</RaisedButton>
 					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('factory')}>Factory</RaisedButton>

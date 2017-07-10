@@ -16,7 +16,7 @@ const ATTACK_FIELDS = ['layers', 'range', 'damage', 'fireRate'];
 const STORAGE_FIELDS = ['maxIron', 'maxFuel', 'transferRange'];
 const STATIONARY_FIELDS = ['layer'];
 const CONSTRUCT_FIELDS = ['types'];
-const GRAPHICAL_FIELDS = ['model', 'scale'];
+const GRAPHICAL_FIELDS = ['model', 'scale', 'texture', 'material'];
 
 const VALID_LAYERS = ['ground', 'air', 'water'];
 

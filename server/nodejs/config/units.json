@@ -167,6 +167,25 @@
 			"scale": 1.3
 		}
 	},
+	"transfer_tower": {
+		"details":{
+			"size": 2
+		},
+		"stationary": {
+			"layer": "ground"
+		},
+		"storage": {
+			"transferRange": 40,
+			"maxIron": 100,
+			"maxFuel": 100
+		},
+		"graphical": {
+			"model": "command_tower.obj",
+			"material": "command_tower.mtl",
+			"texture": "command_tower.png",
+			"scale": 1.3
+		}
+	},
 	"iron": {
 		"details": {
 			"size": 1

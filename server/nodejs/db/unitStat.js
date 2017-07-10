@@ -32,7 +32,7 @@ async function loadDefaults(): Promise<void> {
 			try {
 				unitStat.validateSync();
 			} catch(err) {
-				throw new DetailedError('unit failed to validate', { err, type });
+				throw new WrappedError(err, 'unit failed to validate', { type });
 			}
 			if(!unitsFromDatabase.includes(type)) {
 				unitMap[type] = unitStat;

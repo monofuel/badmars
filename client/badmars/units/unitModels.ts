@@ -25,7 +25,8 @@ const models: ModelInfo[] = [
 	(new ModelInfo('storage', 'storage.obj')),
 	(new ModelInfo('factory', 'factory.obj')),
 	(new ModelInfo('transport', 'transport.obj')),
-	(new ModelInfo('wall', 'wall.obj'))
+	(new ModelInfo('wall', 'wall.obj')),
+	(new ModelInfo('transfer_tower', 'command_tower.obj'))
 ];
 
 let loaded: number;
