@@ -48,6 +48,7 @@
     "mapstraction": "^1.0.1",
     "material-ui": "^0.18.1",
     "node-context": "^0.7.0",
+    "obj-mtl-loader": "^0.0.5",
     "parse-json": "^2.2.0",
     "prop-types": "^15.5.10",
     "react": "^15.5.4",

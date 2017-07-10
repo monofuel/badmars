@@ -3,6 +3,8 @@
 import * as _ from 'lodash';
 import * as THREE from 'three';
 require('three-obj-loader')(THREE);
+const ObjMtlLoader = require("obj-mtl-loader");
+const textureLoader = new THREE.TextureLoader();
 
 export class ModelInfo {
 	name: string;
