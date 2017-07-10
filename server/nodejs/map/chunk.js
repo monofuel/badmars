@@ -324,7 +324,7 @@ export default class Chunk {
 
 		for (const tileHash of Object.keys(this.units)) {
 			const uuid = this.units[tileHash];
-			const unit = await ctx.db.units[this.map].getUnit(ctx, uuid);
+			const unit: Unit = await ctx.db.units[this.map].getUnit(ctx, uuid);
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
 			}
@@ -333,11 +333,14 @@ export default class Chunk {
 					invalid('mine must be over a resource: ' + tileHash);
 				}
 			}
+			/*
 			if (!_.includes(unit.tileHash, tileHash)) {
 				//console.log('unit doesn\'t agree with chunk location. chunk:' + tileHash + ' unit: ' + unit.tileHash);
 				//console.log('removing unit from chunk (hope the unit was correct)');
 
 
+				/*
+				// TODO update for getlocs
 				const loc = await unit.getLoc();
 				await loc.chunk.refresh(ctx);
 				if (!this.equals(loc.chunk)) {
@@ -347,7 +350,7 @@ export default class Chunk {
 				if (!success) {
 					console.log('failed to remove unit');
 				}*/
-			}
+			//}
 		}
 		for (const tileHash of Object.keys(this.resources)) {
 			const uuid = this.resources[tileHash];
@@ -404,7 +407,7 @@ export default class Chunk {
 
 	async getTiles(ctx: MonoContext): Promise<Array<PlanetLoc>> {
 		checkContext(ctx, 'getTiles');
-		const map = await this.getMap(ctx, this.map);
+		const map: Map = await this.getMap(ctx);
 		const tiles = [];
 		for (let i = 0; i < this.chunkSize; i++) {
 			for (let j = 0; j < this.chunkSize; j++) {

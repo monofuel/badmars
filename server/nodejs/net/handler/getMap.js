@@ -34,7 +34,7 @@ export default async function getMap(ctx: MonoContext, client: Client): Promise<
 	units.forEach((unit: Unit) => {
 		unit.location.chunkHash.forEach((hash: ChunkHash) => {
 			chunkSet.add(hash);
-			client.planet.getNearbyChunkHashes(hash, 2).forEach((i: string): void => chunkSet.add(i));
+			client.planet.getNearbyChunkHashes(hash, 2).forEach((i: string): void => { chunkSet.add(i) });
 		});
 	});
 	const list: ChunkHash[] = Array.from(chunkSet).slice(0, 10);

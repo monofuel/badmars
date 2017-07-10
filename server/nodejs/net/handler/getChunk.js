@@ -35,7 +35,7 @@ export default async function getChunk(ctx: MonoContext, client: Client, data: O
 		//TODO sanitize unit data
 		client.send('units', { units: sanitized });
 		client.loadedChunks.push(`${x}:${y}`);
-		while (client.loadedChunks > 60) {
+		while (client.loadedChunks.length > 60) {
 			client.loadedChunks.shift();
 		}
 	}

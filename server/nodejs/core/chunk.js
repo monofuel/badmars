@@ -11,7 +11,6 @@ import env from '../config/env';
 import { checkContext } from '../util/logger';
 
 import Chunk from '../map/chunk';
-import filter from '../util/socketFilter';
 
 import type Logger from '../util/logger';
 import { WrappedError } from '../util/logger';

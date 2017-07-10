@@ -6,7 +6,6 @@
 //	Licensed under included modified BSD license
 
 
-import _ from 'lodash';
 import { getLocationDetails } from './planetloc';
 import { assert } from 'chai';
 

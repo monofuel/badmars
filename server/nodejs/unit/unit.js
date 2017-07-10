@@ -19,76 +19,31 @@ import PlanetLoc from '../map/planetloc';
 import type Map from '../map/map';
 import type Chunk from '../map/chunk';
 
+import { 
+	UnitDetails,
+	UnitLocation,
+	UnitMovable,
+	UnitAttack,
+	UnitStorage,
+	UnitGraphical,
+	UnitStationary,
+	UnitConstruct
+ } from './components';
+
 export default class Unit {
 
 	uuid: UUID; // set by database
 	awake: boolean;
 
 	//components
-	details: {
-		type: UnitType,
-		size: number,
-		buildTime: number,
-		cost: number,
-		health: number,
-		maxHealth: number,
-		tick: number,
-		lastTick: number,
-		ghosting: boolean,
-		owner: string,
-	}
-	location: {
-		hash: Array<string>,
-		x: number,
-		y: number,
-		chunkHash: Array<string>,
-		chunkX: number,
-		chunkY: number,
-		map: string,
-	}
-	movable: ? {
-		layer: MovementLayer,
-		speed: number,
-		movementCooldown: number,
-		path: Array<any> , // TODO look up path type
-		pathAttempts: number,
-		pathAttemptAttempts: number,
-		isPathing: boolean,
-		pathUpdate: number,
-		destination: ? TileHash,
-		transferGoal: Object, // TODO why is this an object
-	}
-	attack: ? {
-		layers: Array<MovementLayer>,
-		range: number,
-		damage: number,
-		fireRate: number,
-		fireCooldown: number,
-	}
-	storage: ? {
-		iron: number,
-		fuel: number,
-		maxIron: number,
-		maxFuel: number,
-		transferRange: number,
-		resourceCooldown: number,
-		transferGoal: ? {
-			iron: ? number,
-			fuel: ? number
-		}
-	}
-	graphical: ? {
-		model: string,
-		scale: number,
-	}
-	stationary: ? {
-		layer: MovementLayer,
-	}
-	construct: ? {
-		types: Array<string>,
-		constructing: number,
-		factoryQueue: Array<FactoryOrder> ,
-	}
+	details: UnitDetails;
+	location: UnitLocation;
+	movable: ?UnitMovable;
+	attack: ?UnitAttack;
+	storage: ?UnitStorage;
+	graphical: ?UnitGraphical;
+	stationary: ?UnitStationary;
+	construct: ?UnitConstruct;
 
 
 	//constructor will be called with arguments when making a new unit
@@ -188,7 +143,7 @@ export default class Unit {
 			this.movable.pathAttemptAttempts = this.movable.pathAttemptAttempts || 0;
 			this.movable.isPathing = this.movable.isPathing || false;
 			this.movable.pathUpdate = this.movable.pathUpdate || 0;
-			this.movable.transferGoal = this.movable.transferGoal || {};
+			this.movable.transferGoal = this.movable.transferGoal || null;
 		}
 	}
 
@@ -197,7 +152,6 @@ export default class Unit {
 		//TODO pass context through stuff
 		//------------------
 		// init
-		this.awake = false;
 		const map = await this.getMap(ctx);
 		const actionPromises = [];
 		const actionable = {
@@ -237,14 +191,15 @@ export default class Unit {
 					throw new WrappedError(err, 'mine actionable');
 				}));
 		}
-
-		if (this.movable) {
+		// flow sucks
+		const movable = this.movable;
+		if (movable) {
 
 			const mctx = ctx.create();
 			mctx.logger = mctx.logger.clone();
 			mctx.logger.logLevel = 'DEBUG';
 
-			switch (this.movable.layer) {
+			switch (movable.layer) {
 			case 'ground':
 				actionPromises.push(groundUnitAI.actionable(mctx, this, map)
 					.then((result: boolean) => {
@@ -367,9 +322,10 @@ export default class Unit {
 				}
 				const x: number = parseInt(chunkHash.split(':')[0]);
 				const y: number = parseInt(chunkHash.split(':')[1]);
-				const chunk = await map.getChunk(ctx, x, y);
-				await chunk.refresh({ force: true });
-				const unitMap = await chunk.getUnitsMap();
+				const chunk: Chunk = await map.getChunk(ctx, x, y);
+				await chunk.refresh(ctx, { force: true });
+				/*
+				// TODO fix this
 				for (const loc of Object.keys(unitMap)) {
 					if (unitMap[loc] !== this.uuid) {
 						continue;
@@ -388,7 +344,8 @@ export default class Unit {
 					throw new Error('fixed unit location');
 				}
 				throw new WrappedError(err, 'failed to fix unit location', { chunkHash, unitMap: JSON.stringify(unitMap) });
-
+				*/
+				throw new WrappedError(err, 'bad unit location', { chunkHash });
 			} else {
 				throw new WrappedError(err, 'invalid location for multi-tile unit');
 			}
@@ -787,9 +744,9 @@ export default class Unit {
 
 		}
 
-		const planetLocs = await this.getLocs(ctx);
+		const planetLocs: PlanetLoc[] = await this.getLocs(ctx);
 		for (const loc of planetLocs) {
-			await loc.validate(ctx);
+			await loc.validate();
 		}
 
 		const map = await this.getMap(ctx);
@@ -938,7 +895,7 @@ export default class Unit {
 	}
 
 	async refresh(ctx: MonoContext): Promise<void> {
-		const fresh = await ctx.db.units[this.location.map].getUnit(ctx, this.uuid);
+		const fresh: any = await ctx.db.units[this.location.map].getUnit(ctx, this.uuid);
 		this.clone(fresh);
 	}
 }

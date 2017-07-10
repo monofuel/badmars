@@ -131,7 +131,7 @@ export default class Map {
 		} else {
 			ctx.logger.addSumStat('cacheChunkMiss', 1);
 		}
-		let chunk: Chunk;
+		let chunk: ?Chunk;
 		try {
 			chunk = await ctx.db.chunks[this.name].getChunk(ctx, x, y);
 		} catch (err) {
@@ -607,7 +607,7 @@ export default class Map {
 	async pullFuel(ctx: MonoContext, taker: Unit, amount: number): Promise<boolean> {
 		const takerStorage = taker.getComponent('storage');
 		//TODO should calculate based on transfer range
-		const units = await this.getNearbyUnitsFromChunk(ctx, taker.location.chunkHash[0]);
+		const units: Unit[] = await this.getNearbyUnitsFromChunk(ctx, taker.location.chunkHash[0]);
 
 		this.sortByNearestUnit(units, taker);
 		this.sortBuildingsOverOther(units);
@@ -653,7 +653,7 @@ export default class Map {
 			if (pulled === 0) {
 				continue;
 			}
-			const success = await unit.takeFuel(pulled);
+			const success = await unit.takeFuel(ctx, pulled);
 			if (success) {
 				pulledMap[unit.uuid] = pulled;
 				amount = amount - pulled;
@@ -715,7 +715,7 @@ export default class Map {
 			}
 		}
 		if (amount > 0) {
-			ctx.logger.info(ctx, 'depositing iron into mine',{ amount });
+			ctx.logger.info(ctx, 'depositing iron into mine',{ amount }, { silent: true });
 			await mine.addIron(ctx, amount);
 		}
 	}

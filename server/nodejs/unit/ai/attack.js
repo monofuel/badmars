@@ -25,7 +25,7 @@ export default class AttackAI {
 		return true;
 	}
 
-	async simulate(ctx: MonoContext, unit: Unit): Promise<void> {
+	async simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
 		checkContext(ctx, 'attack simulate');
 		//TODO allow force attacking a specific enemy
 		const enemy = this.enemy;

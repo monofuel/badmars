@@ -85,7 +85,7 @@ export default class DBUnitStat {
 	}
 
 	// TODO type this properly
-	async getAll(): Promise<Object> {
+	async getAll(ctx: MonoContext): Promise<Object> {
 		//TODO zip units from server with units from file
 		//TODO live-update units from database
 		return unitMap;

@@ -75,6 +75,11 @@ export default class PlanetLoc {
 		return _.filter(unitMap, (unit: Unit): boolean => unit.location.hash.includes(this.hash));
 	}
 
+	async isOpen(ctx: MonoContext): Promise<boolean> {
+		const units = await this.getUnits(ctx);
+		return units.length === 0;
+	}
+
 	toString(): string {
 		let line = 'x: ' + this.x;
 		line += ', y: ' + this.y;

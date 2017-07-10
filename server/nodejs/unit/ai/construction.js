@@ -54,7 +54,7 @@ export default class constructionAI {
 		return false;
 	}
 
-	async checkBuildingActionable(ctx: MonoContext, unit: Unit): Promise<boolean> {
+	async checkBuildingActionable(ctx: MonoContext, unit: Unit, map: Map): Promise<boolean> {
 		if (!unit.construct) {
 			return false;
 		}

@@ -4,6 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
+import _ from 'lodash';
 import MonoContext from '../../util/monoContext';
 import { checkContext, WrappedError } from '../../util/logger';
 
@@ -12,9 +13,11 @@ import DIRECTION from '../../map/directions';
 import type Unit from '../unit';
 import type Map from '../../map/map';
 
+import { areUnitsAdjacent, getNearestAdjacentTile } from '../../map/tiles';
 
-export async function actionable(ctx: MonoContext, unit: Unit): Promise<boolean> {
-	if (!unit.movable || !unit.storage) {
+
+export async function actionable(ctx: MonoContext, unit: Unit, map: Map): Promise<boolean> {
+	if (!unit.movable) {
 		return false;
 	}
 
@@ -35,15 +38,43 @@ export async function actionable(ctx: MonoContext, unit: Unit): Promise<boolean>
 export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
 	checkContext(ctx, 'groundUnit simulate');
 
-	if(!unit.movable || !unit.storage) {
+	// flow sucks
+	const movable = unit.movable;
+	if (!movable) {
+		// should never reach this
 		return;
 	}
 
-	if(await unit.tickMovement(ctx)) {
-		console.log('movement cooldown: ' + unit.movable.movementCooldown);
+	if (await unit.tickMovement(ctx)) {
+		// waiting until we can move again
 		return;
 	}
 
+	if (movable.transferGoal && !movable.destination) {
+		const transferUnit = await ctx.db.units[map.name].getUnit(ctx, movable.transferGoal.uuid);
+		if (await areUnitsAdjacent(ctx, unit, transferUnit)) {
+			ctx.logger.info(ctx, 'performing transfer', { uuid: unit.uuid });
+			// TODO
+		} else {
+			const newDest = await getNearestAdjacentTile(ctx, unit, transferUnit);
+
+			ctx.logger.info(ctx, 'updating destination to transfer unit', { uuid: unit.uuid });
+			await unit.setDestination(ctx, newDest.x, newDest.y);
+		}
+		return;
+	}
+
+	if (movable.destination && !movable.path) {
+		ctx.logger.info(ctx, 'unit waiting for path', { uuid: unit.uuid });
+		return;
+	}
+
+	if (movable.path) {
+		// travel along the path
+
+	}
+
+	/*
 	if(!unit.movable.path || unit.movable.path.length === 0 || !unit.movable.destination) {
 
 		//check if they are trying to transfer resources.
@@ -51,6 +82,7 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 		if(!unit.movable.transferGoal || !unit.movable.transferGoal.uuid || (unit.movable.transferGoal.iron || 0 === 0 && unit.movable.transferGoal.oil || 0 === 0)) {
 			if(unit.details.type === 'transport') {
 				//wake up nearby ghost builders
+				ctx.logger.info(ctx, 'waking up nearby builders');
 				const units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
 				for(const nearby: Unit of units) {
 					if(nearby.details.type === 'builder') {
@@ -191,4 +223,5 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 	}
 
 	return;
+	*/
 }

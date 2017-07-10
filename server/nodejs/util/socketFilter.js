@@ -5,7 +5,19 @@
 //	Licensed under included modified BSD license
 
 import type Unit from '../unit/unit';
+import type Chunk from '../map/chunk';
 import type Map from '../map/map';
+
+import { 
+	UnitDetails,
+	UnitLocation,
+	UnitMovable,
+	UnitAttack,
+	UnitStorage,
+	UnitGraphical,
+	UnitStationary,
+	UnitConstruct
+ } from '../unit/components';
 
 export function sanitizeUnit(unit: Unit, owner: UUID): Object {
 
@@ -17,42 +29,42 @@ export function sanitizeUnit(unit: Unit, owner: UUID): Object {
 	const owned: boolean = details.owner === owner;
 	const optional = {};
 	if (unit.graphical) {
-		optional.graphical = sanitizeUnitGraphical(unit);
+		optional.graphical = sanitizeUnitGraphical(unit.graphical);
 	}
 	if (unit.storage) {
-		optional.storage = owned ? sanitizeOwnedUnitStorage(unit) : sanitizeUnitStorage(unit);
+		optional.storage = owned ? sanitizeOwnedUnitStorage(unit.storage) : sanitizeUnitStorage(unit.storage);
 	}
 	if (unit.stationary) {
-		optional.stationary = owned ? sanitizeOwnedUnitStationary(unit) : sanitizeUnitStationary(unit);
+		optional.stationary = owned ? sanitizeOwnedUnitStationary(unit.stationary) : sanitizeUnitStationary(unit.stationary);
 	}
 	if (unit.construct) {
-		optional.construct = owned ? sanitizeOwnedUnitConstruct(unit) : sanitizeUnitConstruct(unit);
+		optional.construct = owned ? sanitizeOwnedUnitConstruct(unit.construct) : sanitizeUnitConstruct(unit.construct);
 	}
 	if (unit.movable) {
-		optional.movable = owned ? sanitizeOwnedUnitMovable(unit) : sanitizeUnitMovable(unit);
+		optional.movable = owned ? sanitizeOwnedUnitMovable(unit.movable) : sanitizeUnitMovable(unit.movable);
 	}
 	if (unit.attack) {
-		optional.attack = owned ? sanitizeOwnedUnitAttack(unit) : sanitizeUnitAttack(unit);
+		optional.attack = owned ? sanitizeOwnedUnitAttack(unit.attack) : sanitizeUnitAttack(unit.attack);
 	}
 
 	return {
 		uuid,
 		awake,
-		details: owned ? sanitizeOwnedUnitDetails(unit) :
-			sanitizeUnitDetails(unit),
-		location: owned ? sanitizeOwnedUnitLocation(unit) :
-			sanitizeUnitLocation(unit),
+		details: owned ? sanitizeOwnedUnitDetails(unit.details) :
+			sanitizeUnitDetails(unit.details),
+		location: owned ? sanitizeOwnedUnitLocation(unit.location) :
+			sanitizeUnitLocation(unit.location),
 		...optional,
 	};
 }
 
-function sanitizeUnitDetails(unit: Unit): Object {
+function sanitizeUnitDetails(details: UnitDetails): Object {
 	const {
 		type,
 		health,
 		ghosting,
 		owner
-	} = unit.details;
+	} = details;
 	return {
 		type,
 		health,
@@ -61,7 +73,7 @@ function sanitizeUnitDetails(unit: Unit): Object {
 	};
 }
 
-function sanitizeUnitLocation(unit: Unit): Object {
+function sanitizeUnitLocation(location: UnitLocation): Object {
 	const {
 		hash,
 		x,
@@ -69,7 +81,7 @@ function sanitizeUnitLocation(unit: Unit): Object {
 		chunkHash,
 		chunkX,
 		chunkY,
-	} = unit.location;
+	} = location;
 	return {
 		hash,
 		x,
@@ -79,63 +91,63 @@ function sanitizeUnitLocation(unit: Unit): Object {
 		chunkY,
 	};
 }
-function sanitizeUnitMovable(unit: Unit): Object {
+function sanitizeUnitMovable(movable: UnitMovable): Object {
 	const {
 		layer,
 		speed,
-	} = unit.movable;
+	} = movable;
 	return {
 		layer,
 		speed
 	};
 }
 
-function sanitizeUnitAttack(unit: Unit): Object {
+function sanitizeUnitAttack(attack: UnitAttack): Object {
 	return {};
 }
 
-function sanitizeUnitStorage(unit: Unit): Object {
+function sanitizeUnitStorage(storage: UnitStorage): Object {
 	return {};
 }
-function sanitizeUnitGraphical(unit: Unit): Object {
+function sanitizeUnitGraphical(graphical: UnitGraphical): Object {
 	const {
 		model,
 		scale
-	} = unit.graphical;
+	} = graphical;
 	return {
 		model,
 		scale,
 	};
 }
 
-function sanitizeUnitStationary(unit: Unit): Object {
-	return unit.stationary;
+function sanitizeUnitStationary(stationary: UnitStationary): Object {
+	return stationary;
 }
 
-function sanitizeUnitConstruct(unit: Unit): Object {
+function sanitizeUnitConstruct(construct: UnitConstruct): Object {
 	const { 
-		type
-	} = unit.construct;
+		types
+	} = construct;
 	return {
-		type
+		types
 	};
 }
 
-function sanitizeOwnedUnitDetails(unit: Unit): Object {
-	return sanitizeUnitDetails(unit);
+function sanitizeOwnedUnitDetails(details: UnitDetails): Object {
+	return sanitizeUnitDetails(details);
 }
 
-function sanitizeOwnedUnitLocation(unit: Unit): Object {
-	return sanitizeUnitLocation(unit);
+function sanitizeOwnedUnitLocation(location: UnitLocation): Object {
+	return sanitizeUnitLocation(location);
 }
-function sanitizeOwnedUnitMovable(unit: Unit): Object {
+function sanitizeOwnedUnitMovable(movable: UnitMovable): Object {
 	const {
 		layer,
 		speed,
 		movementCooldown,
 		destination,
 		transferGoal,
-	} = unit.movable;
+	} = movable;
 	return {
 		layer,
 		speed,
@@ -145,27 +157,24 @@ function sanitizeOwnedUnitMovable(unit: Unit): Object {
 	};
 }
 
-function sanitizeOwnedUnitAttack(unit: Unit): Object {
-	return unit.attack;
+function sanitizeOwnedUnitAttack(attack: UnitAttack): Object {
+	return attack;
 }
 
-function sanitizeOwnedUnitStorage(unit: Unit): Object {
-	return unit.storage;
-}
-function sanitizeOwnedUnitGraphical(unit: Unit): Object {
-	return sanitizeUnitGraphical(unit);
+function sanitizeOwnedUnitStorage(storage: UnitStorage): Object {
+	return storage;
 }
 
-function sanitizeOwnedUnitStationary(unit: Unit): Object {
-	return unit.stationary;
+function sanitizeOwnedUnitStationary(stationary: UnitStationary): Object {
+	return stationary;
 }
 
-function sanitizeOwnedUnitConstruct(unit: Unit): Object {
-	return unit.construct;
+function sanitizeOwnedUnitConstruct(construct: UnitConstruct): Object {
+	return construct;
 }
 
 
-export function sanitizeChunk(chunk: Object): Object {
+export function sanitizeChunk(chunk: Chunk): Object {
 
 	const {
 		x,
