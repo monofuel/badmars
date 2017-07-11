@@ -296,7 +296,7 @@ export default class Unit {
 		const badLocs = [];
 		try {
 			const locs: Array<PlanetLoc> = await this.getLocs(ctx);
-			for (const loc: PlanetLoc of locs) {
+			for (const loc of locs) {
 				const units: Array<Unit> = await loc.getUnits(ctx);
 				const unit: ?Unit = _.find(units, (unit: Unit): boolean => {
 					return this.uuid === unit.uuid;

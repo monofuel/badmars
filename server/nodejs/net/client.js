@@ -169,7 +169,7 @@ export default class Client {
 				if(!_.isEqual(newUnit, oldUnit)) {
 					this.send('unitDelta', {
 						uuid: newUnit.uuid,
-						delta: jsonpatch.compare(newUnit, oldUnit)
+						delta: jsonpatch.compare(oldUnit, newUnit)
 					});
 				}
 			} else {
