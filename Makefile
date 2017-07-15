@@ -91,7 +91,7 @@ watchSchema:
 #--------------------------------------------
 #commands that use docker
 
-dockerBuildPrepare: nodeSetup
+dockerBuildPrepare:
 	docker-compose -f docker-compose-build.yml build
 
 dockerBuild: dockerBuildPrepare
