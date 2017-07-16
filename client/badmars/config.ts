@@ -43,13 +43,25 @@ const defaultPalette = {
 	cliff: '#442B21',
 }
  */
-
+/*
 const defaultPalette = {
 	uiBackground: '#FEFEFD',
 	uiPrimary: '#ABB2B3',
 	uiSecondary: '#617A78',
 	uiTertiary: '#D01F09',
 	fontColor: '#193233',
+	land: '#8DC05C',
+	water: '#265349',
+	cliff: '#142329',
+}
+*/
+
+const defaultPalette = {
+	uiBackground: 'rgba(0, 26, 5, 0.67)',
+	uiPrimary: '#1b3006',
+	uiSecondary: '#1b3006',
+	uiTertiary: '#D01F09',
+	fontColor: '#72b033',
 	land: '#8DC05C',
 	water: '#265349',
 	cliff: '#142329',
@@ -83,7 +95,7 @@ const defaultConfig: Config = {
 	cameraSpeed: 30,
 	orthographic: false,
 	palette: defaultPalette,
-	loadDistance: 7,
+	loadDistance: 3,
 }
 
 // TODO save config separately

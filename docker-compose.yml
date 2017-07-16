@@ -103,7 +103,7 @@ services:
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_WS_SERVER=ws://192.168.11.102
+      - BADMARS_WS_SERVER=ws://localhost
       - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
     ports:
@@ -117,6 +117,7 @@ services:
     command: sh -c 'make watchClient'
     volumes:
       - ./:/badmars
+      - /badmars/node_modules
     ports:
       - "4474:4474"
     links:

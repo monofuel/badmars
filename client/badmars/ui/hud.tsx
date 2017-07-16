@@ -36,6 +36,8 @@ import {
 	UnitChange
 } from '../net';
 
+const { palette } = config;
+
 interface HUDProps {
 	state: State;
 }
@@ -61,16 +63,17 @@ const hudStyle = {
 const aboutButtonStyle = {
 	position: 'absolute',
 	left: 0,
-	top: 0,
+	top: 0
 };
 
 const muiTheme = getMuiTheme({
 	palette: {
-		primary1Color: config.palette.uiPrimary,
-		primary2Color: config.palette.uiSecondary,
-		primary3Color: config.palette.uiTertiary,
-		textColor: config.palette.fontColor,
-		canvasColor: config.palette.uiBackground,
+		primary1Color: palette.uiPrimary,
+		primary2Color: palette.uiSecondary,
+		primary3Color: palette.uiTertiary,
+		textColor: palette.fontColor,
+		canvasColor: palette.uiBackground,
+		borderColor: palette.fontColor
 	}
 })
 

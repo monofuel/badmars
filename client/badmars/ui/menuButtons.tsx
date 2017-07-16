@@ -142,7 +142,7 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 				onMouseDown={this.setHUDFocus}
 				id='buttons'
 				style={buildPanelStyle as any}>
-				{buttons}
+				{ buttons }
 			</Paper>
 		);
 	}
