@@ -1,6 +1,6 @@
 // monofuel
 
-import { UnitStatsChange } from '../net';
+import { UnitStatsChange, UnitStatsEvent } from '../net';
 import Entity from '../units/entity';
 import State from '../state';
 import * as _ from 'lodash';
@@ -22,8 +22,8 @@ export function getUnitInfo(type: string) {
 	return units[type];
 }
 
-export function handleUnitStatChanges(state: State) {
-	function updateUnitsListener(data: any) {
+export function handleBalanceChanges(state: State) {
+	function updateUnitsListener(data: UnitStatsEvent) {
 		console.log('new units data', data.units);
 		units = data.units;
 

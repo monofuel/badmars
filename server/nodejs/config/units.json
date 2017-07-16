@@ -20,7 +20,7 @@
 			"maxFuel": 50
 		},
 		"graphical": {
-			"model": "TODO.obj",
+			"model": "builder.obj",
 			"scale": 1
 		}
 	},
@@ -194,7 +194,7 @@
 			"layer": "ground"
 		},
 		"graphical": {
-			"model": "iron.obj",
+			"model": "iron_mockup.obj",
 			"scale": 0.3
 		}
 	},

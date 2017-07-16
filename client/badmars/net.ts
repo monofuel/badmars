@@ -212,9 +212,44 @@ const UnitDeltaType = t.object({
 	delta: t.array(t.object()),
 });
 
-interface UnitStatsEvent extends BaseEvent {
+export interface UnitStats {
+	details: {
+		size: number
+		buildTime: number
+		cost: number
+		maxHealth: number
+	}
+	graphical: {
+		model: string
+		material: string
+		texture: string
+		scale: number
+	}
+}
+
+const UnitStatsType = t.object({
+	details: t.object({
+		size: t.number(),
+		buildTime: t.number(),
+		cost: t.number(),
+		maxHealth: t.number(),
+	}),
+	graphical: t.object({
+		model: t.string(),
+		material: t.mixed(),
+		texture: t.mixed(),
+		scale: t.number(),
+	})
+})
+
+const UnitStatsEventType = t.object({
+	type: t.string('unitStats'),
+	units: t.object(t.indexer('key', t.string(), UnitStatsType)),
+});
+
+export interface UnitStatsEvent extends BaseEvent {
 	type: 'unitStats';
-	units: any[]; // TODO
+	units: { [key: string]: UnitStats };
 }
 
 interface ChatEvent extends BaseEvent {
@@ -377,6 +412,10 @@ if (config.debug) {
 	UnitDeltaChange.attach((event) => {
 		UnitDeltaType.assert(event);
 	});
+
+	UnitStatsChange.attach((event) => {
+		UnitStatsEventType.assert(event);
+	})
 
 	PlayersChange.attach((event) => {
 		PlayersEventType.assert(event);

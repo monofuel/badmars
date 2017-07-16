@@ -30,7 +30,7 @@ export function getSound(name: string): SoundInfo {
 /**
  * kick off tasks to load all the models and returns a promise
  */
-export function loadAllSounds() {
+//export function loadAllSounds() {
 	/*
   console.log("loading sounds");
   var listener = new THREE.AudioListener();
@@ -44,4 +44,4 @@ export function loadAllSounds() {
       unitInfo.sound.setVolume(100);
 	}
 	*/
-}
+//}

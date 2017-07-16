@@ -7,8 +7,6 @@ import Entity from './units/entity';
 import PlanetLoc from './map/planetLoc';
 import MainLoop from './mainLoop';
 import Net from './net';
-import { loadAllModelsAsync } from './units/unitModels';
-import { loadAllSounds } from './audio/sound';
 import ui from './ui/index';
 import * as THREE from 'three';
 
@@ -37,7 +35,8 @@ import State from './state';
 import Hilight from './ui/hilight';
 import './units/unitBalance';
 import config from './config';
-import { handleUnitStatChanges } from './units/unitBalance';
+import { handleBalanceChanges } from './units/unitBalance';
+import { handleModelChanges } from './units/unitModels';
 
 declare const $: any;
 
@@ -51,9 +50,6 @@ async function gameInit(): Promise<State> {
 	ui(state);
 	attachGlobalListeners(state);
 
-	// TODO these could be done in parallel
-	loadAllSounds();
-	await loadAllModelsAsync();
 	state.net.connect();
 
 	ConnectedChange.once((event: ConnectedEvent) => {
@@ -66,7 +62,8 @@ async function gameInit(): Promise<State> {
 			});
 		}
 	});
-	handleUnitStatChanges(state);
+	handleBalanceChanges(state);
+	handleModelChanges(state);
 	window.requestAnimationFrame(state.mainLoop.logicLoop);
 	return state;
 }

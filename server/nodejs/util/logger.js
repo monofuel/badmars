@@ -136,6 +136,7 @@ export default class Logger {
 		if (ctx && ctx.db) {
 			ctx.db.event.addEvent(kargs);
 		}
+		/*
 		request({
 			url: env.trackingServer + ':' + env.trackingPort + '/track/event',
 			method: 'POST',
@@ -144,7 +145,7 @@ export default class Logger {
 			if (error) {
 				console.log(error);
 			}
-		});
+		});*/
 	}
 
 	addAverageStat = stats.addAverageStat;

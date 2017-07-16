@@ -3,37 +3,66 @@
 import * as _ from 'lodash';
 import * as THREE from 'three';
 require('three-obj-loader')(THREE);
-const ObjMtlLoader = require("obj-mtl-loader");
-const textureLoader = new THREE.TextureLoader();
+const MTLLoader = require('three-mtl-loader');
+// const textureLoader = new THREE.TextureLoader();
 
-export class ModelInfo {
-	name: string;
-	fileName: string;
-	model: any;
-	constructor(name: string, fileName: string) {
-		this.name = name;
-		this.fileName = fileName;
-		this.model = new THREE.Geometry();
-	}
-}
+import { UnitStatsChange, UnitStatsEvent } from '../net';
+import State from '../state';
 
-// TODO should get model info from unit stats from server
-const models: ModelInfo[] = [
-	(new ModelInfo('tank', 'tank_mockup.obj')),
-	(new ModelInfo('iron', 'iron_mockup.obj')),
-	(new ModelInfo('oil', 'oil.obj')),
-	(new ModelInfo('builder', 'builder.obj')),
-	(new ModelInfo('mine', 'mine.obj')),
-	(new ModelInfo('storage', 'storage.obj')),
-	(new ModelInfo('factory', 'factory.obj')),
-	(new ModelInfo('transport', 'transport.obj')),
-	(new ModelInfo('wall', 'wall.obj')),
-	(new ModelInfo('transfer_tower', 'command_tower.obj'))
-];
+const modelMap: { [key: string]: any } = {}
 
 let loaded: number;
 let total: number;
 
+export function getMesh(name: string): THREE.Geometry {
+	return new THREE.Geometry();
+}
+
+export function handleModelChanges(state: State) {
+	async function updateUnitsListener(data: UnitStatsEvent) {
+		for (const unitType of Object.keys(data.units)) {
+			await updateModel(unitType, data.units[unitType].graphical);
+		}
+	}
+	UnitStatsChange.attach(updateUnitsListener);
+}
+
+
+async function updateModel(type: string, graphical: any): Promise<void> {
+	let materials: any;
+	if (graphical.material) {
+		materials = await loadMaterial(graphical.material);
+	}
+	return new Promise<void>((resolve, reject) => {
+		console.log('loading', type);
+		const objLoader = new (THREE as any).OBJLoader();
+		if (materials) {
+			objLoader.setMaterials(materials);
+		}
+		objLoader.setPath('/models/');
+		objLoader.load(graphical.model, (object: any) => {
+			console.log('LOADED', type);
+
+			modelMap[type] = object;
+
+			resolve();
+		}, _.noop, reject);
+	});
+
+}
+
+function loadMaterial(materialFile: string): Promise<any> {
+	const mtlLoader = new MTLLoader();
+	mtlLoader.setPath('/models/');
+	return new Promise<any>((resolve) => {
+		mtlLoader.load(materialFile, (matls: any) => {
+			matls.preload();
+			resolve(matls);
+		});
+	});
+}
+
+/*
 // TODO figure out why this works and how to type it correctly
 export function getMesh(name: string): any {
 	const model = _.find(models, (model) => model.name === name);
@@ -46,6 +75,7 @@ export function getMesh(name: string): any {
 /**
  * kick off tasks to load all the models and returns a promise
  */
+/*
 export async function loadAllModelsAsync(): Promise<void> {
 	loaded = 0;
 	total = models.length;
@@ -55,7 +85,7 @@ export async function loadAllModelsAsync(): Promise<void> {
 	manager.onProgress = function (item: string, loaded: boolean, total: number) {
 		console.log(item, loaded, total);
 	}
-	*/
+	*//*
 	// OBJ loader is provided by another script
 	var loader = new (THREE as any).OBJLoader(manager);
 	var allPromises = [];
@@ -74,3 +104,4 @@ export async function loadAllModelsAsync(): Promise<void> {
 	}
 	await Promise.all(allPromises);
 }
+*/
