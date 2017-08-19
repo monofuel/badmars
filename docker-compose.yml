@@ -103,7 +103,7 @@ services:
     environment:
       - MAP_HOST=chunk
       - AI_HOST=ai
-      - BADMARS_WS_SERVER=ws://localhost
+      - BADMARS_WS_SERVER=ws://192.168.86.237
       - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
     ports:
@@ -120,10 +120,7 @@ services:
       - /badmars/node_modules
     ports:
       - "4474:4474"
-    links:
-      - rethink
     environment:
-      - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
   dashboard-frontend:
     build: .

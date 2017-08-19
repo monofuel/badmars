@@ -52,8 +52,6 @@ export default class LoginModal extends React.Component<{}, {}> {
 								<input ref={(field) => { this.colorField = field }} type='text' id='colorField' defaultValue={randomColor} />
 							</li>
 							<li>
-								<p>WARNING: the current demo does not work on Firefox. Firefox does not trust
-						the SSL cert, and refuses the websocket connection</p>
 								<p>Controls: WASD to move, Q and E rotate, R and F zoom in and out </p>
 								<p>Controls suck.they need to get redone soon </p>
 								<p>Construction and combat is in-progress</p>
