@@ -5,7 +5,7 @@ RUN apk update
 RUN apk add libc6-compat
 RUN apk add make
 RUN apk add bash
-RUN npm install -g gulp supervisor watchify flow-bin babel-watch babel-core node-gyp babel-cli
+RUN npm install -g gulp supervisor browserify watchify flow-bin babel-watch babel-core node-gyp babel-cli
 
 RUN mkdir /badmars
 ADD ./package.json badmars/

@@ -120,10 +120,7 @@ services:
       - /badmars/node_modules
     ports:
       - "4474:4474"
-    links:
-      - rethink
     environment:
-      - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
   dashboard-frontend:
     build: .

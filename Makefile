@@ -4,7 +4,7 @@ grpc:
 	protoc -I server/protos server/protos/chunk.proto --go_out=plugins=grpc:server/go/service/chunk
 	protoc -I server/protos server/protos/ai.proto --go_out=plugins=grpc:server/go/service/ai
 
-client:
+public/js/index.js:
 	 browserify  ./client/badmars/client.ts -p tsify --debug -o ./bin/public/badmars/js/badmars.js
 
 watchClient:

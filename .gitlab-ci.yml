@@ -1,0 +1,23 @@
+
+before_script:
+  - docker info
+
+stages:
+  - build
+  - deploy
+
+build_node_backend:
+  stage: build
+  script:
+    - make dockerBuild
+    - docker-compose -f docker-compose-build.yml run node-build chown -R $UID bin/
+
+build_frontend:
+  stage: build
+    - docker-compose run client sh -c 'make client'
+    - docker-compose -f docker-compose-build.yml run node-build chown -R $UID public
+
+prod_deploy:
+  stage: deploy
+  script:
+    - echo 'Not Implemented'
