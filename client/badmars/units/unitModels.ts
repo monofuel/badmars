@@ -2,8 +2,7 @@
 
 import * as _ from 'lodash';
 import * as THREE from 'three';
-require('three-obj-loader')(THREE);
-const MTLLoader = require('three-mtl-loader');
+const ColladaLoader = require('three-collada-loader');
 // const textureLoader = new THREE.TextureLoader();
 
 import { UnitStatsChange, UnitStatsEvent } from '../net';
@@ -27,38 +26,18 @@ export function handleModelChanges(state: State) {
 	UnitStatsChange.attach(updateUnitsListener);
 }
 
-
 async function updateModel(type: string, graphical: any): Promise<void> {
-	let materials: any;
-	if (graphical.material) {
-		materials = await loadMaterial(graphical.material);
-	}
 	return new Promise<void>((resolve, reject) => {
 		console.log('loading', type);
-		const objLoader = new (THREE as any).OBJLoader();
-		if (materials) {
-			objLoader.setMaterials(materials);
-		}
-		objLoader.setPath('/models/');
-		objLoader.load(graphical.model, (object: any) => {
+		const daeLoader = new ColladaLoader();
+		daeLoader.setPath('/models/');
+		daeLoader.load(graphical.model, (object: any) => {
 			console.log('LOADED', type);
 
 			modelMap[type] = object;
 
 			resolve();
 		}, _.noop, reject);
-	});
-
-}
-
-function loadMaterial(materialFile: string): Promise<any> {
-	const mtlLoader = new MTLLoader();
-	mtlLoader.setPath('/models/');
-	return new Promise<any>((resolve) => {
-		mtlLoader.load(materialFile, (matls: any) => {
-			matls.preload();
-			resolve(matls);
-		});
 	});
 }
 
