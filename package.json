@@ -83,7 +83,6 @@
     "browserify": "^13.1.0",
     "eslint": "^3.14.0",
     "eslint-plugin-flowtype": "^2.30.0",
-    "fast-json-patch": "^1.1.10",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-concat": "^2.6.1",
