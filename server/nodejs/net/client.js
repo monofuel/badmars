@@ -12,7 +12,7 @@ import { sanitizeUnit, sanitizeChunk } from '../util/socketFilter';
 import MonoContext from '../util/monoContext';
 import type User from '../user/user';
 import type Map from '../map/map';
-import jsonpatch from 'fast-json-patch';
+import * as jsonpatch from 'fast-json-patch';
 
 const KEEP_ALIVE = 5000;
 

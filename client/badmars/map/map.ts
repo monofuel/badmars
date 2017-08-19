@@ -12,7 +12,7 @@ import { updateUnit } from '../units/unitBalance';
 import { N, S, E, W, C } from '../units/directions';
 import { log } from '../logger';
 import config from '../config';
-import jsonpatch from 'fast-json-patch';
+import * as jsonpatch from 'fast-json-patch';
 import * as THREE from 'three';
 import * as _ from 'lodash';
 
@@ -128,7 +128,7 @@ export default class Map {
 			if (!unit) {
 				throw new Error(`unit ${data.uuid} does not exist`);
 			}
-			jsonpatch.apply(unit, data.delta);
+			jsonpatch.applyPatch(unit, data.delta);
 		};
 		UnitDeltaChange.attach(this.updateUnitDeltaListener);
 
