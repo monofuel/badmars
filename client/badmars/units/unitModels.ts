@@ -9,19 +9,24 @@ const ColladaLoader = require('three-collada-loader');
 import { UnitStatsChange, UnitStatsEvent } from '../net';
 import State from '../state';
 
-const modelMap: { [key: string]: any } = {}
+const modelMap: { [key: string]: THREE.Group } = {}
 
 let loaded: number;
 let total: number;
 
-export function getMesh(name: string): THREE.Geometry {
-	return new THREE.Geometry();
+export function getMesh(name: string): THREE.Group {
+	return modelMap[name] || new THREE.Group();
 }
 
 export function handleModelChanges(state: State) {
 	async function updateUnitsListener(data: UnitStatsEvent) {
 		for (const unitType of Object.keys(data.units)) {
 			await updateModel(unitType, data.units[unitType].graphical);
+
+			// update all models of that type
+			state.map.units
+				.filter((unit) => unit.details.type === unitType)
+				.map((unit) => unit.refreshMesh());
 		}
 	}
 	UnitStatsChange.attach(updateUnitsListener);

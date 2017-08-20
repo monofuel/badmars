@@ -6,12 +6,13 @@ import Player from '../player';
 import State from '../state';
 import { updateUnit } from './unitBalance';
 import { getMesh } from './unitModels';
+import { log } from '../logger';
 import * as THREE from 'three';
 
 export default class Entity {
 
 	/* client stuff */
-	mesh: THREE.Mesh;
+	mesh: THREE.Group;
 	unitHeight: number;
 	loc: PlanetLoc;
 	selectionCircle: THREE.Object3D;
@@ -111,18 +112,35 @@ export default class Entity {
 		this.takingDamage = 0;
 		this.selectionSize = 1.1;
 
-		const material = new THREE.MeshLambertMaterial({ color: color.getHex() });
+		// const material = new THREE.MeshLambertMaterial({ color: color.getHex() });
 
-		const geometry = getMesh(type);
-		if (!geometry) {
-			throw new Error(`failed to get ${type} mesh`);
+		this.refreshMesh(type, scale);
+	}
+
+	public refreshMesh(type?: string, scale?: number) {
+		const { display } = this.state;
+		if (this.mesh) {
+			display.removeMesh(this.mesh);
 		}
-		this.mesh = new THREE.Mesh(geometry, material);
+		if (!type) {
+			type = this.details.type;
+		}
+		if (!scale) {
+			scale = this.graphical.scale;
+		}
+		const geometry = getMesh(type);
+		if (geometry.children.length === 0) {
+			log('warn', 'no geometry ready yet', { type });
+		}
+		this.mesh = new THREE.Group();
+		this.mesh.copy(geometry, true);
 		this.mesh.scale.set(scale, scale, scale);
+		this.mesh.rotation.x = -Math.PI / 2;
 		this.mesh.userData = this;
 
 		display.addMesh(this.mesh);
 		this.updateLoc();
+
 	}
 
 	updateLoc() {
@@ -140,6 +158,8 @@ export default class Entity {
 		if (this.takingDamage) {
 			this.animateSmoke();
 		}
+		// TODO fix ghosting this
+		/*
 		if (this.details.ghosting) {
 			this.mesh.material.transparent = true;
 			this.mesh.material.opacity = 0.3;
@@ -147,6 +167,7 @@ export default class Entity {
 			this.mesh.material.transparent = false;
 			this.mesh.material.opacity = 1;
 		}
+		*/
 
 	}
 
