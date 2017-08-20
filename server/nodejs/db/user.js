@@ -58,6 +58,11 @@ export default class DBUser {
 		});
 	}
 
+	async registerListener(func: Function): Promise<void> {
+		const cursor = await this.table.changes().run(this.conn);
+		cursor.each(func);
+	}
+
 	async createUser(name: string, color: string): Object {
 		const user = new User(name, color);
 		return this.table.insert(user, {

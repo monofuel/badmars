@@ -173,6 +173,9 @@ function sanitizeOwnedUnitConstruct(construct: UnitConstruct): Object {
 	return construct;
 }
 
+export function sanitizeUser(user: User): Object {
+	return user; // TODO
+}
 
 export function sanitizeChunk(chunk: Chunk): Object {
 

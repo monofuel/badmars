@@ -24,6 +24,7 @@ function mountUserHandlers(client: Client) {
 	client.handlers['sendChat'] = require('./sendChat').default;
 
 	client.registerUnitListener();
+	client.registerUserListener();
 	client.registerEventHandler();
 	client.registerChatHandler();
 

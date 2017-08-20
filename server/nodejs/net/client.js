@@ -8,7 +8,7 @@ import WebSocket from 'ws';
 import _ from 'lodash';
 
 import { DetailedError, WrappedError } from '../util/logger';
-import { sanitizeUnit, sanitizeChunk } from '../util/socketFilter';
+import { sanitizeUnit, sanitizeUser } from '../util/socketFilter';
 import MonoContext from '../util/monoContext';
 import type User from '../user/user';
 import type Map from '../map/map';
@@ -132,6 +132,12 @@ export default class Client {
 		});
 	}
 
+	registerUserListener() {
+		this.ctx.db.user.registerListener((err: Error, delta: object) => {
+			this.handleUserUpdate(err, delta);
+		});
+	}
+
 	registerEventHandler() {
 		this.ctx.db.event.watchEvents((err: Error, delta: Object) => {
 			this.handleEvents(err, delta);
@@ -177,6 +183,13 @@ export default class Client {
 					units: [newUnit]
 				});
 			}
+		}
+	}
+
+	handleUserUpdate(err: Error, delta: Object) {
+		if (delta.new_val) {
+			const newUser = sanitizeUser(delta.new_val);
+			this.send('players', { players: [newUser] });
 		}
 	}
 
