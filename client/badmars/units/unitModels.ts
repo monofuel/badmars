@@ -2,6 +2,7 @@
 
 import * as _ from 'lodash';
 import * as THREE from 'three';
+import { log } from '../logger';
 const ColladaLoader = require('three-collada-loader');
 // const textureLoader = new THREE.TextureLoader();
 
@@ -28,13 +29,13 @@ export function handleModelChanges(state: State) {
 
 async function updateModel(type: string, graphical: any): Promise<void> {
 	return new Promise<void>((resolve, reject) => {
-		console.log('loading', type);
+		log('debug', 'loading model', { type, graphical });
 		const daeLoader = new ColladaLoader();
-		daeLoader.setPath('/models/');
-		daeLoader.load(graphical.model, (object: any) => {
-			console.log('LOADED', type);
+		daeLoader.load(`models/${graphical.model}`, (collada: any) => {
+			log('debug', 'loaded model', { type });
 
-			modelMap[type] = object;
+			modelMap[type] = collada.scene;
+			console.log(collada)
 
 			resolve();
 		}, _.noop, reject);

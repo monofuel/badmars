@@ -16,7 +16,7 @@ const ATTACK_FIELDS = ['layers', 'range', 'damage', 'fireRate'];
 const STORAGE_FIELDS = ['maxIron', 'maxFuel', 'transferRange'];
 const STATIONARY_FIELDS = ['layer'];
 const CONSTRUCT_FIELDS = ['types'];
-const GRAPHICAL_FIELDS = ['model', 'scale', 'texture', 'material'];
+const GRAPHICAL_FIELDS = ['model', 'scale', 'texture'];
 
 const VALID_LAYERS = ['ground', 'air', 'water'];
 
@@ -210,8 +210,8 @@ export default class UnitStat {
 			if(typeof this.graphical.model !== 'string') {
 				throwError('model is invalid');
 			}
-			if(!this.graphical.model.includes('.obj')) {
-				throwError('only OBJ is supported');
+			if(!this.graphical.model.toLocaleLowerCase().includes('.dae')) {
+				throwError('only Collada .dae is supported');
 			}
 			if(!this.graphical.scale) {
 				throwError('model scale is missing');
