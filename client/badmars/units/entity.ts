@@ -13,6 +13,7 @@ export default class Entity {
 
 	/* client stuff */
 	mesh: THREE.Group;
+	color: THREE.Color;
 	unitHeight: number;
 	loc: PlanetLoc;
 	selectionCircle: THREE.Object3D;
@@ -108,6 +109,7 @@ export default class Entity {
 		}
 		this.uuid = uuid;
 		this.loc = loc;
+		this.color = color;
 		this.unitHeight = 0.25;
 		this.takingDamage = 0;
 		this.selectionSize = 1.1;
@@ -117,7 +119,7 @@ export default class Entity {
 		this.refreshMesh(type, scale);
 	}
 
-	public refreshMesh(type?: string, scale?: number) {
+	public refreshMesh(type?: string, scale?: number, color?: THREE.Color) {
 		const { display } = this.state;
 		if (this.mesh) {
 			display.removeMesh(this.mesh);
@@ -128,6 +130,9 @@ export default class Entity {
 		if (!scale) {
 			scale = this.graphical.scale;
 		}
+		if (!color) {
+			color = this.color;
+		}
 		const geometry = getMesh(type);
 		if (geometry.children.length === 0) {
 			log('warn', 'no geometry ready yet', { type });
@@ -137,6 +142,13 @@ export default class Entity {
 		this.mesh.scale.set(scale, scale, scale);
 		this.mesh.rotation.x = -Math.PI / 2;
 		this.mesh.userData = this;
+
+		this.applyToMaterials((mat: THREE.Material) => {
+			if (mat.name.includes('flag')) {
+				(mat as any).color = color;
+				mat.update();
+			}
+		});
 
 		display.addMesh(this.mesh);
 		this.updateLoc();
@@ -158,17 +170,30 @@ export default class Entity {
 		if (this.takingDamage) {
 			this.animateSmoke();
 		}
-		// TODO fix ghosting this
-		/*
-		if (this.details.ghosting) {
-			this.mesh.material.transparent = true;
-			this.mesh.material.opacity = 0.3;
-		} else {
-			this.mesh.material.transparent = false;
-			this.mesh.material.opacity = 1;
-		}
-		*/
 
+		this.applyToMaterials((mat: THREE.Material) => {
+			if (this.details.ghosting) {
+				mat.transparent = true;
+				mat.opacity = 0.3;
+			} else {
+				mat.transparent = false;
+				mat.opacity = 1;
+			}
+		})
+	}
+
+	applyToMaterials(fn: (mat: THREE.Material) => void) {
+		this.mesh.children.map((obj: THREE.Mesh) => {
+			const objmat: THREE.Material | THREE.Material[] | undefined = obj.material as any;
+			if (!objmat) {
+				return;
+			}
+			if (Array.isArray(objmat)) {
+				objmat.map((mat: THREE.Material) => fn(mat))
+			} else {
+				fn(objmat);
+			}
+		})
 	}
 
 	showTransferDistance() {
@@ -206,24 +231,9 @@ export default class Entity {
 	}
 
 	public updateUnitData(unit: Object) {
-		updateUnit(this);
-		// TODO this is fubared, is it even needed?
-		/*
-		//UNIT UPDATE WHITELIST
-		this.details.ghosting = unit.ghosting;
-		this.details.health = unit.health;
 
-		if (this.storage) {
-			this.storage.iron = unit.iron;
-			this.storage.fuel = unit.fuel;
-		}
-		if (this.movable) {
-				this.movable.destination = unit.destination;
-		}
-		if (this.construct) {
-			this.construct.factoryQueue = unit.factoryQueue;
-		}
-	*/
+		// apply any unit balance updates
+		updateUnit(this);
 	}
 
 	takeDamage() {
