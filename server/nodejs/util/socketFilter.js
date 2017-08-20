@@ -5,6 +5,7 @@
 //	Licensed under included modified BSD license
 
 import type Unit from '../unit/unit';
+import type User from '../user/user';
 import type Chunk from '../map/chunk';
 import type Map from '../map/map';
 
@@ -174,7 +175,16 @@ function sanitizeOwnedUnitConstruct(construct: UnitConstruct): Object {
 }
 
 export function sanitizeUser(user: User): Object {
-	return user; // TODO
+	const {
+		uuid,
+		name,
+		color
+	} = user;
+	return {
+		uuid,
+		name,
+		color
+	};
 }
 
 export function sanitizeChunk(chunk: Chunk): Object {

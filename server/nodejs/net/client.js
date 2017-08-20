@@ -188,6 +188,7 @@ export default class Client {
 
 	handleUserUpdate(err: Error, delta: Object) {
 		if (delta.new_val) {
+			// console.log('user delta', delta);
 			const newUser = sanitizeUser(delta.new_val);
 			this.send('players', { players: [newUser] });
 		}

@@ -28,6 +28,7 @@ export default class DBUser {
 		await createIndex(conn, logger, this.table, 'name');
 	}
 
+	// TODO should use socketFilter sanitizeUser() instead
 	async listAllSanitizedUsers(): Promise<Array<Object>> {
 		const cursor = await this.table.run(this.conn);
 		const list = await cursor.toArray();
