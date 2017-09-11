@@ -27,6 +27,7 @@ nodeSetup:
 goSetup:
 	cd server/go/core/simulate && go get
 	cd server/go/core/dashboard && go get
+	cd server/go/core/auth && go get
 
 setup: goSetup nodeSetup
 

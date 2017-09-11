@@ -143,7 +143,7 @@ export default class Entity {
 		this.mesh.rotation.x = -Math.PI / 2;
 		this.mesh.userData = this;
 
-		this.applyToMaterials((mat: THREE.Material) => {
+		this.applyToMaterials((mat: THREE.MeshLambertMaterial) => {
 			if (mat.name.includes('flag')) {
 				(mat as any).color = color;
 				mat.update();
@@ -171,7 +171,7 @@ export default class Entity {
 			this.animateSmoke();
 		}
 
-		this.applyToMaterials((mat: THREE.Material) => {
+		this.applyToMaterials((mat: THREE.MeshLambertMaterial) => {
 			if (this.details.ghosting) {
 				mat.transparent = true;
 				mat.opacity = 0.3;
@@ -182,14 +182,14 @@ export default class Entity {
 		})
 	}
 
-	applyToMaterials(fn: (mat: THREE.Material) => void) {
+	applyToMaterials(fn: (mat: THREE.MeshLambertMaterial) => void) {
 		this.mesh.children.map((obj: THREE.Mesh) => {
-			const objmat: THREE.Material | THREE.Material[] | undefined = obj.material as any;
+			const objmat: THREE.MeshLambertMaterial | THREE.MeshLambertMaterial[] | undefined = obj.material as any;
 			if (!objmat) {
 				return;
 			}
 			if (Array.isArray(objmat)) {
-				objmat.map((mat: THREE.Material) => fn(mat))
+				objmat.map((mat: THREE.MeshLambertMaterial) => fn(mat))
 			} else {
 				fn(objmat);
 			}
@@ -249,7 +249,7 @@ export default class Entity {
 		if (this.damageSphere) {
 			this.damageSphere.position.copy(this.mesh.position);
 			this.damageSphere.position.y += this.takingDamage / 50;
-			this.damageSphere.material.opacity -= 1 / 100;
+			(this.damageSphere.material as THREE.MeshLambertMaterial).opacity -= 1 / 100;
 			this.takingDamage++;
 
 			if (this.takingDamage > 20) {

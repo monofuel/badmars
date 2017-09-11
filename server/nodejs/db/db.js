@@ -14,6 +14,7 @@ import DBUnitStat from './unitStat';
 import DBUser from './user';
 import DBChat from './chat';
 import DBEvent from './event';
+import DBSession from './session';
 import { setupPlanet } from './helper';
 import { WrappedError } from '../util/logger';
 
@@ -39,6 +40,7 @@ export default class DB {
 	unitStats: UnitStatMapType = {};
 	map = new DBMap();
 	user = new DBUser();
+	session = new DBSession();
 	chat = new DBChat();
 	event = new DBEvent();
 
@@ -176,6 +178,13 @@ export default class DB {
 		} catch (err) {
 			throw new WrappedError(err, 'failed to setup user table');
 		}
+
+		try {
+			await this.session.setup(this.conn, this.logger);
+		} catch (err) {
+			throw new WrappedError(err, 'failed to setup session table');
+		}
+
 		await this.map.init(this.conn, this.logger);
 		await this.map.createRandomMap('testmap');
 

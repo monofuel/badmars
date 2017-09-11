@@ -22,12 +22,10 @@ export default function route(ctx: MonoContext, app: express) {
 	app.get('/badmars', (req: express.Request, res: express.Response) => {
 
 		const serverAddress: string = env.wsServer;
-		const port: string = env.wsPublicPort;
 
 		res.render('pages/badmars', {
 			user: req.user,
 			server: serverAddress,
-			port: port
 		});
 	});
 }

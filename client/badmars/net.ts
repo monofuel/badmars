@@ -461,8 +461,9 @@ export default class Net {
 	}
 
 	public async connect(): Promise<void> {
-		log('debug', `connecting to: ${SERVER_URL}:${SERVER_PORT}`);
-		this.ws = new WebSocket(SERVER_URL + ':' + SERVER_PORT);
+		const ws_url = `ws://${window.location.hostname}${SERVER_URL}`;
+		log('debug', `connecting to: ${ws_url}`);
+		this.ws = new WebSocket(ws_url);
 
 		setInterval(() => {
 			if (this.getState() !== 1) {
