@@ -19,6 +19,8 @@ export default class Login extends React.Component<{},{}> {
 
 interface SignupState {
 	email?: string,
+	username?: string,
+	usernameError?: string,
 	emailError?: string,
 	password?: string,
 	passwordError?: string
@@ -31,13 +33,22 @@ class Signup extends React.Component<{}, SignupState> {
 	};
 
 	render() {
-		const { email, emailError, password, passwordError, submitting } = this.state;
+		const { username, usernameError, email, emailError, password, passwordError, submitting } = this.state;
 		return (
 		<Paper className='login-paper' zDepth={5}>
 			{/* https://www.youtube.com/watch?v=gzU_4NNfmi4 */}
 			<Card>
 				<CardHeader title='Register'/>
 				<CardText>
+					<TextField
+						hintText="Racha"
+						hintStyle={{ color: '#666' }}
+						floatingLabelText="username"
+						floatingLabelStyle={{ color: '#666' }}
+						value={username}
+						errorText={usernameError}
+						onChange={(e, password) => this.setState({ username, usernameError: undefined })}/>
+					<br/>
 					<TextField
 						hintText='racha@japura.net'
 						hintStyle={{ color: '#666' }}
@@ -71,7 +82,12 @@ class Signup extends React.Component<{}, SignupState> {
 
 	@autobind
 	private submit() {
-		const { email, password } = this.state;
+		const { username, email, password } = this.state;
+
+		if (!username) {
+			this.setState({ usernameError: 'Missing username'});
+			return;
+		}
 		// Yes, email regexes aren't perfect
 		// no, i do not care
 		if (!email || !email.match(/\S+@\S+\.\S+/)) {
