@@ -62,6 +62,15 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *AppError {
 
 func registerHandler(w http.ResponseWriter, r *http.Request) *AppError {
 	fmt.Println("got register call")
+	fmt.Println("Headers", r.Header)
+	inputResponse := r.Header["g-recaptcha-response"]
+	if inputResponse == nil {
+		return &AppError{
+			Error:   nil,
+			Message: "Missing recaptcha response",
+			Code:    400,
+		}
+	}
 	return &AppError{
 		Error:   nil,
 		Message: "Not Implemented",

@@ -6,6 +6,8 @@ import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
 import CircularProgress from 'material-ui/CircularProgress';
 
+declare const grecaptcha: any;
+
 export default class Login extends React.Component<{},{}> {
 	render() {
 		return (
@@ -35,6 +37,13 @@ class Signup extends React.Component<{}, SignupState> {
 		password: '',
 
 	};
+
+	componentDidMount() {
+		grecaptcha.render(
+			'recaptcha',
+			{ 'sitekey': '6LdAfs0SAAAAAB4FgVBq2ElSOMm2PgYpKanVXWos'}
+		);
+	}
 
 	render() {
 		const { username, usernameError, email, emailError, password, passwordError, submitting } = this.state;
@@ -78,6 +87,8 @@ class Signup extends React.Component<{}, SignupState> {
 							errorText={passwordError}
 							onChange={(e, password) => this.setState({ password, passwordError: undefined })}/>
 						<br/>
+						<div id='recaptcha' style={{ margin: '10px' }} />
+						<br/>
 						<RaisedButton
 							label={submitting ? <CircularProgress size={30}/> : 'Submit' }
 							primary
@@ -85,7 +96,6 @@ class Signup extends React.Component<{}, SignupState> {
 							disabled={submitting}
 							disabledBackgroundColor='rgb(101, 150, 43)'
 							onClick={this.submit}/>
-						<div dangerouslySetInnerHTML={recaptcha} />
 					</form>
 				</CardText>
 			</Card>
@@ -117,7 +127,6 @@ class Signup extends React.Component<{}, SignupState> {
 		this.setState({
 			submitting: true
 		})
-		return true;
 	}
 }
 
