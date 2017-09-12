@@ -42,6 +42,7 @@ func registerHandlers() {
 	r := mux.NewRouter()
 
 	r.Methods("GET").Path("/").Handler(AppHandler(rootHandler))
+	r.Methods("POST").Path("/auth/register").Handler(AppHandler(registerHandler))
 	jsFs := http.FileServer(http.Dir("public/dashboard/js"))
 	cssFs := http.FileServer(http.Dir("public/dashboard/css"))
 	r.Methods("GET").PathPrefix("/js/").Handler(http.StripPrefix("/js", jsFs))
@@ -57,4 +58,13 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *AppError {
 		return &AppError{err, "failed to load index.html", 500}
 	}
 	return nil
+}
+
+func registerHandler(w http.ResponseWriter, r *http.Request) *AppError {
+	fmt.Println("got register call")
+	return &AppError{
+		Error:   nil,
+		Message: "Not Implemented",
+		Code:    500,
+	}
 }

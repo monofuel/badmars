@@ -29,51 +29,64 @@ interface SignupState {
 
 class Signup extends React.Component<{}, SignupState> {
 	state: SignupState = {
-		submitting: false
+		submitting: false,
+		username: '',
+		email: '',
+		password: '',
+
 	};
 
 	render() {
 		const { username, usernameError, email, emailError, password, passwordError, submitting } = this.state;
+		const recaptcha = { __html: '<div class="g-recaptcha" data-sitekey="6LdAfs0SAAAAAB4FgVBq2ElSOMm2PgYpKanVXWos"></div>' };
 		return (
 		<Paper className='login-paper' zDepth={5}>
 			{/* https://www.youtube.com/watch?v=gzU_4NNfmi4 */}
 			<Card>
 				<CardHeader title='Register'/>
 				<CardText>
-					<TextField
-						hintText="Racha"
-						hintStyle={{ color: '#666' }}
-						floatingLabelText="username"
-						floatingLabelStyle={{ color: '#666' }}
-						value={username}
-						errorText={usernameError}
-						onChange={(e, password) => this.setState({ username, usernameError: undefined })}/>
-					<br/>
-					<TextField
-						hintText='racha@japura.net'
-						hintStyle={{ color: '#666' }}
-						floatingLabelText="email"
-						floatingLabelStyle={{ color: '#666' }}
-						value={email}
-						errorText={emailError}
-						onChange={(e, email) => this.setState({ email, emailError: undefined })}/>
-					<br/>
-					<TextField
-						hintText="**********"
-						hintStyle={{ color: '#666' }}
-						floatingLabelText="password"
-						floatingLabelStyle={{ color: '#666' }}
-						type="password"
-						value={password}
-						errorText={passwordError}
-						onChange={(e, password) => this.setState({ password, passwordError: undefined })}/>
-					<br/>
-					<RaisedButton
-						label={submitting ? <CircularProgress size={30}/> : 'Submit' }
-						primary
-						disabled={submitting}
-						disabledBackgroundColor='rgb(101, 150, 43)'
-						onClick={this.submit}/>
+					<form
+						onSubmit={this.submit}
+						action='/auth/register'
+						encType='application/json'
+						method='POST'>
+						<TextField
+							hintText="Racha"
+							hintStyle={{ color: '#666' }}
+							floatingLabelText="username"
+							floatingLabelStyle={{ color: '#666' }}
+							value={username}
+							errorText={usernameError}
+							onChange={(e, username) => this.setState({ username, usernameError: undefined })}/>
+						<br/>
+						<TextField
+							hintText='racha@japura.net'
+							hintStyle={{ color: '#666' }}
+							floatingLabelText="email"
+							floatingLabelStyle={{ color: '#666' }}
+							value={email}
+							errorText={emailError}
+							onChange={(e, email) => this.setState({ email, emailError: undefined })}/>
+						<br/>
+						<TextField
+							hintText="**********"
+							hintStyle={{ color: '#666' }}
+							floatingLabelText="password"
+							floatingLabelStyle={{ color: '#666' }}
+							type="password"
+							value={password}
+							errorText={passwordError}
+							onChange={(e, password) => this.setState({ password, passwordError: undefined })}/>
+						<br/>
+						<RaisedButton
+							label={submitting ? <CircularProgress size={30}/> : 'Submit' }
+							primary
+							type='submit'
+							disabled={submitting}
+							disabledBackgroundColor='rgb(101, 150, 43)'
+							onClick={this.submit}/>
+						<div dangerouslySetInnerHTML={recaptcha} />
+					</form>
 				</CardText>
 			</Card>
 		</Paper>
@@ -82,27 +95,29 @@ class Signup extends React.Component<{}, SignupState> {
 
 	@autobind
 	private submit() {
+		console.log('SUBMITTING');
 		const { username, email, password } = this.state;
 
 		if (!username) {
 			this.setState({ usernameError: 'Missing username'});
-			return;
+			return false;
 		}
 		// Yes, email regexes aren't perfect
 		// no, i do not care
 		if (!email || !email.match(/\S+@\S+\.\S+/)) {
 			this.setState({ emailError: 'Invalid Email'});
-			return;
+			return false;
 		}
 		if (!password) {
 			this.setState({ passwordError: 'Missing Password'});
-			return;
+			return false;
 		}
 
 		// TODO really submit
 		this.setState({
 			submitting: true
 		})
+		return true;
 	}
 }
 
