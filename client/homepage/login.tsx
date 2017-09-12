@@ -34,6 +34,7 @@ class Signup extends React.Component<{}, SignupState> {
 		const { email, emailError, password, passwordError, submitting } = this.state;
 		return (
 		<Paper className='login-paper' zDepth={5}>
+			{/* https://www.youtube.com/watch?v=gzU_4NNfmi4 */}
 			<Card>
 				<CardHeader title='Register'/>
 				<CardText>
