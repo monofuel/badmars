@@ -3,26 +3,11 @@
 <html>
   <head>
     <% include ../partials/head %>
+    <script src="/js/homepage.js"></script>
   </head>
   <body>
-    <div class="wrapper">
-      <header>
-        <% include ../partials/header %>
-      </header>
-      <main>
-        <div class="container-fluid">
-          <h2>Planets saved on the server:</h2>
-          <ul>
-          <% worlds.forEach(function(world) { %>
-            <li><%= world %></li>
-          <% }); %>
-          <ul>
-        </div>
-      </main>
+    <div id="content">
     </div>
-    <footer class="footer">
-      <% include ../partials/footer %>
-    </footer>
   </body>
 
 </html>

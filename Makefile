@@ -10,6 +10,9 @@ public/js/index.js:
 watchClient:
 	 watchify ./client/badmars/client.ts -p tsify -v --debug -o ./bin/public/badmars/js/badmars.js
 
+watchHomepage:
+	 watchify ./client/homepage/main.tsx -p tsify -v --debug -o ./bin/public/badmars/js/homepage.js
+
 watchDashboard:
 	 watchify ./client/dashboard/index.jsx -t babelify -p tsify -p livereactload --debug -o ./bin/public/dashboard/js/index.js
 

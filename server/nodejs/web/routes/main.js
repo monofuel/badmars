@@ -12,11 +12,12 @@ import MonoContext from '../../util/monoContext';
 export default function route(ctx: MonoContext, app: express) {
 	app.get('/', (req: express.Request, res: express.Response) => {
 		ctx.logger.info(ctx, 'GET /', {}, { req });
-		ctx.db.map.listNames().then((list: Array<string>) => {
-			res.render('pages/index', {
-				worlds: list,
-			});
-		});
+		res.render('pages/index');
+	});
+
+	app.get('/login', (req: express.Request, res: express.Response) => {
+		ctx.logger.info(ctx, 'GET /login', {}, { req });
+		res.render('pages/index');
 	});
 
 	app.get('/badmars', (req: express.Request, res: express.Response) => {

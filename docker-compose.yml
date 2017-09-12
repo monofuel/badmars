@@ -148,6 +148,16 @@ services:
       - "4474:4474"
     environment:
       - TRACKING_SERVER=http://japura.net
+  homepage:
+    build: .
+    command: sh -c 'make watchHomepage'
+    volumes:
+      - ./:/badmars
+      - /badmars/node_modules
+    ports:
+      - "4475:4475"
+    environment:
+      - TRACKING_SERVER=http://japura.net
   dashboard-frontend:
     build: .
     command: sh -c 'make watchDashboard'
