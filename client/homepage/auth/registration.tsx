@@ -5,7 +5,7 @@ import { Card, CardHeader, CardText } from 'material-ui/Card';
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
 import CircularProgress from 'material-ui/CircularProgress';
-
+import axios from 'axios';
 interface RegistrationState {
 	email?: string,
 	username?: string,
@@ -14,6 +14,7 @@ interface RegistrationState {
 	password?: string,
 	passwordError?: string
 	submitting: boolean
+	submitError?: string
 }
 
 export default class Registration extends React.Component<{}, RegistrationState> {
@@ -34,10 +35,7 @@ export default class Registration extends React.Component<{}, RegistrationState>
 				<CardHeader title='Register'/>
 				<CardText>
 					<form
-						onSubmit={this.submit}
-						action='/auth/register'
-						encType='application/json'
-						method='POST'>
+						onSubmit={this.submit}>
 						<TextField
 							hintText="Racha"
 							hintStyle={{ color: '#666' }}
@@ -83,7 +81,7 @@ export default class Registration extends React.Component<{}, RegistrationState>
 	}
 
 	@autobind
-	private submit() {
+	private async submit() {
 		console.log('SUBMITTING');
 		const { username, email, password } = this.state;
 
@@ -102,9 +100,31 @@ export default class Registration extends React.Component<{}, RegistrationState>
 			return false;
 		}
 
-		// TODO really submit
 		this.setState({
-			submitting: true
-		})
+			submitting: true,
+			submitError: null,
+		});
+
+		const resp = await axios.post('/auth/register', {
+			username, email, password
+		});
+
+		if (resp.status === 200) {
+			const {
+				sessionToken
+			}: {
+				sessionToken: string
+			} = resp.data;
+			window.sessionStorage.setItem('session-token', sessionToken);
+			this.setState({ submitting: false });
+			(window as any).location = '/badmars';
+		} else {
+			if (resp.data && resp.data.message) {
+				const submitError = resp.data.message;
+				this.setState({ submitError });
+			} else {
+				this.setState({ submitError: 'unknown error' });
+			}
+		}
 	}
 }

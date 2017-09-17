@@ -19,27 +19,6 @@ import (
 var authPort = os.Getenv("BM_AUTH_PORT")
 var templates = template.Must(template.ParseFiles("public/dashboard/index.html"))
 
-var sessionTokenHtml = `
-<html>
-<head>
-	<meta content="text/html; charset=utf-8"/>
-	<title>Success</title>
-	<script type="text/javascript">
-		try {
-			const token = '{{ .SessionToken }}';
-			console.log('setting session token: ' + token);
-			window.sessionStorage.setItem("auth-token", token);
-		} finally {
-			// window.location = '/badmars';
-		}
-	</script>
-</head>
-<body>
-	<p>Redirecting...</p>
-</body>
-</html>
-`
-
 func init() {
 	fmt.Println("handling configuration")
 
@@ -120,20 +99,18 @@ func registerHandler(w http.ResponseWriter, r *http.Request) *AppError {
 		}
 	}
 
-	// TODO create session and pass it back
-	type sessionParams struct {
-		SessionToken string
+	type registerResp struct {
+		SessionToken string `json:"sessionToken"`
 	}
-	t := template.New("Registration")
-	t = template.Must(t.Parse(sessionTokenHtml))
-
-	err = t.ExecuteTemplate(w, "Registration", &sessionParams{
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&registerResp{
 		SessionToken: session.Token,
 	})
+
 	if err != nil {
 		return &AppError{
 			Error:   err,
-			Message: "failed to generate registration redirect",
+			Message: "failed to encode register response",
 			Code:    500,
 		}
 	}

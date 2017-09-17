@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"regexp"
 
 	"github.com/pkg/errors"
 )
@@ -57,17 +56,21 @@ func (c *BMClient) Register(username string, email string, password string) (*Us
 	}
 
 	fmt.Println("response")
-	buff, err := ioutil.ReadAll(resp.Body)
+	registerBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse response")
 	}
-
-	re := regexp.MustCompile(`(?m:^\s*const\s*token\s*=\s*\'(.*)\'\s*;$)`)
-	res := re.FindAllStringSubmatch(string(buff), -1)
-	if len(res) != 1 || len(res[0]) != 2 {
-		return nil, fmt.Errorf("failed to find session token in response")
+	type registerResp struct {
+		SessionToken string `json:"sessionToken"`
 	}
-	token := res[0][1]
+
+	registration := new(registerResp)
+	err = json.Unmarshal(registerBody, registration)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal register response")
+	}
+	token := registration.SessionToken
+
 	fmt.Printf("Session token: %s\n", token)
 
 	selfUrl := fmt.Sprintf("http://%s/auth/self", c.Hostname)

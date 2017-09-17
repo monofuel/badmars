@@ -46,7 +46,6 @@ func CreateBearer(userUUID UUID) (*Session, error) {
 func GetBearerUser(token UUID) (*userdb.User, error) {
 	var cursor *r.Cursor
 	var err error
-	fmt.Println(token)
 	cursor, err = table().Get(token).Run(rethink.Sess)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find token")
