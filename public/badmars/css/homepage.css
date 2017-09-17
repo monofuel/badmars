@@ -15,7 +15,7 @@ body {
 	margin: 10px;
 }
 
-.login-content {
+.pane-content {
 	display: flex;
 	flex-direction: row;
 	flex: 1;

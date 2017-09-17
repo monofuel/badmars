@@ -11,4 +11,6 @@ type User struct {
 	APIKey string `json:"apiKey"` // deprecated
 
 	Location string `json:"location"`
+
+	PasswordHash string `json:"password"`
 }

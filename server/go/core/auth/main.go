@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -15,6 +16,27 @@ import (
 
 var authPort = os.Getenv("BM_AUTH_PORT")
 var templates = template.Must(template.ParseFiles("public/dashboard/index.html"))
+
+var sessionTokenHtml = `
+<html>
+<head>
+	<meta content="text/html; charset=utf-8"/>
+	<title>Success</title>
+	<script type="text/javascript">
+		try {
+			const token = '{{ template "sessonToken" }}';
+			console.log('setting session token: ' + token);
+			window.sessionStorage.setItem("auth-token", token);
+		} finally {
+			// window.location = '/badmars';
+		}
+	</script>
+</head>
+<body>
+	<p>Redirecting...</p>
+</body>
+</html>
+`
 
 func init() {
 	fmt.Println("handling configuration")
@@ -43,6 +65,7 @@ func registerHandlers() {
 
 	r.Methods("GET").Path("/").Handler(AppHandler(rootHandler))
 	r.Methods("POST").Path("/auth/register").Handler(AppHandler(registerHandler))
+	r.Methods("GET").Path("/auth/self").handler(AppHandler(selfHandler))
 	jsFs := http.FileServer(http.Dir("public/dashboard/js"))
 	cssFs := http.FileServer(http.Dir("public/dashboard/css"))
 	r.Methods("GET").PathPrefix("/js/").Handler(http.StripPrefix("/js", jsFs))
@@ -60,20 +83,47 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *AppError {
 	return nil
 }
 
+type loginRequest struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 func registerHandler(w http.ResponseWriter, r *http.Request) *AppError {
-	fmt.Println("got register call")
-	fmt.Println("Headers", r.Header)
-	inputResponse := r.Header["g-recaptcha-response"]
-	if inputResponse == nil {
+	var login loginRequest
+	err := json.NewDecoder(r.Body).Decode(&login)
+	if err != nil {
 		return &AppError{
-			Error:   nil,
-			Message: "Missing recaptcha response",
+			Error:   err,
+			Message: "failed to parse json",
 			Code:    400,
 		}
 	}
+
+	// TODO create session and pass it back
+	type sessionParams struct {
+		sessionToken string
+	}
+	t := template.New("Registration")
+	t = template.Must(t.Parse(sessionTokenHtml))
+
+	err = t.ExecuteTemplate(w, "Registration", &sessionParams{
+		sessionToken: "foobar",
+	})
+	if err != nil {
+		return &AppError{
+			Error:   err,
+			Message: "failed to generate registration redirect",
+			Code:    500,
+		}
+	}
+	return nil
+}
+
+func selfHandler(w http.ResponseWriter, r *http.Request) *AppError {
 	return &AppError{
 		Error:   nil,
-		Message: "Not Implemented",
+		Message: "not implemented",
 		Code:    500,
 	}
 }

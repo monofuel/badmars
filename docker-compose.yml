@@ -1,5 +1,18 @@
 version: '2'
 services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile-go
+    command: bash -c 'cd tests/ && go run ./*'
+    volumes:
+      - ./:/go/src/github.com/monofuel/badmars
+    links:
+      - proxy
+    environment:
+      - BADMARS_SERVER=proxy
+    depends_on:
+      - proxy
   proxy:
     image: nginx
     volumes:

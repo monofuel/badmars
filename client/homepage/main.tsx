@@ -43,7 +43,7 @@ window.onload = async ()  => {
 				<AppBar showMenuIconButton={false} title='Bad Mars'>
 					<div className='nav-bar'>
 						<Link className='nav-link' to='/'><FlatButton>Home</FlatButton></Link>
-						<Link className='nav-link' to='/login'><FlatButton>Sign up / Sign in</FlatButton></Link>
+						<Link className='nav-link' to='/login'><FlatButton>Sign in</FlatButton></Link>
 					</div>
 				</AppBar>
 				<Route exact path='/' component={Homepage} />
