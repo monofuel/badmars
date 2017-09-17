@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	bmdb "github.com/monofuel/badmars/server/go/rethink"
+	"github.com/monofuel/badmars/server/go/rethink/userdb"
 	. "github.com/monofuel/badmars/server/go/util"
 )
 
@@ -24,7 +25,7 @@ var sessionTokenHtml = `
 	<title>Success</title>
 	<script type="text/javascript">
 		try {
-			const token = '{{ template "sessonToken" }}';
+			const token = '{{ .SessionToken }}';
 			console.log('setting session token: ' + token);
 			window.sessionStorage.setItem("auth-token", token);
 		} finally {
@@ -65,7 +66,7 @@ func registerHandlers() {
 
 	r.Methods("GET").Path("/").Handler(AppHandler(rootHandler))
 	r.Methods("POST").Path("/auth/register").Handler(AppHandler(registerHandler))
-	r.Methods("GET").Path("/auth/self").handler(AppHandler(selfHandler))
+	r.Methods("GET").Path("/auth/self").Handler(AppHandler(selfHandler))
 	jsFs := http.FileServer(http.Dir("public/dashboard/js"))
 	cssFs := http.FileServer(http.Dir("public/dashboard/css"))
 	r.Methods("GET").PathPrefix("/js/").Handler(http.StripPrefix("/js", jsFs))
@@ -100,15 +101,17 @@ func registerHandler(w http.ResponseWriter, r *http.Request) *AppError {
 		}
 	}
 
+	userdb.Create(&userdb.User{})
+
 	// TODO create session and pass it back
 	type sessionParams struct {
-		sessionToken string
+		SessionToken string
 	}
 	t := template.New("Registration")
 	t = template.Must(t.Parse(sessionTokenHtml))
 
 	err = t.ExecuteTemplate(w, "Registration", &sessionParams{
-		sessionToken: "foobar",
+		SessionToken: "foobar",
 	})
 	if err != nil {
 		return &AppError{
