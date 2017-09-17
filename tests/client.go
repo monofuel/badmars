@@ -21,6 +21,7 @@ type BMClient struct {
 type User struct {
 	UUID     string `json:"uuid"`
 	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
 func NewClient(hostname string) *BMClient {
@@ -60,14 +61,9 @@ func (c *BMClient) Register(username string, email string, password string) (*Us
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse response")
 	}
-	fmt.Println(string(buff))
-
-	// match token in response
-	// ^\s*const\s*token\s*=\s*\"(.*)\"\s*;$
 
 	re := regexp.MustCompile(`(?m:^\s*const\s*token\s*=\s*\'(.*)\'\s*;$)`)
 	res := re.FindAllStringSubmatch(string(buff), -1)
-	fmt.Printf("found %v", res)
 	if len(res) != 1 || len(res[0]) != 2 {
 		return nil, fmt.Errorf("failed to find session token in response")
 	}
@@ -85,6 +81,9 @@ func (c *BMClient) Register(username string, email string, password string) (*Us
 	if err != nil {
 		return nil, errors.Wrap(err, "self response failed")
 	}
+	if selfResp.StatusCode != 200 {
+		return nil, fmt.Errorf("bad status code for self: %v\n", selfResp.StatusCode)
+	}
 
 	self := new(User)
 	selfBody, err := ioutil.ReadAll(selfResp.Body)
@@ -93,8 +92,8 @@ func (c *BMClient) Register(username string, email string, password string) (*Us
 	}
 	err = json.Unmarshal(selfBody, self)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal response")
+		return nil, errors.Wrap(err, "failed to unmarshal self response")
 	}
 
-	return nil, nil
+	return self, nil
 }

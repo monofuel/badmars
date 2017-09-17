@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	bmdb "github.com/monofuel/badmars/server/go/rethink"
+	"github.com/monofuel/badmars/server/go/rethink/sessiondb"
 	"github.com/monofuel/badmars/server/go/rethink/userdb"
 	. "github.com/monofuel/badmars/server/go/util"
 )
@@ -84,15 +85,15 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *AppError {
 	return nil
 }
 
-type loginRequest struct {
+type registerRequest struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) *AppError {
-	var login loginRequest
-	err := json.NewDecoder(r.Body).Decode(&login)
+	var register registerRequest
+	err := json.NewDecoder(r.Body).Decode(&register)
 	if err != nil {
 		return &AppError{
 			Error:   err,
@@ -101,7 +102,23 @@ func registerHandler(w http.ResponseWriter, r *http.Request) *AppError {
 		}
 	}
 
-	userdb.Create(&userdb.User{})
+	user, err := userdb.Create(register.Username, register.Email, register.Password)
+	if err != nil {
+		return &AppError{
+			Error:   err,
+			Message: "failed to create user",
+			Code:    500,
+		}
+	}
+
+	session, err := sessiondb.CreateBearer(user.UUID)
+	if err != nil {
+		return &AppError{
+			Error:   err,
+			Message: "failed to create session",
+			Code:    500,
+		}
+	}
 
 	// TODO create session and pass it back
 	type sessionParams struct {
@@ -111,7 +128,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) *AppError {
 	t = template.Must(t.Parse(sessionTokenHtml))
 
 	err = t.ExecuteTemplate(w, "Registration", &sessionParams{
-		SessionToken: "foobar",
+		SessionToken: session.Token,
 	})
 	if err != nil {
 		return &AppError{
@@ -123,10 +140,44 @@ func registerHandler(w http.ResponseWriter, r *http.Request) *AppError {
 	return nil
 }
 
+type selfResponse struct {
+	UUID     UUID   `json:"uuid"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
 func selfHandler(w http.ResponseWriter, r *http.Request) *AppError {
-	return &AppError{
-		Error:   nil,
-		Message: "not implemented",
-		Code:    500,
+	user, err := authUser(r)
+	if err != nil {
+		return &AppError{
+			Error:   err,
+			Message: "failed to authorize",
+			Code:    400,
+		}
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&selfResponse{
+		UUID:     user.UUID,
+		Username: user.Name,
+		Email:    user.Email,
+	})
+
+	if err != nil {
+		return &AppError{
+			Error:   err,
+			Message: "failed to encode response",
+			Code:    500,
+		}
+	}
+	return nil
+}
+
+func authUser(r *http.Request) (*userdb.User, error) {
+	token := UUID(r.Header.Get("session-token"))
+	if token == "" {
+		return nil, fmt.Errorf("missing session-token header")
+	}
+
+	return sessiondb.GetBearerUser(token)
 }

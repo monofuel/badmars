@@ -5,12 +5,14 @@ import (
 )
 
 type User struct {
-	UUID	UUID	`json:"uuid"`
-	Name string `json:"name"`
-	Color string `json:"color"` // deprecated
+	UUID   UUID   `json:"uuid"`
+	Name   string `json:"name"`
+	Email  string `json:"email"`
+	Color  string `json:"color"`  // deprecated
 	APIKey string `json:"apiKey"` // deprecated
 
 	Location string `json:"location"`
 
-	PasswordHash string `json:"password"`
+	PasswordHash []byte `json:"password"`
+	Salt         []byte `json:"salt"`
 }

@@ -9,9 +9,8 @@ const (
 	BEARER
 )
 
-
 type Session struct {
-	UUID	UUID	`json:"uuid"`
-	User	UUID `json:"user"`
-	Type int`json:"type"`
+	Token string `json:"token"`
+	User  UUID   `json:"user"`
+	Type  int    `json:"type"`
 }

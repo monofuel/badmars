@@ -23,7 +23,7 @@ export default class DBSession {
 	}
 
 	async setup(conn: r.Connection, logger: Logger): Promise<void> {
-		this.table = createTable(conn, logger, this.tableName, 'uuid');
-		await createIndex(this.conn, logger, this.table, 'user', true);
+		this.table = await createTable(conn, logger, this.tableName, 'token');
+		await createIndex(conn, logger, this.table, 'user', true);
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -74,6 +75,7 @@ func performRegistration(c *BMClient) error {
 		return fmt.Errorf("Wrong username. expected %s, got %s", username, user.Username)
 	}
 	fmt.Println("Registered!")
-	fmt.Printf("===\n%v\n===\n", user)
+	userStr, _ := json.Marshal(user)
+	fmt.Printf("===\n%v\n===\n", string(userStr))
 	return nil
 }
