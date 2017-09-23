@@ -39,7 +39,7 @@ export default {
 	authServer: process.env.BADMARS_AUTH_SERVER || 'localhost',
 	authDB: process.env.BADMARS_AUTH_DATABASE || 'japura',
 
-	wsServer: process.env.BADMARS_WS_SERVER || 'ws://shipyard.lan',
+	wsServer: process.env.BADMARS_WS_SERVER || '/net',
 
 	aiHost: process.env.AI_HOST || 'localhost',
 	aiPort: process.env.BM_AI_PORT || '3010',

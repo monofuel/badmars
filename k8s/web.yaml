@@ -71,5 +71,7 @@ spec:
           value: "chunk"
         - name: AI_HOST
           value: "ai"
+        - name: BADMARS_WS_SERVER
+          value: ":8000/net"
         - name: TRACKING_SERVER
           value: "http://andrelytics.mono"
