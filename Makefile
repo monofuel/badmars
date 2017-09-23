@@ -100,7 +100,7 @@ dockerBuildPrepare:
 	docker-compose -f docker-compose-build.yml build
 
 dockerBuild: dockerBuildPrepare
-	docker-compose -f docker-compose-build.yml run node-build make buildServer -j 4
+	docker-compose -f docker-compose-build.yml run node-build make buildServer
 
 dockerWatch: dockerBuildPrepare
 	 docker-compose -f docker-compose-build.yml run node-build make watchServer -j 10

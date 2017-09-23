@@ -33,6 +33,9 @@ for f in k8s/*.yaml; do sed -e "s/\$VERSION/$VERSION/g" $f | kubectl apply -f -;
 # kubectl exec  $(kubectl get po | grep nginx-deployment -m 1 | \
 # 	awk '{print $1;}') -- /bin/echo
 
+# wait for the old nginx pod to go down
+sleep 5s
+
 echo expose services
 kubectl port-forward \
 	$(kubectl get po | grep rethinkdb-deployment | \
