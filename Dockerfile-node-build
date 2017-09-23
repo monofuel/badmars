@@ -1,11 +1,13 @@
-FROM node:alpine
+FROM node:stretch
 
-RUN apk update
+# RUN apk update
 #install libc6-compat for grpc
-RUN apk add make
-RUN apk add libc6-compat
-RUN apk add inotify-tools
-RUN apk add bash
+# RUN apk add make
+# RUN apk add libc6-compat
+# RUN apk add inotify-tools
+# RUN apk add bash
+RUN apt-get update
+RUN apt-get install -y make bash
 RUN npm install -g browserify watchify flow-bin babel-watch babel-core node-gyp babel-cli
 
 RUN mkdir /badmars
