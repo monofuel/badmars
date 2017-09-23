@@ -6,8 +6,8 @@ metadata:
  name: chunk
 spec:
  ports:
-   - port: 3011
-     targetPort: 3011
+   - name: chunk
+     port: 3011
  selector:
    name: chunk
 ---
@@ -17,7 +17,7 @@ metadata:
   name: chunk-deployment
 spec:
   maxReplicas: 10
-  minReplicas: 2
+  minReplicas: 1
   scaleTargetRef:
     kind: Deployment
     name: chunk-deployment
@@ -35,7 +35,7 @@ spec:
         name: chunk
     spec:
       containers:
-      - image: king.mono:5000/badmars-1242/badmars_node:v$VERSION
+      - image: localhost:5000/badmars_node:v$VERSION
         name: chunk
         command: ["sh"]
         args: ["-c", "cd bin/server/nodejs && node chunk.js"]
@@ -58,17 +58,14 @@ spec:
         ports:
         - name: chunk
           containerPort: 3011
-          hostPort: 3011
         env:
+        - name: NODE_ENV
+          value: "prod"
         - name: BADMARS_DB
-          value: "rethinkdb.mono"
+          value: "rethinkdb"
         - name: MAP_HOST
           value: "chunk"
         - name: AI_HOST
           value: "ai"
-        - name: BADMARS_WS_SERVER
-          value: "wss://japura.net"
-        - name: BADMARS_WS_PUBLIC_PORT
-          value: "7006"
         - name: TRACKING_SERVER
           value: "http://andrelytics.mono"

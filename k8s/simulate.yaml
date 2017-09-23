@@ -10,7 +10,7 @@ spec:
         name: simulate
     spec:
       containers:
-      - image: king.mono:5000/badmars-1242/badmars_go:v$VERSION
+      - image: localhost:5000/badmars_go:v$VERSION
         name: simulate
         command: ["go"]
         args: ["run", "server/go/core/simulate/simulate.go"]
@@ -20,14 +20,10 @@ spec:
             memory: 20Mi
         env:
         - name: BADMARS_DB
-          value: "rethinkdb.mono"
+          value: "rethinkdb"
         - name: MAP_HOST
           value: "chunk"
         - name: AI_HOST
           value: "ai"
-        - name: BADMARS_WS_SERVER
-          value: "wss://japura.net"
-        - name: BADMARS_WS_PUBLIC_PORT
-          value: "7006"
         - name: TRACKING_SERVER
           value: "http://andrelytics.mono"

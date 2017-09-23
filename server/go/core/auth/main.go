@@ -158,3 +158,6 @@ func authUser(r *http.Request) (*userdb.User, error) {
 
 	return sessiondb.GetBearerUser(token)
 }
+
+// mailgun
+// curl -s --user "api:${MAILGUN_KEY}" "https://api.mailgun.net/v3/${MAILGUN_DOMAIN}/messages" -F from="Excited User <excited@${MAILGUN_DOMAIN}>" -F to='monofuel@japura.net' -F subject='Hello' -F text='Testing some Mailgun awesomeness!'

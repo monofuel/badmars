@@ -11,8 +11,6 @@ spec:
  ports:
    - name: net
      port: 7005
-     targetPort: 7005
-     nodePort: 30005
  selector:
    name: net
 ---
@@ -21,14 +19,14 @@ kind: Deployment
 metadata:
   name: net-deployment
 spec:
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
         name: net
     spec:
       containers:
-      - image: king.mono:5000/badmars-1242/badmars_node:v$VERSION
+      - image: localhost:5000/badmars_node:v$VERSION
         name: net
         command: ["sh"]
         args: ["-c", "cd bin/server/nodejs && node net.js"]
@@ -51,17 +49,14 @@ spec:
         ports:
         - name: net
           containerPort: 7005
-          hostPort: 7005
         env:
+        - name: NODE_ENV
+          value: "prod"
         - name: BADMARS_DB
-          value: "rethinkdb.mono"
+          value: "rethinkdb"
         - name: MAP_HOST
           value: "chunk"
         - name: AI_HOST
           value: "ai"
-        - name: BADMARS_WS_SERVER
-          value: "wss://japura.net"
-        - name: BADMARS_WS_PUBLIC_PORT
-          value: "7006"
         - name: TRACKING_SERVER
           value: "http://andrelytics.mono"

@@ -6,8 +6,8 @@ metadata:
  name: ai
 spec:
  ports:
-   - port: 3010
-     targetPort: 3010
+   - name: ai
+     port: 3010
  selector:
    name: ai
 ---
@@ -17,7 +17,7 @@ metadata:
   name: ai-deployment
 spec:
   maxReplicas: 10
-  minReplicas: 2
+  minReplicas: 1
   scaleTargetRef:
     kind: Deployment
     name: ai-deployment
@@ -35,7 +35,7 @@ spec:
         name: ai
     spec:
       containers:
-      - image: king.mono:5000/badmars-1242/badmars_node:v$VERSION
+      - image: localhost:5000/badmars_node:v$VERSION
         name: ai
         command: ["sh"]
         args: ["-c", "cd bin/server/nodejs && node ai.js"]
@@ -58,17 +58,14 @@ spec:
         ports:
         - name: ai
           containerPort: 3010
-          hostPort: 3010
         env:
+        - name: NODE_ENV
+          value: "prod"
         - name: BADMARS_DB
-          value: "rethinkdb.mono"
+          value: "rethinkdb"
         - name: MAP_HOST
           value: "chunk"
         - name: AI_HOST
           value: "ai"
-        - name: BADMARS_WS_SERVER
-          value: "wss://japura.net"
-        - name: BADMARS_WS_PUBLIC_PORT
-          value: "7006"
         - name: TRACKING_SERVER
           value: "http://andrelytics.mono"

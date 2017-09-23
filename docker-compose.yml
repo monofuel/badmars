@@ -14,7 +14,8 @@ services:
     depends_on:
       - proxy
   proxy:
-    image: nginx
+    build:
+      context: ./nginx
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     ports:
@@ -70,6 +71,8 @@ services:
     environment:
       - BADMARS_DB=rethink
       - TRACKING_SERVER=http://japura.net
+      - MAILGUN_KEY
+      - MAILGUN_DOMAIN
     depends_on:
       - schema
   chunk:

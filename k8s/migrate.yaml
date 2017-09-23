@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate-job
+spec:
+  template:
+    metadata:
+      name: migrate-job
+    spec:
+      restartPolicy: Never
+      containers:
+      - image: localhost:5000/badmars_node:v$VERSION
+        name: migrate-job
+        command: ["sh"]
+        args: ["-c", "cd bin/server/nodejs && node schema.js"]
+        env:
+        - name: NODE_ENV
+          value: "prod"
+        - name: BADMARS_DB
+          value: "rethinkdb"
+        - name: TRACKING_SERVER
+          value: "http://andrelytics.mono"

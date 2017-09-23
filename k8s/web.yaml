@@ -9,9 +9,9 @@ spec:
  selector:
   name: web
  ports:
-   - port: 3002
+   - name: web
+     port: 3002
      targetPort: 3002
-     nodePort: 30002
  selector:
    name: web
 ---
@@ -21,7 +21,7 @@ metadata:
   name: web-deployment
 spec:
   maxReplicas: 10
-  minReplicas: 2
+  minReplicas: 1
   scaleTargetRef:
     kind: Deployment
     name: web-deployment
@@ -39,7 +39,7 @@ spec:
         name: web
     spec:
       containers:
-      - image: king.mono:5000/badmars-1242/badmars_node:v$VERSION
+      - image: localhost:5000/badmars_node:v$VERSION
         name: web
         command: ["sh"]
         args: ["-c", "cd bin/server/nodejs && node web.js"]
@@ -62,17 +62,14 @@ spec:
         ports:
         - name: web
           containerPort: 3002
-          hostPort: 3002
         env:
+        - name: NODE_ENV
+          value: "prod"
         - name: BADMARS_DB
-          value: "rethinkdb.mono"
+          value: "rethinkdb"
         - name: MAP_HOST
           value: "chunk"
         - name: AI_HOST
           value: "ai"
-        - name: BADMARS_WS_SERVER
-          value: "wss://japura.net"
-        - name: BADMARS_WS_PUBLIC_PORT
-          value: "7006"
         - name: TRACKING_SERVER
           value: "http://andrelytics.mono"
