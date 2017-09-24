@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package ai;
+package services;
 
 message Entity {
 	string uuid = 1;

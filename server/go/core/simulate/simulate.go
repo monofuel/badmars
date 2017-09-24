@@ -15,13 +15,13 @@ import (
 	bmdb "github.com/monofuel/badmars/server/go/rethink"
 	"github.com/monofuel/badmars/server/go/rethink/planetdb"
 	"github.com/monofuel/badmars/server/go/rethink/unitdb"
-	"github.com/monofuel/badmars/server/go/service/ai"
+	"github.com/monofuel/badmars/server/go/services"
 	. "github.com/monofuel/badmars/server/go/util"
 )
 
 var aiHost string
 var aiPort string
-var aiSvc ai.AIClient
+var aiSvc services.AIClient
 
 var tps int
 
@@ -57,7 +57,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	aiSvc = ai.NewAIClient(conn)
+	aiSvc = services.NewAIClient(conn)
 	defer conn.Close()
 
 	fmt.Println("starting simulation service")
@@ -174,7 +174,7 @@ func tryNewTick(planet *planetdb.Planet) error {
 	for _, uuid := range *unprocessed {
 		//fire off unprocessed units to AI module
 		go func(uuid string) {
-			message := &ai.Entity{
+			message := &services.Entity{
 				uuid,
 				planet.Name,
 				int64(planet.LastTick),

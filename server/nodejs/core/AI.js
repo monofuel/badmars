@@ -14,7 +14,7 @@ import MonoContext from '../util/monoContext';
 import type Logger from '../util/logger';
 import type DB from '../db/db';
 
-const AI = grpc.load(__dirname + '/../../protos/ai.proto').ai;
+const services = grpc.load(__dirname + '/../../protos/ai.proto').services;
 
 export default class AIService {
 	db: DB;
@@ -31,7 +31,7 @@ export default class AIService {
 	async init(): Promise<void> {
 		const server = new grpc.Server();
 		const ctx = this.makeCtx();
-		server.addProtoService(AI.AI.service, {
+		server.addProtoService(services.AI.service, {
 			processUnit: (call: grpc.Call, callback: Function): Promise<void> =>
 				this.GRPCProcessUnit(ctx.create({ timeout: 1000 / env.ticksPerSec }), call, callback)
 		});

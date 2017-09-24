@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package chunk;
+package services;
 
 message ChunkLoc {
 	string mapName = 1;

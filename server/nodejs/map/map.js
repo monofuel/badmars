@@ -17,8 +17,8 @@ import Unit from '../unit/unit';
 import Client from '../net/client';
 import sleep from '../util/sleep';
 
-const chunkService = grpc.load(__dirname + '/../../protos/chunk.proto').chunk;
-const mapClient = new chunkService.Map(env.mapHost + ':' + env.mapPort, grpc.credentials.createInsecure());
+const services = grpc.load(__dirname + '/../../protos/chunk.proto').services;
+const mapClient = new services.Map(env.mapHost + ':' + env.mapPort, grpc.credentials.createInsecure());
 
 const defaultSettings = {
 	chunkSize: 16,

@@ -32,9 +32,9 @@ export default class PlanetService {
 	async init(): Promise<void> {
 
 		const server = new grpc.Server();
-		const chunkService = grpc.load(__dirname + '/../../protos/chunk.proto').chunk;
+		const services = grpc.load(__dirname + '/../../protos/chunk.proto').services;
 
-		server.addProtoService(chunkService.Map.service, {
+		server.addProtoService(services.Map.service, {
 			getChunk: (call: grpc.Call, callback: Function): any => this.getChunk(call, callback)
 		});
 

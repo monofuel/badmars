@@ -1,8 +1,6 @@
 
 grpc:
-	protoc -I server/protos server/protos/master.proto --go_out=plugins=grpc:server/go/service/master
-	protoc -I server/protos server/protos/chunk.proto --go_out=plugins=grpc:server/go/service/chunk
-	protoc -I server/protos server/protos/ai.proto --go_out=plugins=grpc:server/go/service/ai
+	protoc -I server/protos server/protos/* --go_out=plugins=grpc:server/go/services
 
 public/js/index.js:
 	 browserify  ./client/badmars/client.ts -p tsify --debug -o ./bin/public/badmars/js/badmars.js
@@ -28,10 +26,12 @@ nodeSetup:
 	yarn install
 
 goSetup:
-	cd server/go/core/simulate && go get
-	cd server/go/core/dashboard && go get
-	cd server/go/core/auth && go get
-	cd tests/ && go get
+	go get github.com/gorilla/mux
+	go get github.com/gorilla/handlers
+	go get github.com/pkg/errors
+	go get github.com/google/uuid
+	go get google.golang.org/grpc
+	go get gopkg.in/dancannon/gorethink.v2
 
 setup: goSetup nodeSetup
 

@@ -19,12 +19,15 @@ RUN export GOROOT=/goroot
 
 RUN go get github.com/codegangsta/gin
 
-ADD . /go/src/github.com/monofuel/badmars
-
+RUN mkdir -p /go/src/github.com/monofuel/badmars
+ADD ./Makefile /go/src/github.com/monofuel/badmars
 WORKDIR /go/src/github.com/monofuel/badmars
 
-RUN make grpc
 RUN make goSetup
+
+ADD . /go/src/github.com/monofuel/badmars
+
+RUN make grpc
 
 RUN go build -o bin/simulate server/go/core/simulate/simulate.go
 RUN go build -o bin/dashboard server/go/core/dashboard/dashboard.go
