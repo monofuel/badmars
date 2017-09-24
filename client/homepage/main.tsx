@@ -18,7 +18,7 @@ const palette = {
 	uiPrimary: '#1b3006',
 	uiSecondary: '#1b3006',
 	uiTertiary: '#D01F09',
-	fontColor: '#72b033',
+	fontColor: 'rgb(146, 222, 68)',
 	land: '#8DC05C',
 	water: '#265349',
 	cliff: '#142329',
@@ -75,6 +75,9 @@ class Homepage extends React.Component<{},{}> {
 							{
 								self && <a href='/badmars'><FlatButton>Play</FlatButton></a>
 							}
+							{
+								self && <FlatButton onClick={() => this.logout()}>Sign Out</FlatButton>
+							}
 						</div>
 					</AppBar>
 					<Route exact path='/' render={() => <Frontpage self={self}/>} />
@@ -83,6 +86,11 @@ class Homepage extends React.Component<{},{}> {
 			</MuiThemeProvider>
 		</BrowserRouter>
 		);
+	}
+
+	private async logout() {
+		window.sessionStorage.setItem('session-token', null);
+		this.setState({ self: null });
 	}
 
 	private async loadSelf(): Promise<void> {

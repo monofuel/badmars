@@ -155,7 +155,9 @@ services:
     depends_on:
       - schema
   client:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-node-build
     command: sh -c 'make watchClient'
     volumes:
       - ./:/badmars
