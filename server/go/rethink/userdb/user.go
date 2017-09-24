@@ -14,5 +14,4 @@ type User struct {
 	Location string `json:"location"`
 
 	PasswordHash []byte `json:"password"`
-	Salt         []byte `json:"salt"`
 }

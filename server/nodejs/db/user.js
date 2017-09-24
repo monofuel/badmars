@@ -27,6 +27,7 @@ export default class DBUser {
 	async setup(conn: r.Connection, logger: Logger): Promise<void> {
 		this.table = await createTable(conn, logger, this.tableName, 'uuid');
 		await createIndex(conn, logger, this.table, 'name');
+		await createIndex(conn, logger, this.table, 'email');
 	}
 
 	// TODO should use socketFilter sanitizeUser() instead

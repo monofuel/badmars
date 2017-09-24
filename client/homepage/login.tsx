@@ -5,31 +5,18 @@ import { Card, CardHeader, CardText } from 'material-ui/Card';
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
 import CircularProgress from 'material-ui/CircularProgress';
+import Signin from './auth/signin';
 
-declare const grecaptcha: any;
 
 export default class Login extends React.Component<{},{}> {
 	render() {
 		return (
 			<div className='pane-content'>
-				<Signin/>
+				<div style={{ flexDirection: 'row', display: 'flex' }}>
+					<div style={{ flex: 2 }}/> { /* padding to put other stuff into*/}
+					<Signin/>
+				</div>
 			</div>
 		);
 	}
 }
-
-class Signin extends React.Component<{},{}> {
-	render() {
-		return (
-		<Paper className='login-paper' zDepth={5}>
-			<Card>
-			<CardHeader title='Login'/>
-				<CardText>
-					<h1> another form goes here </h1>
-				</CardText>
-			</Card>
-		</Paper>
-		);
-	}
-}
-

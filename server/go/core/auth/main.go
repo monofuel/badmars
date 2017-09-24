@@ -47,6 +47,7 @@ func registerHandlers() {
 
 	r.Methods("GET").Path("/").Handler(AppHandler(rootHandler))
 	r.Methods("POST").Path("/auth/register").Handler(AppHandler(registerHandler))
+	r.Methods("POST").Path("/auth/login").Handler(AppHandler(loginHandler))
 	r.Methods("GET").Path("/auth/self").Handler(AppHandler(selfHandler))
 	jsFs := http.FileServer(http.Dir("public/dashboard/js"))
 	cssFs := http.FileServer(http.Dir("public/dashboard/css"))
@@ -112,6 +113,58 @@ func registerHandler(w http.ResponseWriter, r *http.Request) *AppError {
 		return &AppError{
 			Error:   err,
 			Message: "failed to encode register response",
+			Code:    500,
+		}
+	}
+	return nil
+}
+
+type loginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) *AppError {
+	var login loginRequest
+	err := json.NewDecoder(r.Body).Decode(&login)
+	if err != nil {
+		return &AppError{
+			Error:   err,
+			Message: "failed to parse json",
+			Code:    400,
+		}
+	}
+
+	user, err := userdb.Login(login.Email, login.Password)
+	if err != nil {
+		return &AppError{
+			Error:   err,
+			Message: "failed to authorize",
+			Code:    400,
+		}
+	}
+
+	session, err := sessiondb.CreateBearer(user.UUID)
+	if err != nil {
+		return &AppError{
+			Error:   err,
+			Message: "failed to create session",
+			Code:    500,
+		}
+	}
+
+	type loginResp struct {
+		SessionToken string `json:"sessionToken"`
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&loginResp{
+		SessionToken: session.Token,
+	})
+
+	if err != nil {
+		return &AppError{
+			Error:   err,
+			Message: "failed to encode login response",
 			Code:    500,
 		}
 	}

@@ -6,49 +6,36 @@ import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
 import CircularProgress from 'material-ui/CircularProgress';
 import axios from 'axios';
-interface RegistrationState {
+interface SigninState {
 	email?: string,
-	username?: string,
-	usernameError?: string,
 	emailError?: string,
 	password?: string,
-	verifiedPassword?: string,
 	passwordError?: string
 	submitting: boolean
 	submitError?: string
 }
 
-export default class Registration extends React.Component<{}, RegistrationState> {
-    state: RegistrationState = {
+export default class Signin extends React.Component<{}, SigninState> {
+    state: SigninState = {
 		submitting: false,
-		username: '',
 		email: '',
 		password: '',
 	};
 
 
 	render() {
-		const { username, usernameError, email, emailError, password, verifiedPassword, passwordError, submitting } = this.state;
+		const { email, emailError, password, passwordError, submitting } = this.state;
 		return (
 		<Paper className='login-paper' zDepth={5}>
 			{/* https://www.youtube.com/watch?v=gzU_4NNfmi4 */}
 			<Card>
-				<CardHeader title='Register'/>
+				<CardHeader title='Login'/>
 				<CardText>
 					<form
 						onSubmit={(e) => {
 							e.preventDefault();
 							this.submit();
 						}}>
-						<TextField
-							hintText="Racha"
-							hintStyle={{ color: '#666' }}
-							floatingLabelText="username"
-							floatingLabelStyle={{ color: '#666' }}
-							value={username}
-							errorText={usernameError}
-							onChange={(e, username) => this.setState({ username, usernameError: undefined })}/>
-						<br/>
 						<TextField
 							hintText='racha@japura.net'
 							hintStyle={{ color: '#666' }}
@@ -68,15 +55,6 @@ export default class Registration extends React.Component<{}, RegistrationState>
 							errorText={passwordError}
 							onChange={(e, password) => this.setState({ password, passwordError: undefined })}/>
 						<br/>
-						<TextField
-							hintText="**********"
-							hintStyle={{ color: '#666' }}
-							floatingLabelText="verify password"
-							floatingLabelStyle={{ color: '#666' }}
-							type="password"
-							value={verifiedPassword}
-							onChange={(e, verifiedPassword) => this.setState({ verifiedPassword })}/>
-						<br/>
 						<RaisedButton
 							label={submitting ? <CircularProgress size={30}/> : 'Submit' }
 							primary
@@ -93,22 +71,15 @@ export default class Registration extends React.Component<{}, RegistrationState>
 	@autobind
 	private async submit() {
 		console.log('SUBMITTING');
-		const { username, email, password, verifiedPassword } = this.state;
+		const { email, password } = this.state;
 
-		if (!username) {
-			this.setState({ usernameError: 'Missing username'});
-			return false;
-		}
 		// Yes, email regexes aren't perfect
 		// no, i do not care
 		if (!email || !email.match(/\S+@\S+\.\S+/)) {
 			this.setState({ emailError: 'Invalid Email'});
 			return false;
 		}
-		if (password != verifiedPassword) {
-			this.setState({ passwordError: 'verification password does not match' })
-			return false;
-		}
+
 		if (!password) {
 			this.setState({ passwordError: 'Missing Password'});
 			return false;
@@ -118,9 +89,14 @@ export default class Registration extends React.Component<{}, RegistrationState>
 			submitting: true,
 			submitError: null,
 		});
+
+		const resp = await axios.post('/auth/login', {
+			email, password
+		});
+
 		try {
-			const resp = await axios.post('/auth/register', {
-				username, email, password
+			const resp = await axios.post('/auth/login', {
+				email, password
 			});
 			const {
 				sessionToken
