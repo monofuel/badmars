@@ -1,0 +1,17 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "noImplicitAny": true,
+        "sourceMap": true,
+        "preserveConstEnums": true,
+        "experimentalDecorators": true,
+        "outDir": "../../bin/server/nodejs",
+        "jsx": "react"
+    },
+    "include": [
+        "../../ts-lib/*"
+    ]
+}

@@ -1,4 +1,4 @@
-/* @flow */
+
 import _ from 'lodash';
 
 export async function makeRequest(url: string, method: string, params: ?Object, body?: FormData): Promise<any> {

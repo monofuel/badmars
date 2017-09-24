@@ -46,50 +46,50 @@ prepareBin:
 buildServer: prepareBin buildChunk buildAI buildNet buildPathfinder buildValidator buildWeb buildSchema
 
 buildChunk: 
-	browserify ./server/nodejs/chunk.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/chunk.js --node --im --debug
+	browserify ./server/nodejs/chunk.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/chunk.js --node --im --debug
 
 buildAI: 
-	browserify ./server/nodejs/ai.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/ai.js --node --im --debug
+	browserify ./server/nodejs/ai.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/ai.js --node --im --debug
 
 buildNet: 
-	browserify ./server/nodejs/net.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/net.js --node --im --debug
+	browserify ./server/nodejs/net.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/net.js --node --im --debug
 
 buildWeb:
-	browserify ./server/nodejs/web.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/web.js --node --im --debug
+	browserify ./server/nodejs/web.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/web.js --node --im --debug
 
 buildPathfinder: 
-	browserify ./server/nodejs/pathfinder.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/pathfinder.js --node --im --debug
+	browserify ./server/nodejs/pathfinder.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/pathfinder.js --node --im --debug
 
 buildValidator:
-	browserify ./server/nodejs/validator.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/validator.js --node --im --debug
+	browserify ./server/nodejs/validator.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/validator.js --node --im --debug
 
 buildSchema:
-	browserify ./server/nodejs/schema.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/schema.js --node --im --debug
+	browserify ./server/nodejs/schema.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/schema.js --node --im --debug
 
 # TODO build for go services
 
 watchServer: prepareBin watchChunk watchAI watchNet watchWeb watchPathfinder watchValidator watchWeb watchSchema
 
 watchChunk: 
-	watchify ./server/nodejs/chunk.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/chunk.js --node --im --debug -v
+	watchify ./server/nodejs/chunk.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/chunk.js --node --im --debug -v
 
 watchAI: 
-	watchify ./server/nodejs/ai.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/ai.js --node --im --debug -v
+	watchify ./server/nodejs/ai.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/ai.js --node --im --debug -v
 
 watchNet: 
-	watchify ./server/nodejs/net.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/net.js --node --im --debug -v
+	watchify ./server/nodejs/net.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/net.js --node --im --debug -v
 
 watchWeb: 
-	watchify ./server/nodejs/web.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/web.js --node --im --debug -v
+	watchify ./server/nodejs/web.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/web.js --node --im --debug -v
 
 watchPathfinder: 
-	watchify ./server/nodejs/pathfinder.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/pathfinder.js --node --im --debug -v
+	watchify ./server/nodejs/pathfinder.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/pathfinder.js --node --im --debug -v
 
 watchValidator: 
-	watchify ./server/nodejs/validator.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/validator.js --node --im --debug -v
+	watchify ./server/nodejs/validator.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/validator.js --node --im --debug -v
 
 watchSchema: 
-	watchify ./server/nodejs/schema.js -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/schema.js --node --im --debug -v
+	watchify ./server/nodejs/schema.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/schema.js --node --im --debug -v
 
 # TODO add watch for go services
 
