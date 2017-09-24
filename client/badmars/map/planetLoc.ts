@@ -175,8 +175,30 @@ export class PlanetLoc {
 		return new PlanetLoc(this.planet, this.real_x, this.real_y + 1);
 	}
 
-	getVec(): THREE.Vector3 {
+	// Get the 3D location in the game world
+	public getVec(): THREE.Vector3 {
 		return new THREE.Vector3(this.real_x, this.real_z, - this.real_y);
+	}
+
+	// Get the angle of the surface
+	public getEuler(): THREE.Euler {
+		const geom = new THREE.Geometry();
+		geom.vertices.push(new THREE.Vector3(0, 0, this.corners[0]));
+		geom.vertices.push(new THREE.Vector3(1, 0, this.corners[1]));
+		geom.vertices.push(new THREE.Vector3(0, 1, this.corners[2]));
+		geom.vertices.push(new THREE.Vector3(1, 1, this.corners[3]));
+
+		geom.faces.push(new THREE.Face3(0, 1, 2));
+		geom.faces.push(new THREE.Face3(1, 2, 3));
+		geom.computeFaceNormals();
+
+		const landVector1 = geom.faces[0].normal;
+		const landVector2 = geom.faces[1].normal;
+		let newVec = landVector1.clone();
+		newVec.add(landVector2);
+		newVec = newVec.divideScalar(2);
+
+		return (new THREE.Euler()).setFromVector3(newVec);
 	}
 
 	/**

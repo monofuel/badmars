@@ -55,7 +55,15 @@ export default class GroundUnit extends Entity {
 	updateNextMove(tile: PlanetLoc, time: number) {
 		this.nextTile = tile;
 		this.timeToMove = time;
-		this.mesh.lookAt(tile.getVec());
+		// I wish i knew what i was doing
+		const angle = tile.getEuler().toVector3().add(
+			new THREE.Vector3(-Math.PI / 2, 0,0)
+		);
+		const x = (this.loc.x - tile.x) * (Math.PI / 2);
+		const y = ((this.loc.y - tile.y) * Math.PI);
+		console.log(y);
+		angle.z = x + y;
+		this.mesh.setRotationFromEuler((new THREE.Euler()).setFromVector3(angle));
 	}
 
 	selection() {
