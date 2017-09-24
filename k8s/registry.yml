@@ -94,3 +94,4 @@ spec:
         ports:
         - name: registry
           containerPort: 80
+          hostPort: 5000
