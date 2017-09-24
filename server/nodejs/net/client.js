@@ -38,6 +38,7 @@ export default class Client {
 		this.auth = false;
 		this.handlers = {};
 		this.ctx = ctx;
+		this.user = this.ws.upgradeReq.user;
 		ctx.setMaxListeners(40);
 		this.loadedChunks = [];
 		this.handlers['login'] = require('./handler/auth').default;

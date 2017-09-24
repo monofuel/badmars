@@ -262,7 +262,6 @@ interface ChatEvent extends BaseEvent {
 
 export interface LoginEvent extends BaseEvent {
 	type: 'login';
-	apiKey?: string;
 }
 
 const LoginEventType = t.object({
@@ -320,10 +319,7 @@ interface SpawnRequest {
 
 interface LoginRequest {
 	type: 'login';
-	username: string;
-	apiKey?: string;
 	planet: string;
-	color?: string;
 }
 
 interface SetDestinationRequest {
@@ -461,7 +457,7 @@ export default class Net {
 	}
 
 	public async connect(): Promise<void> {
-		const ws_url = `ws://${window.location.hostname}${SERVER_URL}`;
+		const ws_url = `ws://${window.location.hostname}${SERVER_URL}?token=${this.state.token}`;
 		log('debug', `connecting to: ${ws_url}`);
 		this.ws = new WebSocket(ws_url);
 

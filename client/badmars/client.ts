@@ -42,6 +42,7 @@ declare const $: any;
 
 async function gameInit(): Promise<State> {
 	const state = new State();
+	await state.refreshSelf();
 	state.display = new Display(state);
 	state.net = new Net(state);
 	state.input = new Input(state);
@@ -53,14 +54,10 @@ async function gameInit(): Promise<State> {
 	state.net.connect();
 
 	ConnectedChange.once((event: ConnectedEvent) => {
-		if (state.username && state.apiKey) {
-			RequestChange.post({
-				type: 'login',
-				username: state.username,
-				apiKey: state.apiKey,
-				planet: 'testmap',
-			});
-		}
+		RequestChange.post({
+			type: 'login',
+			planet: 'testmap',
+		});
 	});
 	handleBalanceChanges(state);
 	handleModelChanges(state);
@@ -70,18 +67,16 @@ async function gameInit(): Promise<State> {
 
 window.onload = async (): Promise<void> => {
 	const state = await gameInit();
-	if (state.username && state.apiKey) {
-		RequestChange.post({
-			type: 'login',
-			username: state.username,
-			apiKey: state.apiKey,
-			planet: 'testmap'
-		});
-	} else {
-		// login window takes focus from the game
-		state.input.mouseMode = 'focus';
-		GameStageChange.post({ stage: 'login' });
-	}
+	RequestChange.post({
+		type: 'login',
+		planet: 'testmap'
+	});
+
+	// TODO planet selection page
+	/*
+	state.input.mouseMode = 'focus';
+	GameStageChange.post({ stage: 'login' });
+	*/
 };
 
 function attachGlobalListeners(state: State) {
@@ -97,15 +92,6 @@ function attachGlobalListeners(state: State) {
 
 	function loginListener(data: LoginEvent) {
 		if (data.success) {
-			if (data.apiKey) {
-				$.cookie('username', state.username, {
-					expires: 360
-				});
-				$.cookie('apiKey', data.apiKey, {
-					expires: 360
-				});
-				state.apiKey = data.apiKey;
-			}
 			RequestChange.post({
 				type: 'getMap'
 			});

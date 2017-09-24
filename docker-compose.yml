@@ -165,7 +165,9 @@ services:
     environment:
       - TRACKING_SERVER=http://japura.net
   homepage:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-node-build
     command: sh -c 'make watchHomepage'
     volumes:
       - ./:/badmars

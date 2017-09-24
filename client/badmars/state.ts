@@ -1,5 +1,6 @@
 // monofuel
 
+import axios from 'axios';
 import Player from './player';
 import * as _ from 'lodash';
 import Map from './map/map';
@@ -31,7 +32,7 @@ export default class State {
 
 	public username: string;
 	public playerInfo: Player;
-	public apiKey: string;
+	public token: string;
 	public loggedIn: boolean;
 
 	public map: Map;
@@ -54,8 +55,6 @@ export default class State {
 		this.moonColor = 0x9AA09A;
 
 		this.focused = 'game';
-		this.username = $.cookie('username');
-		this.apiKey = $.cookie('apiKey');
 		this.loggedIn = false;
 
 		this.stage = 'login';
@@ -84,7 +83,26 @@ export default class State {
 				}
 			}
 		});
+	}
 
+	public async refreshSelf() {
+		const token: string = window.sessionStorage.getItem('session-token');
+		if (!token) {
+			console.error('missing session token');
+			(window as any).location = '/login';
+			return;
+		}
+		this.token = token;
+		const resp = await axios.get('/auth/self', {
+			headers: {
+				'Authorization': `Bearer ${token}`
+			}
+		})
+		if (resp.status !== 200) {
+			throw new Error("bad response for self")
+		}
+		this.playerInfo = new Player(resp.data.uuid, resp.data.name, resp.data.color);
+		this.username = resp.data.name; // TODO remove this
 	}
 
 	public getPlayerByName(username: string): Player | null {

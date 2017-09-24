@@ -112,6 +112,12 @@ export default class DB {
 			throw new WrappedError(err, 'failed to initialize user table');
 		}
 
+		try {
+			await this.session.init(this.conn);
+		} catch (err) {
+			throw new WrappedError(err, 'failed to initialize session table');
+		}
+
 		const mapNames = await this.map.listNames();
 
 		const chunkPromises = [];

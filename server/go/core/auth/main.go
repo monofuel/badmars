@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -151,11 +152,16 @@ func selfHandler(w http.ResponseWriter, r *http.Request) *AppError {
 }
 
 func authUser(r *http.Request) (*userdb.User, error) {
-	token := UUID(r.Header.Get("session-token"))
-	if token == "" {
-		return nil, fmt.Errorf("missing session-token header")
+	bearer := r.Header.Get("Authorization")
+	if bearer == "" {
+		return nil, fmt.Errorf("missing Authorization header")
 	}
 
+	split := strings.Split(bearer, " ")
+	if len(split) != 2 {
+		return nil, fmt.Errorf("missing bearer token")
+	}
+	token := UUID(split[1])
 	return sessiondb.GetBearerUser(token)
 }
 

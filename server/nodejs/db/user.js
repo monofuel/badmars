@@ -5,7 +5,8 @@
 //	Licensed under included modified BSD license
 
 import r from 'rethinkdb';
-import {createTable, createIndex} from './helper';
+import { DetailedError } from '../util/logger';
+import {createTable, createIndex, startDBCall } from './helper';
 import User from '../user/user';
 import type Logger from '../util/logger';
 
@@ -43,6 +44,17 @@ export default class DBUser {
 		return sanitized;
 	}
 
+	async getUserByUUID(ctx: MonoContext, uuid: UUID): Promise<User> {
+		const call = await startDBCall(ctx, 'getUserByUUID');
+		const doc = await this.table.get(uuid).run(this.conn);
+		if (!doc) {
+			throw new DetailedError('user not found', { uuid });
+		}
+		const user = new User();
+		user.clone(doc);
+		await call.end();
+		return user;
+	}
 
 	async getUser(name: string): Promise<User> {
 		// TODO refactor this

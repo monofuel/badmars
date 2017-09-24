@@ -12,6 +12,7 @@ interface RegistrationState {
 	usernameError?: string,
 	emailError?: string,
 	password?: string,
+	verifiedPassword?: string,
 	passwordError?: string
 	submitting: boolean
 	submitError?: string
@@ -27,7 +28,7 @@ export default class Registration extends React.Component<{}, RegistrationState>
 
 
 	render() {
-		const { username, usernameError, email, emailError, password, passwordError, submitting } = this.state;
+		const { username, usernameError, email, emailError, password, verifiedPassword, passwordError, submitting } = this.state;
 		return (
 		<Paper className='login-paper' zDepth={5}>
 			{/* https://www.youtube.com/watch?v=gzU_4NNfmi4 */}
@@ -35,7 +36,10 @@ export default class Registration extends React.Component<{}, RegistrationState>
 				<CardHeader title='Register'/>
 				<CardText>
 					<form
-						onSubmit={this.submit}>
+						onSubmit={(e) => {
+							e.preventDefault();
+							this.submit();
+						}}>
 						<TextField
 							hintText="Racha"
 							hintStyle={{ color: '#666' }}
@@ -64,7 +68,15 @@ export default class Registration extends React.Component<{}, RegistrationState>
 							errorText={passwordError}
 							onChange={(e, password) => this.setState({ password, passwordError: undefined })}/>
 						<br/>
-						<div id='recaptcha' style={{ margin: '10px' }} />
+						<TextField
+							hintText="**********"
+							hintStyle={{ color: '#666' }}
+							floatingLabelText="verify password"
+							floatingLabelStyle={{ color: '#666' }}
+							type="password"
+							value={verifiedPassword}
+							onChange={(e, verifiedPassword) => this.setState({ verifiedPassword })}/>
+						<br/>
 						<br/>
 						<RaisedButton
 							label={submitting ? <CircularProgress size={30}/> : 'Submit' }
@@ -83,7 +95,7 @@ export default class Registration extends React.Component<{}, RegistrationState>
 	@autobind
 	private async submit() {
 		console.log('SUBMITTING');
-		const { username, email, password } = this.state;
+		const { username, email, password, verifiedPassword } = this.state;
 
 		if (!username) {
 			this.setState({ usernameError: 'Missing username'});
@@ -93,6 +105,10 @@ export default class Registration extends React.Component<{}, RegistrationState>
 		// no, i do not care
 		if (!email || !email.match(/\S+@\S+\.\S+/)) {
 			this.setState({ emailError: 'Invalid Email'});
+			return false;
+		}
+		if (password != verifiedPassword) {
+			this.setState({ passwordError: 'verification password does not match' })
 			return false;
 		}
 		if (!password) {

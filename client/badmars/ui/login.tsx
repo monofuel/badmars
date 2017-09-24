@@ -26,9 +26,7 @@ export default class LoginModal extends React.Component<{}, {}> {
 
 		RequestChange.post({
 			type: 'login',
-			username,
 			planet: 'testmap',
-			color,
 		})
 	}
 

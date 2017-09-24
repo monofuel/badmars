@@ -6,7 +6,11 @@
 
 import r from 'rethinkdb';
 import type Logger from '../util/logger';
-import { createTable, createIndex } from './helper';
+import { DetailedError } from '../util/logger';
+import MonoContext from '../util/monoContext';
+import { createTable, createIndex, startDBCall } from './helper';
+import type User from '../user/user';
+import Session from '../user/session';
 
 export default class DBSession {
 	conn: r.Connection;
@@ -26,4 +30,19 @@ export default class DBSession {
 		this.table = await createTable(conn, logger, this.tableName, 'token');
 		await createIndex(conn, logger, this.table, 'user', true);
 	}
+
+	async getBearerUser(ctx: MonoContext, token: string): Promise<User> {
+		const { db } = ctx;
+		const call = await startDBCall(ctx,'getBearerUser');
+		const doc = await this.table.get(token).run(this.conn);
+		if (!doc) {
+			throw new DetailedError('session not found', { token });
+		}
+		const session = new Session();
+		session.clone(doc);
+
+		const user = await db.user.getUserByUUID(ctx, session.user);
+		await call.end();
+		return user;
+	} 
 }

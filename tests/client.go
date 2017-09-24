@@ -78,7 +78,7 @@ func (c *BMClient) Register(username string, email string, password string) (*Us
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to prepare self request")
 	}
-	selfReq.Header.Set("session-token", token)
+	selfReq.Header.Set("Authorization", "Bearer "+token)
 
 	selfResp, err := c.http.Do(selfReq)
 	if err != nil {
