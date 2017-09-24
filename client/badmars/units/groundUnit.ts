@@ -61,7 +61,6 @@ export default class GroundUnit extends Entity {
 		);
 		const x = (this.loc.x - tile.x) * (Math.PI / 2);
 		const y = ((this.loc.y - tile.y) * Math.PI);
-		console.log(y);
 		angle.z = x + y;
 		this.mesh.setRotationFromEuler((new THREE.Euler()).setFromVector3(angle));
 	}
