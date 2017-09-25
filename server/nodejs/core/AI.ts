@@ -14,7 +14,7 @@ import Context from '../util/context';
 import Logger from '../util/logger';
 import DB from '../db/db';
 
-const services = grpc.load(__dirname + '/../../protos/ai.proto').services;
+const services = grpc.load(__dirname + '/../../../protos/ai.proto').services;
 
 export default class AIService {
 	db: DB;

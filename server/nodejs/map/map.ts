@@ -24,7 +24,7 @@ type UnitMap = {
 	[key: string]: Unit
 }
 
-const services = grpc.load(__dirname + '/../../protos/chunk.proto').services;
+const services = grpc.load(__dirname + '/../../../protos/chunk.proto').services;
 const mapClient = new services.Map(env.mapHost + ':' + env.mapPort, grpc.credentials.createInsecure());
 
 const defaultSettings = {
