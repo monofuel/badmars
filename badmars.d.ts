@@ -1,7 +1,3 @@
-import Unit from './unit/unit';
-import Client from './net/client';
-import Context from './util/context';
-
 type UUID = string;
 type TileHash = string;
 type ChunkHash = string;
@@ -24,12 +20,12 @@ type ChunkProto = {
 	navGrid: Array<Object>;
 }
 
+/*
 type NetHandler = (ctx: Context, client: Client, data: Object) => Promise<void>;
-
-
 type UnitMap = {
 	[key: string]: Unit
 }
+*/
 
 type FactoryOrder = {
 	type: UnitType,

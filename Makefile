@@ -1,18 +1,21 @@
 
+build: buildServer buildClient buildHomepage
+
 grpc:
 	protoc -I server/protos server/protos/* --go_out=plugins=grpc:server/go/services
 
-public/js/index.js:
-	 browserify  ./client/badmars/client.ts -p tsify --debug -o ./bin/public/badmars/js/badmars.js
+buildClient:
+	cd ./client/badmars/ && webpack --debug
 
 watchClient:
-	 watchify ./client/badmars/client.ts -p tsify -v --debug -o ./bin/public/badmars/js/badmars.js
+	cd ./client/badmars/ && webpack --debug -w
+
+buildHomepage:
+	cd ./client/homepage/ && webpack --debug
 
 watchHomepage:
-	 watchify ./client/homepage/main.tsx -p tsify -v --debug -o ./bin/public/badmars/js/homepage.js
+	cd ./client/homepage/ && webpack --debug -w
 
-watchDashboard:
-	 watchify ./client/dashboard/index.jsx -t babelify -p tsify -p livereactload --debug -o ./bin/public/dashboard/js/index.js
 
 check:
 	go vet .
@@ -43,64 +46,28 @@ prepareBin:
 	cp -r server/nodejs/web/views bin/server/nodejs/web/
 	cp -r ./public bin/
 
-buildServer: prepareBin buildChunk buildAI buildNet buildPathfinder buildValidator buildWeb buildSchema
+buildServer: prepareBin buildNode
 
-buildChunk: 
-	browserify ./server/nodejs/chunk.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/chunk.js --node --im --debug
-
-buildAI: 
-	browserify ./server/nodejs/ai.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/ai.js --node --im --debug
-
-buildNet: 
-	browserify ./server/nodejs/net.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/net.js --node --im --debug
-
-buildWeb:
-	browserify ./server/nodejs/web.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/web.js --node --im --debug
-
-buildPathfinder: 
-	browserify ./server/nodejs/pathfinder.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/pathfinder.js --node --im --debug
-
-buildValidator:
-	browserify ./server/nodejs/validator.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/validator.js --node --im --debug
-
-buildSchema:
-	browserify ./server/nodejs/schema.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/schema.js --node --im --debug
+buildNode:
+	cd ./server/nodejs/ && ../../node_modules/typescript/bin/tsc
 
 # TODO build for go services
 
-watchServer: prepareBin watchChunk watchAI watchNet watchWeb watchPathfinder watchValidator watchWeb watchSchema
+watchServer: prepareBin watchNode
 
-watchChunk: 
-	watchify ./server/nodejs/chunk.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/chunk.js --node --im --debug -v
-
-watchAI: 
-	watchify ./server/nodejs/ai.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/ai.js --node --im --debug -v
-
-watchNet: 
-	watchify ./server/nodejs/net.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/net.js --node --im --debug -v
-
-watchWeb: 
-	watchify ./server/nodejs/web.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/web.js --node --im --debug -v
-
-watchPathfinder: 
-	watchify ./server/nodejs/pathfinder.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/pathfinder.js --node --im --debug -v
-
-watchValidator: 
-	watchify ./server/nodejs/validator.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/validator.js --node --im --debug -v
-
-watchSchema: 
-	watchify ./server/nodejs/schema.ts -t babelify -p tsify -p mapstraction -o ./bin/server/nodejs/schema.js --node --im --debug -v
+watchNode:
+	cd ./server/nodejs/ && ../../node_modules/typescript/bin/tsc -w
 
 # TODO add watch for go services
 
 #--------------------------------------------
-#commands that use docker
+# commands that use docker
 
 dockerBuildPrepare:
 	docker-compose -f docker-compose-build.yml build
 
 dockerBuild: dockerBuildPrepare
-	docker-compose -f docker-compose-build.yml run node-build make buildServer -j 4
+	docker-compose -f docker-compose-build.yml run node-build make buildServer
 
 dockerWatch: dockerBuildPrepare
-	 docker-compose -f docker-compose-build.yml run node-build make watchServer -j 10
+	 docker-compose -f docker-compose-build.yml run node-build make watchServer

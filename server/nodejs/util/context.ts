@@ -26,10 +26,11 @@ export default class Context {
 		this.db = db;
 		this.logger = logger;
 		this.start = new Date();
-
-		this.timeoutInterval = setTimeout(() => {
-			this.canceled = true;
-		}, opts.timeout * 1000);
+		if (opts.timeout) {
+			this.timeoutInterval = setTimeout(() => {
+				this.canceled = true;
+			}, opts.timeout * 1000);
+		}
 
 	}
 

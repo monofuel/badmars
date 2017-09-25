@@ -1,5 +1,4 @@
 {
-    "compileOnSave": true,
     "compilerOptions": {
         "target": "es2017",
         "module": "commonjs",
@@ -8,11 +7,10 @@
         "sourceMap": true,
         "preserveConstEnums": true,
         "experimentalDecorators": true,
-        "outDir": "../../bin/server/nodejs",
         "jsx": "react"
     },
     "include": [
-        "./*",
-        "../../badmars.d.ts"
+        "../../badmars.d.ts",
+        "./*"
     ]
 }

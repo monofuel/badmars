@@ -34,7 +34,7 @@ export default class WebService {
 
 		app.set('view engine', 'ejs');
 		app.set('trust proxy', true); //for accurate logs running behind a proxy
-		app.use(express.static(path.join(__dirname, '../../../bin/public/badmars')));
+		app.use(express.static(path.join(__dirname, '../../../public/badmars/')));
 		app.set('views', path.join(__dirname,'../web/views'));
 
 		mainRoute(ctx.create(), app);

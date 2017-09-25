@@ -34,7 +34,7 @@ const muiTheme = getMuiTheme({
 		borderColor: palette.fontColor,
 	}
 })
-
+console.log('adding onload');
 window.onload = async ()  => {
 	injectTapEventPlugin();
 	ReactDOM.render(<Homepage/>, document.getElementById('content'));

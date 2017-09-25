@@ -41,22 +41,6 @@ services:
       - TRACKING_SERVER=http://japura.net
     depends_on:
       - schema
-  dashboard:
-    build:
-      context: .
-      dockerfile: Dockerfile-go
-    command: go run server/go/core/dashboard/dashboard.go
-    volumes:
-      - ./:/go/src/github.com/monofuel/badmars
-    links:
-      - rethink
-    ports:
-      - '8090:8090'
-    environment:
-      - BADMARS_DB=rethink
-      - TRACKING_SERVER=http://japura.net
-    depends_on:
-      - schema
   auth:
     build:
       context: .

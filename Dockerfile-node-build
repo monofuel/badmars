@@ -8,13 +8,14 @@ FROM node:stretch
 # RUN apk add bash
 RUN apt-get update
 RUN apt-get install -y make bash
-RUN npm install -g browserify watchify flow-bin babel-watch babel-core node-gyp babel-cli
+RUN npm install -g webpack
 
 RUN mkdir /badmars
 ADD ./package.json badmars/
 WORKDIR /badmars
 
-RUN yarn install
+# yarn does not set up types correctly
+RUN npm install
 
 ADD . /badmars
 
