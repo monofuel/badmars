@@ -7,7 +7,7 @@
 import Client from '../client';
 import Map from '../../map/map';
 import { checkContext} from '../../util/logger';
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 
 function mountUserHandlers(client: Client) {
 	client.handlers['getPlayers'] = require('./getPlayers').default;
@@ -31,7 +31,7 @@ function mountUserHandlers(client: Client) {
 
 
 // TODO refactor this code to use await
-export default async function auth(ctx: MonoContext, client: Client, data: Object): Promise<void> {
+export default async function auth(ctx: Context, client: Client, data: any): Promise<void> {
 	checkContext(ctx, 'auth');
 
 	if(!data.planet) { //TODO change from planet to map

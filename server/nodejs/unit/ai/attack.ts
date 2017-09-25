@@ -5,15 +5,15 @@
 //	Licensed under included modified BSD license
 
 import env from '../../config/env';
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 import { checkContext } from '../../util/logger';
 
 import Unit from '../unit';
 import Map from '../../map/map';
 
 export default class AttackAI {
-	enemy: ?Unit;
-	async actionable(ctx: MonoContext, unit: Unit, map: Map): Promise<boolean> {
+	enemy: null | Unit;
+	async actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
 		if (!unit.attack) {
 			return false;
 		}
@@ -25,7 +25,7 @@ export default class AttackAI {
 		return true;
 	}
 
-	async simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
+	async simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		checkContext(ctx, 'attack simulate');
 		//TODO allow force attacking a specific enemy
 		const enemy = this.enemy;
@@ -45,7 +45,7 @@ export default class AttackAI {
 		if(enemy && enemy.distance(unit) <= range) {
 			await unit.armFireCooldown(ctx);
 			await enemy.takeDamage(ctx, damage);
-			if(enemy.health === 0) {
+			if(enemy.details.health === 0) {
 				ctx.logger.info(ctx, 'gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
 				enemy.delete(ctx);
 				ctx.logger.info(ctx, 'gameEvent', { type: 'kill', unitId: enemy.uuid });

@@ -4,10 +4,10 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 import Client from '../client';
 
-export default async function transferResource(ctx: MonoContext, client: Client, data: Object): Promise<void> {
+export default async function transferResource(ctx: Context, client: Client, data: any): Promise<void> {
 	if(!data.source) {
 		return client.sendError(ctx, 'transferResource', 'missing source');
 	}

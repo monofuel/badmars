@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import r from 'rethinkdb';
+import * as r from 'rethinkdb';
 import {createTable} from './helper';
 import Logger from '../util/logger';
 import User from '../user/user';
@@ -24,7 +24,7 @@ export default class DBChat {
 	}
 
 	async setup(conn: r.Connection, logger: Logger): Promise<void> {
-		this.table = createTable(conn, logger, this.tableName);
+		this.table = await createTable(conn, logger, this.tableName);
 	}
 
 	async watchChat(func: Function): Promise<void> {

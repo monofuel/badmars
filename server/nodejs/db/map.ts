@@ -4,15 +4,15 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import r from 'rethinkdb';
+import * as r from 'rethinkdb';
 import { createTable, startDBCall, setupPlanet } from './helper';
 import Map from '../map/map';
 
 import Logger from '../util/logger';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 
 export default class DBMap {
-	mapCache: Object;
+	mapCache: any;
 	logger: Logger;
 	conn: r.Connection;
 	table: r.Table;
@@ -37,10 +37,10 @@ export default class DBMap {
 	}
 
 	async listNames(): Promise<Array<string>> {
-		return await this.table.getField('name').coerceTo('array').run(this.conn);
+		return await (this.table as any).getField('name').coerceTo('array').run(this.conn);
 	}
 
-	async getMap(ctx: MonoContext, name: string, opts?: Object): Promise<Map> {
+	async getMap(ctx: Context, name: string, opts?: any): Promise<Map> {
 		const { ignoreCache } = opts || { ignoreCache: false };
 		const call = await startDBCall(ctx,'getMap');
 		if(!ignoreCache && this.mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/ ) {
@@ -72,18 +72,18 @@ export default class DBMap {
 		});
 	}
 
-	async saveMap(map: Map): Promise<void> {
+	async saveMap(map: Map): Promise<any> {
 		return this.table.get(map.name).update(map).run(this.conn);
 	}
 	async createMap(map: Map): Promise<Object> {
 		return this.table.insert(map, { conflict: 'error' }).run(this.conn);
 	}
 
-	async updateMap(name: string, patch: Object): Promise<void> {
+	async updateMap(name: string, patch: Object): Promise<any> {
 		return await this.table.get(name).update(patch).run(this.conn);
 	}
 
-	async removeMap(name: string): Promise<void> {
+	async removeMap(name: string): Promise<any> {
 		return this.table.get(name).delete().run(this.conn);
 	}
 

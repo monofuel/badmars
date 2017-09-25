@@ -4,14 +4,14 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 import Unit from '../../unit/unit';
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 import Client from '../client';
 import { WrappedError } from '../../util/logger';
 
 import Map from '../../map/map';
 // https://www.youtube.com/watch?v=PK-tVTsSKpw
 
-export default async function createGhost(ctx: MonoContext, client: Client, data: Object): Promise<void> {
+export default async function createGhost(ctx: Context, client: Client, data: any): Promise<void> {
 	if(!data.unitType) {
 		return client.sendError(ctx, 'createGhost', 'no unit specified');
 	}
@@ -34,8 +34,8 @@ export default async function createGhost(ctx: MonoContext, client: Client, data
 
 		//wake up nearby ghost builders
 		const units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
-		for(const nearby: Unit of units) {
-			if(nearby.type === 'builder') {
+		for(const nearby of units) {
+			if(nearby.details.type === 'builder') {
 				nearby.update(ctx, { awake: true });
 			}
 		}

@@ -4,12 +4,14 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 import Client from '../client';
 import Unit from '../../unit/unit';
 import { sanitizeChunk, sanitizeUnit } from '../../util/socketFilter';
 
-export default async function handleSpawn(ctx: MonoContext, client: Client): Promise<void> {
+type ChunkHash = string;
+
+export default async function handleSpawn(ctx: Context, client: Client): Promise<void> {
 	let units: Array<Unit> = await ctx.db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
 	if(units.length > 0) {
 		client.sendError(ctx, 'spawn', 'already have units');

@@ -5,12 +5,12 @@
 //	Licensed under included modified BSD license
 
 import { sanitizeChunk, sanitizeUnit } from '../../util/socketFilter';
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 import Client from '../client';
 import Chunk from '../../map/chunk';
 import { checkContext } from '../../util/logger';
 
-export default async function getChunk(ctx: MonoContext, client: Client, data: Object): Promise<void> {
+export default async function getChunk(ctx: Context, client: Client, data: any): Promise<void> {
 	checkContext(ctx, 'getChunk');
 	const x = data.x || 0;
 	const y = data.y || 0;

@@ -9,7 +9,7 @@ const vorpal = require('vorpal')();
 
 import Logger from '../util/logger';
 import DB from '../db/db';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 
 export default class Commands {
 	db: DB;
@@ -31,8 +31,8 @@ export default class Commands {
 		}
 	}
 
-	makeCtx(timeout?: number): MonoContext {
-		return new MonoContext({ timeout }, this.db, this.logger);
+	makeCtx(timeout?: number): Context {
+		return new Context({ timeout }, this.db, this.logger);
 	}
 
 	registerCommands() {
@@ -54,33 +54,33 @@ export default class Commands {
 					return this.db.map.listNames();
 				}
 			})
-			.action((args: Object): Promise<void> => {
+			.action((args: any): Promise<void> => {
 				return this.db.map.removeMap(args.name).then(() => {
 					console.log('success');
 				});
 			});
 
 		vorpal.command('createMap <name>', 'create a new random map')
-			.action((args: Object): Promise<void> => {
+			.action((args: any): Promise<void> => {
 				return this.db.map.createRandomMap(args.name).then(() => {
 					console.log('created map ' + args.name);
 				});
 			});
 
 		vorpal.command('unpause <name>', 'unpause a map')
-			.action(async (args: Object): Promise<void> => {
+			.action(async (args: any): Promise<void> => {
 				const map = await this.db.map.getMap(ctx, args.name);
 				await map.setPaused(ctx, false);
 			});
 
 		vorpal.command('pause <name>', 'pause a map')
-			.action(async (args: Object): Promise<void> => {
+			.action(async (args: any): Promise<void> => {
 				const map = await this.db.map.getMap(ctx, args.name);
 				await map.setPaused(ctx, true);
 			});
 
 		vorpal.command('advanceTick <name>', 'advance the tick on a map')
-			.action(async (args: Object): Promise<void> => {
+			.action(async (args: any): Promise<void> => {
 				// TODO would be cool if this function watched for how long it took to simulate the next tick
 				const map = await this.db.map.getMap(ctx, args.name, { ignoreCache: true });
 				await map.advanceTick(ctx);
@@ -88,21 +88,21 @@ export default class Commands {
 		//==================================================================
 		// user methods
 		vorpal.command('createuser <name> [apikey]', 'create a user account with an api key')
-			.action((args: Object): Promise<void> => {
-				return this.db.user.createUser(args.name, '0xffffff').then(async (result: Object): Promise<any> => {
+			.action((args: any): Promise<void> => {
+				return this.db.user.createUser(args.name, '0xffffff').then(async (result: any): Promise<any> => {
 					if (result.inserted !== 1) {
 						throw new Error('failed to create user');
 					}
 					if (args.apikey) {
 						return this.db.user.updateUser(args.name, { apiKey: args.apikey });
 					}
-				}).then((result: Object) => {
+				}).then((result: any) => {
 					console.log(result);
 				});
 			});
 
 		vorpal.command('removeuser <name>', 'remove all accounts with a given name')
-			.action((args: Object): Promise<void> => {
+			.action((args: any): Promise<void> => {
 				return this.db.user.deleteUser(args.name);
 			});
 

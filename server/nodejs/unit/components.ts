@@ -4,6 +4,17 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
+type UnitType = string;
+type TileType = 'land' | 'cliff' | 'water' | 'coast' | 'unknown';
+type MovementLayer = 'ground' | 'air' | 'water';
+type TileHash = string;
+
+type FactoryOrder = {
+	type: UnitType,
+	cost: number,
+	remaining: number
+}
+
 export interface UnitDetails {
 	type: UnitType,
 	size: number,
@@ -36,11 +47,11 @@ export interface UnitMovable {
 	pathAttemptAttempts: number,
 	isPathing: boolean,
 	pathUpdate: number,
-	destination: ? TileHash,
-	transferGoal: ? {
-	uuid: string,
-		iron ?: number,
-		fuel ?: number,
+	destination: null | TileHash,
+	transferGoal: null | {
+		uuid: string,
+		iron?: number,
+		fuel?: number,
 	}
 }
 

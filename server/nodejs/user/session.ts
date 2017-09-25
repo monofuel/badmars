@@ -3,17 +3,18 @@
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
-import _ from 'lodash';
+import * as _ from 'lodash';
+type UUID = string;
 
 export default class Session {
 	token: string;
 	user: UUID;
 	type: number;
 
-	clone(other: Object) {
+	clone(other: any) {
 		for(const key in other) {
 			// $FlowFixMe: hiding this issue for now
-			this[key] = _.cloneDeep(other[key]);
+			(this as any)[key] = _.cloneDeep(other[key]);
 		}
 	}
 }

@@ -4,8 +4,8 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import _ from 'lodash';
-import MonoContext from '../../util/monoContext';
+import * as _ from 'lodash';
+import Context from '../../util/context';
 import { checkContext, WrappedError } from '../../util/logger';
 
 import PlanetLoc from '../../map/planetloc';
@@ -17,7 +17,7 @@ import { sendResource } from '../procedures';
 import { areUnitsAdjacent, getNearestAdjacentTile } from '../../map/tiles';
 
 
-export async function actionable(ctx: MonoContext, unit: Unit, map: Map): Promise<boolean> {
+export async function actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
 	if (!unit.movable) {
 		return false;
 	}
@@ -36,7 +36,7 @@ export async function actionable(ctx: MonoContext, unit: Unit, map: Map): Promis
 	return true;
 }
 
-export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
+export async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	checkContext(ctx, 'groundUnit simulate');
 
 	// flow sucks
@@ -74,7 +74,7 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 	}
 }
 
-async function performTransfer(ctx: MonoContext, src: Unit, dest: Unit): Promise<void> {
+async function performTransfer(ctx: Context, src: Unit, dest: Unit): Promise<void> {
 	if (src.movable && src.movable.transferGoal && src.movable.transferGoal.iron) {
 		await sendResource(ctx, 'iron', src.movable.transferGoal.iron, src, dest);
 	}
@@ -86,7 +86,7 @@ async function performTransfer(ctx: MonoContext, src: Unit, dest: Unit): Promise
 	await src.update(ctx, { movable: { transferGoal: null }});
 
 }
-async function advancePath(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
+async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	if(!unit.movable) {
 		return;
 	}

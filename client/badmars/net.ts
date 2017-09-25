@@ -11,12 +11,10 @@ import { AsyncEvent } from 'ts-events';
 import config from './config';
 const t = require('flow-runtime');
 
-// set by server as global values
-declare var SERVER_URL: string;
-declare var SERVER_PORT: number;
-
 // ------------------------------------------
 // server event types
+
+type UUID = string;
 
 type NetworkEvent = MapEvent |
 	ConnectedEvent |
@@ -457,7 +455,7 @@ export default class Net {
 	}
 
 	public async connect(): Promise<void> {
-		const ws_url = `ws://${window.location.hostname}${SERVER_URL}?token=${this.state.token}`;
+		const ws_url = `ws://${window.location.hostname}/net?token=${this.state.token}`;
 		log('debug', `connecting to: ${ws_url}`);
 		this.ws = new WebSocket(ws_url);
 

@@ -5,21 +5,21 @@
 //	Licensed under included modified BSD license
 
 import env from '../../config/env';
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 import { checkContext, DetailedError } from '../../util/logger';
 
 import PlanetLoc from '../../map/planetloc';
 import Unit from '../unit';
 import Map from '../../map/map';
 
-export async function actionable(ctx: MonoContext, unit: Unit, map: Map): Promise<boolean> {
+export async function actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
 	return Promise.resolve(
 		unit.details.type === 'mine' &&
 		!unit.details.ghosting
 	);
 }
 
-export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
+export async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	checkContext(ctx, 'mine simulate');
 	if(!unit.storage) {
 		return;
@@ -35,7 +35,7 @@ export async function simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<
 		const tile: PlanetLoc = await map.getLocFromHash(ctx, unit.location.hash[0]);
 		const unitsAtTile: Array<Unit> = await map.unitsTileCheck(ctx, tile);
 		//get the iron or oil at the location
-		let resource: ? Unit = null;
+		let resource: null | Unit = null;
 		for(const otherUnit of unitsAtTile) {
 			if(otherUnit.details.type === 'iron' || otherUnit.details.type === 'oil') {
 				resource = otherUnit;

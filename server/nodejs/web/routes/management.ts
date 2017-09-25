@@ -4,13 +4,13 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import express from 'express';
+import * as express from 'express';
 import { exec } from 'child_process';
 
 import { WrappedError } from '../../util/logger';
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 
-export default function route(ctx: MonoContext, app: express) {
+export default function route(ctx: Context, app: express.Application) {
 	app.get('/management/pull', (req: express.Request, res: express.Response) => {
 		ctx.logger.info(ctx, 'GET /management/pull', {}, { req });
 		exec('sh update.sh', (err: Error) => {

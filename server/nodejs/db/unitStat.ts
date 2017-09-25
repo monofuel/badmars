@@ -4,22 +4,22 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import _ from 'lodash';
-import r from 'rethinkdb';
-import fs from 'fs';
-import parseJson from 'parse-json';
+import * as _ from 'lodash';
+import * as r from 'rethinkdb';
+import * as fs from 'fs';
+const parseJson = require('parse-json');
 
 import UnitStat from '../unit/unitStat';
 import { createTable } from './helper';
 import { DetailedError, WrappedError } from '../util/logger';
 
 import Logger from '../util/logger';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 
 const UNIT_STAT_FILE = 'config/units.json';
 
-const unitsFromDatabase = [];
-const unitMap = {};
+const unitsFromDatabase: any = [];
+const unitMap: any = {};
 
 //load all default stats from file
 async function loadDefaults(): Promise<void> {
@@ -78,14 +78,14 @@ export default class DBUnitStat {
 
 	createTable(): Promise<void> {
 		const self = this;
-		return r.tableCreate(self.tableName, {
+		return (r as any).tableCreate(self.tableName, {
 			primaryKey: 'type'
 		}).run(self.conn);
 			// no indexes for this tables
 	}
 
 	// TODO type this properly
-	async getAll(ctx: MonoContext): Promise<Object> {
+	async getAll(ctx: Context): Promise<Object> {
 		//TODO zip units from server with units from file
 		//TODO live-update units from database
 		return unitMap;
@@ -96,7 +96,7 @@ export default class DBUnitStat {
 		return unitMap[type];
 	}
 
-	async put(ctx: MonoContext, stat: UnitStat): Promise<void> {
+	async put(ctx: Context, stat: UnitStat): Promise<void> {
 		const profile = ctx.logger.startProfile('saveUnitStat');
 		await this.table.get(stat.details.type).update(stat).run(this.conn);
 		ctx.logger.endProfile(profile);

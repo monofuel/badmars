@@ -5,10 +5,11 @@
 //	Licensed under included modified BSD license
 
 import { checkContext, WrappedError } from '../../util/logger';
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 import Client from '../client';
+import Unit from '../../unit/unit';
 
-export default async function setDestination(ctx: MonoContext, client: Client, data: Object): Promise<void> {
+export default async function setDestination(ctx: Context, client: Client, data: any): Promise<void> {
 	checkContext(ctx, 'setDestination');
 	if(!data.unitId) {
 		return client.sendError(ctx, 'setDestination', 'no unit specified');

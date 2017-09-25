@@ -4,42 +4,43 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import WebSocket from 'ws';
-import _ from 'lodash';
+import * as WebSocket from 'ws';
+import * as _ from 'lodash';
 
 import { DetailedError, WrappedError } from '../util/logger';
 import { sanitizeUnit, sanitizeUser } from '../util/socketFilter';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 import User from '../user/user';
 import Map from '../map/map';
 import * as jsonpatch from 'fast-json-patch';
 
 const KEEP_ALIVE = 5000;
 
+type NetHandler = (ctx: Context, client: Client, data: Object) => Promise<void>;
+type ChunkHash = string;
 type HandlerMapType = {
-	[string]: NetHandler
+	[key: string]: NetHandler
 };
 
 export default class Client {
 	ws: WebSocket;
 	auth: boolean;
 	handlers: HandlerMapType;
-	keepAlive: number;
+	keepAlive: NodeJS.Timer;
 	map: Map;
 	unitStatWatcher: any;
 	planet: Map;
 	user: User;
 	username: string;
-	ctx: MonoContext;
+	ctx: Context;
 	loadedChunks: ChunkHash[];
 
-	constructor(ctx: MonoContext, ws: WebSocket) {
+	constructor(ctx: Context, ws: WebSocket) {
 		this.ws = ws;
 		this.auth = false;
 		this.handlers = {};
 		this.ctx = ctx;
-		this.user = this.ws.upgradeReq.user;
-		ctx.setMaxListeners(40);
+		this.user = (this.ws as any).upgradeReq.user;
 		this.loadedChunks = [];
 		this.handlers['login'] = require('./handler/auth').default;
 
@@ -71,7 +72,7 @@ export default class Client {
 		}, KEEP_ALIVE);
 	}
 
-	send(type: string, data?: Object) {
+	send(type: string, data?: any) {
 		if(!this.ws) {
 			//logger.errorWithInfo('sending data on closed websocket', { type, data });
 			return;
@@ -87,7 +88,7 @@ export default class Client {
 		}
 	}
 
-	sendError(ctx: MonoContext, type: string, errMsg: string) {
+	sendError(ctx: Context, type: string, errMsg: string) {
 		ctx.logger.info(ctx, 'client error', { errMsg, type });
 		try {
 			this.ws.send(JSON.stringify({
@@ -114,9 +115,9 @@ export default class Client {
 		this.ws = null;
 	}
 
-	async handleFromClient(ctx: MonoContext, dataText: string): Promise<void> {
+	async handleFromClient(ctx: Context, dataText: string): Promise<void> {
 		//console.log('received' + data);
-		const data: Object = JSON.parse(dataText);
+		const data: any = JSON.parse(dataText);
 		if(!data.type || !this.handlers[data.type]) {
 			this.sendError(ctx, 'invalid', 'invalid request');
 			return;
@@ -152,7 +153,7 @@ export default class Client {
 	}
 
 	//TODO also handle player list updates
-	handleUnitUpdate(err: Error, delta: Object) {
+	handleUnitUpdate(err: Error, delta: any) {
 
 		if(!delta.new_val) {
 			if(delta.old_val) {
@@ -187,7 +188,7 @@ export default class Client {
 		}
 	}
 
-	handleUserUpdate(err: Error, delta: Object) {
+	handleUserUpdate(err: Error, delta: any) {
 		if (delta.new_val) {
 			// console.log('user delta', delta);
 			const newUser = sanitizeUser(delta.new_val);
@@ -195,7 +196,7 @@ export default class Client {
 		}
 	}
 
-	handleEvents(err: Error, data: Object) {
+	handleEvents(err: Error, data: any) {
 		if(err) {
 			this.ctx.logger.trackError(this.ctx, new WrappedError(err, 'client handle events'));
 			return;
@@ -229,7 +230,7 @@ export default class Client {
 		}
 	}
 
-	handleChat(err: Error, data: Object) {
+	handleChat(err: Error, data: any) {
 		if(err) {
 			this.ctx.logger.trackError(this.ctx, new WrappedError(err, 'chat handler error'));
 			return;

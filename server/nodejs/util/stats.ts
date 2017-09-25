@@ -13,6 +13,8 @@ type StatMapType = {
 let avgStats: StatMapType = {};
 let sumStats: StatMapType = {};
 
+type ProfileKey = string;
+
 type ProfileType = {
 	name: string,
 	key: ProfileKey,
@@ -21,20 +23,18 @@ type ProfileType = {
 	delta ?: number
 };
 
-test.foobar();
-
 const runningProfiles: {
-	[key: ProfileKey]: ProfileType
+	[key: string]: ProfileType
 } = {};
 let profileCount: {
 	[key: string]: number
 } = {};
 
-exports.init = (logger: Logger) => {
+export function init(logger: Logger) {
 	setInterval((): void => reportStats(logger), env.statReportRate * 60 * 1000);
 };
 
-exports.startProfile = (name: string): ProfileKey => {
+export function startProfile(name: string): ProfileKey {
 	const key: ProfileKey = name + Math.random();
 	runningProfiles[key] = {
 		name: name,
@@ -44,7 +44,7 @@ exports.startProfile = (name: string): ProfileKey => {
 
 	return key;
 };
-exports.endProfile = (key: ProfileKey, visible?: boolean) => {
+export function endProfile(key: ProfileKey, visible?: boolean) {
 
 	const profileRun: ProfileType = runningProfiles[key];
 	const name: string = profileRun.name;
@@ -63,17 +63,14 @@ exports.endProfile = (key: ProfileKey, visible?: boolean) => {
 	}
 };
 
-function addAverageStat(key: string, value: number) {
+export function addAverageStat(key: string, value: number) {
 	if(!avgStats[key]) {
 		avgStats[key] = [];
 	}
 	avgStats[key].push(value);
 }
 
-
-exports.addAverageStat = addAverageStat;
-
-exports.addSumStat = (key: string, value: number) => {
+export function addSumStat(key: string, value: number) {
 	if(!sumStats[key]) {
 		sumStats[key] = [];
 	}
@@ -82,8 +79,8 @@ exports.addSumStat = (key: string, value: number) => {
 
 
 function reportStats(logger: Logger) {
-	const stats: Object = {};
-	for(const key: string of Object.keys(avgStats)) {
+	const stats: any = {};
+	for(const key of Object.keys(avgStats)) {
 		const array: Array<number> = avgStats[key];
 		let avg: number = 0;
 		for(const i of array) {
@@ -93,7 +90,7 @@ function reportStats(logger: Logger) {
 		stats['avg-' + key] = avg;
 	}
 	avgStats = {};
-	for(const key: string of Object.keys(sumStats)) {
+	for(const key of Object.keys(sumStats)) {
 		const array: Array<number> = sumStats[key];
 		let avg: number = 0;
 		for(const i of array) {
@@ -103,7 +100,7 @@ function reportStats(logger: Logger) {
 	}
 	sumStats = {};
 
-	for(const key: string of Object.keys(profileCount)) {
+	for(const key of Object.keys(profileCount)) {
 		stats['executions-' + key] = profileCount[key];
 	}
 	profileCount = {};

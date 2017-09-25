@@ -4,10 +4,10 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 import Client from '../client';
 
-export default async function getUnitStats(ctx: MonoContext, client: Client): Promise<void> {
+export default async function getUnitStats(ctx: Context, client: Client): Promise<void> {
 	const units = await ctx.db.unitStats[client.planet.name].getAll(ctx);
 	client.send('unitStats', { units });
 

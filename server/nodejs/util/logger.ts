@@ -5,18 +5,18 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import os from 'os';
-import _ from 'lodash';
+import * as os from 'os';
+import * as _ from 'lodash';
 import env from '../config/env';
-import request from 'request';
-import stats from './stats';
-import MonoContext from './monoContext';
+import * as request from 'request';
+import * as stats from './stats';
+import Context from './context';
 
 //==================================================================
 // exported types
 
 export type DetailsType = {
-	[key: string]: number | string | boolean
+	[key: string]: any
 };
 
 //==================================================================
@@ -30,15 +30,18 @@ export class DetailedError extends Error {
 	}
 }
 
+function isDetailedError(err: any): err is DetailedError {
+	return !!err.details;
+} 
+
 export class WrappedError extends DetailedError {
 	constructor(err: Error | DetailedError, msg: string, details?: DetailsType) {
 		super(msg, details);
 		this.message = msg + ' caused by: ' + err.message;
 		this.stack = err.stack;
 
-		const detailed: DetailedError = (err: any);
-		if (detailed.details) {
-			this.details = Object.assign({}, detailed.details ? detailed.details : {}, details);
+		if (isDetailedError(err)) {
+			this.details = Object.assign({}, err.details, details);
 		}
 		
 	}
@@ -47,7 +50,7 @@ export class WrappedError extends DetailedError {
 //==================================================================
 // exported functions
 
-export function checkContext(ctx: MonoContext, msg: string) {
+export function checkContext(ctx: Context, msg: string) {
 	if (!ctx) {
 		throw new Error('missing context: ' + msg);
 	}
@@ -56,7 +59,7 @@ export function checkContext(ctx: MonoContext, msg: string) {
 		throw new Error('context missing db');
 	}
 
-	if (!ctx.cancelled) {
+	if (!ctx.canceled) {
 		return;
 	}
 	throw new Error('context cancelled: ' + msg);
@@ -90,7 +93,7 @@ export default class Logger {
 		this.trackError(null, wrapped);
 	}
 
-	info(ctx: ?MonoContext, info: string, body: Object = {}, opts: { silent?: boolean, req?: Object } = {}) {
+	info(ctx: Context, info: string, body: any = {}, opts: { silent?: boolean, req?: any } = {}) {
 		body.timestamp = Date.now();
 		this.track(ctx, info, body);
 		if ((opts.silent && this.logLevel !== 'DEBUG') || this.logLevel === 'SILENT') {
@@ -103,22 +106,21 @@ export default class Logger {
 		}
 	}
 
-	trackError(ctx: ?MonoContext, err: Error | WrappedError | DetailedError) {
-		const detailed: DetailedError = (err: any);
+	trackError(ctx: Context, err: Error | WrappedError | DetailedError) {
 		const body: any = Object.assign({
-			timestamp: err.timestamp || Date.now(),
+			timestamp: (err as any).timestamp || Date.now(),
 			stack: err.stack,
 			message: err.message
-		}, detailed.details);
+		}, isDetailedError(err) ? err.details : {});
 		console.error(`${this.moduleName}\tINFO\t${dateFormat(body.timestamp)}\t${body.message}`);
 		console.error(body.stack);
 		console.error(JSON.stringify(_.omit(body, ['stack']), null, 2));
 		this.track(ctx, 'error', body);
 	}
 
-	track(ctx: ?MonoContext, name: string, krgs: Object = {}) {
+	track(ctx: Context, name: string, krgs: Object = {}) {
 		
-		const kargs = Object.assign({}, krgs);
+		const kargs: any = Object.assign({}, krgs);
 		//delete null fields
 		for (const key of Object.keys(kargs)) {
 			if (kargs[key] == null) {
@@ -162,7 +164,7 @@ function dateFormat(dateTime: number): string {
 	return date.getMonth() + '/' + date.getDate() + ' ' + date.getHours() + ':' + date.getMinutes();
 }
 
-function verifyTrack(name: string, kargs: Object) {
+function verifyTrack(name: string, kargs: any) {
 	for (const key in kargs) {
 		if (typeof kargs[key] == 'object') {
 			console.log('invalid element ' + key + ' on ' + name);

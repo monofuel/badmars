@@ -6,6 +6,9 @@
 
 // tileTypes and tileCodes are consistent between frontend and backend
 
+type TileCode = 0 | 1 | 2 | 3;
+type TileType = 'land' | 'cliff' | 'water' | 'coast' | 'unknown';
+
 export const LAND = 0;
 export const CLIFF = 1;
 export const WATER = 2;

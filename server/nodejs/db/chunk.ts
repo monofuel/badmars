@@ -4,13 +4,17 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import r from 'rethinkdb';
+import * as r from 'rethinkdb';
 import { createTable, startDBCall } from './helper';
 import { checkContext, DetailedError } from '../util/logger';
 import Chunk from '../map/chunk';
 
 import Logger from '../util/logger';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
+
+type UUID = string;
+type TileHash = string;
+type ChunkHash = string;
 
 export default class DBChunk {
 	conn: r.Connection;
@@ -33,23 +37,17 @@ export default class DBChunk {
 
 	async each(func: Function): Promise<void> {
 		const cursor = await this.table.run(this.conn);
-		await cursor.each((err: Error, doc: Object) => {
+		await cursor.each((err: Error, doc: any) => {
 			if (err) {
 				throw err;
 			}
 			const chunk = new Chunk(this.mapName, doc.x, doc.y);
 			chunk.clone(doc);
 			func(chunk);
-		}).catch((err: Error) => {
-			//dumb rethinkdb bug
-			if (err.message === 'No more rows in the cursor.') {
-				return;
-			}
-			throw err;
-		});
+		})
 	}
 
-	async getChunk(ctx: MonoContext, x: number, y: number): Promise<?Chunk> {
+	async getChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
 		const call = await startDBCall(ctx,'getChunk');
 		const doc = await this.table.get(x + ':' + y).run(this.conn);
 		await call.end();
@@ -66,9 +64,9 @@ export default class DBChunk {
 	* since we currently assume the map does not change
 	* this is mainly used by chunk.refresh
 	*/
-	async getChunkUnits(ctx: MonoContext, x: number, y: number): Promise<Object> {
+	async getChunkUnits(ctx: Context, x: number, y: number): Promise<Object> {
 		const call = await startDBCall(ctx,'getChunkUnits');
-		const doc = await this.table.get(x + ':' + y).pluck(['airUnits', 'resources','units']).run(this.conn);
+		const doc = await this.table.get(x + ':' + y).pluck('airUnits', 'resources','units').run(this.conn);
 		await call.end();
 		if (!doc) {
 			throw new DetailedError('no chunk returned in getChunkUnits');
@@ -77,41 +75,42 @@ export default class DBChunk {
 	}
 
 	// only for single-tile units right now
-	async findChunkForUnit(ctx: MonoContext, uuid: UUID): Promise<ChunkHash> {
+	async findChunkForUnit(ctx: Context, uuid: UUID): Promise<ChunkHash> {
 		const call = await startDBCall(ctx,'getChunkUnits');
-		const doc = this.table.filter((chunk: any): any => {
+		const cursor = await this.table.filter((chunk: any): any => {
 			return chunk('units').values().contains(uuid);
-		}).pluck('hash');
+		}).pluck('hash').run(this.conn);
+		const docs = await cursor.toArray();
 		await call.end();
-		if (doc.length === 0) {
+		if (docs.length === 0) {
 			throw new DetailedError('unit not found on map', { uuid });
-		} else if (doc.length === 1) {
-			return doc[0].hash;
+		} else if (docs.length === 1) {
+			return docs[0].hash;
 		} else {
-			throw new DetailedError('unit found on multiple chunks', { uuid, docs: JSON.stringify(doc)});
+			throw new DetailedError('unit found on multiple chunks', { uuid, docs: JSON.stringify(docs)});
 		}
 	}
 
-	async update(ctx: MonoContext, hash: ChunkHash, patch: any): Promise<Object> {
+	async update(ctx: Context, hash: ChunkHash, patch: any): Promise<Object> {
 		const call = await startDBCall(ctx,'updateChunk');
 		const result = await this.table.get(hash).update(patch, { returnChanges: true }).run(this.conn);
 		await call.end();
 		return result;
 	}
 
-	async saveChunk(ctx: MonoContext, chunk: Chunk): Promise<void> {
+	async saveChunk(ctx: Context, chunk: Chunk): Promise<void> {
 		const call = await startDBCall(ctx,'saveChunk');
 		await this.table.insert(chunk, { conflict: 'replace' }).run(this.conn);
 		await call.end();
 	}
 
-	async setUnit(ctx: MonoContext, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<void> {
+	async setUnit(ctx: Context, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<void> {
 		const call = await startDBCall(ctx,'setUnit');
 		await this.setEntity(ctx, chunk, uuid, 'units', tileHash);
 		await call.end();
 	}
 
-	async setResource(ctx: MonoContext, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<void> {
+	async setResource(ctx: Context, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<void> {
 		const call = await startDBCall(ctx,'setResource');
 		await this.setEntity(ctx, chunk, uuid, 'resources', tileHash);
 		await call.end();
@@ -119,21 +118,21 @@ export default class DBChunk {
 
 	//update a specific entity location for a specific layer
 	//note: layers must have different names than other values on chunk for now
-	async setEntity(ctx: MonoContext, chunk: Chunk, uuid: UUID, layer: string, tileHash: TileHash): Promise<void> {
+	async setEntity(ctx: Context, chunk: Chunk, uuid: UUID, layer: string, tileHash: TileHash): Promise<void> {
 		checkContext(ctx,'setEntity');
-		const entityUpdate = {};
+		const entityUpdate: any = {};
 		entityUpdate[tileHash] = uuid; //copy to save to DB
 		// $FlowFixMe: layers should probably be in their own map that won't conflict
-		chunk[layer][tileHash] = uuid; //update the chunk we were given without doing a chunk.refresh()
+		(chunk as any)[layer][tileHash] = uuid; //update the chunk we were given without doing a chunk.refresh()
 
 		//set the unit in the unit map in the DB without clobbering existing values.
 		//if the tileHash key is already set, that means another unit beat us to this
 		//location and we will be returning false.
-		const mergeObject = {};
+		const mergeObject: any = {};
 		mergeObject[layer] = entityUpdate;
 		const delta = await this.table.get(chunk.hash).update((self: any): any => {
 			return r.branch(
-				self(layer).hasFields(tileHash), {},
+				self(layer).hasFields(tileHash), {} as any,
 				self.merge(mergeObject)
 			);
 		}, { returnChanges: true }).run(this.conn);
@@ -146,7 +145,7 @@ export default class DBChunk {
 		//fetch the latest copy and check it
 		await chunk.refresh(ctx);
 		// $FlowFixMe: layers should probably be in their own map that won't conflict
-		const layerList: Object = chunk[layer];
+		const layerList: any = (chunk as any)[layer];
 		if (layerList[tileHash] === uuid) {
 			return;
 		}

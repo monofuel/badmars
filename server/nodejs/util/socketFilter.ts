@@ -9,6 +9,8 @@ import User from '../user/user';
 import Chunk from '../map/chunk';
 import Map from '../map/map';
 
+type UUID = string;
+
 import { 
 	UnitDetails,
 	UnitLocation,
@@ -20,7 +22,7 @@ import {
 	UnitConstruct
  } from '../unit/components';
 
-export function sanitizeUnit(unit: Unit, owner: UUID): Object {
+export function sanitizeUnit(unit: Unit, owner: UUID) {
 
 	const {
 		uuid,
@@ -28,7 +30,7 @@ export function sanitizeUnit(unit: Unit, owner: UUID): Object {
 		details,
 	} = unit;
 	const owned: boolean = details.owner === owner;
-	const optional = {};
+	const optional: any = {};
 	if (unit.graphical) {
 		optional.graphical = sanitizeUnitGraphical(unit.graphical);
 	}
@@ -59,7 +61,7 @@ export function sanitizeUnit(unit: Unit, owner: UUID): Object {
 	};
 }
 
-function sanitizeUnitDetails(details: UnitDetails): Object {
+function sanitizeUnitDetails(details: UnitDetails) {
 	const {
 		type,
 		health,
@@ -74,7 +76,7 @@ function sanitizeUnitDetails(details: UnitDetails): Object {
 	};
 }
 
-function sanitizeUnitLocation(location: UnitLocation): Object {
+function sanitizeUnitLocation(location: UnitLocation) {
 	const {
 		hash,
 		x,
@@ -92,7 +94,7 @@ function sanitizeUnitLocation(location: UnitLocation): Object {
 		chunkY,
 	};
 }
-function sanitizeUnitMovable(movable: UnitMovable): Object {
+function sanitizeUnitMovable(movable: UnitMovable) {
 	const {
 		layer,
 		speed,
@@ -103,14 +105,14 @@ function sanitizeUnitMovable(movable: UnitMovable): Object {
 	};
 }
 
-function sanitizeUnitAttack(attack: UnitAttack): Object {
+function sanitizeUnitAttack(attack: UnitAttack) {
 	return {};
 }
 
-function sanitizeUnitStorage(storage: UnitStorage): Object {
+function sanitizeUnitStorage(storage: UnitStorage) {
 	return {};
 }
-function sanitizeUnitGraphical(graphical: UnitGraphical): Object {
+function sanitizeUnitGraphical(graphical: UnitGraphical) {
 	const {
 		model,
 		scale
@@ -121,11 +123,11 @@ function sanitizeUnitGraphical(graphical: UnitGraphical): Object {
 	};
 }
 
-function sanitizeUnitStationary(stationary: UnitStationary): Object {
+function sanitizeUnitStationary(stationary: UnitStationary) {
 	return stationary;
 }
 
-function sanitizeUnitConstruct(construct: UnitConstruct): Object {
+function sanitizeUnitConstruct(construct: UnitConstruct) {
 	const { 
 		types
 	} = construct;
@@ -134,14 +136,14 @@ function sanitizeUnitConstruct(construct: UnitConstruct): Object {
 	};
 }
 
-function sanitizeOwnedUnitDetails(details: UnitDetails): Object {
+function sanitizeOwnedUnitDetails(details: UnitDetails) {
 	return sanitizeUnitDetails(details);
 }
 
-function sanitizeOwnedUnitLocation(location: UnitLocation): Object {
+function sanitizeOwnedUnitLocation(location: UnitLocation) {
 	return sanitizeUnitLocation(location);
 }
-function sanitizeOwnedUnitMovable(movable: UnitMovable): Object {
+function sanitizeOwnedUnitMovable(movable: UnitMovable) {
 	const {
 		layer,
 		speed,
@@ -158,23 +160,23 @@ function sanitizeOwnedUnitMovable(movable: UnitMovable): Object {
 	};
 }
 
-function sanitizeOwnedUnitAttack(attack: UnitAttack): Object {
+function sanitizeOwnedUnitAttack(attack: UnitAttack) {
 	return attack;
 }
 
-function sanitizeOwnedUnitStorage(storage: UnitStorage): Object {
+function sanitizeOwnedUnitStorage(storage: UnitStorage) {
 	return storage;
 }
 
-function sanitizeOwnedUnitStationary(stationary: UnitStationary): Object {
+function sanitizeOwnedUnitStationary(stationary: UnitStationary) {
 	return stationary;
 }
 
-function sanitizeOwnedUnitConstruct(construct: UnitConstruct): Object {
+function sanitizeOwnedUnitConstruct(construct: UnitConstruct) {
 	return construct;
 }
 
-export function sanitizeUser(user: User): Object {
+export function sanitizeUser(user: User) {
 	const {
 		uuid,
 		name,
@@ -187,7 +189,7 @@ export function sanitizeUser(user: User): Object {
 	};
 }
 
-export function sanitizeChunk(chunk: Chunk): Object {
+export function sanitizeChunk(chunk: Chunk) {
 
 	const {
 		x,
@@ -214,7 +216,7 @@ export function sanitizeChunk(chunk: Chunk): Object {
 	}
 };
 
-export function sanitizePlanet(map: Map): Object {
+export function sanitizePlanet(map: Map) {
 	const {
 		name,
 		seed,

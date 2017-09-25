@@ -4,16 +4,18 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 import { checkContext, DetailedError } from '../../util/logger';
 
 import Unit from '../unit';
 import Map from '../../map/map';
 
-export default class constructionAI {
-	nearestGhost: ?Unit;
+type UnitType = string;
 
-	async actionable(ctx: MonoContext, unit: Unit, map: Map): Promise<boolean> {
+export default class constructionAI {
+	nearestGhost: null | Unit;
+
+	async actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
 
 		if(unit.details.ghosting || !unit.construct) {
 			return false;
@@ -32,7 +34,7 @@ export default class constructionAI {
 		return false;
 	}
 
-	async checkGroundActionable(ctx: MonoContext, unit: Unit, map: Map): Promise<boolean> {
+	async checkGroundActionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
 		if(!unit.construct || !unit.storage) {
 			return false;
 		}
@@ -54,7 +56,7 @@ export default class constructionAI {
 		return false;
 	}
 
-	async checkBuildingActionable(ctx: MonoContext, unit: Unit, map: Map): Promise<boolean> {
+	async checkBuildingActionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
 		if (!unit.construct) {
 			return false;
 		}
@@ -71,7 +73,7 @@ export default class constructionAI {
 
 	//pass in the unit to update
 	//returns true if the unit was updated
-	async simulate(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
+	async simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		checkContext(ctx, 'construction simulate');
 
 		if(unit.movable) {
@@ -91,7 +93,7 @@ export default class constructionAI {
 		});
 	}
 
-	async simulateBuilding(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
+	async simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		if (!unit.construct) {
 			return;
 		}
@@ -140,7 +142,7 @@ export default class constructionAI {
 		return;
 	}
 
-	async simulateGround(ctx: MonoContext, unit: Unit, map: Map): Promise<void> {
+	async simulateGround(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		if(!unit.construct || !unit.storage || !this.nearestGhost) {
 			return;
 		}

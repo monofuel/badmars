@@ -6,6 +6,8 @@ import { N, S, E, W, C } from './directions';
 import State from '../state';
 import * as THREE from 'three';
 
+type TileHash = string;
+
 export default class GroundUnit extends Entity {
 	nextTile: PlanetLoc | null;
 	moving: boolean;

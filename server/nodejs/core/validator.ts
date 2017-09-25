@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 
 import Logger from '../util/logger';
 import DB from '../db/db';
@@ -22,8 +22,8 @@ export default class ValidatorService {
 		this.logger = logger;
 	}
 
-	makeCtx(timeout?: number): MonoContext {
-		return new MonoContext({ timeout }, this.db, this.logger);
+	makeCtx(timeout?: number): Context {
+		return new Context({ timeout }, this.db, this.logger);
 	}	
 
 	async init(): Promise<void> {
@@ -34,7 +34,7 @@ export default class ValidatorService {
 			maps = await ctx.db.map.listNames();
 		}
 
-		for(const mapName: string of maps) {
+		for(const mapName of maps) {
 			const map = await ctx.db.map.getMap(ctx, mapName);
 			if(!map) {
 				ctx.logger.info(ctx, 'no such map', { mapName });
@@ -48,10 +48,10 @@ export default class ValidatorService {
 		process.exit();
 	}
 
-	async validateUnits(ctx: MonoContext, mapName: string): Promise<void> {
+	async validateUnits(ctx: Context, mapName: string): Promise<void> {
 		let counter = 0;
 		//TODO should rename listUnits to just list (and friends)``
-		const promises = [];
+		const promises: any = [];
 		await ctx.db.units[mapName].each(ctx, (unit: Unit) => {
 			counter++;
 			promises.push(unit.validate(ctx));
@@ -60,9 +60,9 @@ export default class ValidatorService {
 		ctx.logger.info(ctx, 'units validated: ', { counter });
 	}
 
-	async validateChunks(ctx: MonoContext, mapName: string): Promise<void> {
+	async validateChunks(ctx: Context, mapName: string): Promise<void> {
 		let counter = 0;
-		const promises = [];
+		const promises: any = [];
 		await ctx.db.chunks[mapName].each((chunk: Chunk) => {
 			counter++;
 			promises.push(chunk.validate(ctx));

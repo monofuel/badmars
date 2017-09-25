@@ -4,10 +4,10 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import r from 'rethinkdb';
+import * as r from 'rethinkdb';
 import Logger from '../util/logger';
 import { DetailedError } from '../util/logger';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 import { createTable, createIndex, startDBCall } from './helper';
 import User from '../user/user';
 import Session from '../user/session';
@@ -31,7 +31,7 @@ export default class DBSession {
 		await createIndex(conn, logger, this.table, 'user', true);
 	}
 
-	async getBearerUser(ctx: MonoContext, token: string): Promise<User> {
+	async getBearerUser(ctx: Context, token: string): Promise<User> {
 		const { db } = ctx;
 		const call = await startDBCall(ctx,'getBearerUser');
 		const doc = await this.table.get(token).run(this.conn);

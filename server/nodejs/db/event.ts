@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import r from 'rethinkdb';
+import * as r from 'rethinkdb';
 import {createTable} from './helper';
 
 import Logger from '../util/logger';

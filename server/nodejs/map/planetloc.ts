@@ -12,9 +12,14 @@ import env from '../config/env';
 import { getTypeName } from './tiletypes';
 import Direction from '../map/directions';
 
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 import Map from './map';
 import Chunk from './chunk';
+import Unit from '../unit/unit';
+
+type TileHash = string;
+type TileCode = 0 | 1 | 2 | 3;
+type Dir = Symbol;
 
 /**
  * Representation of a point on a planet
@@ -32,7 +37,7 @@ export default class PlanetLoc {
 
 	// temp storage used by pathfinder
 	//TODO these should not be here
-	prev: ?PlanetLoc;
+	prev: null | PlanetLoc;
 	realCost: number;
 	cost: number;
 
@@ -56,7 +61,7 @@ export default class PlanetLoc {
 
 		this.chunk.syncValidate();
 
-		this.tileType = this.chunk.navGrid[this.localX][this.localY];
+		this.tileType = this.chunk.navGrid[this.localX][this.localY] as any;
 		
 		this.validate();
 
@@ -69,13 +74,13 @@ export default class PlanetLoc {
 		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 	}
 	
-	async getUnits(ctx: MonoContext): Promise<Array<Unit>> {
+	async getUnits(ctx: Context): Promise<Array<Unit>> {
 		checkContext(ctx, 'getUnits');
 		const unitMap = await this.chunk.getUnits(ctx);
-		return _.filter(unitMap, (unit: Unit): boolean => unit.location.hash.includes(this.hash));
+		return _.filter(unitMap, (unit: Unit): boolean => (unit.location.hash as any).includes(this.hash));
 	}
 
-	async isOpen(ctx: MonoContext): Promise<boolean> {
+	async isOpen(ctx: Context): Promise<boolean> {
 		const units = await this.getUnits(ctx);
 		return units.length === 0;
 	}
@@ -89,20 +94,20 @@ export default class PlanetLoc {
 		}
 		return line;
 	}
-	async N(ctx: MonoContext): Promise<PlanetLoc> {
+	async N(ctx: Context): Promise<PlanetLoc> {
 		return await this.map.getLoc(ctx,this.x, this.y + 1);
 	}
-	async S(ctx: MonoContext): Promise<PlanetLoc> {
+	async S(ctx: Context): Promise<PlanetLoc> {
 		return await this.map.getLoc(ctx,this.x, this.y - 1);
 	}
-	async E(ctx: MonoContext): Promise<PlanetLoc> {
+	async E(ctx: Context): Promise<PlanetLoc> {
 		return await this.map.getLoc(ctx,this.x + 1, this.y);
 	}
-	async W(ctx: MonoContext): Promise<PlanetLoc> {
+	async W(ctx: Context): Promise<PlanetLoc> {
 		return await this.map.getLoc(ctx,this.x - 1, this.y);
 	}
 
-	async getDirTile(ctx: MonoContext, dir: Dir): Promise<PlanetLoc> {
+	async getDirTile(ctx: Context, dir: Dir): Promise<PlanetLoc> {
 		switch(dir) {
 		case Direction.N:
 			return await this.N(ctx);

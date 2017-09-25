@@ -4,12 +4,12 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import express from 'express';
+import * as express from 'express';
 
 import env from '../../config/env';
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 
-export default function route(ctx: MonoContext, app: express) {
+export default function route(ctx: Context, app: express.Application) {
 	app.get('/', (req: express.Request, res: express.Response) => {
 		ctx.logger.info(ctx, 'GET /', {}, { req });
 		res.render('pages/index');
@@ -21,12 +21,7 @@ export default function route(ctx: MonoContext, app: express) {
 	});
 
 	app.get('/badmars', (req: express.Request, res: express.Response) => {
-
-		const serverAddress: string = env.wsServer;
-
-		res.render('pages/badmars', {
-			user: req.user,
-			server: serverAddress,
-		});
+		ctx.logger.info(ctx, 'GET /badmars', {}, { req });
+		res.render('pages/badmars');
 	});
 }

@@ -4,14 +4,14 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import _ from 'lodash';
-import Alea from 'alea';
-import r from 'rethinkdb';
-import SimplexNoise from 'simplex-noise';
+import * as _ from 'lodash';
+const Alea = require('alea');
+import * as r from 'rethinkdb';
+const SimplexNoise = require('simplex-noise');
 
 import env from '../config/env';
 import { DetailedError, checkContext } from '../util/logger';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 import Unit from '../unit/unit';
 import PlanetLoc, { getLocationDetails } from './planetloc';
 import { LAND, CLIFF, WATER, COAST } from './tiletypes';
@@ -20,9 +20,18 @@ import DBChunk from '../db/chunk';
 import DBUnit from '../db/unit';
 import Map from './map';
 
+type TileHash = string;
+type UUID = string;
+type TileCode = number;
+
 type EntityMapType = {
-	[key: TileHash]: UUID
+	[key: string]: UUID
 };
+
+type UnitMap = {
+	[key: string]: Unit
+}
+
 
 
 export default class Chunk {
@@ -42,8 +51,8 @@ export default class Chunk {
 		if (!map) {
 			throw new Error('chunk missing map');
 		}
-		this.x = parseInt(x) || 0;
-		this.y = parseInt(y) || 0;
+		this.x = parseInt(x as any) || 0;
+		this.y = parseInt(y as any) || 0;
 		this.hash = this.x + ':' + this.y;
 		this.map = map;
 		this.grid = []; //grid size should be chunkSize + 1
@@ -58,7 +67,7 @@ export default class Chunk {
 
 	//TODO should be refactored neater
 	//the old server never actually did world generation and left it to the client.
-	async generate(ctx: MonoContext): Promise<void> {
+	async generate(ctx: Context): Promise<void> {
 		checkContext(ctx, 'generate');
 		//console.log('generating chunk ' + this.hash);
 		const map = await this.getMap(ctx);
@@ -161,12 +170,12 @@ export default class Chunk {
 		}
 	}
 
-	async save(ctx: MonoContext): Promise<void> {
+	async save(ctx: Context): Promise<void> {
 		await this.generate(ctx);
 		await this.getChunkDB(ctx).saveChunk(ctx, this);
 	}
 
-	async getUnitsMap(ctx: MonoContext, hash: TileHash): Promise<UnitMap> {
+	async getUnitsMap(ctx: Context, hash: TileHash): Promise<UnitMap> {
 		checkContext(ctx,'getUnitsMap');
 		await this.refresh(ctx);
 		const uuids = [];
@@ -188,18 +197,18 @@ export default class Chunk {
 		return ctx.db.units[this.map].getUnitsMap(ctx, uuids);
 	}
 
-	async getUnits(ctx: MonoContext): Promise<Array<Unit>> {
+	async getUnits(ctx: Context): Promise<Array<Unit>> {
 		checkContext(ctx,'getUnits');
 		await this.refresh(ctx);
 		const unitUuids: Array<UUID> = _.union(_.map(this.resources), _.map(this.units), _.map(this.airUnits));
 		return this.getUnitDB(ctx).getUnits(ctx, unitUuids);
 	}
 
-	async update(ctx: MonoContext, patch: any): Promise<Object> {
+	async update(ctx: Context, patch: any): Promise<Object> {
 		return ctx.db.chunks[this.map].update(ctx, this.hash, patch);
 	}
 
-	async moveUnit(ctx: MonoContext, unit: Unit, newTile: PlanetLoc): Promise<void> {
+	async moveUnit(ctx: Context, unit: Unit, newTile: PlanetLoc): Promise<void> {
 		checkContext(ctx, 'moveUnit');
 		await this.refresh(ctx);
 		const newChunk: Chunk = newTile.chunk;
@@ -219,30 +228,30 @@ export default class Chunk {
 		await oldTiles[0].chunk.clearUnit(ctx, unit.uuid, oldTiles[0].hash);
 	}
 
-	async clearUnit(ctx: MonoContext, uuid: UUID, tileHash: TileHash): Promise<void> {
+	async clearUnit(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<void> {
 		checkContext(ctx, 'clearUnit');
 		const table = ctx.db.chunks[this.map].getTable();
 		const conn = ctx.db.chunks[this.map].getConn();
-		const unitUpdate = {};
+		const unitUpdate: any = {};
 		unitUpdate[tileHash] = true;
 		if (this.units[tileHash] !== uuid) {
 			throw new DetailedError('wrong unit at old tile!', { found: this.units[tileHash], expected: uuid });
 		}
 		delete this.units[tileHash];
 
-		const delta = await table.get(this.hash)
-			.replace(r.row.without({ units: unitUpdate }), { returnChanges: true }).run(conn);
+		const delta: r.WriteResult = await table.get(this.hash)
+			.replace((r.row as any).without({ units: unitUpdate }), { returnChanges: true }).run(conn);
 		if (delta.replaced !== 1) {
 			throw new DetailedError('failed clearing position', { tileHash });
 		} else {
-			const newChunk = delta.changes[0].new_val;
+			const newChunk = (delta as any).changes[0].new_val;
 			if (newChunk.units[tileHash] === uuid) {
 				throw new DetailedError('unit did not get removed from position', { uuid, found: newChunk.units[tileHash]});
 			}
 		}
 	}
 
-	async addUnit(ctx: MonoContext, uuid: UUID, tileHash: TileHash): Promise<void> {
+	async addUnit(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<void> {
 		checkContext(ctx, 'addUnit');
 		await this.getChunkDB(ctx).setUnit(ctx, this, uuid, tileHash);
 
@@ -253,7 +262,7 @@ export default class Chunk {
 	}
 
 
-	async addResource(ctx: MonoContext, uuid: UUID, tileHash: TileHash): Promise<void> {
+	async addResource(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<void> {
 		checkContext(ctx, 'addResource');
 		await this.getChunkDB(ctx).setResource(ctx, this, uuid, tileHash);
 		await this.refresh(ctx);
@@ -310,7 +319,7 @@ export default class Chunk {
 		}
 	}
 
-	async validate(ctx: MonoContext): Promise<void> {
+	async validate(ctx: Context): Promise<void> {
 		checkContext(ctx, 'validate');
 		if (!env.debug) {
 			return;
@@ -328,7 +337,7 @@ export default class Chunk {
 			if (!unit) {
 				invalid('no unit at tile: ' + tileHash);
 			}
-			if (unit.type === 'mine') {
+			if (unit.details.type === 'mine') {
 				if (!this.resources[tileHash]) {
 					invalid('mine must be over a resource: ' + tileHash);
 				}
@@ -376,11 +385,10 @@ export default class Chunk {
 
 	clone(object: any) {
 		for (const key in object) {
-			// $FlowFixMe: hiding this issue for now
-			this[key] = _.cloneDeep(object[key]);
+			(this as any)[key] = _.cloneDeep(object[key]);
 		}
-		this.x = parseInt(this.x);
-		this.y = parseInt(this.y);
+		this.x = parseInt(this.x as any);
+		this.y = parseInt(this.y as any);
 
 		if (!this.map) {
 			throw new DetailedError('invalid chunk without map', { x: this.x, y: this.y });
@@ -389,7 +397,7 @@ export default class Chunk {
 	}
 
 	// chunks can only be refreshed once per tick.
-	async refresh(ctx: MonoContext, { force }: { force: boolean} = {}): Promise<void> {
+	async refresh(ctx: Context, { force }: { force?: boolean} = {}): Promise<void> {
 		if (!force && (ctx.tick && this.tick === ctx.tick)) {
 			return;
 		}
@@ -405,7 +413,7 @@ export default class Chunk {
 		
 	}
 
-	async getTiles(ctx: MonoContext): Promise<Array<PlanetLoc>> {
+	async getTiles(ctx: Context): Promise<Array<PlanetLoc>> {
 		checkContext(ctx, 'getTiles');
 		const map: Map = await this.getMap(ctx);
 		const tiles = [];
@@ -418,13 +426,13 @@ export default class Chunk {
 		}
 		return tiles;
 	}
-	getChunkDB(ctx: MonoContext): DBChunk {
+	getChunkDB(ctx: Context): DBChunk {
 		return ctx.db.chunks[this.map];
 	}
-	getUnitDB(ctx: MonoContext): DBUnit {
+	getUnitDB(ctx: Context): DBUnit {
 		return ctx.db.units[this.map];
 	}
-	async getMap(ctx: MonoContext): Promise<Map> {
+	async getMap(ctx: Context): Promise<Map> {
 		return ctx.db.map.getMap(ctx, this.map);
 	}
 }

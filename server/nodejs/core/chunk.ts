@@ -4,8 +4,8 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import grpc from 'grpc';
-import MonoContext from '../util/monoContext';
+const grpc = require('grpc');
+import Context from '../util/context';
 
 import env from '../config/env';
 import { checkContext } from '../util/logger';
@@ -17,7 +17,7 @@ import { WrappedError } from '../util/logger';
 import DB from '../db/db';
 
 type RequestMapType = {
-	[key: string]: MonoContext
+	[key: string]: Context
 };
 
 export default class PlanetService {
@@ -35,7 +35,7 @@ export default class PlanetService {
 		const services = grpc.load(__dirname + '/../../protos/chunk.proto').services;
 
 		server.addProtoService(services.Map.service, {
-			getChunk: (call: grpc.Call, callback: Function): any => this.getChunk(call, callback)
+			getChunk: (call: any, callback: Function): any => this.getChunk(call, callback)
 		});
 
 		server.bind('0.0.0.0:' + env.mapPort, grpc.ServerCredentials.createInsecure());
@@ -50,8 +50,8 @@ export default class PlanetService {
 		});
 	}
 
-	makeCtx(timeout?: number): MonoContext {
-		return new MonoContext({ timeout }, this.db, this.logger);
+	makeCtx(timeout?: number): Context {
+		return new Context({ timeout }, this.db, this.logger);
 	}
 
 	logRequests() {
@@ -59,8 +59,8 @@ export default class PlanetService {
 		this.logger.info(this.makeCtx(), 'chunk_requests', { count }, { silent: count === 0 });
 	}
 
-	async getChunk(call: grpc.Call, callback: Function): Promise<void> {
-		const ctx: MonoContext = this.makeCtx(1000);
+	async getChunk(call: any, callback: Function): Promise<void> {
+		const ctx: Context = this.makeCtx(1000);
 		try {
 			this.requests[ctx.uuid] = ctx;
 			const request = call.request;
@@ -79,13 +79,14 @@ export default class PlanetService {
 
 	// returns a special object for GPRC
 	// we have to fiddle with the 2d array for GPRC
-	async fetchOrGenChunk(ctx: MonoContext, mapName: string, x: number, y: number): Promise<Object> {
+	async fetchOrGenChunk(ctx: Context, mapName: string, x: number, y: number): Promise<any> {
 		checkContext(ctx, 'fetchOrGenChunk');
 		const map = await this.db.map.getMap(ctx, mapName);
 
 		const localChunk = await map.fetchOrGenChunk(ctx, x, y);
 
-		const chunk: Object = new Chunk(mapName, x, y);
+		// TODO should do proper typescript grpc stuff rather than  butcher this object
+		const chunk: any = new Chunk(mapName, x, y);
 		chunk.clone(localChunk);
 		chunk.syncValidate();
 

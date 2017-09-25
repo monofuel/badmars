@@ -6,10 +6,12 @@
 
 import Unit from './unit';
 import { DetailedError } from '../util/logger';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
+
+type Resource = 'iron' | 'fuel';
 
 // returns the amount of resource that could be transfered
-export async function sendResource(ctx: MonoContext, type: Resource, amount: number, src: Unit, dest: Unit): Promise<number> {
+export async function sendResource(ctx: Context, type: Resource, amount: number, src: Unit, dest: Unit): Promise<number> {
 	if (!src.storage) {
 		throw new DetailedError('source unit does not have storage', { uuid: src.uuid, type: src.details.type });
 	}
@@ -19,14 +21,14 @@ export async function sendResource(ctx: MonoContext, type: Resource, amount: num
 	}
 	const maxField = type === 'iron' ? 'maxIron' : 'maxFuel';
 
-	if (dest.storage[type] === dest.storage[maxField]) {
+	if ((dest.storage as any)[type] === dest.storage[maxField]) {
 		ctx.logger.info(ctx, 'transfer ignored, already full');
 		return 0;
 	}
 
-	if (src.storage[type] < amount) {
+	if ((src.storage as any)[type] < amount) {
 		ctx.logger.info(ctx, `transfer ignored, not enough vespene gas. i mean ${type}`);
-		amount = src.storage[type];
+		amount = (src.storage as any)[type];
 		if (amount === 0) {
 			return 0;
 		}

@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import _ from 'lodash';
+import * as _ from 'lodash';
 
 import env from '../config/env';
 
@@ -34,16 +34,19 @@ const COMPONENT_DEFAULTS = {
 	}
 };
 
+type TileType = string;
+
 export default class UnitStat {
 
-	details: Object;
-	movable: Object;
-	attack: Object;
-	storage: Object;
-	graphical: Object;
-	stationary: Object;
+	details: any;
+	movable: any;
+	attack: any;
+	storage: any;
+	graphical: any;
+	stationary: any;
+	construct: any;
 
-	constructor(type: string, stats: Object) {
+	constructor(type: string, stats: any) {
 		_.defaultsDeep(this, stats);
 		//_.defaultsDeep(this,COMPONENT_DEFAULTS);
 		_.defaultsDeep(this.details, COMPONENT_DEFAULTS.details);

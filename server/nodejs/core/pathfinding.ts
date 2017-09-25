@@ -8,7 +8,7 @@
 import AStarPath from '../nav/astarpath';
 import SimplePath from '../nav/simplepath';
 import DIRECTION from '../map/directions';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 import { WrappedError } from '../util/logger';
 import Unit from '../unit/unit';
 
@@ -16,8 +16,8 @@ import Logger from '../util/logger';
 import DB from '../db/db';
 import PlanetLoc from '../map/planetloc';
 
-
-const registeredMaps = [];
+type TileHash = string;
+const registeredMaps: any = [];
 
 export default class PathfindService {
 	db: DB;
@@ -35,18 +35,18 @@ export default class PathfindService {
 
 		const maps: Array<string> = await ctx.db.map.listNames();
 
-		for(const mapName: string of maps) {
+		for(const mapName of maps) {
 			while(await this.process(ctx, mapName));
 			//process(mapName);
 		}
 	}
 
 	
-	makeCtx(timeout?: number): MonoContext {
-		return new MonoContext({ timeout }, this.db, this.logger);
+	makeCtx(timeout?: number): Context {
+		return new Context({ timeout }, this.db, this.logger);
 	}
 
-	async registerListeners(ctx: MonoContext): Promise<void> {
+	async registerListeners(ctx: Context): Promise<void> {
 		const names: string[] = await ctx.db.map.listNames();
 		for(const name of names) {
 			if(registeredMaps.indexOf(name) === -1) {
@@ -56,7 +56,7 @@ export default class PathfindService {
 		}
 	}
 
-	pathfind(ctx: MonoContext, err: Error, delta: Object) {
+	pathfind(ctx: Context, err: Error, delta: any) {
 		if(err) {
 			ctx.logger.trackError(ctx, new WrappedError(err, 'pathfinding grpc error'));
 		}
@@ -68,11 +68,11 @@ export default class PathfindService {
 		this.process(ctx.create(), delta.new_val.location.map);
 	}
 
-	async process(ctx: MonoContext, mapName: string): Promise<Success> {
+	async process(ctx: Context, mapName: string): Promise<boolean> {
 		//TODO fix this stuff
 		//doesn't work properly with multiple pathfinding services.
 		ctx.logger.info(ctx, 'checking for unprocessed units', { mapName });
-		const results = await ctx.db.units[mapName].getUnprocessedPath();
+		const results: any = await ctx.db.units[mapName].getUnprocessedPath();
 
 		//TODO this logic should probably be in db/units.js
 		if(results.replaced === 0) {
@@ -92,7 +92,7 @@ export default class PathfindService {
 		return true;
 	}
 
-	async processUnit(ctx: MonoContext, unitDoc: Object): Promise<void> {
+	async processUnit(ctx: Context, unitDoc: Object): Promise<void> {
 
 		const unit: Unit = new Unit(ctx);
 		unit.clone(ctx, unitDoc);
@@ -112,8 +112,8 @@ export default class PathfindService {
 			return;
 		}
 		const destination: TileHash = unit.movable.destination;
-		const destinationX = destination.split(':')[0];
-		const destinationY = destination.split(':')[1];
+		const destinationX = parseInt(destination.split(':')[0]);
+		const destinationY = parseInt(destination.split(':')[1]);
 		const dest: PlanetLoc = await map.getLoc(ctx, destinationX, destinationY);
 
 		//if the destination is covered, get the nearest valid point.

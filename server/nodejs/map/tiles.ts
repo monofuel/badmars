@@ -1,7 +1,7 @@
 
 
 // import _ from 'lodash';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 import PlanetLoc from './planetloc';
 import Unit from '../unit/unit';
 import { checkContext, DetailedError } from '../util/logger';
@@ -23,7 +23,7 @@ export function findOverlaps(tiles1: PlanetLoc[], tiles2: PlanetLoc[]): PlanetLo
 	return results;
 }
 
-export async function areUnitsAdjacent(ctx: MonoContext, unit1: Unit, unit2: Unit): Promise<boolean> {
+export async function areUnitsAdjacent(ctx: Context, unit1: Unit, unit2: Unit): Promise<boolean> {
 	checkContext(ctx, 'areUnitsAdjacent');
 	const tiles1: PlanetLoc[] = await unit1.getLocs(ctx);
 	const tiles2: PlanetLoc[] = await unit2.getLocs(ctx);
@@ -41,7 +41,7 @@ export async function areUnitsAdjacent(ctx: MonoContext, unit1: Unit, unit2: Uni
 
 // find the nearest adjacent tile to unit2 that unit1 can reach
 // if no tiles are open, the nearest occupied tile is picked
-export async function getNearestAdjacentTile(ctx: MonoContext, unit1: Unit, unit2: Unit): Promise<PlanetLoc> {
+export async function getNearestAdjacentTile(ctx: Context, unit1: Unit, unit2: Unit): Promise<PlanetLoc> {
 	checkContext(ctx, 'getNearestFreeTile');
 	const tiles1: PlanetLoc[] = await unit1.getLocs(ctx);
 	const tiles2: PlanetLoc[] = await unit2.getLocs(ctx);
@@ -59,8 +59,8 @@ export async function getNearestAdjacentTile(ctx: MonoContext, unit1: Unit, unit
 		}
 	}
 
-	let nearest: ?PlanetLoc = undefined;
-	let nearestOpen: ?PlanetLoc = undefined;
+	let nearest: null | PlanetLoc;
+	let nearestOpen: null | PlanetLoc;
 	for (const key of Object.keys(adjacentTiles)) {
 		const tile = adjacentTiles[key];
 		const tileDistance = tile.distance(tiles1[0]);
@@ -78,7 +78,7 @@ export async function getNearestAdjacentTile(ctx: MonoContext, unit1: Unit, unit
 	return nearestOpen ? nearestOpen : nearest;
 }
 
-export async function getAdjacentTiles(ctx: MonoContext, loc: PlanetLoc): Promise<PlanetLoc[]> {
+export async function getAdjacentTiles(ctx: Context, loc: PlanetLoc): Promise<PlanetLoc[]> {
 	const results: Promise<PlanetLoc>[] = [];
 	results.push(loc.W(ctx));
 	results.push(loc.E(ctx));

@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 
 import Logger from '../util/logger';
 import DB from '../db/db';
@@ -18,8 +18,8 @@ export default class SchemaService {
 	}
 
 
-	makeCtx(timeout?: number): MonoContext {
-		return new MonoContext({ timeout }, this.db, this.logger);
+	makeCtx(timeout?: number): Context {
+		return new Context({ timeout }, this.db, this.logger);
 	}	
 
 	async init(): Promise<void> {

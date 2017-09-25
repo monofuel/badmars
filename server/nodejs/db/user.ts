@@ -4,11 +4,14 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import r from 'rethinkdb';
+import * as r from 'rethinkdb';
 import { DetailedError } from '../util/logger';
 import {createTable, createIndex, startDBCall } from './helper';
+import Context from '../util/context';
 import User from '../user/user';
 import Logger from '../util/logger';
+
+type UUID = string;
 
 export default class DBUser {
 	conn: r.Connection;
@@ -45,7 +48,7 @@ export default class DBUser {
 		return sanitized;
 	}
 
-	async getUserByUUID(ctx: MonoContext, uuid: UUID): Promise<User> {
+	async getUserByUUID(ctx: Context, uuid: UUID): Promise<User> {
 		const call = await startDBCall(ctx, 'getUserByUUID');
 		const doc = await this.table.get(uuid).run(this.conn);
 		if (!doc) {
@@ -58,26 +61,24 @@ export default class DBUser {
 	}
 
 	async getUser(name: string): Promise<User> {
-		// TODO refactor this
-		return this.table.getAll(name, {
+		const cursor = await this.table.getAll(name, {
 			index: 'name'
-		}).coerceTo('array').run(this.conn).then((docs: Array<Object>): ?User => {
-			const doc = docs[0];
-			if(!doc) {
-				return null;
-			}
-			const user = new User();
-			user.clone(doc);
-			return user;
-		});
+		}).run(this.conn)
+		const docs = await cursor.toArray();
+		if (docs.length !== 1) {
+			return null;
+		}
+		const user = new User();
+		user.clone(docs[0]);
+		return user;
 	}
 
-	async registerListener(func: Function): Promise<void> {
+	async registerListener(fn: (err: Error, row: any) => void): Promise<void> {
 		const cursor = await this.table.changes().run(this.conn);
-		cursor.each(func);
+		cursor.each(fn);
 	}
 
-	async createUser(name: string, color: string): Object {
+	async createUser(name: string, color: string): Promise<any> {
 		const user = new User(name, color);
 		return this.table.insert(user, {
 			conflict: 'error',
@@ -85,12 +86,12 @@ export default class DBUser {
 		}).run(this.conn);
 	}
 
-	async updateUser(name: string, patch: Object): Object {
+	async updateUser(name: string, patch: Object): Promise<any> {
 		const result = await this.table.getAll(name, { index: 'name' }).update(patch).run(this.conn);
 		return result;
 	}
 
-	async deleteUser(name: string): Promise<void> {
+	async deleteUser(name: string): Promise<any> {
 		return this.table.getAll(name, { index: 'name' }).delete().run(this.conn);
 	}
 }

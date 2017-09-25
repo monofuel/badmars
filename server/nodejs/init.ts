@@ -11,7 +11,7 @@ import Chunk from './core/chunk';
 const logger = new Logger('chunk');
 const db = new DB(logger);
 
-module.exports = async function init(moduleName: ModuleName): Promise<void> {
+export default async function init(moduleName: string): Promise<void> {
 	try {
 		logger.info(null, 'start begin');
 		await db.init();

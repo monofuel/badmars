@@ -1,6 +1,6 @@
-import Unit from '../server/nodejs/unit/unit';
-import Client from '../server/nodejs/net/client';
-import MonoContext from '../server/nodejs/util/monoContext';
+import Unit from './unit/unit';
+import Client from './net/client';
+import Context from './util/context';
 
 type UUID = string;
 type TileHash = string;
@@ -12,7 +12,7 @@ type TileCode = 0 | 1 | 2 | 3;
 type TileType = 'land' | 'cliff' | 'water' | 'coast' | 'unknown';
 type Dir = Symbol;
 type ProfileKey = string;
-type MovementLayer = TileType;
+type MovementLayer = 'ground' | 'air' | 'water';
 type Resource = 'iron' | 'fuel';
 
 type Success = boolean;
@@ -24,7 +24,7 @@ type ChunkProto = {
 	navGrid: Array<Object>;
 }
 
-type NetHandler = (ctx: MonoContext, client: Client, data: Object) => Promise<void>;
+type NetHandler = (ctx: Context, client: Client, data: Object) => Promise<void>;
 
 
 type UnitMap = {
@@ -50,5 +50,3 @@ declare interface MonoDoc {
 declare interface Entity extends MonoDoc {
 	clone(): Entity;
 }
-
-declare const test: any;

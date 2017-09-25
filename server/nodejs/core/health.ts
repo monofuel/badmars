@@ -4,12 +4,12 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import express from 'express';
-import util from 'util';
+import * as express from 'express';
+import * as util from 'util';
 
 import env from '../config/env';
 import healthRoute from '../web/routes/health';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 
 import Logger from '../util/logger';
 import DB from '../db/db';
@@ -29,7 +29,7 @@ export default class HealthService {
 
 		healthRoute(ctx.create(), app);
 
-		return new Promise((resolve: Function) => {
+		return new Promise<void>((resolve: Function) => {
 			const server = app.listen(env.wwwPort, () => {
 
 				const host = server.address().address;
@@ -41,8 +41,8 @@ export default class HealthService {
 		});
 	}
 
-	makeCtx(timeout?: number): MonoContext {
-		return new MonoContext({ timeout }, this.db, this.logger);
+	makeCtx(timeout?: number): Context {
+		return new Context({ timeout }, this.db, this.logger);
 	}
 
 }

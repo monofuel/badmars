@@ -5,11 +5,11 @@
 //	Licensed under included modified BSD license
 import env from '../config/env';
 
-import * as grpc from 'grpc';
+const grpc = require('grpc');
 
 import Unit from '../unit/unit';
 import { checkContext, WrappedError, DetailedError } from '../util/logger';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 
 import Logger from '../util/logger';
 import DB from '../db/db';
@@ -24,15 +24,15 @@ export default class AIService {
 		this.logger = logger;
 	}
 
-	makeCtx(timeout?: number): MonoContext {
-		return new MonoContext({ timeout }, this.db, this.logger);
+	makeCtx(timeout?: number): Context {
+		return new Context({ timeout }, this.db, this.logger);
 	}
 
 	async init(): Promise<void> {
 		const server = new grpc.Server();
 		const ctx = this.makeCtx();
 		server.addProtoService(services.AI.service, {
-			processUnit: (call: grpc.Call, callback: Function): Promise<void> =>
+			processUnit: (call: any, callback: Function): Promise<void> =>
 				this.GRPCProcessUnit(ctx.create({ timeout: 1000 / env.ticksPerSec }), call, callback)
 		});
 
@@ -46,7 +46,7 @@ export default class AIService {
 		});
 	}
 
-	async GRPCProcessUnit(ctx: MonoContext, call: grpc.Call, callback: Function): Promise<void> {
+	async GRPCProcessUnit(ctx: Context, call: any, callback: Function): Promise<void> {
 		const request = call.request;
 		const uuid = request.uuid;
 		const mapName = request.mapName;
@@ -68,7 +68,7 @@ export default class AIService {
 		}
 	}
 
-	async processUnit(ctx: MonoContext, unit: Unit): Promise<void> {
+	async processUnit(ctx: Context, unit: Unit): Promise<void> {
 		//logger.addSumStat('unit_AI',1);
 		await unit.simulate(ctx);
 	}

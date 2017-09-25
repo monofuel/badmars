@@ -7,12 +7,12 @@
 import { DetailedError } from '../util/logger';
 import Map from '../map/map';
 import PlanetLoc from '../map/planetloc';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 
 import { LAND } from '../map/tiletypes';
 import DIRECTION from '../map/directions';
 
-class SimplePath {
+export default class SimplePath {
 	start: PlanetLoc;
 	end: PlanetLoc;
 	map: Map;
@@ -29,7 +29,7 @@ class SimplePath {
 	}
 
 	//given a tile, find the next one
-	async getNext(ctx: MonoContext, tile: PlanetLoc): Promise<Symbol> {
+	async getNext(ctx: Context, tile: PlanetLoc): Promise<Symbol> {
 		if(tile.x < this.end.x) {
 			const nextTile = await this.map.getLoc(ctx,tile.x + 1, tile.y);
 			if(nextTile.tileType === LAND) {

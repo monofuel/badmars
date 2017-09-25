@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import env from '../config/env';
-import r from 'rethinkdb';
+import * as r from 'rethinkdb';
 
 import DBMap from './map';
 import DBChunk from './chunk';

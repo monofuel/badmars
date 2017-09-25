@@ -8,7 +8,7 @@ import env from '../config/env';
 import Map from '../map/map';
 import PlanetLoc from '../map/planetloc';
 import Unit from '../unit/unit';
-import MonoContext from '../util/monoContext';
+import Context from '../util/context';
 import { DetailedError } from '../util/logger';
 import DIRECTION from '../map/directions';
 
@@ -42,7 +42,7 @@ export default class AStarPath {
 		this.cost = 0;
 		this.path = [];
 	}
-	async generate(ctx: MonoContext): Promise<void> {
+	async generate(ctx: Context): Promise<void> {
 		this.open = [
 			await this.map.getLoc(ctx,this.start.x + 1, this.start.y),
 			await this.map.getLoc(ctx,this.start.x - 1, this.start.y),
@@ -64,7 +64,7 @@ export default class AStarPath {
 		} while (result !== 'complete');
 	}
 
-	async searchNext(ctx: MonoContext): Promise<string> {
+	async searchNext(ctx: Context): Promise<string> {
 
 		this.cost++;
 
@@ -149,7 +149,7 @@ export default class AStarPath {
 		return 'continue';
 	}
 
-	async getNext(ctx: MonoContext, tile: PlanetLoc): Promise<Symbol> {
+	async getNext(ctx: Context, tile: PlanetLoc): Promise<Symbol> {
 
 		if(tile === null) {
 			return DIRECTION.C;
@@ -181,7 +181,7 @@ export default class AStarPath {
 }
 
 function contains(list: Array<PlanetLoc>, tile: PlanetLoc): boolean {
-	for(const item: PlanetLoc of list) {
+	for(const item of list) {
 		if(item.equals(tile)) {
 			return true;
 		}

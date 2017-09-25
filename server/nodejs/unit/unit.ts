@@ -4,9 +4,9 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import r from 'rethinkdb'; //TODO should not be imported in this file
-import _ from 'lodash';
-import MonoContext from '../util/monoContext';
+import * as r from 'rethinkdb'; //TODO should not be imported in this file
+import * as _ from 'lodash';
+import Context from '../util/context';
 import { checkContext, DetailedError, WrappedError } from '../util/logger';
 import env from '../config/env';
 import * as groundUnitAI from './ai/groundunit';
@@ -30,6 +30,17 @@ import {
 	UnitConstruct
  } from './components';
 
+type ChunkHash = string;
+type UUID = string;
+type UnitType = string;
+type TileHash = string;
+
+type FactoryOrder = {
+	type: UnitType,
+	cost: number,
+	remaining: number
+}
+
 export default class Unit {
 
 	uuid: UUID; // set by database
@@ -38,17 +49,17 @@ export default class Unit {
 	//components
 	details: UnitDetails;
 	location: UnitLocation;
-	movable: ?UnitMovable;
-	attack: ?UnitAttack;
-	storage: ?UnitStorage;
-	graphical: ?UnitGraphical;
-	stationary: ?UnitStationary;
-	construct: ?UnitConstruct;
+	movable: null | UnitMovable;
+	attack: null | UnitAttack;
+	storage: null | UnitStorage;
+	graphical: null | UnitGraphical;
+	stationary: null | UnitStationary;
+	construct: null | UnitConstruct;
 
 
 	//constructor will be called with arguments when making a new unit
 	//constructor will be called without arguments when initializing from database (database does .clone())
-	constructor(ctx: MonoContext, unitType: ? string, map: ? Map, x: number = 0, y: number = 0) {
+	constructor(ctx: Context, unitType: string = null, map: Map = null, x: number = 0, y: number = 0) {
 
 		//unit will be blank, and should be filled by .clone()
 		if (!unitType || !map) {
@@ -154,7 +165,7 @@ export default class Unit {
 		}
 	}
 
-	async simulate(ctx: MonoContext): Promise<void> {
+	async simulate(ctx: Context): Promise<void> {
 		checkContext(ctx, 'simulate');
 		//TODO pass context through stuff
 		//------------------
@@ -275,7 +286,7 @@ export default class Unit {
 	//---------------------------------------------------------------------------
 
 
-	async update(ctx: MonoContext, patch: Object): Promise<void> {
+	async update(ctx: Context, patch: any): Promise<void> {
 		checkContext(ctx, 'update');
 		// TODO we should also update the unit itself (this breaks currently)
 		// Object.assign(this, patch);
@@ -285,20 +296,20 @@ export default class Unit {
 		this.validate(ctx);
 	}
 
-	async delete(ctx: MonoContext): Promise<void> {
+	async delete(ctx: Context): Promise<void> {
 		checkContext(ctx, 'delete');
 		await this.clearFromChunks(ctx);
 
 		return ctx.db.units[this.location.map].deleteUnit(ctx, this.uuid);
 	}
 
-	async assertLocation(ctx: MonoContext, map: Map): Promise<void> {
-		const badLocs = [];
+	async assertLocation(ctx: Context, map: Map): Promise<void> {
+		const badLocs: PlanetLoc[] = [];
 		try {
 			const locs: Array<PlanetLoc> = await this.getLocs(ctx);
 			for (const loc of locs) {
 				const units: Array<Unit> = await loc.getUnits(ctx);
-				const unit: ?Unit = _.find(units, (unit: Unit): boolean => {
+				const unit: null | Unit = _.find(units, (unit: Unit): boolean => {
 					return this.uuid === unit.uuid;
 				});
 				if (!unit) {
@@ -360,14 +371,14 @@ export default class Unit {
 		}
 	}
 
-	async takeIron(ctx: MonoContext, amount: number): Promise<void> {
+	async takeIron(ctx: Context, amount: number): Promise<void> {
 		if (!this.storage) {
 			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
 		const table = ctx.db.units[this.location.map].getTable();
 		const conn = ctx.db.units[this.location.map].getConn();
 		const delta = await table.get(this.uuid).update((self: any): any => {
-			return r.branch(
+			return (r.branch as any)(
 				self('storage')('iron').ge(amount), {
 					storage: {
 						iron: self('storage')('iron').sub(amount)
@@ -384,21 +395,21 @@ export default class Unit {
 			throw new DetailedError('unit was not updated', { uuid: this.uuid, type: this.details.type });
 		} else {
 			this.storage.iron -= amount;
-			if (this.storage.iron != delta.changes[0].new_val.storage.iron) {
+			if (this.storage.iron != (delta as any).changes[0].new_val.storage.iron) {
 				throw new DetailedError('failed to update iron', { uuid: this.uuid, type: this.details.type, amount });
 			}
 		}
 	}
 
 	// TODO success booleans are an awful idea, why did i do this.
-	async takeFuel(ctx: MonoContext, amount: number): Promise<void> {
+	async takeFuel(ctx: Context, amount: number): Promise<void> {
 		if (!this.storage) {
 			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
 		}
 		const table = ctx.db.units[this.location.map].getTable();
 		const conn = ctx.db.units[this.location.map].getConn();
 		const delta = await table.get(this.uuid).update((self: any): any => {
-			return r.branch(
+			return (r.branch as any)(
 				self('storage')('fuel').ge(amount), { storage: { fuel: self('storage')('fuel').sub(amount) } }, {}
 			);
 		}, { returnChanges: true }).run(conn);
@@ -411,7 +422,7 @@ export default class Unit {
 			throw new DetailedError('unit was not updated', { uuid: this.uuid, type: this.details.type });
 		} else {
 			this.storage.fuel -= amount;
-			if (this.storage.fuel != delta.changes[0].new_val.storage.fuel) {
+			if (this.storage.fuel != (delta as any).changes[0].new_val.storage.fuel) {
 				throw new DetailedError('failed to update fuel', { uuid: this.uuid, type: this.details.type, amount });
 			}
 		}
@@ -422,7 +433,7 @@ export default class Unit {
 	//we shouldn't be requiring rethink in this file
 
 	//returns the amount that actually could be deposited
-	async addIron(ctx: MonoContext, amount: number): Promise<*> {
+	async addIron(ctx: Context, amount: number): Promise<any> {
 		checkContext(ctx, 'addIron');
 		if (!this.storage) {
 			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
@@ -448,7 +459,7 @@ export default class Unit {
 	}
 
 	//returns the amount that actually could be deposited
-	async addFuel(ctx: MonoContext, amount: number): Promise<*> {
+	async addFuel(ctx: Context, amount: number): Promise<any> {
 		checkContext(ctx, 'addFuel');
 		if (!this.storage) {
 			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
@@ -469,7 +480,7 @@ export default class Unit {
 		}
 	}
 
-	async addFactoryOrder(ctx: MonoContext, unitType: UnitType): Promise<void> {
+	async addFactoryOrder(ctx: Context, unitType: UnitType): Promise<void> {
 		checkContext(ctx, 'addFactoryOrder');
 
 		if (!this.construct) {
@@ -492,7 +503,7 @@ export default class Unit {
 	}
 
 	// TODO this should be typed
-	async popFactoryOrder(ctx: MonoContext): Object {
+	async popFactoryOrder(ctx: Context): Promise<any> {
 		if (!this.construct) {
 			throw new DetailedError('unit cannot construct', { uuid: this.uuid, type: this.details.type });
 		}
@@ -506,7 +517,7 @@ export default class Unit {
 		return order;
 	}
 
-	async addPathAttempt(ctx: MonoContext): Promise<void> {
+	async addPathAttempt(ctx: Context): Promise<void> {
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -520,7 +531,7 @@ export default class Unit {
 			await this.clearDestination(ctx);
 		} else {
 			//blank out the path but leave the destination so that we will re-path
-			const movable = {
+			const movable: Partial<UnitMovable> = {
 				pathAttempts: 0,
 				isPathing: false,
 				path: [],
@@ -530,7 +541,7 @@ export default class Unit {
 		}
 
 	}
-	async setTransferGoal(ctx: MonoContext, uuid: UUID, iron: number, fuel: number): Promise<void> {
+	async setTransferGoal(ctx: Context, uuid: UUID, iron: number, fuel: number): Promise<void> {
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -544,7 +555,7 @@ export default class Unit {
 		return this.update(ctx, { movable });
 	}
 
-	async clearTransferGoal(ctx: MonoContext): Promise<void> {
+	async clearTransferGoal(ctx: Context): Promise<void> {
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -554,16 +565,16 @@ export default class Unit {
 		return this.update(ctx, { movable });
 	}
 
-	async setDestination(ctx: MonoContext, x: number, y: number): Promise<void> {
+	async setDestination(ctx: Context, x: number, y: number): Promise<void> {
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
 		const hash = x + ':' + y;
-		const movable = { destination: hash, isPathing: false, path: [] };
+		const movable: Partial<UnitMovable> = { destination: hash, isPathing: false, path: [] };
 		return await this.update(ctx, { movable });
 	}
 
-	async setPath(ctx: MonoContext, path: Array<any>): Promise<void> {
+	async setPath(ctx: Context, path: Array<any>): Promise<void> {
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -571,11 +582,11 @@ export default class Unit {
 		return await this.update(ctx, { movable });
 	}
 
-	async clearDestination(ctx: MonoContext): Promise<void> {
+	async clearDestination(ctx: Context): Promise<void> {
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
-		const movable = {
+		const movable: Partial<UnitMovable> = {
 			destination: null,
 			isPathing: false,
 			path: [],
@@ -584,11 +595,11 @@ export default class Unit {
 		return this.update(ctx, { movable });
 	}
 
-	async clearPath(ctx: MonoContext): Promise<void> {
+	async clearPath(ctx: Context): Promise<void> {
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
-		const movable = {
+		const movable: Partial<UnitMovable> = {
 			isPathing: false,
 			path: [],
 			pathAttemptAttempts: 0
@@ -596,7 +607,7 @@ export default class Unit {
 		return this.update(ctx, { movable });
 	}
 
-	async tickMovement(ctx: MonoContext): Promise<void> {
+	async tickMovement(ctx: Context): Promise<void> {
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -606,7 +617,7 @@ export default class Unit {
 		return await this.update(ctx, { movable });
 	}
 
-	async tickFireCooldown(ctx: MonoContext): Promise<void> {
+	async tickFireCooldown(ctx: Context): Promise<void> {
 		if (!this.attack) {
 			throw new DetailedError('unit can\'t attack', { uuid: this.uuid, type: this.details.type });
 		}
@@ -616,7 +627,7 @@ export default class Unit {
 		await this.update(ctx, { attack });
 	}
 
-	async armFireCooldown(ctx: MonoContext): Promise<void> {
+	async armFireCooldown(ctx: Context): Promise<void> {
 		if (!this.attack) {
 			throw new DetailedError('unit can\'t attack', { uuid: this.uuid, type: this.details.type });
 		}
@@ -626,7 +637,7 @@ export default class Unit {
 		await this.update(ctx, { attack });
 	}
 
-	async takeDamage(ctx: MonoContext, dmg: number): Promise<void> {
+	async takeDamage(ctx: Context, dmg: number): Promise<void> {
 		if (this.details.maxHealth === 0) {
 			throw new DetailedError('non-attackable unit attacked', { uuid: this.uuid, type: this.details.type });
 		}
@@ -639,7 +650,7 @@ export default class Unit {
 		await this.update(ctx, { details, awake: true });
 	}
 
-	async moveToTile(ctx: MonoContext, tile: PlanetLoc): Promise<void> {
+	async moveToTile(ctx: Context, tile: PlanetLoc): Promise<void> {
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
 		}
@@ -666,7 +677,7 @@ export default class Unit {
 			hash: [tile.hash],
 			chunkHash: [tile.chunk.hash]
 		};
-		const movable: Object = {
+		const movable: Partial<UnitMovable> = {
 			movementCooldown: this.movable.speed
 		};
 
@@ -691,7 +702,7 @@ export default class Unit {
 		//TODO split up async and sync validation work
 	}
 
-	async validate(ctx: MonoContext): Promise<void> {
+	async validate(ctx: Context): Promise<void> {
 		checkContext(ctx, 'validate');
 		// TODO set this back to false sometime
 		// was debugging something else and this function gave errors
@@ -807,7 +818,7 @@ export default class Unit {
 		}
 	}
 
-	async getLocs(ctx: MonoContext): Promise<Array<PlanetLoc>> {
+	async getLocs(ctx: Context): Promise<Array<PlanetLoc>> {
 		checkContext(ctx, 'getLocs');
 		const promises: Array<Promise<PlanetLoc>> = [];
 		const map: Map = await this.getMap(ctx);
@@ -818,7 +829,7 @@ export default class Unit {
 		});
 		return Promise.all(promises);
 	}
-	async getChunks(ctx: MonoContext): Promise<Array<Chunk>> {
+	async getChunks(ctx: Context): Promise<Array<Chunk>> {
 		checkContext(ctx, 'getChunks');
 		const promises: Array<Promise<Chunk>> = [];
 		const map: Map = await this.getMap(ctx);
@@ -836,7 +847,7 @@ export default class Unit {
 	//fixing chunks. units are not quite so easy.
 
 	//is failing sometimes for factories- hint to a bigger issue
-	async addToChunks(ctx: MonoContext): Promise<void> {
+	async addToChunks(ctx: Context): Promise<void> {
 		const locs = await this.getLocs(ctx);
 		for (const loc of locs) {
 			if (this.details.type === 'oil' || this.details.type === 'iron') {
@@ -851,7 +862,7 @@ export default class Unit {
 		}
 	}
 
-	async clearFromChunks(ctx: MonoContext): Promise<void> {
+	async clearFromChunks(ctx: Context): Promise<void> {
 		checkContext(ctx, 'clearFromChunks');
 		const locs = await this.getLocs(ctx);
 		for (const loc of locs) {
@@ -863,22 +874,22 @@ export default class Unit {
 		}
 	}
 
-	async getMap(ctx: MonoContext): Promise<Map> {
+	async getMap(ctx: Context): Promise<Map> {
 		return await ctx.db.map.getMap(ctx,this.location.map);
 	}
 
 	// other should be a database document for a unit (or another unit)
-	clone(ctx: MonoContext, other: any) {
+	clone(ctx: Context, other: any) {
 		for (const key in other) {
 			// $FlowFixMe: hiding this issue for now
-			this[key] = _.cloneDeep(other[key]);
+			(this as any)[key] = _.cloneDeep(other[key]);
 		}
 
 
-		const stats = this.getTypeInfo(ctx);
+		const stats: any = this.getTypeInfo(ctx);
 		for (const key in stats) {
 			// $FlowFixMe: hiding this issue for now
-			this[key] = _.assign(this[key], stats[key]);
+			(this as any)[key] = _.assign((this as any)[key], stats[key]);
 		}
 	}
 
@@ -890,18 +901,18 @@ export default class Unit {
 	// after an await (however that should probably never happen)
 	getComponent(comp: string): any {
 		// $FlowFixMe:
-		const compObject = this[comp];
+		const compObject = (this as any)[comp];
 		if (!compObject) {
 			throw new DetailedError('bad component', { comp, uuid: this.uuid, type: this.details.type });
 		}
 		return compObject;
 	}
 
-	getTypeInfo(ctx: MonoContext): UnitStat {
+	getTypeInfo(ctx: Context): UnitStat {
 		return ctx.db.unitStats[this.location.map].get(this.details.type);
 	}
 
-	async refresh(ctx: MonoContext): Promise<void> {
+	async refresh(ctx: Context): Promise<void> {
 		const fresh: any = await ctx.db.units[this.location.map].getUnit(ctx, this.uuid);
 		this.clone(ctx, fresh);
 	}

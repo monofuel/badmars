@@ -5,12 +5,12 @@
 //	Licensed under included modified BSD license
 
 import { checkContext, WrappedError } from '../../util/logger';
-import MonoContext from '../../util/monoContext';
+import Context from '../../util/context';
 import Client from '../client';
 
 // https://www.youtube.com/watch?v=80DtQD5BQ_A
 
-export default async function factoryOrder(ctx: MonoContext, client: Client, data: Object): Promise<void> {
+export default async function factoryOrder(ctx: Context, client: Client, data: any): Promise<void> {
 	checkContext(ctx, 'factoryOrder');
 	if(!data.factory) {
 		return client.sendError(ctx, 'factoryOrder', 'no factory specified');

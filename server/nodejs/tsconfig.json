@@ -1,7 +1,7 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "target": "es6",
+        "target": "es2017",
         "module": "commonjs",
         "moduleResolution": "node",
         "noImplicitAny": true,
@@ -10,8 +10,5 @@
         "experimentalDecorators": true,
         "outDir": "../../bin/server/nodejs",
         "jsx": "react"
-    },
-    "include": [
-        "../../ts-lib/*"
-    ]
+    }
 }
