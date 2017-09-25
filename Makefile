@@ -53,6 +53,9 @@ buildNode:
 
 # TODO build for go services
 
+buildTypedRuntime:
+	cd ./server/nodejs && tsr -c tsconfig.json *.ts -f
+
 watchServer: prepareBin watchNode
 
 watchNode:

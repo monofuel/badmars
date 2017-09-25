@@ -187,12 +187,19 @@ export default class DBunit {
 
 	async loadUnitsCursor(ctx: Context, cursor: r.Cursor): Promise<Unit[]> {
 		const units: Promise<Unit>[] = [];
-		await cursor.each((err: Error, doc: Object) => {
-			if (err) {
-				throw err;
+		try {
+			await cursor.each((err: Error, doc: Object) => {
+				if (err) {
+					throw err;
+				}
+				units.push(this.loadUnit(ctx, doc));
+			});
+		} catch (err) {
+			if (err.message === 'No more rows in the cursor.') {
+				return [];
 			}
-			units.push(this.loadUnit(ctx, doc));
-		});
+			throw err;
+		}
 
 		return Promise.all(units);
 	}

@@ -70,6 +70,7 @@
     "three-mtl-loader": "^1.0.1",
     "three-obj-loader": "^1.1.2",
     "ts-events": "^3.2.0",
+    "ts-runtime": "^0.1.34",
     "utf-8-validate": "^3.0.1",
     "vorpal": "^1.11.4",
     "winston": "^2.3.1",
