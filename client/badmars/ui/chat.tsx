@@ -155,11 +155,11 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 	}
 
 	@autobind
-	private inputChange(event: React.FormEvent<React.Component<ReactBootstrap.FormControlProps, {}>>) {
+	private inputChange(event: React.FormEvent<{}>) {
 		this.setState({ sendText: (event.target as any).value });
 	}
 	@autobind
-	private handleKeyPress(event: React.KeyboardEvent<React.Component<ReactBootstrap.FormControlProps, {}>>) {
+	private handleKeyPress(event: React.KeyboardEvent<{}>) {
 		const { sendText } = this.state;
 		if (event.charCode !== 13 || !sendText) {
 			return;
