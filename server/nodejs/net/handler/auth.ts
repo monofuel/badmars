@@ -9,18 +9,30 @@ import Map from '../../map/map';
 import { checkContext} from '../../util/logger';
 import Context from '../../util/context';
 
+import getPlayers from './getPlayers';
+import getUnits from './getUnits';
+import getMap from './getMap';
+import getChunk from './getChunk';
+import createGhost from './createGhost';
+import spawn from './spawn';
+import setDestination from './setDestination';
+import unitStats from './unitStats';
+import factoryOrder from './factoryOrder';
+import transferResource from './transferResource';
+import sendChat from './sendChat';
+
 function mountUserHandlers(client: Client) {
-	client.handlers['getPlayers'] = require('./getPlayers').default;
-	client.handlers['getUnits'] = require('./getUnits').default;
-	client.handlers['getMap'] = require('./getMap').default;
-	client.handlers['getChunk'] = require('./getChunk').default;
-	client.handlers['createGhost'] = require('./createGhost').default;
-	client.handlers['spawn'] = require('./spawn').default;
-	client.handlers['setDestination'] = require('./setDestination').default;
-	client.handlers['unitStats'] = require('./unitStats').default;
-	client.handlers['factoryOrder'] = require('./factoryOrder').default;
-	client.handlers['transferResource'] = require('./transferResource').default;
-	client.handlers['sendChat'] = require('./sendChat').default;
+	client.handlers['getPlayers'] = getPlayers;
+	client.handlers['getUnits'] = getUnits;
+	client.handlers['getMap'] = getMap;
+	client.handlers['getChunk'] = getChunk;
+	client.handlers['createGhost'] = createGhost;
+	client.handlers['spawn'] = spawn;
+	client.handlers['setDestination'] = setDestination;
+	client.handlers['unitStats'] = unitStats;
+	client.handlers['factoryOrder'] = factoryOrder;
+	client.handlers['transferResource'] = transferResource;
+	client.handlers['sendChat'] = sendChat;
 
 	client.registerUnitListener();
 	client.registerUserListener();

@@ -56,8 +56,8 @@ export default class Net {
 		}
 
 		const wss = new WebSocketServer({ port: parseInt(env.wsPort), verifyClient });
-		wss.on('connection', (ws: ws) => {
-			new Client(ctx.create(), ws);
+		wss.on('connection', (ws: ws, req: http.IncomingMessage) => {
+			new Client(ctx.create(), ws, req);
 		});
 		return Promise.resolve();
 	}

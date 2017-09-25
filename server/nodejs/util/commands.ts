@@ -87,19 +87,6 @@ export default class Commands {
 			});
 		//==================================================================
 		// user methods
-		vorpal.command('createuser <name> [apikey]', 'create a user account with an api key')
-			.action((args: any): Promise<void> => {
-				return this.db.user.createUser(args.name, '0xffffff').then(async (result: any): Promise<any> => {
-					if (result.inserted !== 1) {
-						throw new Error('failed to create user');
-					}
-					if (args.apikey) {
-						return this.db.user.updateUser(args.name, { apiKey: args.apikey });
-					}
-				}).then((result: any) => {
-					console.log(result);
-				});
-			});
 
 		vorpal.command('removeuser <name>', 'remove all accounts with a given name')
 			.action((args: any): Promise<void> => {

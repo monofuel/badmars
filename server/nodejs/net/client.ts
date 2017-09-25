@@ -6,6 +6,7 @@
 
 import * as WebSocket from 'ws';
 import * as _ from 'lodash';
+import * as http from 'http';
 
 import { DetailedError, WrappedError } from '../util/logger';
 import { sanitizeUnit, sanitizeUser } from '../util/socketFilter';
@@ -13,6 +14,8 @@ import Context from '../util/context';
 import User from '../user/user';
 import Map from '../map/map';
 import * as jsonpatch from 'fast-json-patch';
+
+import auth from './handler/auth';
 
 const KEEP_ALIVE = 5000;
 
@@ -35,14 +38,14 @@ export default class Client {
 	ctx: Context;
 	loadedChunks: ChunkHash[];
 
-	constructor(ctx: Context, ws: WebSocket) {
+	constructor(ctx: Context, ws: WebSocket, req: http.IncomingMessage) {
 		this.ws = ws;
 		this.auth = false;
 		this.handlers = {};
 		this.ctx = ctx;
-		this.user = (this.ws as any).upgradeReq.user;
+		this.user = (req as any).user;
 		this.loadedChunks = [];
-		this.handlers['login'] = require('./handler/auth').default;
+		this.handlers['login'] = auth;
 
 		ctx.logger.info(ctx, 'client connected');
 

@@ -264,7 +264,6 @@ export interface LoginEvent extends BaseEvent {
 
 const LoginEventType = t.object({
 	type: t.string('login'),
-	apiKey: t.nullable(t.string()),
 })
 
 export interface ChunkEvent extends BaseEvent {
