@@ -1,5 +1,5 @@
 module.exports = {
-	entry: './client.tsx',
+	entry: './client.ts',
 	output: {
 		filename: 'badmars.js',
 		path: __dirname + '/../../bin/public/badmars/js/'
