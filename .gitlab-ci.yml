@@ -4,6 +4,7 @@ before_script:
 
 stages:
   - build
+  - test
   - deploy
 
 build_node_backend:
@@ -15,15 +16,22 @@ build_node_backend:
 build_frontend:
   stage: build
   script:
-    - docker-compose run client sh -c 'make client'
-    - docker-compose -f docker-compose-build.yml run node-build chown -R $UID public/
+    - docker-compose run client sh -c 'make buildClient buildHomepage'
+     docker-compose -f docker-compose-build.yml run node-build chown -R $UID bin/
 
 build_containers:
   stage: build
   script:
     - docker-compose build
     - docker-compose -f docker-compose-build.yml run node-build chown -R $UID bin/
-    - docker-compose -f docker-compose-build.yml run node-build chown -R $UID public/
+
+registration_test:
+  stage: test
+  script:
+    - docker-compose up -d
+    - docker-compose up test
+    - docker-compose -f docker-compose-build.yml run node-build chown -R $UID bin/
+    - docker-compose down
 
 prod_deploy:
   stage: deploy
