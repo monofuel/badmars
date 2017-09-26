@@ -25,6 +25,7 @@ import {
 	SpawnChange,
 	UnitChange,
 	ChatChange,
+	SpawnEvent,
 	LoginEvent,
 	LoginChange,
 	RequestChange,
@@ -90,6 +91,15 @@ function attachGlobalListeners(state: State) {
 		});
 	}
 
+	function spawnListener(data: SpawnEvent) {
+		if (data.success) {
+			RequestChange.post({
+				type: 'getMap'
+			});
+		}
+	}
+	SpawnChange.attach(spawnListener);
+
 	function loginListener(data: LoginEvent) {
 		if (data.success) {
 			RequestChange.post({
@@ -98,6 +108,7 @@ function attachGlobalListeners(state: State) {
 
 			GameStageChange.post({ stage: 'planet' });
 			state.input.mouseMode = 'select';
+			state.loggedIn = true;
 			LoginChange.detach(loginListener);
 		} else {
 			GameStageChange.post({ stage: 'login' });

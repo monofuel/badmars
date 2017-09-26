@@ -27,10 +27,6 @@ export default async function getMap(ctx: Context, client: Client): Promise<void
 	const userList = await ctx.db.user.listAllSanitizedUsers();
 	client.send('players', { players: userList });
 
-	// TODO check user location and get chunks near it
-
-	// if we don't know the users location, default to chunks the user has units on
-
 	// load chunks that user has units on
 	const chunkSet: Set<string> = new Set();
 	units.forEach((unit: Unit) => {

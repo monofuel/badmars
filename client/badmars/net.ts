@@ -123,7 +123,7 @@ const PlayersEventType = t.object({
 	}))
 });
 
-interface SpawnEvent extends BaseEvent {
+export interface SpawnEvent extends BaseEvent {
 	type: 'spawn';
 }
 
@@ -496,7 +496,7 @@ export default class Net {
 		if (!data.success) {
 			log('debug', `message failed: ${data.type} reason: ${data.reason}`);
 		}
-		log('debug', `recieved message ${data.type}`, { keys: Object.keys(data) });
+		log('silly', `recieved message ${data.type}`, { data });
 
 		// TODO ask for unit stats
 		// TODO load planet information for map
