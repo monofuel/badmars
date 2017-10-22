@@ -130,6 +130,9 @@ export default class Map {
 
 	async fetchOrGenChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
 		checkContext(ctx, 'fetchOrGenChunk');
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.name);
+
 		ctx.logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
 		const cacheChunk: CacheChunkType = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
@@ -140,7 +143,7 @@ export default class Map {
 		}
 		let chunk: null | Chunk;
 		try {
-			chunk = await ctx.db.chunks[this.name].getChunk(ctx, x, y);
+			chunk = await planetDB.chunk.get(ctx, `${x}:${y}`);
 		} catch (err) {
 			throw new WrappedError(err, 'fetching chunk from db');
 		}
@@ -201,7 +204,9 @@ export default class Map {
 	}
 
 	async factoryMakeUnit(ctx: Context, unitType: string, owner: string, x: number, y: number): Promise<null | Unit> {
-		const newUnit = new Unit(ctx, unitType, this, x, y);
+		const newUnit = new Unit();
+		const loc = await this.getLoc(ctx, x, y);
+		await newUnit.setup(ctx, unitType, loc);
 		newUnit.details.owner = owner;
 		newUnit.details.ghosting = false;
 		return await this.spawnUnit(ctx, newUnit);
@@ -224,17 +229,22 @@ export default class Map {
 	//this prevents a loop of trying to validate against a chunk that
 	//is not yet generated (hence infinite loop)
 	async spawnUnitWithoutTileCheck(ctx: Context, newUnit: Unit): Promise<Unit> {
-		return ctx.db.units[this.name].addUnit(ctx, newUnit);
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.name);
+
+		return  planetDB.unit.create(ctx, newUnit);
 	}
 
 	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise<Unit> {
 		checkContext(ctx, 'spawnAndValidate');
-		const unit: Unit = await ctx.db.units[this.name].addUnit(ctx, newUnit);
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.name);
+		const unit: Unit = await planetDB.unit.create(ctx, newUnit);
 		try {
 			await unit.addToChunks(ctx);
 		} catch (err) {
 			try {
-				await ctx.db.units[this.name].deleteUnit(ctx, unit.uuid);
+				await planetDB.unit.delete(ctx, unit.uuid);
 			} catch (err) {
 				throw new WrappedError(err, 'failed to cleanup with failed spawn in spawnAndValidate');
 			}
@@ -310,6 +320,9 @@ export default class Map {
 
 	async spawnUser(ctx: Context, client: Client): Promise<void> {
 
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.name);
+
 		//find a spawn location
 		ctx.logger.info(ctx, 'finding spawn location');
 		const chunk: Chunk = await this.findSpawnLocation(ctx);
@@ -332,7 +345,10 @@ export default class Map {
 				x = Math.round(x);
 				y = Math.round(y);
 
-				let unit: Unit = new Unit(ctx, unitType, this, x, y);
+				let unit: Unit = new Unit();
+				const loc = await this.getLoc(ctx, x, y);
+				await unit.setup(ctx, unitType, loc);
+
 				const tilesToUse: TileHash[] = unit.location.hash;
 
 				// check if the tiles we want to use are already used
@@ -388,7 +404,8 @@ export default class Map {
 
 					if (unitType === 'iron' || unitType === 'oil') {
 						//assumes that if we spawn the iron or oil, we can also spawn a mine
-						const mine = new Unit(ctx, 'mine', this, x, y);
+						const mine = new Unit();
+						await mine.setup(ctx, 'mine', loc);
 						mine.details.owner = client.user.uuid;
 						try {
 							const spawnedMine: Unit = await this.spawnUnitWithoutTileCheck(ctx, mine);
@@ -413,7 +430,7 @@ export default class Map {
 							ctx.logger.trackError(ctx, new WrappedError(err, 'failed to remove unit during rollback unit spawn'));
 						}
 						try {
-							await ctx.db.units[this.name].deleteUnit(ctx, unit.uuid);
+							await planetDB.unit.delete(ctx, unit.uuid);
 						} catch (err) {
 							ctx.logger.trackError(ctx, new WrappedError(err, 'failed to delete unit to rollback unit spawn'));
 						}
@@ -537,6 +554,9 @@ export default class Map {
 	}
 
 	async pullIron(ctx: Context, taker: Unit, amount: number): Promise<boolean> {
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.name);
+
 		const takerStorage: any = taker.getComponent('storage');
 
 		//TODO should calculate based on transfer range
@@ -584,12 +604,8 @@ export default class Map {
 			}
 			const unitStorage = unit.getComponent('storage');
 
-			const pulled = Math.min(unitStorage.iron, amount);
-			if (pulled === 0) {
-				continue;
-			}
-			const success = await unit.takeIron(ctx, pulled);
-			if (success) {
+			const pulled = await planetDB.unit.pullResource(ctx, 'iron', amount, unit.uuid);
+			if (pulled > 0) {
 				pulledMap[unit.uuid] = pulled;
 				amount = amount - pulled;
 				if (amount <= 0) {
@@ -601,6 +617,7 @@ export default class Map {
 		//if amount is still greater than 0
 		//that means the amount of iron changed after checking,
 		//and we should put iron back
+		/*
 		if (amount > 0 && Object.keys(pulledMap).length > 0) {
 			for (const unit of units) {
 				if (pulledMap[unit.uuid]) {
@@ -609,10 +626,14 @@ export default class Map {
 			}
 			return false;
 		}
+		*/ // TODO
 		return true;
 	}
 
 	async pullFuel(ctx: Context, taker: Unit, amount: number): Promise<boolean> {
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.name);
+
 		const takerStorage = taker.getComponent('storage');
 		//TODO should calculate based on transfer range
 		const units: Unit[] = await this.getNearbyUnitsFromChunk(ctx, taker.location.chunkHash[0]);
@@ -657,12 +678,8 @@ export default class Map {
 				continue;
 			}
 			const unitStorage = unit.getComponent('storage');
-			const pulled = Math.min(unitStorage.iron, amount);
-			if (pulled === 0) {
-				continue;
-			}
-			const success = await unit.takeFuel(ctx, pulled);
-			if (success) {
+			const pulled = await planetDB.unit.pullResource(ctx, 'fuel', amount, unit.uuid);
+			if (pulled > 0) {
 				pulledMap[unit.uuid] = pulled;
 				amount = amount - pulled;
 				if (amount <= 0) {
@@ -898,9 +915,12 @@ export default class Map {
 	}
 
 	async update(ctx: Context, patch: Object): Promise<void> {
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.name);
+
 		checkContext(ctx, 'update');
 		Object.assign(this, patch);
-		await ctx.db.map.updateMap(this.name, patch);
+		await planetDB.patch(ctx, this.name, patch);
 	}
 
 	clone(object: any) {
