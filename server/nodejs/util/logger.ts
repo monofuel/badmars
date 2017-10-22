@@ -135,9 +135,9 @@ export default class Logger {
 		kargs.env = env.envType;
 		verifyTrack(name, kargs);
 
-		if (ctx && ctx.db) {
-			ctx.db.event.addEvent(kargs);
-		}
+		/*if (ctx && ctx.db) {
+			ctx.db.event.create(ctx, kargs);
+		}*/
 		/*
 		request({
 			url: env.trackingServer + ':' + env.trackingPort + '/track/event',

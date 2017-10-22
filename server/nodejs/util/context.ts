@@ -17,6 +17,7 @@ export default class Context {
 	private _db: DB.DB;
 	private _logger: Logger;
 	private _env: any;
+	
 	public name: string;
 	public uuid: UUID;
 	public canceled: boolean = false

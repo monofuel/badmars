@@ -9,4 +9,20 @@ export default class User implements DB.User {
         ctx.check('game.init');
         this.userEvents = new SyncEvent<GameUser>();
     }
+
+    public async list(ctx: Context): Promise<GameUser[]> {
+        throw new Error("Method not implemented.");
+    }
+    public async get(ctx: Context, uuid: string): Promise<GameUser> {
+        throw new Error("Method not implemented.");
+    }
+    public async create(ctx: Context, user: GameUser): Promise<GameUser> {
+        throw new Error("Method not implemented.");
+    }
+    public async patch(ctx: Context, uuid: string, user: Partial<GameUser>): Promise<GameUser> {
+        throw new Error("Method not implemented.");
+    }
+    public async delete(ctx: Context, uuid: string): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
 }

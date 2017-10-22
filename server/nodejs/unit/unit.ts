@@ -14,7 +14,7 @@ import AttackAI from './ai/attack';
 import ConstructionAI from './ai/construction';
 import * as mineAI from './ai/mine';
 import UnitStat from './unitStat';
-import PlanetLoc from '../map/planetloc';
+import PlanetLoc, { getLocationDetails } from '../map/planetloc';
 
 import Map from '../map/map';
 import Chunk from '../map/chunk';
@@ -56,78 +56,73 @@ export default class Unit {
 	stationary: null | UnitStationary;
 	construct: null | UnitConstruct;
 
-
-	//constructor will be called with arguments when making a new unit
-	//constructor will be called without arguments when initializing from database (database does .clone())
-	constructor(ctx: Context, unitType: string = null, map: Map = null, x: number = 0, y: number = 0) {
-
-		//unit will be blank, and should be filled by .clone()
-		if (!unitType || !map) {
-			return;
-		}
-
-		// start off with loading type information
-		// to decide what components we will initialize
-		const unitStats = ctx.db.unitStats[map.name].get(unitType);
-		if (!unitStats) {
-			ctx.logger.info(ctx, 'unit stat missing', { unitType });
-			throw new Error('unit stats missing');
-		}
+	// for creating new units
+	async setup(ctx: Context, type: string, loc: PlanetLoc) {
+		this.initModules();
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, loc.map.name);
+		const unitStats = await planetDB.unitStat.get(ctx, type);
 		_.defaultsDeep(this, unitStats);
-
-		this.details.type = unitType;
-		this.awake = true;
 
 		//------------------
 		// details init
+		this.details.type = type;
+		this.awake = true;
 		this.details.ghosting = false;
 		this.details.owner = '';
 		this.details.health = this.details.maxHealth;
+		this.details.lastTick = 0;
 
 		//------------------
 		// location init
+		const { x, y } = loc;
 
-		const chunkX = Math.floor(x / map.settings.chunkSize);
-		const chunkY = Math.floor(y / map.settings.chunkSize);
-
-		x = Math.round(x);
-		y = Math.round(y);
-
-		let hash = [];
-		let chunkHash = [];
-		this.details.lastTick = 0;
+		let hash;
 		if (this.details.size === 1) {
 			hash = [x + ':' + y];
-			chunkHash = [chunkX + ':' + chunkY];
 		} else if (this.details.size === 2) {
-			//TODO multi-chunk should have all chunks listed
-			chunkHash = [chunkX + ':' + chunkY];
 			hash = [
 				(x) + ':' + (y), (x + 1) + ':' + (y),
 				(x) + ':' + (y + 1), (x + 1) + ':' + (y + 1)
 			];
 		} else if (this.details.size === 3) {
-			//TODO multi-chunk should have all chunks listed
-			chunkHash = [chunkX + ':' + chunkY];
 			hash = [
 				(x - 1) + ':' + (y - 1), (x) + ':' + (y - 1), (x + 1) + ':' + (y - 1),
 				(x - 1) + ':' + (y), (x) + ':' + (y), (x + 1) + ':' + (y),
 				(x - 1) + ':' + (y + 1), (x) + ':' + (y + 1), (x + 1) + ':' + (y + 1)
 			];
 		} else {
-			throw new DetailedError('invalid unit size', { type: unitType, size: this.details.size });
+			throw new DetailedError('invalid unit size', { type, size: this.details.size });
 		}
 
+		const chunkHash = new Set()
+
+		hash.forEach((tileHash: string) => {
+			const x = parseInt(tileHash.split(':')[0]);
+			const y = parseInt(tileHash.split(':')[1]);
+			const locDetails = getLocationDetails(x, y, loc.map.settings.chunkSize);
+			chunkHash.add(`${locDetails.chunkX}:${locDetails.chunkY}`)
+		})
+
 		this.location = {
-			map: map.name,
+			map: loc.map.name,
 			x,
 			y,
 			hash,
-			chunkX,
-			chunkY,
-			chunkHash
-		};
+			chunkX: loc.chunk.x,
+			chunkY: loc.chunk.y,
+			chunkHash: Array.from(chunkHash),
+		}
+	}
+
+	// for units loaded from the database
+	async load(ctx: Context, doc: Object) {
 		this.initModules();
+		const { db, logger } = ctx;
+		const unitStats = await this.getTypeInfo(ctx);
+		_.defaultsDeep(this, unitStats);
+
+		this.clone(ctx, doc);
 	}
 
 	initModules() {
@@ -288,22 +283,29 @@ export default class Unit {
 
 	async update(ctx: Context, patch: any): Promise<void> {
 		checkContext(ctx, 'update');
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.location.map);
 		// TODO we should also update the unit itself (this breaks currently)
 		// Object.assign(this, patch);
 		//assume the object will be awake, unless we are setting it false
 		patch.awake = patch.awake || patch.awake === undefined;
-		await ctx.db.units[this.location.map].updateUnit(ctx, this.uuid, patch);
+		await planetDB.unit.patch(ctx, this.uuid, patch);
 		this.validate(ctx);
 	}
 
 	async delete(ctx: Context): Promise<void> {
 		checkContext(ctx, 'delete');
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.location.map);
 		await this.clearFromChunks(ctx);
 
-		return ctx.db.units[this.location.map].deleteUnit(ctx, this.uuid);
+		return planetDB.unit.delete(ctx, this.uuid);
 	}
 
 	async assertLocation(ctx: Context, map: Map): Promise<void> {
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.location.map);
+
 		const badLocs: PlanetLoc[] = [];
 		try {
 			const locs: Array<PlanetLoc> = await this.getLocs(ctx);
@@ -327,7 +329,7 @@ export default class Unit {
 			if (this.details.size === 1) {
 				let chunkHash: ChunkHash;
 				try {
-					chunkHash = await ctx.db.chunks[this.location.map].findChunkForUnit(ctx, this.uuid);
+					chunkHash = await planetDB.chunkLayer.findChunkForUnit(ctx, this.uuid);
 				} catch (err) {
 					if (err.message === 'unit not found on map') {
 						const loc = badLocs[0];
@@ -371,123 +373,15 @@ export default class Unit {
 		}
 	}
 
-	async takeIron(ctx: Context, amount: number): Promise<void> {
-		if (!this.storage) {
-			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
-		}
-		const table = ctx.db.units[this.location.map].getTable();
-		const conn = ctx.db.units[this.location.map].getConn();
-		const delta = await table.get(this.uuid).update((self: any): any => {
-			return (r.branch as any)(
-				self('storage')('iron').ge(amount), {
-					storage: {
-						iron: self('storage')('iron').sub(amount)
-					}
-				}, {}
-			);
-		}, { returnChanges: true }).run(conn);
-
-		if (!this.storage) {
-			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
-		}
-
-		if (delta.replaced === 0) {
-			throw new DetailedError('unit was not updated', { uuid: this.uuid, type: this.details.type });
-		} else {
-			this.storage.iron -= amount;
-			if (this.storage.iron != (delta as any).changes[0].new_val.storage.iron) {
-				throw new DetailedError('failed to update iron', { uuid: this.uuid, type: this.details.type, amount });
-			}
-		}
-	}
-
-	// TODO success booleans are an awful idea, why did i do this.
-	async takeFuel(ctx: Context, amount: number): Promise<void> {
-		if (!this.storage) {
-			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
-		}
-		const table = ctx.db.units[this.location.map].getTable();
-		const conn = ctx.db.units[this.location.map].getConn();
-		const delta = await table.get(this.uuid).update((self: any): any => {
-			return (r.branch as any)(
-				self('storage')('fuel').ge(amount), { storage: { fuel: self('storage')('fuel').sub(amount) } }, {}
-			);
-		}, { returnChanges: true }).run(conn);
-
-		if (!this.storage) {
-			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
-		}
-
-		if (delta.replaced === 0) {
-			throw new DetailedError('unit was not updated', { uuid: this.uuid, type: this.details.type });
-		} else {
-			this.storage.fuel -= amount;
-			if (this.storage.fuel != (delta as any).changes[0].new_val.storage.fuel) {
-				throw new DetailedError('failed to update fuel', { uuid: this.uuid, type: this.details.type, amount });
-			}
-		}
-	}
-
-
-	//TODO: some of the functionality of addiron should be dumped into db/units.js
-	//we shouldn't be requiring rethink in this file
-
-	//returns the amount that actually could be deposited
-	async addIron(ctx: Context, amount: number): Promise<any> {
-		checkContext(ctx, 'addIron');
-		if (!this.storage) {
-			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
-		}
-
-		const max = this.storage.maxIron - this.storage.iron;
-
-		if (max <= 0) {
-			return 0;
-		}
-		if (amount > max) {
-			this.storage.iron += max;
-			await ctx.db.units[this.location.map]
-				.updateUnit(ctx, this.uuid, { storage: { iron: r.row('storage')('iron').default(0).add(max) } });
-			return max;
-		}
-		if (amount <= max) {
-			this.storage.iron += amount;
-			await ctx.db.units[this.location.map]
-				.updateUnit(ctx, this.uuid, { storage: { iron: r.row('storage')('iron').default(0).add(amount) } });
-			return amount;
-		}
-	}
-
-	//returns the amount that actually could be deposited
-	async addFuel(ctx: Context, amount: number): Promise<any> {
-		checkContext(ctx, 'addFuel');
-		if (!this.storage) {
-			throw new DetailedError('unit does not have storage', { uuid: this.uuid, type: this.details.type });
-		}
-		const max = this.storage.maxFuel - this.storage.fuel;
-		if (max <= 0) {
-			return 0;
-		}
-		if (amount > max) {
-			this.storage.fuel += max;
-			await ctx.db.units[this.location.map].updateUnit(ctx, this.uuid, { storage: { fuel: r.row('storage')('fuel').default(0).add(max) } });
-			return max;
-		}
-		if (amount <= max) {
-			this.storage.fuel += amount;
-			await ctx.db.units[this.location.map].updateUnit(ctx, this.uuid, { storage: { fuel: r.row('storage')('fuel').default(0).add(amount) } });
-			return amount;
-		}
-	}
-
 	async addFactoryOrder(ctx: Context, unitType: UnitType): Promise<void> {
 		checkContext(ctx, 'addFactoryOrder');
+		const planetDB = await db.getPlanetDB(ctx, this.location.map);
 
 		if (!this.construct) {
 			throw new DetailedError('unit cannot construct', { uuid: this.uuid, type: this.details.type });
 		}
 
-		const stats = ctx.db.unitStats[this.location.map].get(unitType);
+		const stats = await planetDB.unitStat.get(unitType);
 		if (!stats) {
 			throw new DetailedError('cannot add invalid factory order', { uuid: this.uuid, type: unitType });
 		}
@@ -498,7 +392,9 @@ export default class Unit {
 			cost: stats.details.cost
 		};
 
-		return await ctx.db.units[this.location.map].addFactoryOrder(ctx, this.uuid, order);
+		await this.update(ctx, { construct: {
+			factoryQueue: this.construct.factoryQueue.concat(order)
+		}})
 
 	}
 
@@ -875,7 +771,9 @@ export default class Unit {
 	}
 
 	async getMap(ctx: Context): Promise<Map> {
-		return await ctx.db.map.getMap(ctx,this.location.map);
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.location.map);
+		return planetDB.planet;
 	}
 
 	// other should be a database document for a unit (or another unit)
@@ -908,12 +806,17 @@ export default class Unit {
 		return compObject;
 	}
 
-	getTypeInfo(ctx: Context): UnitStat {
-		return ctx.db.unitStats[this.location.map].get(this.details.type);
+	async getTypeInfo(ctx: Context): Promise<UnitStat> {
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.location.map);
+
+		return await planetDB.unitStat.get(ctx, this.details.type);
 	}
 
 	async refresh(ctx: Context): Promise<void> {
-		const fresh: any = await ctx.db.units[this.location.map].getUnit(ctx, this.uuid);
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, this.location.map);
+		const fresh: any = await planetDB.unit.get(ctx, this.uuid);
 		this.clone(ctx, fresh);
 	}
 }

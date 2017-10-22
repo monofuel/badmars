@@ -13,6 +13,8 @@ import { sanitizeUnit, sanitizeUser } from '../util/socketFilter';
 import Context from '../util/context';
 import User from '../user/user';
 import Map from '../map/map';
+import Unit from '../unit/unit';
+import { GameEvent, ChatEvent } from '../db';
 import * as jsonpatch from 'fast-json-patch';
 
 import auth from './handler/auth';
@@ -131,83 +133,64 @@ export default class Client {
 		await this.handlers[data.type](ctx, this, data);
 	}
 
-	registerUnitListener() {
-		this.ctx.db.units[this.map.name].registerListener((err: Error, delta: Object) => {
-			this.handleUnitUpdate(err, delta);
+	async registerUnitListener(): Promise<void> {
+		const planetDB = await this.ctx.db.getPlanetDB(this.ctx, this.map.name);
+		await planetDB.unit.watch(this.ctx, async (unit: Unit, oldUnit): Promise<void> => {
+			await this.handleUnitUpdate(unit, oldUnit);
 		});
 	}
 
-	registerUserListener() {
-		this.ctx.db.user.registerListener((err: Error, delta: object) => {
-			this.handleUserUpdate(err, delta);
+	async registerUserListener(): Promise<void> {
+		await this.ctx.db.user.watch(this.ctx, async (user: User): Promise<void> => {
+			await this.handleUserUpdate(user);
 		});
 	}
 
-	registerEventHandler() {
-		this.ctx.db.event.watchEvents((err: Error, delta: Object) => {
-			this.handleEvents(err, delta);
-		});
-	}
-
-	registerChatHandler() {
-		this.ctx.db.chat.watch((err: Error, delta: Object) => {
-			this.handleChat(err, delta);
-		});
-	}
-
-	//TODO also handle player list updates
-	handleUnitUpdate(err: Error, delta: any) {
-
-		if(!delta.new_val) {
-			if(delta.old_val) {
-				//TODO update client for new 'kill' system.
-				this.send('kill', {
-					unitId: delta.old_val.uuid
-				});
-			}
-		} else {
-			// check if unit is on a chunk the player sees
-			if (_.intersection(delta.new_val.location.chunkHash, this.loadedChunks).length === 0) {
-				return;
-			}
-			// TODO fog of war
-
-			const newUnit = sanitizeUnit(delta.new_val, this.user.uuid);
-
-			if(delta.old_val) {
-				//console.log('unit change');
-				const oldUnit = sanitizeUnit(delta.old_val, this.user.uuid);
-				if(!_.isEqual(newUnit, oldUnit)) {
-					this.send('unitDelta', {
-						uuid: newUnit.uuid,
-						delta: jsonpatch.compare(oldUnit, newUnit)
-					});
-				}
+	async registerEventHandler(): Promise<void> {
+		this.ctx.db.event.watch(this.ctx, async (e: GameEvent): Promise<void> => {
+			if (e.type === 'chat') {
+				this.handleChat(e);
 			} else {
-				this.send('units', {
-					units: [newUnit]
-				});
+				this.handleEvents(e);
 			}
-		}
+		});
 	}
 
-	handleUserUpdate(err: Error, delta: any) {
-		if (delta.new_val) {
-			// console.log('user delta', delta);
-			const newUser = sanitizeUser(delta.new_val);
-			this.send('players', { players: [newUser] });
-		}
-	}
+	async handleUnitUpdate(unit: Unit, oldUnit?: Unit): Promise<void> {
 
-	handleEvents(err: Error, data: any) {
-		if(err) {
-			this.ctx.logger.trackError(this.ctx, new WrappedError(err, 'client handle events'));
+		// TODO unit death should be handled by the event system
+
+		// check if unit is on a chunk the player sees
+		if (_.intersection(unit.location.chunkHash, this.loadedChunks).length === 0) {
 			return;
 		}
 
-		//console.log('recieving event');
-		//console.log(data.new_val);
-		const gameEvent = data.new_val;
+		// TODO fog of war
+
+		const sanitizedNewUnit = sanitizeUnit(unit, this.user.uuid);
+
+		if (oldUnit) {
+			//console.log('unit change');
+			const sanitizedOldUnit = sanitizeUnit(oldUnit, this.user.uuid);
+			if (!_.isEqual(sanitizedNewUnit, sanitizedOldUnit)) {
+				this.send('unitDelta', {
+					uuid: sanitizedNewUnit.uuid,
+					delta: jsonpatch.compare(sanitizedOldUnit, sanitizedNewUnit)
+				});
+			}
+		} else {
+			this.send('units', {
+				units: [sanitizedNewUnit]
+			});
+		}
+	}
+
+	async handleUserUpdate(user: User) {
+		const newUser = sanitizeUser(user);
+		this.send('players', { players: [newUser] });
+	}
+
+	async handleEvents(gameEvent: any) {
 		if(gameEvent.name !== 'server_gameEvent') {
 			return;
 		}
@@ -233,11 +216,8 @@ export default class Client {
 		}
 	}
 
-	handleChat(err: Error, data: any) {
-		if(err) {
-			this.ctx.logger.trackError(this.ctx, new WrappedError(err, 'chat handler error'));
-			return;
-		}
-		this.send('chat', data.new_val);
+	async handleChat(e: ChatEvent): Promise<void> {
+		// TODO filtering based on channel and planet
+		this.send('chat', e);
 	}
 }

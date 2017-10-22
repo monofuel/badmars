@@ -23,7 +23,7 @@ export default class MemoryDB implements DB.DB {
         this.session.init(ctx.create());
     }
 
-    async getPlanet(ctx: Context, name: string): Promise<DB.Planet> {
+    async getPlanetDB(ctx: Context, name: string): Promise<DB.Planet> {
         if (this.planets[name]) {
             return this.planets[name];
         }

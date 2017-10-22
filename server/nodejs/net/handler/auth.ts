@@ -21,7 +21,7 @@ import factoryOrder from './factoryOrder';
 import transferResource from './transferResource';
 import sendChat from './sendChat';
 
-function mountUserHandlers(client: Client) {
+async function mountUserHandlers(client: Client): Promise<void> {
 	client.handlers['getPlayers'] = getPlayers;
 	client.handlers['getUnits'] = getUnits;
 	client.handlers['getMap'] = getMap;
@@ -34,10 +34,9 @@ function mountUserHandlers(client: Client) {
 	client.handlers['transferResource'] = transferResource;
 	client.handlers['sendChat'] = sendChat;
 
-	client.registerUnitListener();
-	client.registerUserListener();
-	client.registerEventHandler();
-	client.registerChatHandler();
+	await client.registerUnitListener();
+	await client.registerUserListener();
+	await client.registerEventHandler();
 
 }
 
@@ -45,11 +44,13 @@ function mountUserHandlers(client: Client) {
 // TODO refactor this code to use await
 export default async function auth(ctx: Context, client: Client, data: any): Promise<void> {
 	checkContext(ctx, 'auth');
+	const { db, logger } = ctx;
+	const planetDB = await db.getPlanetDB(ctx, this.location.map);
 
 	if(!data.planet) { //TODO change from planet to map
 		client.sendError(ctx, 'login', 'specify a planet');
 	}
-	const planet: Map = await ctx.db.map.getMap(ctx,data.planet);
+	const planet: Map = planetDB.planet;
 	if(!planet) {
 		throw new Error('planet doesn\'t exist');
 	}

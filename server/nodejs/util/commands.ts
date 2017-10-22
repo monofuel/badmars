@@ -8,13 +8,13 @@
 const vorpal = require('vorpal')();
 
 import Logger from '../util/logger';
-import DB from '../db/db';
+import * as DB from '../db';
 import Context from '../util/context';
 
 export default class Commands {
-	db: DB;
+	db: DB.DB;
 	logger: Logger;
-	constructor(db: DB, logger: Logger) {
+	constructor(db: DB.DB, logger: Logger) {
 		this.logger = logger;
 		this.db = db;
 		this.registerCommands();
@@ -42,55 +42,52 @@ export default class Commands {
 		// map methods
 
 		vorpal.command('listMaps', 'list all created maps')
-			.action((): Promise<void> => {
-				return this.db.map.listNames().then((names: Array<string>) => {
-					console.log(names);
-				});
+			.action(async (): Promise<void> => {
+				const names = await this.db.listPlanetNames(ctx);
+				console.log(names);
 			});
 
 		vorpal.command('removeMap <name>', 'remove a specific map')
 			.autocomplete({
 				data: (): Promise<Array<string>> => {
-					return this.db.map.listNames();
+					return this.db.listPlanetNames(ctx);
 				}
 			})
-			.action((args: any): Promise<void> => {
-				return this.db.map.removeMap(args.name).then(() => {
-					console.log('success');
-				});
+			.action( async (args: any): Promise<void> => {
+				await this.db.removePlanet(ctx, args.name)
+				console.log('success');
 			});
 
 		vorpal.command('createMap <name>', 'create a new random map')
-			.action((args: any): Promise<void> => {
-				return this.db.map.createRandomMap(args.name).then(() => {
-					console.log('created map ' + args.name);
-				});
+			.action(async (args: any): Promise<void> => {
+				await this.db.createPlanet(ctx, args.name);
+				console.log('created map ' + args.name);
 			});
 
 		vorpal.command('unpause <name>', 'unpause a map')
 			.action(async (args: any): Promise<void> => {
-				const map = await this.db.map.getMap(ctx, args.name);
-				await map.setPaused(ctx, false);
+				const planet = (await this.db.getPlanetDB(ctx, args.name)).planet;
+				await planet.setPaused(ctx, false);
 			});
 
 		vorpal.command('pause <name>', 'pause a map')
 			.action(async (args: any): Promise<void> => {
-				const map = await this.db.map.getMap(ctx, args.name);
-				await map.setPaused(ctx, true);
+				const planet = (await this.db.getPlanetDB(ctx, args.name)).planet;
+				await planet.setPaused(ctx, true);
 			});
 
 		vorpal.command('advanceTick <name>', 'advance the tick on a map')
 			.action(async (args: any): Promise<void> => {
 				// TODO would be cool if this function watched for how long it took to simulate the next tick
-				const map = await this.db.map.getMap(ctx, args.name, { ignoreCache: true });
-				await map.advanceTick(ctx);
+				const planet = (await this.db.getPlanetDB(ctx, args.name)).planet;
+				await planet.advanceTick(ctx);
 			});
 		//==================================================================
 		// user methods
 
 		vorpal.command('removeuser <name>', 'remove all accounts with a given name')
 			.action((args: any): Promise<void> => {
-				return this.db.user.deleteUser(args.name);
+				return this.db.user.delete(ctx, args.name);
 			});
 
 	}

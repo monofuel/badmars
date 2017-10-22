@@ -8,12 +8,15 @@ import Context from '../../util/context';
 import Client from '../client';
 import Unit from '../../unit/unit';
 import sleep from '../../util/sleep';
-import { sanitizeChunk, sanitizeUnit, sanitizePlanet } from '../../util/socketFilter';
+import { sanitizeChunk, sanitizeUnit, sanitizePlanet, sanitizeUser } from '../../util/socketFilter';
 
 type ChunkHash = string;
 
 export default async function getMap(ctx: Context, client: Client): Promise<void> {
-	const units: Array<Unit> = await ctx.db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
+	const { db, logger } = ctx;
+	const planetDB = await db.getPlanetDB(ctx, this.location.map);
+
+	const units: Array<Unit> = await planetDB.unit.listPlayersUnits(ctx, client.user.uuid);
 	const planet: any = sanitizePlanet(client.planet);
 	planet.isSpawned = units.length !== 0;
 	client.send('map', { map: planet });
@@ -21,11 +24,11 @@ export default async function getMap(ctx: Context, client: Client): Promise<void
 	// HACK make sure 'map' arrives before data about the map
 	await sleep(1000);
 
-	const unitStats = await ctx.db.unitStats[client.planet.name].getAll(ctx);
+	const unitStats = await planetDB.unitStat.getAll(ctx);
 	client.send('unitStats', { units: unitStats });
 
-	const userList = await ctx.db.user.listAllSanitizedUsers();
-	client.send('players', { players: userList });
+	const userList = await ctx.db.user.list(ctx);
+	client.send('players', { players: userList.map(sanitizeUser) });
 
 	// load chunks that user has units on
 	const chunkSet: Set<string> = new Set();

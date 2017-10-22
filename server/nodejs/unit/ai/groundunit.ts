@@ -38,6 +38,8 @@ export async function actionable(ctx: Context, unit: Unit, map: Map): Promise<bo
 
 export async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	checkContext(ctx, 'groundUnit simulate');
+	const { db, logger } = ctx;
+	const planetDB = await db.getPlanetDB(ctx, this.location.map);
 
 	// flow sucks
 	const movable = unit.movable;
@@ -52,7 +54,7 @@ export async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void
 	}
 
 	if (movable.transferGoal && !movable.destination) {
-		const transferUnit = await ctx.db.units[map.name].getUnit(ctx, movable.transferGoal.uuid);
+		const transferUnit = await planetDB.unit.get(ctx, movable.transferGoal.uuid);
 		if (await areUnitsAdjacent(ctx, unit, transferUnit)) {
 			ctx.logger.info(ctx, 'performing transfer', { uuid: unit.uuid });
 			await performTransfer(ctx, unit, transferUnit);

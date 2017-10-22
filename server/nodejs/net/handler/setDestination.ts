@@ -10,6 +10,9 @@ import Client from '../client';
 import Unit from '../../unit/unit';
 
 export default async function setDestination(ctx: Context, client: Client, data: any): Promise<void> {
+	const { db, logger } = ctx;
+	const planetDB = await db.getPlanetDB(ctx, this.location.map);
+
 	checkContext(ctx, 'setDestination');
 	if(!data.unitId) {
 		return client.sendError(ctx, 'setDestination', 'no unit specified');
@@ -20,7 +23,7 @@ export default async function setDestination(ctx: Context, client: Client, data:
 	const x = parseInt(data.location[0]);
 	const y = parseInt(data.location[1]);
 
-	const unit: Unit = await ctx.db.units[client.planet.name].getUnit(ctx, data.unitId);
+	const unit: Unit = await planetDB.unit.get(ctx, data.unitId);
 	if(unit.details.owner !== client.user.uuid) {
 		return client.sendError(ctx, 'setDestination', 'not your unit');
 	}

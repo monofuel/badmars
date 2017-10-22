@@ -8,6 +8,9 @@ import Context from '../../util/context';
 import Client from '../client';
 
 export default async function transferResource(ctx: Context, client: Client, data: any): Promise<void> {
+	const { db, logger } = ctx;
+	const planetDB = await db.getPlanetDB(ctx, this.location.map);
+
 	if(!data.source) {
 		return client.sendError(ctx, 'transferResource', 'missing source');
 	}
@@ -18,8 +21,8 @@ export default async function transferResource(ctx: Context, client: Client, dat
 		return client.sendError(ctx, 'transferResource', 'missing resource (iron and or fuel)');
 	}
 
-	const sourceUnit = await ctx.db.units[client.planet.name].getUnit(ctx, data.source);
-	const destUnit = await ctx.db.units[client.planet.name].getUnit(ctx, data.dest);
+	const sourceUnit = await planetDB.unit.get(ctx, data.source);
+	const destUnit = await planetDB.unit.get(ctx, data.dest);
 
 	if(!sourceUnit || sourceUnit.details.owner !== client.user.uuid) {
 		return client.sendError(ctx, 'transferResource', 'source unit is not yours');

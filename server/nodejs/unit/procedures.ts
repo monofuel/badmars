@@ -12,6 +12,9 @@ type Resource = 'iron' | 'fuel';
 
 // returns the amount of resource that could be transfered
 export async function sendResource(ctx: Context, type: Resource, amount: number, src: Unit, dest: Unit): Promise<number> {
+	const { db, logger } = ctx;
+	const planetDB = await db.getPlanetDB(ctx, this.location.map);
+
 	if (!src.storage) {
 		throw new DetailedError('source unit does not have storage', { uuid: src.uuid, type: src.details.type });
 	}
@@ -34,12 +37,12 @@ export async function sendResource(ctx: Context, type: Resource, amount: number,
 		}
 	}
 
-	const pulled: number = await ctx.db.units[src.location.map].pullResource(ctx, type, amount, src);
+	const pulled: number = await planetDB.unit.pullResource(ctx, type, amount, src.uuid);
 	if (pulled === 0) {
 		return 0;
 	}
 
-	const pushed: number = await ctx.db.units[src.location.map].putResource(ctx, type, pulled, dest);
+	const pushed: number = await planetDB.unit.putResource(ctx, type, pulled, dest.uuid);
 	if (pushed !== pulled) {
 		// TODO attempt to return pulled resources
 	}

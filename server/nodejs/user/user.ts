@@ -37,6 +37,6 @@ export default class User {
 	async update(ctx: Context, patch: Object): Promise<void> {
 		checkContext(ctx, 'user update');
 		Object.assign(this, patch);
-		await ctx.db.user.updateUser(this.name, patch);
+		await ctx.db.user.patch(ctx, this.uuid, patch);
 	}
 }

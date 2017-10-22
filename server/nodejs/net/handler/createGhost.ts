@@ -22,9 +22,11 @@ export default async function createGhost(ctx: Context, client: Client, data: an
 	const map: Map = client.map;
 
 	try {
-		//TODO validate the unit type
-		//maybe this logic should be moved into map
-		const unit = new Unit(ctx, data.unitType, map, data.location[0], data.location[1]);
+		// TODO should have more validation around this stuff
+		const unit = new Unit()
+		const loc = await map.getLoc(ctx, data.location[0], data.location[1]);
+		await unit.setup(ctx, data.unitType, loc);
+
 		unit.details.ghosting = true;
 		unit.details.owner = client.user.uuid;
 

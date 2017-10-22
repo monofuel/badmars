@@ -9,6 +9,8 @@ import Client from '../client';
 import Unit from '../../unit/unit';
 
 export default async function getUnits(ctx: Context, client: Client): Promise<void> {
-	const units: Array<Unit> = await ctx.db.units[client.planet.name].listPlayersUnits(ctx, client.user.uuid);
+	const { db, logger } = ctx;
+	const planetDB = await db.getPlanetDB(ctx, this.location.map);
+	const units: Array<Unit> = await planetDB.unit.listPlayersUnits(ctx, client.user.uuid);
 	client.send('units', { units: units });
 }
