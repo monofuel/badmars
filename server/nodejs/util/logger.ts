@@ -27,7 +27,7 @@ export class DetailedError extends Error {
 	constructor(msg: string, details: DetailsType = {}) {
 		super(msg);
 		this.details = details;
-	}
+	}	
 }
 
 function isDetailedError(err: any): err is DetailedError {

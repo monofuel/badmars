@@ -23,7 +23,7 @@ export default async function sendChat(ctx: Context,client: Client, data: any): 
 	}
 
 
-	await ctx.db.chat.sendChat(user, data.text, data.channel || DEFAULT_CHANNEL);
+	await ctx.db.chat.send(user, data.text, data.channel || DEFAULT_CHANNEL);
 
 	//realtime system should send player their new chat message,
 	//no need to send success

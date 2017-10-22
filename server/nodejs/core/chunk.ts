@@ -51,7 +51,7 @@ export default class PlanetService {
 	}
 
 	makeCtx(timeout?: number): Context {
-		return new Context({ timeout }, this.db, this.logger);
+		return new Context({ timeout, db: this.db, logger: this.logger});
 	}
 
 	logRequests() {

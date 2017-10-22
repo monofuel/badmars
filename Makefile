@@ -44,7 +44,7 @@ prepareBin:
 	cp server/nodejs/config/*.json bin/server/nodejs/config/
 	mkdir -p bin/server/nodejs/web/views/
 	cp -r server/nodejs/web/views bin/server/nodejs/web/
-	cp -r ./public bin/
+	cp -r ./public bin/	
 
 buildServer: prepareBin buildNode
 

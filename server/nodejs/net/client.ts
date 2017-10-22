@@ -150,7 +150,7 @@ export default class Client {
 	}
 
 	registerChatHandler() {
-		this.ctx.db.chat.watchChat((err: Error, delta: Object) => {
+		this.ctx.db.chat.watch((err: Error, delta: Object) => {
 			this.handleChat(err, delta);
 		});
 	}

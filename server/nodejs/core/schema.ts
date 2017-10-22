@@ -19,7 +19,7 @@ export default class SchemaService {
 
 
 	makeCtx(timeout?: number): Context {
-		return new Context({ timeout }, this.db, this.logger);
+		return new Context({ timeout, db: this.db, logger: this.logger});
 	}	
 
 	async init(): Promise<void> {
