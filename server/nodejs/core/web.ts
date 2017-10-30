@@ -7,6 +7,7 @@
 import * as express from 'express';
 import * as path from 'path';
 import * as util from 'util';
+import * as bodyParser from 'body-parser';
 
 import env from '../config/env';
 
@@ -15,6 +16,7 @@ import { Service } from './';
 import mainRoute from '../web/routes/main';
 import managementRoute from '../web/routes/management';
 import healthRoute from '../web/routes/health';
+import authRoute from '../web/routes/auth';
 
 import Context from '../util/context';
 
@@ -23,18 +25,20 @@ export default class WebService implements Service {
 	async init(ctx: Context): Promise<void> {
 		this.parentCtx = ctx;
 	}
-	
+
 	async start(): Promise<void> {
 		const app = express();
 
 		app.set('view engine', 'ejs');
 		app.set('trust proxy', true); //for accurate logs running behind a proxy
 		app.use(express.static(path.join(__dirname, '../../../public/badmars/')));
-		app.set('views', path.join(__dirname,'../web/views'));
+		app.set('views', path.join(__dirname, '../web/views'));
+		app.use(bodyParser.json());
 
 		mainRoute(this.parentCtx.create(), app);
 		managementRoute(this.parentCtx.create(), app);
 		healthRoute(this.parentCtx.create(), app);
+		authRoute(this.parentCtx.create(), app);
 
 		return new Promise<void>((resolve: Function) => {
 			const server = app.listen(env.wwwPort, () => {
@@ -51,7 +55,7 @@ export default class WebService implements Service {
 	}
 
 	async stop(): Promise<void> {
-        this.parentCtx.info('stopping web');
-        throw new Error('not implemented');
-    }
+		this.parentCtx.info('stopping web');
+		throw new Error('not implemented');
+	}
 }

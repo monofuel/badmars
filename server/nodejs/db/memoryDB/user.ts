@@ -19,6 +19,9 @@ export default class User implements DB.User {
     public async get(ctx: Context, uuid: string): Promise<GameUser> {
         throw new Error("Method not implemented.");
     }
+    public async getByName(ctx: Context, name: string): Promise<GameUser> {
+        throw new Error("Method not implemented.");
+    }
     public async create(ctx: Context, user: GameUser): Promise<GameUser> {
         throw new Error("Method not implemented.");
     }

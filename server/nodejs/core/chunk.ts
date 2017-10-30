@@ -29,8 +29,9 @@ export default class PlanetService implements Service {
 	}
 
 	async stop(): Promise<void> {
-		this.parentCtx.info('stopping net');
+		this.parentCtx.info('stopping chunk');
 		throw new Error('not implemented');
+		// server.forceShutdown();
 	}
 
 	async start(): Promise<void> {

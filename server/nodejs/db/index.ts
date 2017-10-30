@@ -73,6 +73,7 @@ export interface Planet {
 export interface User {
     list(ctx: Context): Promise<GameUser[]>;
     get(ctx: Context, uuid: string): Promise<GameUser>;
+    getByName(ctx: Context, name: string): Promise<GameUser>
     watch(ctx: Context, fn: Handler<GameUser>): Promise<void>;
     create(ctx: Context, user: GameUser): Promise<GameUser>;
     patch(ctx: Context, uuid: string, user: Partial<GameUser>): Promise<GameUser>;
@@ -96,7 +97,7 @@ export interface Event {
 }
 
 export interface Session {
-    createBearer(uuid: string): Promise<GameSession>;
+    createBearer(ctx: Context, uuid: string): Promise<GameSession>;
     getBearerUser(ctx: Context, token: string): Promise<GameUser>;
 }
 
