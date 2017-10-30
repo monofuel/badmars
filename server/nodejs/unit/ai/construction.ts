@@ -104,7 +104,7 @@ export default class constructionAI {
 		ctx.logger.info(ctx, 'constructing', { type: newUnitType });
 
 		if(queue[0].cost > 0) {
-			if(await map.pullIron(ctx, unit, queue[0].cost)) {
+			if(await map.pullResource(ctx, 'iron', unit, queue[0].cost)) {
 				queue[0].cost = 0;
 
 				//TODO this should not be called from outside unit
@@ -151,7 +151,7 @@ export default class constructionAI {
 		// check if the nearby ghost is close enough to build
 		//1.01 is 1 for the unit, + 0.01 for float fudge factor (ffffffffffff)
 		if(nearestGhost.distance(unit) < nearestGhost.details.size + 1.05) {
-			if(await map.pullIron(ctx, unit, nearestGhost.details.cost)) {
+			if(await map.pullResource(ctx, 'iron', unit, nearestGhost.details.cost)) {
 				ctx.logger.info(ctx, `${unit.details.type} building ${nearestGhost.details.type}`);
 				//TODO builder should halt and spend time building
 				//should also make sure the area is clear

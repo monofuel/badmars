@@ -1,43 +1,18 @@
-
-//-----------------------------------
-//	author: Monofuel
-//	website: japura.net/badmars
-//	Licensed under included modified BSD license
-
-import DB from './db/db';
-import Logger from './util/logger';
-import {init as statInit} from './util/stats';
-import Health from './core/health';
-import AI from './core/AI';
-import env from './config/env';
 require('source-map-support').install();
 
-const logger = new Logger('ai');
-const db = new DB(logger);
-statInit(logger);
+import RethinkDB from './db/rethinkDB';
+import AI from './core/ai';
+import Context from './util/context';
+import { prepareCtx, start } from './';
 
 async function init(): Promise<void> {
-	try {
-		logger.info(null, 'start begin');
-		await db.init();
-		logger.info(null, 'db ready');
-
-		const ai = new AI(db, logger);
-		await ai.init();
-		logger.info(null, 'ai service started');
-		if (env.envType === 'prod') {
-			const health = new Health(db, logger);
-			await health.init();
-		}
-		logger.info(null, 'READY');
-
-	} catch (err) {
-		// eslint-disable-next-line no-console
-		console.error(err.stack);
-		logger.info(null, 'ai script caught error, exiting');
-		logger.trackError(null, err);
-		process.exit(-1);
-	}
+	const ctx = await prepareCtx('ai', new RethinkDB());
+	await start(ctx, async (ctx: Context) => {
+		const ai = new AI();
+		await ai.init(ctx);
+		await ai.start();
+		ctx.info('READY');
+	})
 }
 
 init();

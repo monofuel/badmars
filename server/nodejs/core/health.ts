@@ -11,21 +11,15 @@ import env from '../config/env';
 import healthRoute from '../web/routes/health';
 import Context from '../util/context';
 
-import Logger from '../util/logger';
-import DB from '../db/db';
-
 export default class HealthService {
-	db: DB;
-	logger: Logger;
-
-	constructor(db: DB, logger: Logger) {
-		this.db = db;
-		this.logger = logger;
+	private parentCtx: Context;
+	async init(ctx: Context): Promise<void> {
+		this.parentCtx = ctx;
 	}
 
-	async init(): Promise<void> {
+	async start(): Promise<void> {
 		const app = express();
-		const ctx = this.makeCtx();
+		const ctx = this.parentCtx.create();
 
 		healthRoute(ctx.create(), app);
 
@@ -40,9 +34,4 @@ export default class HealthService {
 			});
 		});
 	}
-
-	makeCtx(timeout?: number): Context {
-		return new Context({ timeout, db: this.db, logger: this.logger});
-	}
-
 }

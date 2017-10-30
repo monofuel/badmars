@@ -7,7 +7,7 @@ import GameUnit from '../unit/unit';
 import GameSession from '../user/session';
 import GameUnitStat from '../unit/unitStat';
 
-export type Handler<T> = (newT: T, oldT?: T) => Promise<void>;
+export type Handler<T> = (ctx: Context, newT: T, oldT?: T) => Promise<void>;
 
 export class StopWatchingError extends Error {
     constructor(msg: string) {
@@ -24,9 +24,10 @@ export interface Chunk {
 }
 
 export interface ChunkLayer {
+    create(ctx: Context, layer: GameChunkLayer): Promise<GameChunkLayer>;
     findChunkForUnit(ctx: Context, uuid: string): Promise<string>;
     each(ctx: Context, fn: Handler<GameChunkLayer>): Promise<void>;
-    get(ctx: Context, hash: string, layer: string): Promise<GameChunkLayer>;
+    get(ctx: Context, hash: string): Promise<GameChunkLayer>;
     setEntity(ctx: Context, hash: string, layer: string, uuid: string, tileHash: string): Promise<GameChunkLayer>;
 }
 
@@ -66,8 +67,7 @@ export interface Planet {
     unit: Unit;
     unitStat: UnitStat;
     planet: GamePlanet;
-    get(ctx: Context, name: string): Promise<GamePlanet>;
-    patch(ctx: Context, name: string, patch: Partial<GamePlanet>): Promise<void>;
+    patch(ctx: Context, patch: Partial<GamePlanet>): Promise<void>;
 }
 
 export interface User {
@@ -104,6 +104,7 @@ export interface DB {
     init(ctx: Context): Promise<void>;
     createPlanet(ctx: Context, name: string): Promise<Planet>;
     getPlanetDB(ctx: Context, name: string): Promise<Planet>;
+    // TODO probably should have a .each instead of listPlanetNames
     listPlanetNames(ctx: Context): Promise<string[]>;
     removePlanet(ctx: Context, name: string): Promise<void>;
     user: User;

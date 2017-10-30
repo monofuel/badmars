@@ -16,6 +16,8 @@ import PlanetLoc, { getLocationDetails } from './planetloc';
 import Unit from '../unit/unit';
 import Client from '../net/client';
 import sleep from '../util/sleep';
+import { sendResource } from '../unit/procedures'
+import { generateChunk } from './procedures'
 
 type TileHash = string;
 type ChunkHash = string;
@@ -117,7 +119,7 @@ export default class Map {
 				}
 				const chunk = new Chunk(this.name, x, y);
 				chunk.clone(response);
-				
+
 				this.addChunkToCache(ctx, chunk);
 				resolve(chunk);
 			});
@@ -150,8 +152,9 @@ export default class Map {
 
 		if (!chunk) {
 			ctx.logger.addSumStat('generatingChunk', 1);
-			chunk = new Chunk(this.name, x, y);
-			await chunk.save(ctx);
+			const { chunk, chunkLayer } = await generateChunk(ctx, this, x, y);
+			await planetDB.chunk.create(ctx, chunk);
+			await planetDB.chunkLayer.create(ctx, chunkLayer);
 		}
 		this.addChunkToCache(ctx, chunk);
 		return chunk;
@@ -195,9 +198,10 @@ export default class Map {
 		const details = getLocationDetails(x, y, this.settings.chunkSize);
 
 		const chunk: Chunk = await this.getChunk(ctx, details.chunkX, details.chunkY);
+		const layer = await chunk.getLayer(ctx);
 		checkContext(ctx, 'getLoc end');
 		try {
-			return new PlanetLoc(this, chunk, details);
+			return new PlanetLoc(this, chunk, layer, details);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to get planetLoc in getLoc');
 		}
@@ -232,7 +236,7 @@ export default class Map {
 		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 
-		return  planetDB.unit.create(ctx, newUnit);
+		return planetDB.unit.create(ctx, newUnit);
 	}
 
 	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise<Unit> {
@@ -366,7 +370,7 @@ export default class Map {
 				if (notLand) {
 					continue;
 				}
-				
+
 
 				ctx.logger.info(ctx, 'spawning unit', { unitType, x, y });
 
@@ -379,20 +383,20 @@ export default class Map {
 					unitStorage = unit.getComponent('storage');
 				}
 				switch (unitType) {
-				case 'storage':
-					if (!unitStorage) {
-						throw new Error('storage unit missing storage');
-					}
-					unitStorage.fuel = 1000;
-					unitStorage.iron = 1000;
-					break;
-				case 'tank':
-				case 'builder':
-					if (!unitStorage) {
-						throw new Error('builder unit missing storage');
-					}
-					unitStorage.fuel = 50;
-					break;
+					case 'storage':
+						if (!unitStorage) {
+							throw new Error('storage unit missing storage');
+						}
+						unitStorage.fuel = 1000;
+						unitStorage.iron = 1000;
+						break;
+					case 'tank':
+					case 'builder':
+						if (!unitStorage) {
+							throw new Error('builder unit missing storage');
+						}
+						unitStorage.fuel = 50;
+						break;
 				}
 				try {
 					// https://www.youtube.com/watch?v=eVB8lM-oCSk
@@ -411,17 +415,17 @@ export default class Map {
 							const spawnedMine: Unit = await this.spawnUnitWithoutTileCheck(ctx, mine);
 							spawnedUnits.push(spawnedMine);
 						} catch (err) {
-							throw new WrappedError(err,`failed to spawn mine for ${unitType}`);
+							throw new WrappedError(err, `failed to spawn mine for ${unitType}`);
 						}
 					}
 					break;
-				} catch(err) {
+				} catch (err) {
 					for (const unit of spawnedUnits) {
 						try {
 							const locs = await unit.getLocs(ctx);
 							for (const loc of locs) {
 								try {
-									await loc.chunk.clearUnit(ctx, unit.uuid, loc.hash);
+									await loc.chunkLayer.clearUnit(ctx, unit.uuid, loc.hash);
 								} catch (err) {
 									// NOOP
 								}
@@ -435,7 +439,7 @@ export default class Map {
 							ctx.logger.trackError(ctx, new WrappedError(err, 'failed to delete unit to rollback unit spawn'));
 						}
 					}
-					throw new WrappedError(err, 'spawning unit failed, bailing out', {  x, y, unitType });
+					throw new WrappedError(err, 'spawning unit failed, bailing out', { x, y, unitType });
 				}
 			}
 		}
@@ -479,16 +483,17 @@ export default class Map {
 		return await this.getUnitsAtChunks(ctx, chunkHashes);
 	}
 
-	async getUnitsAtChunks(ctx: Context, chunkHashes: Array<ChunkHash> ): Promise<Array<Unit>> {
+	async getUnitsAtChunks(ctx: Context, chunkHashes: Array<ChunkHash>): Promise<Array<Unit>> {
 		checkContext(ctx, 'getUnitsAtChunks');
 		const units = [];
 		for (const chunkHash of chunkHashes) {
 			const x: number = parseInt(chunkHash.split(':')[0]);
 			const y: number = parseInt(chunkHash.split(':')[1]);
 			const chunk: Chunk = await this.getChunk(ctx, x, y);
+			const chunkLayer = await chunk.getLayer(ctx);
 			try {
-				const chunkUnits: Array<Unit> = await chunk.getUnits(ctx);
-				
+				const chunkUnits: Array<Unit> = await chunkLayer.getUnits(ctx);
+
 				for (const unit of chunkUnits) {
 					units.push(unit);
 				}
@@ -553,7 +558,7 @@ export default class Map {
 		return true;
 	}
 
-	async pullIron(ctx: Context, taker: Unit, amount: number): Promise<boolean> {
+	async pullResource(ctx: Context, type: string, taker: Unit, amount: number): Promise<boolean> {
 		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 
@@ -604,7 +609,7 @@ export default class Map {
 			}
 			const unitStorage = unit.getComponent('storage');
 
-			const pulled = await planetDB.unit.pullResource(ctx, 'iron', amount, unit.uuid);
+			const pulled = await planetDB.unit.pullResource(ctx, type, amount, unit.uuid);
 			if (pulled > 0) {
 				pulledMap[unit.uuid] = pulled;
 				amount = amount - pulled;
@@ -630,79 +635,11 @@ export default class Map {
 		return true;
 	}
 
-	async pullFuel(ctx: Context, taker: Unit, amount: number): Promise<boolean> {
+
+	async produceResource(ctx: Context, type: Resource, mine: Unit, amount: number): Promise<void> {
+
 		const { db, logger } = ctx;
-		const planetDB = await db.getPlanetDB(ctx, this.name);
-
-		const takerStorage = taker.getComponent('storage');
-		//TODO should calculate based on transfer range
-		const units: Unit[] = await this.getNearbyUnitsFromChunk(ctx, taker.location.chunkHash[0]);
-
-		this.sortByNearestUnit(units, taker);
-		this.sortBuildingsOverOther(units);
-
-		//first check if we can pull enough
-		let amountCanPull = 0;
-		for (const unit of units) {
-			if (unit.details.ghosting) {
-				continue;
-			}
-			if (unit.details.owner !== taker.details.owner) {
-				continue;
-			}
-
-			const distance = unit.distance(taker);
-			if (!unit.storage) {
-				continue;
-			}
-			const unitStorage = unit.getComponent('storage');
-			if (distance > unitStorage.transferRange && distance > takerStorage.transferRange) {
-				continue;
-			}
-			amountCanPull += unitStorage.fuel;
-			if (amountCanPull > amount) {
-				break;
-			}
-		}
-		if (amountCanPull < amount) {
-			return false;
-		}
-
-		const pulledMap: any = {};
-		//actually pull iron
-		for (const unit of units) {
-			if (unit.details.ghosting) {
-				continue;
-			}
-			if (!unit.storage) {
-				continue;
-			}
-			const unitStorage = unit.getComponent('storage');
-			const pulled = await planetDB.unit.pullResource(ctx, 'fuel', amount, unit.uuid);
-			if (pulled > 0) {
-				pulledMap[unit.uuid] = pulled;
-				amount = amount - pulled;
-				if (amount <= 0) {
-					break;
-				}
-			}
-		}
-
-		//if amount is still greater than 0
-		//that means the amount of iron changed after checking,
-		//and we should put iron back
-		//TODO refactor this
-		/*
-		for (let uuid of Object.keys(pulledMap)) {
-			console.log('failed, restoring fuel:');
-			await unit.addFuel(pulledMap[unit.uuid]);
-			return false;
-		}*/
-
-		return true;
-	}
-
-	async produceIron(ctx: Context, mine: Unit, amount: number): Promise<void> {
+		const planetDB = await db.getPlanetDB(ctx, mine.location.map);
 
 		const mineStorage = mine.getComponent('storage');
 		//TODO should calculate based on transfer range
@@ -710,7 +647,7 @@ export default class Map {
 		this.sortByNearestUnit(units, mine);
 		this.sortBuildingsOverOther(units);
 
-		ctx.logger.info(ctx, 'depositing iron from mine',{ amount }, { silent: true });
+		ctx.logger.info(ctx, 'depositing oil from mine', { amount }, { silent: true });
 
 		for (const unit of units) {
 			if (unit.details.ghosting) {
@@ -733,67 +670,25 @@ export default class Map {
 			if (distance > unitStorage.transferRange && distance > mineStorage.transferRange) {
 				continue;
 			}
-			const deposited = await unit.addIron(ctx, amount);
-			amount = amount - deposited;
-			if (amount <= 0) {
-				break;
-			}
-		}
-		if (amount > 0) {
-			ctx.logger.info(ctx, 'depositing iron into mine',{ amount }, { silent: true });
-			await mine.addIron(ctx, amount);
-		}
-	}
-
-	async produceFuel(ctx: Context, mine: Unit, amount: number): Promise<void> {
-		const mineStorage = mine.getComponent('storage');
-		//TODO should calculate based on transfer range
-		const units: Array<Unit> = await this.getNearbyUnitsFromChunk(ctx, mine.location.chunkHash[0]);
-		this.sortByNearestUnit(units, mine);
-		this.sortBuildingsOverOther(units);
-
-		ctx.logger.info(ctx, 'depositing oil from mine',{ amount }, { silent: true });
-
-		for (const unit of units) {
-			if (unit.details.ghosting) {
-				continue;
-			}
-			if (unit.details.owner !== mine.details.owner) {
-				continue;
-			}
-			if (mine.uuid === unit.uuid) {
-				continue;
-			}
-			if (unit.movable) {
-				continue;
-			}
-			const distance = unit.distance(mine);
-			if (!unit.storage) {
-				continue;
-			}
-			const unitStorage = unit.getComponent('storage');
-			if (distance > unitStorage.transferRange && distance > mineStorage.transferRange) {
-				continue;
-			}
-			const deposited = await unit.addFuel(ctx, amount);
+			const deposited: number = await planetDB.unit.putResource(ctx, type, amount, unit.uuid);
 			amount = amount - deposited;
 			if (amount <= 0) {
 				break;
 			}
 			if (amount > 0) {
-				await mine.addFuel(ctx, amount);
+				const deposited: number = await planetDB.unit.putResource(ctx, type, amount, mine.uuid);
 			}
 		}
 
 	}
 
-	sortByNearestUnit(units: Array<Unit> , unit: Unit) {
+	sortByNearestUnit(units: Array<Unit>, unit: Unit) {
 		units.sort((a: Unit, b: Unit): number => {
 			return a.distance(unit) - b.distance(unit);
 		});
 	}
 
-	sortBuildingsOverOther(units: Array<Unit> ) {
+	sortBuildingsOverOther(units: Array<Unit>) {
 		units.sort((a: Unit, b: Unit): number => {
 			if (a.stationary && b.movable) {
 				return -1;
@@ -920,7 +815,7 @@ export default class Map {
 
 		checkContext(ctx, 'update');
 		Object.assign(this, patch);
-		await planetDB.patch(ctx, this.name, patch);
+		await planetDB.patch(ctx, patch);
 	}
 
 	clone(object: any) {

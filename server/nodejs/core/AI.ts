@@ -4,34 +4,24 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 import env from '../config/env';
-import { Service } from './';
-
 const grpc = require('grpc');
 
 import Unit from '../unit/unit';
 import { checkContext, WrappedError, DetailedError } from '../util/logger';
 import Context from '../util/context';
-
-import Logger from '../util/logger';
-import DB from '../db/db';
+import { Service } from './'
 
 const services = grpc.load(__dirname + '/../../../protos/ai.proto').services;
 
-export default class AIService {
-	db: DB;
-	logger: Logger;
-	constructor(db: DB, logger: Logger) {
-		this.db = db;
-		this.logger = logger;
+export default class AIService implements Service {
+	private parentCtx: Context;
+	async init(ctx: Context) {
+		this.parentCtx = ctx;
 	}
 
-	makeCtx(timeout?: number): Context {
-		return new Context({ timeout, db: this.db, logger: this.logger });
-	}
-
-	async init(): Promise<void> {
+	async start(): Promise<void> {
 		const server = new grpc.Server();
-		const ctx = this.makeCtx();
+		const ctx = this.parentCtx.create();
 		server.addProtoService(services.AI.service, {
 			processUnit: (call: any, callback: Function): Promise<void> =>
 				this.GRPCProcessUnit(ctx.create({ timeout: 1000 / env.ticksPerSec }), call, callback)
@@ -55,8 +45,9 @@ export default class AIService {
 		ctx.tick = tick;
 		ctx.logger.addSumStat('unitRequest', 1);
 		ctx.logger.info(ctx, 'process unit order', { uuid, mapName, tick }, { silent: true });
+		const planetDB = await ctx.db.getPlanetDB(ctx, mapName);
 		try {
-			const unit = await ctx.db.units[mapName].claimUnitTick(ctx, uuid, tick);
+			const unit = await planetDB.unit.claimUnitTick(ctx, uuid, tick);
 			if (!unit) {
 				throw new DetailedError('unit missing', { uuid });
 			}
@@ -72,5 +63,10 @@ export default class AIService {
 	async processUnit(ctx: Context, unit: Unit): Promise<void> {
 		//logger.addSumStat('unit_AI',1);
 		await unit.simulate(ctx);
+	}
+
+	async stop(): Promise<void> {
+		this.parentCtx.info('stopping ai');
+		throw new Error('not implemented');
 	}
 }

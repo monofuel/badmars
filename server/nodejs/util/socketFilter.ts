@@ -11,7 +11,7 @@ import Map from '../map/map';
 
 type UUID = string;
 
-import { 
+import {
 	UnitDetails,
 	UnitLocation,
 	UnitMovable,
@@ -20,7 +20,7 @@ import {
 	UnitGraphical,
 	UnitStationary,
 	UnitConstruct
- } from '../unit/components';
+} from '../unit/components';
 
 export function sanitizeUnit(unit: Unit, owner: UUID) {
 
@@ -128,7 +128,7 @@ function sanitizeUnitStationary(stationary: UnitStationary) {
 }
 
 function sanitizeUnitConstruct(construct: UnitConstruct) {
-	const { 
+	const {
 		types
 	} = construct;
 	return {
@@ -199,8 +199,6 @@ export function sanitizeChunk(chunk: Chunk) {
 		map,
 		grid,
 		navGrid,
-		units,
-		resources,
 	} = chunk;
 
 	return {
@@ -211,8 +209,6 @@ export function sanitizeChunk(chunk: Chunk) {
 		map,
 		grid,
 		navGrid,
-		units,
-		resources,
 	}
 };
 

@@ -14,22 +14,28 @@ import Chunk from '../map/chunk';
 
 import Logger from '../util/logger';
 import { WrappedError } from '../util/logger';
-import DB from '../db/db';
+import { Service } from './';
 
 type RequestMapType = {
 	[key: string]: Context
 };
 
-export default class PlanetService {
-	db: DB;
-	logger: Logger;
+export default class PlanetService implements Service {
+	private parentCtx: Context;
 	requests: RequestMapType = {};
-	constructor(db: DB, logger: Logger) {
-		this.db = db;
-		this.logger = logger;
+
+	async init(ctx: Context): Promise<void> {
+		this.parentCtx = ctx;
 	}
 
-	async init(): Promise<void> {
+	async stop(): Promise<void> {
+		this.parentCtx.info('stopping net');
+		throw new Error('not implemented');
+	}
+
+	async start(): Promise<void> {
+		const ctx = this.parentCtx.create();
+		const { db, logger } = ctx;
 
 		const server = new grpc.Server();
 		const services = grpc.load(__dirname + '/../../../protos/chunk.proto').services;
@@ -41,7 +47,7 @@ export default class PlanetService {
 		server.bind('0.0.0.0:' + env.mapPort, grpc.ServerCredentials.createInsecure());
 		server.start();
 
-		this.logger.info(this.makeCtx(), 'Map GRPC server started');
+		logger.info(ctx, 'Map GRPC server started');
 		setInterval((): void => this.logRequests(), 6 * 1000);
 
 		process.on('exit', () => {
@@ -50,17 +56,16 @@ export default class PlanetService {
 		});
 	}
 
-	makeCtx(timeout?: number): Context {
-		return new Context({ timeout, db: this.db, logger: this.logger});
-	}
-
 	logRequests() {
+		const ctx = this.parentCtx.create()
+		const { logger } = ctx
 		const count = Object.keys(this.requests).length;
-		this.logger.info(this.makeCtx(), 'chunk_requests', { count }, { silent: count === 0 });
+		logger.info(ctx, 'chunk_requests', { count }, { silent: count === 0 });
 	}
 
 	async getChunk(call: any, callback: Function): Promise<void> {
-		const ctx: Context = this.makeCtx(1000);
+		const ctx: Context = this.parentCtx.create({ timeout: 1000 });
+		const { logger } = ctx;
 		try {
 			this.requests[ctx.uuid] = ctx;
 			const request = call.request;
@@ -70,7 +75,7 @@ export default class PlanetService {
 			const chunk: Chunk = await this.fetchOrGenChunk(ctx, mapName, x, y);
 			callback(null, chunk);
 		} catch (err) {
-			this.logger.trackError(ctx, new WrappedError(err, 'failed to get chunk', { map: call.request.mapName, x: call.request.x, y: call.request.y }));
+			logger.trackError(ctx, new WrappedError(err, 'failed to get chunk', { map: call.request.mapName, x: call.request.x, y: call.request.y }));
 			callback(err);
 		} finally {
 			delete this.requests[ctx.uuid];
@@ -81,9 +86,10 @@ export default class PlanetService {
 	// we have to fiddle with the 2d array for GPRC
 	async fetchOrGenChunk(ctx: Context, mapName: string, x: number, y: number): Promise<any> {
 		checkContext(ctx, 'fetchOrGenChunk');
-		const map = await this.db.map.getMap(ctx, mapName);
+		const { db, logger } = ctx;
+		const planetDB = await db.getPlanetDB(ctx, mapName);
 
-		const localChunk = await map.fetchOrGenChunk(ctx, x, y);
+		const localChunk = await planetDB.planet.fetchOrGenChunk(ctx, x, y);
 
 		// TODO should do proper typescript grpc stuff rather than  butcher this object
 		const chunk: any = new Chunk(mapName, x, y);

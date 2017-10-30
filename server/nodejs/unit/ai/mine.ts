@@ -48,9 +48,9 @@ export async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void
 			});
 		}
 		if(resource.details.type === 'iron') {
-			map.produceIron(ctx, unit, 1);
+			map.produceResource(ctx, 'iron', unit, 1);
 		} else if(resource.details.type === 'oil') {
-			map.produceFuel(ctx, unit, 1);
+			map.produceResource(ctx, 'fuel', unit, 1);
 		}
 
 	}

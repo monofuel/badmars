@@ -9,7 +9,9 @@
         "preserveConstEnums": true,
         "experimentalDecorators": true,
         "outDir": "../../bin/server/nodejs",
-        "jsx": "react"
+        "jsx": "react",
+        "noUnusedLocals": false,
+        "strictNullChecks": false
     },
     "include": [
         "./*",

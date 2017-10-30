@@ -71,14 +71,14 @@ export default class Client {
 		this.keepAlive = setInterval(() => {
 			try {
 				this.ws.ping();
-			} catch(err) {
+			} catch (err) {
 				clearInterval(this.keepAlive);
 			}
 		}, KEEP_ALIVE);
 	}
 
 	send(type: string, data?: any) {
-		if(!this.ws) {
+		if (!this.ws) {
 			//logger.errorWithInfo('sending data on closed websocket', { type, data });
 			return;
 		}
@@ -88,7 +88,7 @@ export default class Client {
 		try {
 			//console.log('sending ', type);
 			this.ws.send(JSON.stringify(data));
-		} catch(err) {
+		} catch (err) {
 			this.handleLogOut();
 		}
 	}
@@ -101,19 +101,19 @@ export default class Client {
 				success: false,
 				reason: errMsg
 			}));
-		} catch(err) {
+		} catch (err) {
 			this.handleLogOut();
 		}
 	}
 
 	handleLogOut() {
 		this.ctx.logger.info(this.ctx, 'client closed connection');
-		if(this.username) {
+		if (this.username) {
 			this.ctx.logger.info(this.ctx, 'logout', {
 				player: this.username
 			});
 		}
-		if(this.unitStatWatcher) {
+		if (this.unitStatWatcher) {
 			this.unitStatWatcher.close();
 		}
 		clearInterval(this.keepAlive);
@@ -123,40 +123,40 @@ export default class Client {
 	async handleFromClient(ctx: Context, dataText: string): Promise<void> {
 		//console.log('received' + data);
 		const data: any = JSON.parse(dataText);
-		if(!data.type || !this.handlers[data.type]) {
+		if (!data.type || !this.handlers[data.type]) {
 			this.sendError(ctx, 'invalid', 'invalid request');
 			return;
 		}
 		if (typeof this.handlers[data.type] !== 'function') {
-			throw new DetailedError('bad handler',{ handle: data.type, type: typeof this.handlers[data.type]});
+			throw new DetailedError('bad handler', { handle: data.type, type: typeof this.handlers[data.type] });
 		}
 		await this.handlers[data.type](ctx, this, data);
 	}
 
 	async registerUnitListener(): Promise<void> {
 		const planetDB = await this.ctx.db.getPlanetDB(this.ctx, this.map.name);
-		await planetDB.unit.watch(this.ctx, async (unit: Unit, oldUnit): Promise<void> => {
-			await this.handleUnitUpdate(unit, oldUnit);
+		await planetDB.unit.watch(this.ctx, async (ctx: Context, unit: Unit, oldUnit): Promise<void> => {
+			await this.handleUnitUpdate(ctx, unit, oldUnit);
 		});
 	}
 
 	async registerUserListener(): Promise<void> {
-		await this.ctx.db.user.watch(this.ctx, async (user: User): Promise<void> => {
-			await this.handleUserUpdate(user);
+		await this.ctx.db.user.watch(this.ctx, async (ctx: Context, user: User): Promise<void> => {
+			await this.handleUserUpdate(ctx, user);
 		});
 	}
 
 	async registerEventHandler(): Promise<void> {
-		this.ctx.db.event.watch(this.ctx, async (e: GameEvent): Promise<void> => {
+		this.ctx.db.event.watch(this.ctx, async (ctx: Context, e: GameEvent): Promise<void> => {
 			if (e.type === 'chat') {
-				this.handleChat(e);
+				this.handleChat(ctx, e);
 			} else {
-				this.handleEvents(e);
+				this.handleEvents(ctx, e);
 			}
 		});
 	}
 
-	async handleUnitUpdate(unit: Unit, oldUnit?: Unit): Promise<void> {
+	async handleUnitUpdate(ctx: Context, unit: Unit, oldUnit?: Unit): Promise<void> {
 
 		// TODO unit death should be handled by the event system
 
@@ -185,38 +185,38 @@ export default class Client {
 		}
 	}
 
-	async handleUserUpdate(user: User) {
+	async handleUserUpdate(ctx: Context, user: User) {
 		const newUser = sanitizeUser(user);
 		this.send('players', { players: [newUser] });
 	}
 
-	async handleEvents(gameEvent: any) {
-		if(gameEvent.name !== 'server_gameEvent') {
+	async handleEvents(ctx: Context, gameEvent: any) {
+		if (gameEvent.name !== 'server_gameEvent') {
 			return;
 		}
 
-		switch(gameEvent.type) {
-		case 'attack':
-			if(!gameEvent.enemyId) {
-				this.ctx.logger.trackError(this.ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
-			}
-			if(!gameEvent.unitId) {
-				this.ctx.logger.trackError(this.ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
-			}
-			this.send('attack', { enemyId: gameEvent.enemyId, unitId: gameEvent.unitId });
-			break;
-		case 'kill':
-			if(!gameEvent.unitId) {
-				this.ctx.logger.trackError(this.ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
-			}
-			this.send('attack', { unitId: gameEvent.unitId });
-			break;
-		default:
-			this.ctx.logger.trackError(this.ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type}));
+		switch (gameEvent.type) {
+			case 'attack':
+				if (!gameEvent.enemyId) {
+					this.ctx.logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
+				}
+				if (!gameEvent.unitId) {
+					this.ctx.logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
+				}
+				this.send('attack', { enemyId: gameEvent.enemyId, unitId: gameEvent.unitId });
+				break;
+			case 'kill':
+				if (!gameEvent.unitId) {
+					this.ctx.logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
+				}
+				this.send('attack', { unitId: gameEvent.unitId });
+				break;
+			default:
+				this.ctx.logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
 		}
 	}
 
-	async handleChat(e: ChatEvent): Promise<void> {
+	async handleChat(ctx: Context, e: ChatEvent): Promise<void> {
 		// TODO filtering based on channel and planet
 		this.send('chat', e);
 	}

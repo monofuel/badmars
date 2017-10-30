@@ -57,9 +57,11 @@ export default class DBunit {
 		await createIndex(this.conn, this.logger, this.table, 'details.lastTick');
 		await createIndex(this.conn, this.logger, this.table, 'awake');
 		await clearSpareIndices(this.conn, this.table, VALID_INDICES);
-	}	
+	}
 
 	async each(ctx: Context, func: Function): Promise<void> {
+		throw new Error("Method not implemented.");
+		/*
 		const cursor = await this.table.run(this.conn);
 		await cursor.each((err: Error, doc: Object) => {
 			if (err) {
@@ -69,18 +71,19 @@ export default class DBunit {
 			unit.clone(ctx, doc);
 			func(unit);
 		});
+		*/
 	}
 
 	async listPlayersUnits(ctx: Context, owner: string): Promise<Array<Unit>> {
-		const call = await startDBCall(ctx,'listPlayersUnits');
-		const cursor = await this.table.filter({details:{owner}}).run(this.conn);
+		const call = await startDBCall(ctx, 'listPlayersUnits');
+		const cursor = await this.table.filter({ details: { owner } }).run(this.conn);
 		const units = await this.loadUnitsCursor(ctx, cursor);
 		await call.end();
 		return units;
 	}
 
 	async addUnit(ctx: Context, unit: Unit): Promise<Unit> {
-		const call = await startDBCall(ctx,'addUnit');
+		const call = await startDBCall(ctx, 'addUnit');
 		const delta = await this.table.insert(unit, {
 			returnChanges: true
 		}).run(this.conn);
@@ -91,7 +94,7 @@ export default class DBunit {
 	}
 
 	async getUnit(ctx: Context, uuid: UUID): Promise<Unit> {
-		const call = await startDBCall(ctx,'getUnit');
+		const call = await startDBCall(ctx, 'getUnit');
 		const doc = await this.table.get(uuid).run(this.conn);
 		if (!doc) {
 			throw new DetailedError('unit not found: ', { uuid });
@@ -100,7 +103,7 @@ export default class DBunit {
 		return this.loadUnit(ctx, doc);
 	}
 	async getUnits(ctx: Context, uuids: Array<UUID>): Promise<Array<Unit>> {
-		const call = await startDBCall(ctx,'getUnits');
+		const call = await startDBCall(ctx, 'getUnits');
 		const promises = [];
 		for (const uuid of uuids) {
 			promises.push(this.table.get(uuid).run(this.conn));
@@ -112,7 +115,9 @@ export default class DBunit {
 		return units;
 	}
 
-	async getUnitsMap(ctx: Context, uuids: Array<UUID> ): Promise<UnitMap> {
+	async getUnitsMap(ctx: Context, uuids: Array<UUID>): Promise<UnitMap> {
+		throw new Error("Method not implemented.");
+		/*
 		const call = await startDBCall(ctx,'getUnitsMap');
 		const promises = [];
 		for (const uuid of uuids) {
@@ -128,6 +133,7 @@ export default class DBunit {
 		}
 		await call.end();
 		return unitMap;
+		*/
 	}
 
 	/*
@@ -137,14 +143,14 @@ export default class DBunit {
 	* this -could- be soft durability if we really needed performance
 	*/
 	async updateUnit(ctx: Context, uuid: UUID, patch: Object): Promise<Object> {
-		const call = await startDBCall(ctx,'updateUnit');
+		const call = await startDBCall(ctx, 'updateUnit');
 		const result = await this.table.get(uuid).update(patch, { durability: 'hard' }).run(this.conn);
 		await call.end();
 		return result;
 	}
 
 	async saveUnit(ctx: Context, unit: Unit): Promise<Object> {
-		const call = await startDBCall(ctx,'saveUnit');
+		const call = await startDBCall(ctx, 'saveUnit');
 		const result = await this.table.get(unit.uuid).update(unit).run(this.conn);
 		await call.end();
 		return result;
@@ -152,7 +158,7 @@ export default class DBunit {
 	}
 
 	async deleteUnit(ctx: Context, uuid: UUID): Promise<void> {
-		const call = await startDBCall(ctx,'deleteUnit');
+		const call = await startDBCall(ctx, 'deleteUnit');
 		if (!uuid) {
 			throw new Error('invalid uuid');
 		}
@@ -161,7 +167,7 @@ export default class DBunit {
 	}
 
 	async getUnitsAtChunk(ctx: Context, x: number, y: number): Promise<Unit[]> {
-		const call = await startDBCall(ctx,'getUnitsAtChunk');
+		const call = await startDBCall(ctx, 'getUnitsAtChunk');
 		const hash = x + ':' + y;
 		const cursor = await this.table.getAll(hash, {
 			index: 'chunkHash'
@@ -205,6 +211,8 @@ export default class DBunit {
 	}
 
 	async loadUnit(ctx: Context, doc: Object): Promise<Unit> {
+		throw new Error("Method not implemented.");
+		/*
 		if (!doc) {
 			throw new Error('loadUnit called for null document');
 		}
@@ -213,10 +221,11 @@ export default class DBunit {
 		unit.clone(ctx, doc);
 		ctx.logger.endProfile(profile);
 		return unit;
+		*/
 	}
 
 	async addFactoryOrder(ctx: Context, uuid: UUID, order: FactoryOrder): Promise<void> {
-		const call = await startDBCall(ctx,'addFactoryOrder');
+		const call = await startDBCall(ctx, 'addFactoryOrder');
 		const result = await this.table.get(uuid).update((doc: any): any => {
 			return {
 				construct: {
@@ -234,7 +243,7 @@ export default class DBunit {
 	}
 
 	registerPathListener(func: Function) {
-		this.table.filter(r.row.hasFields({movable: {destination: true }}))
+		this.table.filter(r.row.hasFields({ movable: { destination: true } }))
 			.filter(r.row('movable')('isPathing').eq(false))
 			.filter(r.row('movable')('path').eq([]))
 			.changes().run(this.conn).then((cursor: any) => {
@@ -244,7 +253,7 @@ export default class DBunit {
 
 	async getUnprocessedPath(): Promise<Object> {
 
-		const result = await this.table.filter(r.row.hasFields({movable: {destination: true }}))
+		const result = await this.table.filter(r.row.hasFields({ movable: { destination: true } }))
 			.filter(r.row('movable')('isPathing').eq(false))
 			.filter(r.row('movable')('path').eq([]))
 			.limit(env.pathChunks)
@@ -260,6 +269,8 @@ export default class DBunit {
 	}
 
 	getUnprocessedUnits(ctx: Context, tick: number): Promise<Array<Unit>> {
+		throw new Error("Method not implemented.");
+		/*
 		return this.table.getAll(true as any, {
 			index: 'awake'
 		}).filter(r.row('details')('lastTick').lt(tick)).limit(env.unitProcessChunks).update((unit: any): any => {
@@ -285,6 +296,7 @@ export default class DBunit {
 			}
 			return units;
 		});
+		*/
 	}
 
 	async getUnprocessedUnitKeys(tick: number): Promise<Array<UUID>> {
@@ -304,6 +316,8 @@ export default class DBunit {
 	* if servers crash then every unit will have to be simulated anyway.
 	*/
 	async claimUnitTick(ctx: Context, uuid: UUID, tick: number): Promise<null | Unit> {
+		throw new Error("Method not implemented.");
+		/*
 		const call = await startDBCall(ctx,'claimUnitTick');
 		const delta: any = await this.table.get(uuid).update((unit: any): any => {
 			return r.branch(
@@ -318,6 +332,7 @@ export default class DBunit {
 		const properunit: Unit = new Unit(ctx);
 		properunit.clone(ctx, delta.changes[0].new_val);
 		return properunit;
+		*/
 	}
 
 	async countUnprocessedUnits(tick: number): Promise<number> {
@@ -342,7 +357,7 @@ export default class DBunit {
 			throw new DetailedError('failed to pull resource', { type, amount, uuid: unit.uuid });
 		}
 
-		const movedAmount = delta.changes[0].old_val.storage[type] -  delta.changes[0].new_val.storage[type];
+		const movedAmount = delta.changes[0].old_val.storage[type] - delta.changes[0].new_val.storage[type];
 
 		await unit.refresh(ctx);
 		return movedAmount;
@@ -362,7 +377,7 @@ export default class DBunit {
 			throw new DetailedError('failed to put resource', { type, amount, uuid: unit.uuid });
 		}
 
-		const movedAmount = delta.changes[0].new_val.storage[type] -  delta.changes[0].old_val.storage[type];
+		const movedAmount = delta.changes[0].new_val.storage[type] - delta.changes[0].old_val.storage[type];
 
 		await unit.refresh(ctx);
 		return movedAmount;

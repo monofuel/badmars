@@ -3,8 +3,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import env from '../config/env';
-import Logger from './logger';
+import Context from './context';
 
 type StatMapType = {
 	[key: string]: Array<number>
@@ -19,8 +18,8 @@ type ProfileType = {
 	name: string,
 	key: ProfileKey,
 	startTime: number,
-	endTime ?: number,
-	delta ?: number
+	endTime?: number,
+	delta?: number
 };
 
 const runningProfiles: {
@@ -30,8 +29,8 @@ let profileCount: {
 	[key: string]: number
 } = {};
 
-export function init(logger: Logger) {
-	setInterval((): void => reportStats(logger), env.statReportRate * 60 * 1000);
+export function init(ctx: Context) {
+	setInterval((): void => reportStats(ctx), ctx.env.statReportRate * 60 * 1000);
 };
 
 export function startProfile(name: string): ProfileKey {
@@ -56,7 +55,7 @@ export function endProfile(key: ProfileKey, visible?: boolean) {
 		console.log('profile: ', profileRun.name, '|', profileRun.delta);
 	}
 
-	if(!profileCount[name]) {
+	if (!profileCount[name]) {
 		profileCount[name] = 1;
 	} else {
 		profileCount[name]++;
@@ -64,45 +63,46 @@ export function endProfile(key: ProfileKey, visible?: boolean) {
 };
 
 export function addAverageStat(key: string, value: number) {
-	if(!avgStats[key]) {
+	if (!avgStats[key]) {
 		avgStats[key] = [];
 	}
 	avgStats[key].push(value);
 }
 
 export function addSumStat(key: string, value: number) {
-	if(!sumStats[key]) {
+	if (!sumStats[key]) {
 		sumStats[key] = [];
 	}
 	sumStats[key].push(value);
 };
 
 
-function reportStats(logger: Logger) {
+function reportStats(ctx: Context) {
+	const { logger } = ctx;
 	const stats: any = {};
-	for(const key of Object.keys(avgStats)) {
+	for (const key of Object.keys(avgStats)) {
 		const array: Array<number> = avgStats[key];
 		let avg: number = 0;
-		for(const i of array) {
+		for (const i of array) {
 			avg += i;
 		}
 		avg /= array.length;
 		stats['avg-' + key] = avg;
 	}
 	avgStats = {};
-	for(const key of Object.keys(sumStats)) {
+	for (const key of Object.keys(sumStats)) {
 		const array: Array<number> = sumStats[key];
 		let avg: number = 0;
-		for(const i of array) {
+		for (const i of array) {
 			avg += i;
 		}
 		stats['sum-' + key] = avg;
 	}
 	sumStats = {};
 
-	for(const key of Object.keys(profileCount)) {
+	for (const key of Object.keys(profileCount)) {
 		stats['executions-' + key] = profileCount[key];
 	}
 	profileCount = {};
-	logger.info(null, 'stats', stats, { silent: true });
+	logger.info(ctx, 'stats', stats, { silent: true });
 }

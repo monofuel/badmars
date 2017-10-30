@@ -23,15 +23,22 @@ export default class MemoryDB implements DB.DB {
         this.session.init(ctx.create());
     }
 
-    async getPlanetDB(ctx: Context, name: string): Promise<DB.Planet> {
-        if (this.planets[name]) {
-            return this.planets[name];
-        }
+    async createPlanet(ctx: Context, name: string): Promise<DB.Planet> {
+        throw new Error("Method not implemented.");
+        /*
         const call = startDBCall(ctx, 'getPlanet');
         const planet = new Planet(name);
         await planet.init(ctx);
         await call.end();
         return planet;
+        */
+    }
+
+    getPlanetDB(ctx: Context, name: string): Promise<DB.Planet> {
+        throw new Error("Method not implemented.");
+    }
+    removePlanet(ctx: Context, name: string): Promise<void> {
+        throw new Error("Method not implemented.");
     }
 
     async listPlanetNames(ctx: Context) {

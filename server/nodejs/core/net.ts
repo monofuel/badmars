@@ -10,22 +10,20 @@ import * as ws from 'ws';
 import Context from '../util/context';
 import * as querystring from 'querystring';
 
-import Logger from '../util/logger';
-import DB from '../db/db';
+import { Service } from './';
 import * as http from 'http';
 
 const WebSocketServer = ws.Server;
 
-export default class Net {
-	db: DB;
-	logger: Logger;
-	constructor(db: DB, logger: Logger) {
-		this.db = db;
-		this.logger = logger;
+export default class Net implements Service {
+	private parentCtx: Context;
+
+	async init(ctx: Context): Promise<void> {
+		this.parentCtx = ctx;
 	}
 
-	async init(): Promise<void> {
-		const ctx = this.makeCtx();
+	async start(): Promise<void> {
+		const ctx = this.parentCtx.create();
 
 		async function verifyClient(info: { origin: string, secure: boolean, req: http.IncomingMessage },
 			callback: (res: boolean, code?: number, message?: string) => void): Promise<void> {
@@ -62,7 +60,9 @@ export default class Net {
 		return Promise.resolve();
 	}
 
-	makeCtx(timeout?: number): Context {
-		return new Context({ timeout, db: this.db, logger: this.logger});
+	async stop(): Promise<void> {
+		this.parentCtx.info('stopping net');
+		throw new Error('not implemented');
 	}
+
 }

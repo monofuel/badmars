@@ -18,16 +18,16 @@ export default async function getChunk(ctx: Context, client: Client, data: any):
 	const unitsOnly = data.unitsOnly;
 
 	const chunk: Chunk = await client.planet.getChunk(ctx, x, y);
-	if(!unitsOnly) {
+	if (!unitsOnly) {
 		// ctx.logger.info(ctx, 'client getChunk', { x, y });
 		client.send('chunk', { chunk: sanitizeChunk(chunk) });
 	}
-
-	const units = await chunk.getUnits(ctx);
-	if(units.length > 0) {
+	const layer = await chunk.getLayer(ctx);
+	const units = await layer.getUnits(ctx);
+	if (units.length > 0) {
 		const sanitized = [];
-		for(const unit of units) {
-			if(!unit) {
+		for (const unit of units) {
+			if (!unit) {
 				continue;
 			}
 			sanitized.push(sanitizeUnit(unit, client.user.uuid));

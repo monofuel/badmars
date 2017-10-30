@@ -7,7 +7,7 @@ import Unit from './unit';
 import UnitStat from './unitStat';
 
 export default class Planet implements DB.Planet {
-
+    planet: GamePlanet;
     public name: string;
 
     public chunk: Chunk;

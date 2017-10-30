@@ -4,6 +4,9 @@ import { SyncEvent } from 'ts-events';
 import GameUser from '../../user/user';
 
 export default class User implements DB.User {
+    watch(ctx: Context, fn: DB.Handler<GameUser>): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
     private userEvents: SyncEvent<GameUser>
     public async init(ctx: Context): Promise<void> {
         ctx.check('game.init');

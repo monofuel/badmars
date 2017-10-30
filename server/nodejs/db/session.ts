@@ -33,7 +33,7 @@ export default class DBSession {
 
 	async getBearerUser(ctx: Context, token: string): Promise<User> {
 		const { db } = ctx;
-		const call = await startDBCall(ctx,'getBearerUser');
+		const call = await startDBCall(ctx, 'getBearerUser');
 		const doc = await this.table.get(token).run(this.conn);
 		if (!doc) {
 			throw new DetailedError('session not found', { token });
@@ -41,8 +41,8 @@ export default class DBSession {
 		const session = new Session();
 		session.clone(doc);
 
-		const user = await db.user.getUserByUUID(ctx, session.user);
+		const user = await db.user.get(ctx, session.user);
 		await call.end();
 		return user;
-	} 
+	}
 }

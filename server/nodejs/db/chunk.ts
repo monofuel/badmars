@@ -48,7 +48,7 @@ export default class DBChunk {
 	}
 
 	async getChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
-		const call = await startDBCall(ctx,'getChunk');
+		const call = await startDBCall(ctx, 'getChunk');
 		const doc = await this.table.get(x + ':' + y).run(this.conn);
 		await call.end();
 		if (!doc) {
@@ -65,8 +65,8 @@ export default class DBChunk {
 	* this is mainly used by chunk.refresh
 	*/
 	async getChunkUnits(ctx: Context, x: number, y: number): Promise<Object> {
-		const call = await startDBCall(ctx,'getChunkUnits');
-		const doc = await this.table.get(x + ':' + y).pluck('airUnits', 'resources','units').run(this.conn);
+		const call = await startDBCall(ctx, 'getChunkUnits');
+		const doc = await this.table.get(x + ':' + y).pluck('airUnits', 'resources', 'units').run(this.conn);
 		await call.end();
 		if (!doc) {
 			throw new DetailedError('no chunk returned in getChunkUnits');
@@ -76,7 +76,7 @@ export default class DBChunk {
 
 	// only for single-tile units right now
 	async findChunkForUnit(ctx: Context, uuid: UUID): Promise<ChunkHash> {
-		const call = await startDBCall(ctx,'getChunkUnits');
+		const call = await startDBCall(ctx, 'getChunkUnits');
 		const cursor = await this.table.filter((chunk: any): any => {
 			return chunk('units').values().contains(uuid);
 		}).pluck('hash').run(this.conn);
@@ -87,31 +87,31 @@ export default class DBChunk {
 		} else if (docs.length === 1) {
 			return docs[0].hash;
 		} else {
-			throw new DetailedError('unit found on multiple chunks', { uuid, docs: JSON.stringify(docs)});
+			throw new DetailedError('unit found on multiple chunks', { uuid, docs: JSON.stringify(docs) });
 		}
 	}
 
 	async update(ctx: Context, hash: ChunkHash, patch: any): Promise<Object> {
-		const call = await startDBCall(ctx,'updateChunk');
+		const call = await startDBCall(ctx, 'updateChunk');
 		const result = await this.table.get(hash).update(patch, { returnChanges: true }).run(this.conn);
 		await call.end();
 		return result;
 	}
 
 	async saveChunk(ctx: Context, chunk: Chunk): Promise<void> {
-		const call = await startDBCall(ctx,'saveChunk');
+		const call = await startDBCall(ctx, 'saveChunk');
 		await this.table.insert(chunk, { conflict: 'replace' }).run(this.conn);
 		await call.end();
 	}
 
 	async setUnit(ctx: Context, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<void> {
-		const call = await startDBCall(ctx,'setUnit');
+		const call = await startDBCall(ctx, 'setUnit');
 		await this.setEntity(ctx, chunk, uuid, 'units', tileHash);
 		await call.end();
 	}
 
 	async setResource(ctx: Context, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<void> {
-		const call = await startDBCall(ctx,'setResource');
+		const call = await startDBCall(ctx, 'setResource');
 		await this.setEntity(ctx, chunk, uuid, 'resources', tileHash);
 		await call.end();
 	}
@@ -119,7 +119,7 @@ export default class DBChunk {
 	//update a specific entity location for a specific layer
 	//note: layers must have different names than other values on chunk for now
 	async setEntity(ctx: Context, chunk: Chunk, uuid: UUID, layer: string, tileHash: TileHash): Promise<void> {
-		checkContext(ctx,'setEntity');
+		checkContext(ctx, 'setEntity');
 		const entityUpdate: any = {};
 		entityUpdate[tileHash] = uuid; //copy to save to DB
 		// $FlowFixMe: layers should probably be in their own map that won't conflict
@@ -143,13 +143,14 @@ export default class DBChunk {
 		}
 		//otherwise, it's possible that the unit was already at this location
 		//fetch the latest copy and check it
-		await chunk.refresh(ctx);
+		// TODO update this
+		// await chunk.refresh(ctx);
 		// $FlowFixMe: layers should probably be in their own map that won't conflict
 		const layerList: any = (chunk as any)[layer];
 		if (layerList[tileHash] === uuid) {
 			return;
 		}
-		throw new DetailedError('failed to set entity at tile', { uuid, found: layerList[tileHash]});
+		throw new DetailedError('failed to set entity at tile', { uuid, found: layerList[tileHash] });
 	}
 
 	//these should never get used.

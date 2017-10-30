@@ -4,6 +4,9 @@ import { Lock } from 'semaphore-async-await';
 import GameUnit from '../../unit/unit';
 
 export default class Unit implements DB.Unit {
+    listPlayersUnits(ctx: Context, uuid: string): Promise<GameUnit[]> {
+        throw new Error("Method not implemented.");
+    }
 
     public async init(ctx: Context): Promise<void> {
         

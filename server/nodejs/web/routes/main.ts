@@ -5,8 +5,6 @@
 //	Licensed under included modified BSD license
 
 import * as express from 'express';
-
-import env from '../../config/env';
 import Context from '../../util/context';
 
 export default function route(ctx: Context, app: express.Application) {

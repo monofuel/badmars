@@ -8,7 +8,7 @@
 import * as os from 'os';
 import * as _ from 'lodash';
 import env from '../config/env';
-import * as request from 'request';
+// import * as request from 'request';
 import * as stats from './stats';
 import Context from './context';
 
@@ -27,12 +27,12 @@ export class DetailedError extends Error {
 	constructor(msg: string, details: DetailsType = {}) {
 		super(msg);
 		this.details = details;
-	}	
+	}
 }
 
 function isDetailedError(err: any): err is DetailedError {
 	return !!err.details;
-} 
+}
 
 export class WrappedError extends DetailedError {
 	constructor(err: Error | DetailedError, msg: string, details?: DetailsType) {
@@ -43,7 +43,7 @@ export class WrappedError extends DetailedError {
 		if (isDetailedError(err)) {
 			this.details = Object.assign({}, err.details, details);
 		}
-		
+
 	}
 }
 
@@ -106,7 +106,7 @@ export default class Logger {
 		}
 	}
 
-	trackError(ctx: Context, err: Error | WrappedError | DetailedError) {
+	trackError(ctx: Context | null, err: Error | WrappedError | DetailedError) {
 		const body: any = Object.assign({
 			timestamp: (err as any).timestamp || Date.now(),
 			stack: err.stack,
@@ -118,8 +118,9 @@ export default class Logger {
 		this.track(ctx, 'error', body);
 	}
 
-	track(ctx: Context, name: string, krgs: Object = {}) {
-		
+	// TODO Context should probably not be nullable here
+	track(ctx: Context | null, name: string, krgs: Object = {}) {
+
 		const kargs: any = Object.assign({}, krgs);
 		//delete null fields
 		for (const key of Object.keys(kargs)) {
@@ -127,7 +128,7 @@ export default class Logger {
 				delete kargs[key];
 			}
 		}
-		
+
 		name = name.replace(/ /g, '_').replace(/:/g, ' ');
 		kargs.name = 'server_' + name;
 		kargs.module = this.moduleName;

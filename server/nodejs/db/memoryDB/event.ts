@@ -13,12 +13,12 @@ export default class Event implements DB.Event {
         ctx.check('game.init');
         this.gameEvents = new SyncEvent<DB.GameEvent>();
     }
-    
+
     async watch(ctx: Context, fn: DB.Handler<DB.GameEvent>): Promise<void> {
         ctx.check('watchEvent');
         const wrapper = async (e: DB.GameEvent) => {
             try {
-                await fn(e);
+                await fn(ctx, e);
             } catch (err) {
                 if (err instanceof DB.StopWatchingError) {
                     this.gameEvents.detach(wrapper)
@@ -39,7 +39,7 @@ export default class Event implements DB.Event {
             text,
             timestamp: new Date(),
         }
-        
+
         this.gameEvents.post(e);
         await call.end();
     }

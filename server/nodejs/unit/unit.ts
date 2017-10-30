@@ -19,7 +19,7 @@ import PlanetLoc, { getLocationDetails } from '../map/planetloc';
 import Map from '../map/map';
 import Chunk from '../map/chunk';
 
-import { 
+import {
 	UnitDetails,
 	UnitLocation,
 	UnitMovable,
@@ -28,7 +28,7 @@ import {
 	UnitGraphical,
 	UnitStationary,
 	UnitConstruct
- } from './components';
+} from './components';
 
 type ChunkHash = string;
 type UUID = string;
@@ -213,13 +213,13 @@ export default class Unit {
 			mctx.logger.logLevel = 'DEBUG';
 
 			switch (movable.layer) {
-			case 'ground':
-				actionPromises.push(groundUnitAI.actionable(mctx, this, map)
-					.then((result: boolean) => {
-						actionable.groundUnitAI = result;
-					}).catch((err: Error) => {
-						throw new WrappedError(err, 'groundUnitAI actionable');
-					}));
+				case 'ground':
+					actionPromises.push(groundUnitAI.actionable(mctx, this, map)
+						.then((result: boolean) => {
+							actionable.groundUnitAI = result;
+						}).catch((err: Error) => {
+							throw new WrappedError(err, 'groundUnitAI actionable');
+						}));
 			}
 		}
 
@@ -334,7 +334,7 @@ export default class Unit {
 					if (err.message === 'unit not found on map') {
 						const loc = badLocs[0];
 						ctx.logger.info(ctx, 'adding unit back to map, was missing');
-						loc.chunk.addUnit(ctx, this.uuid, loc.hash);
+						loc.chunkLayer.addUnit(ctx, this.uuid, loc.hash);
 						return;
 					} else {
 						throw err;
@@ -343,7 +343,7 @@ export default class Unit {
 				const x: number = parseInt(chunkHash.split(':')[0]);
 				const y: number = parseInt(chunkHash.split(':')[1]);
 				const chunk: Chunk = await map.getChunk(ctx, x, y);
-				await chunk.refresh(ctx, { force: true });
+				// await chunkLayer.refresh(ctx, { force: true });
 				/*
 				// TODO fix this
 				for (const loc of Object.keys(unitMap)) {
@@ -392,9 +392,11 @@ export default class Unit {
 			cost: stats.details.cost
 		};
 
-		await this.update(ctx, { construct: {
-			factoryQueue: this.construct.factoryQueue.concat(order)
-		}})
+		await this.update(ctx, {
+			construct: {
+				factoryQueue: this.construct.factoryQueue.concat(order)
+			}
+		})
 
 	}
 
@@ -554,12 +556,12 @@ export default class Unit {
 			throw new DetailedError('moving is not supported for large units', { uuid: this.uuid, type: this.details.type });
 		}
 		console.log('moving unit!');
-		if (tile.chunk.units[tile.hash]) {
-			ctx.logger.info(ctx, 'unit movement blocked', { hash: tile.hash, uuid: this.uuid});
+		if (tile.chunkLayer.units[tile.hash]) {
+			ctx.logger.info(ctx, 'unit movement blocked', { hash: tile.hash, uuid: this.uuid });
 			await this.clearPath(ctx);
 			return;
 		}
-		await tile.chunk.moveUnit(ctx, this, tile);
+		await tile.chunkLayer.moveUnit(ctx, this, tile);
 
 		if (!this.movable) {
 			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
@@ -671,45 +673,44 @@ export default class Unit {
 			}
 
 			const tile = await map.getLocFromHash(ctx, unitTile);
-			const chunk = tile.chunk;
-			const unitMap = await chunk.getUnitsMap(ctx, unitTile);
+			const unitMap = await tile.chunkLayer.getUnitsMap(ctx, unitTile);
 
 			if (!unitMap[this.uuid]) {
 				//console.log(chunk.units);
 				invalid('unit ' + this.uuid + ' missing from hash: ' + unitTile);
+				/*
+				console.log('fixing');
+				const success = await this.addToChunks();
+				if (!success) {
+					console.log('was not successful');
 					/*
-					console.log('fixing');
+					//untested!
+					console.log("tile blocked, moving unit")
+					//the tile might be blocked, let's try moving this unit
+					const freeTile = await map.getNearestFreeTile(tile,this,true)
+					console.log('moving from ' + this.tileHash + ' to ' + freeTile.hash);
+					const patch = {
+						x: freeTile.x,
+						y: freeTile.y,
+						tileHash: [freeTile.hash],
+						chunk: freeTile.chunk.x,
+						chunkY: freeTile.chunk.y,
+						chunkHash: [freeTile.chunk.hash]
+					}
+					this.x = freeTile.x;
+					this.y = freeTile.y;
+					this.tileHash = [freeTile.hash]
+					this.chunkX = freeTile.chunk.x;
+					this.chunkY = freeTile.chunk.y;
+					this.chunkHash = [freeTile.chunk.hash]
+
 					const success = await this.addToChunks();
 					if (!success) {
-						console.log('was not successful');
-						/*
-						//untested!
-						console.log("tile blocked, moving unit")
-						//the tile might be blocked, let's try moving this unit
-						const freeTile = await map.getNearestFreeTile(tile,this,true)
-						console.log('moving from ' + this.tileHash + ' to ' + freeTile.hash);
-						const patch = {
-							x: freeTile.x,
-							y: freeTile.y,
-							tileHash: [freeTile.hash],
-							chunk: freeTile.chunk.x,
-							chunkY: freeTile.chunk.y,
-							chunkHash: [freeTile.chunk.hash]
-						}
-						this.x = freeTile.x;
-						this.y = freeTile.y;
-						this.tileHash = [freeTile.hash]
-						this.chunkX = freeTile.chunk.x;
-						this.chunkY = freeTile.chunk.y;
-						this.chunkHash = [freeTile.chunk.hash]
+						invalid('unit not added to chunk map, failed to add');
+					}
+					await this.patch(patch);
 
-						const success = await this.addToChunks();
-						if (!success) {
-							invalid('unit not added to chunk map, failed to add');
-						}
-						await this.patch(patch);
-
-					}*/
+				}*/
 			}
 		}
 	}
@@ -747,10 +748,10 @@ export default class Unit {
 		const locs = await this.getLocs(ctx);
 		for (const loc of locs) {
 			if (this.details.type === 'oil' || this.details.type === 'iron') {
-				await loc.chunk.addResource(ctx, this.uuid, loc.hash);
+				await loc.chunkLayer.addResource(ctx, this.uuid, loc.hash);
 			} else {
 				try {
-					await loc.chunk.addUnit(ctx, this.uuid, loc.hash);
+					await loc.chunkLayer.addUnit(ctx, this.uuid, loc.hash);
 				} catch (err) {
 					throw new WrappedError(err, 'addToChunks addUnit failed', { hash: loc.hash });
 				}
@@ -763,7 +764,7 @@ export default class Unit {
 		const locs = await this.getLocs(ctx);
 		for (const loc of locs) {
 			try {
-				await loc.chunk.clearUnit(ctx, this.uuid, loc.hash);
+				await loc.chunkLayer.clearUnit(ctx, this.uuid, loc.hash);
 			} catch (err) {
 				throw new WrappedError(err, 'clearFromChunks clearUnit failed', { hash: loc.hash });
 			}
