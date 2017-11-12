@@ -5,6 +5,7 @@
 //	Licensed under included modified BSD license
 
 import Context from '../../context';
+import db from '../../db';
 import Client from '../client';
 
 export default async function getUnitStats(ctx: Context, client: Client): Promise<void> {

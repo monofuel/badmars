@@ -8,9 +8,10 @@ import * as WebSocket from 'ws';
 import * as _ from 'lodash';
 import * as http from 'http';
 
-import { DetailedError, WrappedError } from '../logger';
+import logger, { DetailedError, WrappedError } from '../logger';
 import { sanitizeUnit, sanitizeUser } from '../util/socketFilter';
 import Context from '../context';
+import db from '../db';
 import User from '../user/user';
 import Map from '../map/map';
 import Unit from '../unit/unit';
@@ -49,17 +50,17 @@ export default class Client {
 		this.loadedChunks = [];
 		this.handlers['login'] = auth;
 
-		ctx.logger.info(ctx, 'client connected');
+		logger.info(ctx, 'client connected');
 
 		ws.on('message', async (msg: string): Promise<void> => {
 			try {
 				await this.handleFromClient(ctx.create(), msg);
 			} catch (err) {
-				ctx.logger.trackError(ctx, new WrappedError(err, 'failed to handle network message', { msg }));
+				logger.trackError(ctx, new WrappedError(err, 'failed to handle network message', { msg }));
 			}
 		});
 		ws.on('error', (err: Error) => {
-			ctx.logger.trackError(ctx, new WrappedError(err, 'websocket error'));
+			logger.trackError(ctx, new WrappedError(err, 'websocket error'));
 		});
 
 		ws.on('close', () => {
@@ -94,7 +95,7 @@ export default class Client {
 	}
 
 	sendError(ctx: Context, type: string, errMsg: string) {
-		ctx.logger.info(ctx, 'client error', { errMsg, type });
+		logger.info(ctx, 'client error', { errMsg, type });
 		try {
 			this.ws.send(JSON.stringify({
 				type: type,
@@ -107,9 +108,9 @@ export default class Client {
 	}
 
 	handleLogOut() {
-		this.ctx.logger.info(this.ctx, 'client closed connection');
+		logger.info(this.ctx, 'client closed connection');
 		if (this.username) {
-			this.ctx.logger.info(this.ctx, 'logout', {
+			logger.info(this.ctx, 'logout', {
 				player: this.username
 			});
 		}
@@ -134,20 +135,20 @@ export default class Client {
 	}
 
 	async registerUnitListener(): Promise<void> {
-		const planetDB = await this.ctx.db.getPlanetDB(this.ctx, this.map.name);
+		const planetDB = await db.getPlanetDB(this.ctx, this.map.name);
 		await planetDB.unit.watch(this.ctx, async (ctx: Context, unit: Unit, oldUnit): Promise<void> => {
 			await this.handleUnitUpdate(ctx, unit, oldUnit);
 		});
 	}
 
 	async registerUserListener(): Promise<void> {
-		await this.ctx.db.user.watch(this.ctx, async (ctx: Context, user: User): Promise<void> => {
+		await db.user.watch(this.ctx, async (ctx: Context, user: User): Promise<void> => {
 			await this.handleUserUpdate(ctx, user);
 		});
 	}
 
 	async registerEventHandler(): Promise<void> {
-		this.ctx.db.event.watch(this.ctx, async (ctx: Context, e: GameEvent): Promise<void> => {
+		db.event.watch(this.ctx, async (ctx: Context, e: GameEvent): Promise<void> => {
 			if (e.type === 'chat') {
 				this.handleChat(ctx, e);
 			} else {
@@ -198,21 +199,21 @@ export default class Client {
 		switch (gameEvent.type) {
 			case 'attack':
 				if (!gameEvent.enemyId) {
-					this.ctx.logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
+					logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
 				}
 				if (!gameEvent.unitId) {
-					this.ctx.logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
+					logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
 				}
 				this.send('attack', { enemyId: gameEvent.enemyId, unitId: gameEvent.unitId });
 				break;
 			case 'kill':
 				if (!gameEvent.unitId) {
-					this.ctx.logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
+					logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
 				}
 				this.send('attack', { unitId: gameEvent.unitId });
 				break;
 			default:
-				this.ctx.logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
+				logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
 		}
 	}
 

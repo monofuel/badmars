@@ -7,7 +7,7 @@
 import env from '../../config/env';
 import Context from '../../context';
 import db from '../../db';
-import { checkContext } from '../../logger';
+import logger, { checkContext } from '../../logger';
 
 import Unit from '../unit';
 import Map from '../../map/map';
@@ -22,7 +22,7 @@ export default class AttackAI {
 		if (!this.enemy) {
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -31,22 +31,22 @@ export default class AttackAI {
 		//TODO allow force attacking a specific enemy
 		const enemy = this.enemy;
 
-		if(!unit.attack || !this.enemy) {
+		if (!unit.attack || !this.enemy) {
 			return;
 		}
 		// flow complains about unit.attack after awaits
 		const range = unit.attack.range;
 		const damage = unit.attack.damage;
 
-		if(unit.attack.fireCooldown !== 0) {
+		if (unit.attack.fireCooldown !== 0) {
 			await unit.tickFireCooldown(ctx);
 			return;
 		}
 
-		if(enemy && enemy.distance(unit) <= range) {
+		if (enemy && enemy.distance(unit) <= range) {
 			await unit.armFireCooldown(ctx);
 			await enemy.takeDamage(ctx, damage);
-			if(enemy.details.health === 0) {
+			if (enemy.details.health === 0) {
 				logger.info(ctx, 'gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
 				enemy.delete(ctx);
 				logger.info(ctx, 'gameEvent', { type: 'kill', unitId: enemy.uuid });
@@ -54,7 +54,7 @@ export default class AttackAI {
 				logger.info(ctx, 'gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
 			}
 			return;
-		} else if(enemy && enemy.distance(unit) < env.attackMoveRange) {
+		} else if (enemy && enemy.distance(unit) < env.attackMoveRange) {
 			//TODO move to attack them, then return to position
 			return;
 		}
