@@ -42,7 +42,7 @@ export async function createTable(conn: r.Connection, tableName: string, primary
 		results = await (r as any).tableList().contains(tableName).do((exists: boolean): any => {
 			return r.branch(exists as any, {
 				table_created: 0
-			}as any, (r as any).tableCreate(tableName, { primaryKey }));
+			} as any, (r as any).tableCreate(tableName, { primaryKey }));
 		}).run(conn);
 	} else {
 		results = await (r as any).tableList().contains(tableName).do((exists: boolean): any => {
@@ -90,10 +90,10 @@ export function startDBCall(ctx: Context, name: string): DBCall {
 
 export async function setupPlanet(conn: r.Connection, name: string): Promise<any> {
 	const chunk = new DBChunk(conn, name);
-	const unit = new DBUnit(conn, logger, name);
-	const unitStats = new DBUnitStat(conn, logger, name);
+	const unit = new DBUnit(conn, name);
+	const unitStats = new DBUnitStat(conn, name);
 	return Promise.all([
-		chunk.setup(logger),
+		chunk.setup(),
 		unit.setup(),
 		unitStats.setup(),
 	]);

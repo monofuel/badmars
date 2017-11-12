@@ -8,7 +8,7 @@ import * as r from 'rethinkdb';
 import { createTable, startDBCall, setupPlanet } from './helper';
 import Map from '../map/map';
 
-import Logger from '../logger';
+import logger from '../logger';
 import Context from '../context';
 
 export default class DBMap {
@@ -39,8 +39,8 @@ export default class DBMap {
 
 	async getMap(ctx: Context, name: string, opts?: any): Promise<Map> {
 		const { ignoreCache } = opts || { ignoreCache: false };
-		const call = await startDBCall(ctx,'getMap');
-		if(!ignoreCache && this.mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/ ) {
+		const call = await startDBCall(ctx, 'getMap');
+		if (!ignoreCache && this.mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/) {
 			logger.addSumStat('mapCacheHit', 1);
 			await call.end();
 			return this.mapCache[name].map;
@@ -49,7 +49,7 @@ export default class DBMap {
 		}
 
 		const doc = await this.table.get(name).run(this.conn);
-		if(!doc) {
+		if (!doc) {
 			throw new Error('map missing');
 		}
 		const map = new Map();

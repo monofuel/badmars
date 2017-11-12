@@ -9,7 +9,7 @@ import Map from '../map/map';
 import PlanetLoc from '../map/planetloc';
 import Unit from '../unit/unit';
 import Context from '../context';
-import { DetailedError } from '../logger';
+import logger, { DetailedError } from '../logger';
 import DIRECTION from '../map/directions';
 
 export default class AStarPath {
@@ -19,16 +19,16 @@ export default class AStarPath {
 	unit: Unit;
 	map: Map;
 	cost: number;
-	path: Array<PlanetLoc> ;
-	open: Array<PlanetLoc> ;
-	closed: Array<PlanetLoc> ;
+	path: Array<PlanetLoc>;
+	open: Array<PlanetLoc>;
+	closed: Array<PlanetLoc>;
 
 	constructor(start: PlanetLoc, end: PlanetLoc, unit: Unit) {
 		this.start = start;
 		this.end = end;
 		this.unit = unit;
 		this.current = start;
-		if(!this.start || !this.end || !this.current || this.start.map !== this.end.map) {
+		if (!this.start || !this.end || !this.current || this.start.map !== this.end.map) {
 			throw new DetailedError('invalid start and end points', {
 				start: start.toString(),
 				end: end.toString(),
@@ -44,14 +44,14 @@ export default class AStarPath {
 	}
 	async generate(ctx: Context): Promise<void> {
 		this.open = [
-			await this.map.getLoc(ctx,this.start.x + 1, this.start.y),
-			await this.map.getLoc(ctx,this.start.x - 1, this.start.y),
-			await this.map.getLoc(ctx,this.start.x, this.start.y + 1),
-			await this.map.getLoc(ctx,this.start.x, this.start.y - 1)
+			await this.map.getLoc(ctx, this.start.x + 1, this.start.y),
+			await this.map.getLoc(ctx, this.start.x - 1, this.start.y),
+			await this.map.getLoc(ctx, this.start.x, this.start.y + 1),
+			await this.map.getLoc(ctx, this.start.x, this.start.y - 1)
 		];
 
 		this.closed = [this.start];
-		for(const tile of this.open) {
+		for (const tile of this.open) {
 			tile.cost = 1 + tile.distance(this.end);
 			tile.realCost = 1;
 			tile.prev = this.start;
@@ -72,11 +72,11 @@ export default class AStarPath {
 			return a.cost - b.cost;
 		});
 
-		if(this.open.length === 0) {
+		if (this.open.length === 0) {
 			//save out what we have so far.
 			this.path.push(this.current);
-			while(!this.start.equals(this.current)) {
-				if(!this.current.prev) {
+			while (!this.start.equals(this.current)) {
+				if (!this.current.prev) {
 					throw new Error('bad pathfinder state, no previous tile');
 				}
 				this.current = this.current.prev;
@@ -89,14 +89,14 @@ export default class AStarPath {
 		this.current = this.open.shift();
 		this.closed.push(this.current);
 
-		if(this.cost > env.pathComplexityLimit) {
+		if (this.cost > env.pathComplexityLimit) {
 			//console.log(this.cost);
 			//console.log("path complexity exceeded");
 
 			//save out what we have so far.
 			this.path.push(this.current);
-			while(!this.start.equals(this.current)) {
-				if(!this.current.prev) {
+			while (!this.start.equals(this.current)) {
+				if (!this.current.prev) {
 					throw new Error('bad pathfinder state, no previous tile');
 				}
 				this.current = this.current.prev;
@@ -107,11 +107,11 @@ export default class AStarPath {
 			return 'complete';
 		}
 
-		if(this.current.equals(this.end)) {
+		if (this.current.equals(this.end)) {
 			//we're done, save this path
 			this.path.push(this.current);
-			while(!this.start.equals(this.current)) {
-				if(!this.current.prev) {
+			while (!this.start.equals(this.current)) {
+				if (!this.current.prev) {
 					throw new Error('bad pathfinder state, no previous tile');
 				}
 				this.current = this.current.prev;
@@ -123,7 +123,7 @@ export default class AStarPath {
 
 		//check if the tile is open and passable
 		const invalidReason = await this.map.checkValidForUnit(ctx, this.current, this.unit, true);
-		if(invalidReason) {
+		if (invalidReason) {
 			//console.log('not passible for unit');
 			return 'continue';
 		}
@@ -135,14 +135,14 @@ export default class AStarPath {
 			await this.current.E(ctx)
 		];
 
-		for(const tile of neighbors) {
-			if(contains(this.closed, tile)) {
+		for (const tile of neighbors) {
+			if (contains(this.closed, tile)) {
 				continue;
 			}
 			tile.cost = this.current.realCost + tile.distance(this.end);
 			tile.realCost = this.current.realCost + 1;
 			tile.prev = this.current;
-			if(!contains(this.open, tile)) {
+			if (!contains(this.open, tile)) {
 				this.open.push(tile);
 			}
 		}
@@ -151,28 +151,28 @@ export default class AStarPath {
 
 	async getNext(ctx: Context, tile: PlanetLoc): Promise<Symbol> {
 
-		if(tile === null) {
+		if (tile === null) {
 			return DIRECTION.C;
 		}
 		let nextTile = null;
-		for(let i = 0; i < this.path.length; i++) {
-			if(tile.equals(this.path[i])) {
+		for (let i = 0; i < this.path.length; i++) {
+			if (tile.equals(this.path[i])) {
 				nextTile = this.path[i - 1];
 				break;
 			}
 		}
 
-		if(nextTile === null) {
+		if (nextTile === null) {
 			return DIRECTION.C;
 		}
 
-		if((await tile.E(ctx)).equals(nextTile))
+		if ((await tile.E(ctx)).equals(nextTile))
 			return DIRECTION.E;
-		if((await tile.W(ctx)).equals(nextTile))
+		if ((await tile.W(ctx)).equals(nextTile))
 			return DIRECTION.W;
-		if((await tile.N(ctx)).equals(nextTile))
+		if ((await tile.N(ctx)).equals(nextTile))
 			return DIRECTION.N;
-		if((await tile.S(ctx)).equals(nextTile))
+		if ((await tile.S(ctx)).equals(nextTile))
 			return DIRECTION.S;
 
 		//console.log('invalid next tile');
@@ -181,8 +181,8 @@ export default class AStarPath {
 }
 
 function contains(list: Array<PlanetLoc>, tile: PlanetLoc): boolean {
-	for(const item of list) {
-		if(item.equals(tile)) {
+	for (const item of list) {
+		if (item.equals(tile)) {
 			return true;
 		}
 	}

@@ -8,7 +8,9 @@ import { Service } from './';
 import Context from '../context';
 import Unit from '../unit/unit';
 import Chunk from '../map/chunk';
+import db from '../db';
 import * as DB from '../db';
+import logger from '../logger';
 
 let maps = [];
 
@@ -21,7 +23,6 @@ export default class ValidatorService implements Service {
 
 	async start(): Promise<void> {
 		const ctx = this.parentCtx.create();
-		const { db } = ctx;
 		if (process.argv.length > 2) {
 			maps = process.argv.slice(2, process.argv.length);
 		} else {
@@ -50,7 +51,7 @@ export default class ValidatorService implements Service {
 			counter++;
 			await unit.validate(ctx);
 		});
-		ctx.logger.info(ctx, 'units validated: ', { counter });
+		logger.info(ctx, 'units validated: ', { counter });
 	}
 
 	private async validateChunks(ctx: Context, planetDB: DB.Planet): Promise<void> {
@@ -59,7 +60,7 @@ export default class ValidatorService implements Service {
 			counter++;
 			await chunk.validate(ctx);
 		});
-		ctx.logger.info(ctx, 'chunks validated: ', { counter });
+		logger.info(ctx, 'chunks validated: ', { counter });
 	}
 
 

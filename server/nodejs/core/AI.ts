@@ -7,8 +7,9 @@ import env from '../config/env';
 const grpc = require('grpc');
 
 import Unit from '../unit/unit';
-import { checkContext, WrappedError, DetailedError } from '../logger';
+import logger, { checkContext, WrappedError, DetailedError } from '../logger';
 import Context from '../context';
+import db from '../db';
 import { Service } from './'
 
 const services = grpc.load(__dirname + '/../../../protos/ai.proto').services;
@@ -29,7 +30,7 @@ export default class AIService implements Service {
 
 		server.bind('0.0.0.0:' + env.aiPort, grpc.ServerCredentials.createInsecure());
 		server.start();
-		ctx.logger.info(ctx, 'AI GRPC server started');
+		logger.info(ctx, 'AI GRPC server started');
 
 		process.on('exit', () => {
 			//GRPC likes to hang and prevent a proper shutdown for some reason
@@ -43,9 +44,9 @@ export default class AIService implements Service {
 		const mapName = request.mapName;
 		const tick = parseInt(request.tick);
 		ctx.tick = tick;
-		ctx.logger.addSumStat('unitRequest', 1);
-		ctx.logger.info(ctx, 'process unit order', { uuid, mapName, tick }, { silent: true });
-		const planetDB = await ctx.db.getPlanetDB(ctx, mapName);
+		logger.addSumStat('unitRequest', 1);
+		logger.info(ctx, 'process unit order', { uuid, mapName, tick }, { silent: true });
+		const planetDB = await db.getPlanetDB(ctx, mapName);
 		try {
 			const unit = await planetDB.unit.claimUnitTick(ctx, uuid, tick);
 			if (!unit) {
@@ -55,7 +56,7 @@ export default class AIService implements Service {
 			checkContext(ctx, 'processing unit');
 			callback(null, { success: true });
 		} catch (err) {
-			ctx.logger.trackError(ctx, new WrappedError(err, 'proccess unit GRPC'));
+			logger.trackError(ctx, new WrappedError(err, 'proccess unit GRPC'));
 			callback(err);
 		}
 	}

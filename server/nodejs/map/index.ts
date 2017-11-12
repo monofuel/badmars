@@ -1,6 +1,6 @@
 import Map from './map';
 import Chunk from './chunk';
-import PlanetLoc from './planetLoc';
+import PlanetLoc from './planetloc';
 import ChunkLayer from './chunkLayer';
 
 export default Map;

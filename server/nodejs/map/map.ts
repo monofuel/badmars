@@ -7,8 +7,9 @@
 import * as _ from 'lodash';
 const grpc = require('grpc');
 
-import { checkContext, WrappedError } from '../logger';
+import logger, { checkContext, WrappedError } from '../logger';
 import Context from '../context';
+import db from '../db';
 import env from '../config/env';
 import { LAND } from './tiletypes';
 import Chunk from './chunk';
@@ -92,23 +93,23 @@ export default class Map {
 		x = parseInt(x as any);
 		y = parseInt(y as any);
 		const self = this;
-		ctx.logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
+		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
 		const cacheChunk: CacheChunkType = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
-			ctx.logger.addSumStat('cacheChunkHit', 1);
+			logger.addSumStat('cacheChunkHit', 1);
 			return cacheChunk.chunk;
 		} else {
-			ctx.logger.addSumStat('cacheChunkMiss', 1);
+			logger.addSumStat('cacheChunkMiss', 1);
 		}
 
 		return await new Promise<Chunk>((resolve: Function, reject: Function): Promise<Chunk> => {
-			const profile = ctx.logger.startProfile('getChunk');
+			const profile = logger.startProfile('getChunk');
 			checkContext(ctx, 'getChunkGrpc');
 			return mapClient.getChunk({ mapName: this.name, x, y }, (err: Error, response: any): any => {
-				ctx.logger.endProfile(profile);
+				logger.endProfile(profile);
 				checkContext(ctx, 'getChunkGrpcReturn');
 				if (err) {
-					ctx.logger.trackError(ctx, new WrappedError(err, 'getChunk grpc', { mapName: this.name, x, y }));
+					logger.trackError(ctx, new WrappedError(err, 'getChunk grpc', { mapName: this.name, x, y }));
 					return reject(err);
 				}
 				for (let i = 0; i < response.navGrid.length; i++) {
@@ -124,7 +125,7 @@ export default class Map {
 				resolve(chunk);
 			});
 		}).catch((err: Error): Promise<Chunk> => {
-			ctx.logger.info(ctx, 'failed to get chunk, retrying', { x, y, err });
+			logger.info(ctx, 'failed to get chunk, retrying', { x, y, err });
 			sleep(50);
 			return self.getChunk(ctx, x, y);
 		});
@@ -132,16 +133,15 @@ export default class Map {
 
 	async fetchOrGenChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
 		checkContext(ctx, 'fetchOrGenChunk');
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 
-		ctx.logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
+		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
 		const cacheChunk: CacheChunkType = this.getChunkFromCache(x + ':' + y);
 		if (cacheChunk) {
-			ctx.logger.addSumStat('cacheChunkHit', 1);
+			logger.addSumStat('cacheChunkHit', 1);
 			return cacheChunk.chunk;
 		} else {
-			ctx.logger.addSumStat('cacheChunkMiss', 1);
+			logger.addSumStat('cacheChunkMiss', 1);
 		}
 		let chunk: null | Chunk;
 		try {
@@ -151,7 +151,7 @@ export default class Map {
 		}
 
 		if (!chunk) {
-			ctx.logger.addSumStat('generatingChunk', 1);
+			logger.addSumStat('generatingChunk', 1);
 			const { chunk, chunkLayer } = await generateChunk(ctx, this, x, y);
 			await planetDB.chunk.create(ctx, chunk);
 			await planetDB.chunkLayer.create(ctx, chunkLayer);
@@ -162,7 +162,7 @@ export default class Map {
 
 	addChunkToCache(ctx: Context, chunk: Chunk) {
 		checkContext(ctx, 'addChunkToCache');
-		const profile = ctx.logger.startProfile('addChunkToCache');
+		const profile = logger.startProfile('addChunkToCache');
 		const entry = {
 			chunk,
 			timestamp: Date.now()
@@ -180,7 +180,7 @@ export default class Map {
 		this.chunkCache.sort((a: CacheChunkType, b: CacheChunkType): number => {
 			return b.timestamp - a.timestamp;
 		});
-		ctx.logger.endProfile(profile);
+		logger.endProfile(profile);
 	}
 
 	getChunkFromCache(hash: ChunkHash): CacheChunkType {
@@ -233,7 +233,6 @@ export default class Map {
 	//this prevents a loop of trying to validate against a chunk that
 	//is not yet generated (hence infinite loop)
 	async spawnUnitWithoutTileCheck(ctx: Context, newUnit: Unit): Promise<Unit> {
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 
 		return planetDB.unit.create(ctx, newUnit);
@@ -241,7 +240,6 @@ export default class Map {
 
 	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise<Unit> {
 		checkContext(ctx, 'spawnAndValidate');
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 		const unit: Unit = await planetDB.unit.create(ctx, newUnit);
 		try {
@@ -323,12 +321,10 @@ export default class Map {
 	}
 
 	async spawnUser(ctx: Context, client: Client): Promise<void> {
-
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 
 		//find a spawn location
-		ctx.logger.info(ctx, 'finding spawn location');
+		logger.info(ctx, 'finding spawn location');
 		const chunk: Chunk = await this.findSpawnLocation(ctx);
 
 		//spawn units for them on the chunk
@@ -372,7 +368,7 @@ export default class Map {
 				}
 
 
-				ctx.logger.info(ctx, 'spawning unit', { unitType, x, y });
+				logger.info(ctx, 'spawning unit', { unitType, x, y });
 
 				if (unitType !== 'iron' && unitType !== 'oil') {
 					unit.details.owner = client.user.uuid;
@@ -403,7 +399,7 @@ export default class Map {
 					unit = await this.spawnUnit(ctx, unit);
 					spawnedUnits.push(unit);
 
-					ctx.logger.info(ctx, 'sucessfully spawned', { unitType, x, y });
+					logger.info(ctx, 'sucessfully spawned', { unitType, x, y });
 					usedTiles.push(...unit.location.hash);
 
 					if (unitType === 'iron' || unitType === 'oil') {
@@ -431,19 +427,19 @@ export default class Map {
 								}
 							}
 						} catch (err) {
-							ctx.logger.trackError(ctx, new WrappedError(err, 'failed to remove unit during rollback unit spawn'));
+							logger.trackError(ctx, new WrappedError(err, 'failed to remove unit during rollback unit spawn'));
 						}
 						try {
 							await planetDB.unit.delete(ctx, unit.uuid);
 						} catch (err) {
-							ctx.logger.trackError(ctx, new WrappedError(err, 'failed to delete unit to rollback unit spawn'));
+							logger.trackError(ctx, new WrappedError(err, 'failed to delete unit to rollback unit spawn'));
 						}
 					}
 					throw new WrappedError(err, 'spawning unit failed, bailing out', { x, y, unitType });
 				}
 			}
 		}
-		ctx.logger.info(ctx, 'spawn finished');
+		logger.info(ctx, 'spawn finished');
 	}
 
 	//find random spawn locations, looking farther away depending on how many attempts tried
@@ -559,7 +555,6 @@ export default class Map {
 	}
 
 	async pullResource(ctx: Context, type: string, taker: Unit, amount: number): Promise<boolean> {
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 
 		const takerStorage: any = taker.getComponent('storage');
@@ -638,7 +633,6 @@ export default class Map {
 
 	async produceResource(ctx: Context, type: Resource, mine: Unit, amount: number): Promise<void> {
 
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, mine.location.map);
 
 		const mineStorage = mine.getComponent('storage');
@@ -647,7 +641,7 @@ export default class Map {
 		this.sortByNearestUnit(units, mine);
 		this.sortBuildingsOverOther(units);
 
-		ctx.logger.info(ctx, 'depositing oil from mine', { amount }, { silent: true });
+		logger.info(ctx, 'depositing oil from mine', { amount }, { silent: true });
 
 		for (const unit of units) {
 			if (unit.details.ghosting) {
@@ -810,7 +804,6 @@ export default class Map {
 	}
 
 	async update(ctx: Context, patch: Object): Promise<void> {
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 
 		checkContext(ctx, 'update');

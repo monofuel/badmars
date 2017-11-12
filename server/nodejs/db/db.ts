@@ -125,7 +125,7 @@ export default class DB {
 
 		const unitPromises = [];
 		for (const name of mapNames) {
-			const unit = new DBUnit(this.conn, this.logger, name);
+			const unit = new DBUnit(this.conn, name);
 			unitPromises.push(unit.init());
 			this.units[name] = unit;
 		}
@@ -133,67 +133,67 @@ export default class DB {
 
 		const unitStatPromises = [];
 		for (const name of mapNames) {
-			const unitStat = new DBUnitStat(this.conn, this.logger, name);
+			const unitStat = new DBUnitStat(this.conn, name);
 			unitStatPromises.push(unitStat.init());
 			this.unitStats[name] = unitStat;
 		}
 		await Promise.all(unitStatPromises);
 
 		//console.log('created map testmap');
-		this.logger.info(null, 'INITIALIZED');
+		logger.info(null, 'INITIALIZED');
 	}
 
 	async setupSchema(): Promise<void> {
 		await this.connect();
-		this.logger.info(null, 'Initializing Schema');
+		logger.info(null, 'Initializing Schema');
 
 		const dbList = await r.dbList().run(this.conn);
 
 		if (dbList.indexOf('badmars') == -1) {
-			this.logger.info(null, 'creating database');
+			logger.info(null, 'creating database');
 			await r.dbCreate('badmars').run(this.conn);
 		}
 
 		r.db('badmars');
 
 		try {
-			await this.map.setup(this.conn, this.logger);
+			await this.map.setup(this.conn);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to setup map table');
 		}
 
 		try {
-			await this.chat.setup(this.conn, this.logger);
+			await this.chat.setup(this.conn);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to setup chat table');
 		}
 
 		try {
-			await this.event.setup(this.conn, this.logger);
+			await this.event.setup(this.conn);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to setup event table');
 		}
 
 		try {
-			await this.user.setup(this.conn, this.logger);
+			await this.user.setup(this.conn);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to setup user table');
 		}
 
 		try {
-			await this.session.setup(this.conn, this.logger);
+			await this.session.setup(this.conn);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to setup session table');
 		}
 
-		await this.map.init(this.conn, this.logger);
+		await this.map.init(this.conn);
 		await this.map.createRandomMap('testmap');
 
 		const mapNames = await this.map.listNames();
-		await Promise.all(mapNames.map((name: string): Promise<void> => setupPlanet(this.conn, this.logger, name)));
+		await Promise.all(mapNames.map((name: string): Promise<void> => setupPlanet(this.conn, name)));
 
 		// TODO
-		this.logger.info(null, 'Schema Initialized');
+		logger.info(null, 'Schema Initialized');
 	}
 
 	async close(): Promise<void> {

@@ -19,6 +19,7 @@ import healthRoute from '../web/routes/health';
 import authRoute from '../web/routes/auth';
 
 import Context from '../context';
+import logger from '../logger';
 
 export default class WebService implements Service {
 	private parentCtx: Context;
@@ -43,8 +44,6 @@ export default class WebService implements Service {
 		return new Promise<void>((resolve: Function) => {
 			const server = app.listen(env.wwwPort, () => {
 				const ctx = this.parentCtx.create();
-				const { logger } = ctx;
-
 				const host = server.address().address;
 				const port = server.address().port;
 

@@ -31,8 +31,8 @@ export default class DBChunk {
 		this.table = r.table(this.tableName);
 	}
 
-	async setup(logger: Logger): Promise<void> {
-		this.table = await createTable(this.conn, logger, this.tableName, 'hash');
+	async setup(): Promise<void> {
+		this.table = await createTable(this.conn, this.tableName, 'hash');
 	}
 
 	async each(func: Function): Promise<void> {

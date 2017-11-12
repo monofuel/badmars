@@ -4,7 +4,6 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-
 import AStarPath from '../nav/astarpath';
 import SimplePath from '../nav/simplepath';
 import DIRECTION from '../map/directions';
@@ -12,8 +11,8 @@ import Context from '../context';
 import { WrappedError } from '../logger';
 import Unit from '../unit/unit';
 
-import Logger from '../logger';
-import DB from '../db/db';
+import logger from '../logger';
+import db from '../db';
 import PlanetLoc from '../map/planetloc';
 import { Service } from './';
 
@@ -28,7 +27,6 @@ export default class PathfindService implements Service {
 
 	async start(): Promise<void> {
 		const ctx = this.parentCtx.create();
-		const { db } = ctx;
 		setInterval((): Promise<void> => this.registerListeners(ctx), 1000);
 
 		await this.registerListeners(ctx);
@@ -39,7 +37,6 @@ export default class PathfindService implements Service {
 	}
 
 	async registerListeners(ctx: Context): Promise<void> {
-		const { db } = ctx;
 		const names: string[] = await db.listPlanetNames(ctx);
 		for (const name of names) {
 			if (registeredMaps.indexOf(name) === -1) {
@@ -52,7 +49,6 @@ export default class PathfindService implements Service {
 	}
 
 	private async pathfind(ctx: Context, unit: Unit, oldUnit?: Unit): Promise<void> {
-		const { db, logger } = ctx;
 		logger.info(ctx, 'processing path', { uuid: unit.uuid });
 
 		if (!unit.movable || !unit.movable.destination) {

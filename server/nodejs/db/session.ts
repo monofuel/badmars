@@ -5,6 +5,7 @@
 //	Licensed under included modified BSD license
 
 import * as r from 'rethinkdb';
+import db from '../db';
 import Logger from '../logger';
 import { DetailedError } from '../logger';
 import Context from '../context';
@@ -26,13 +27,12 @@ export default class DBSession {
 		this.table = r.table(this.tableName);
 	}
 
-	async setup(conn: r.Connection, logger: Logger): Promise<void> {
-		this.table = await createTable(conn, logger, this.tableName, 'token');
-		await createIndex(conn, logger, this.table, 'user', true);
+	async setup(conn: r.Connection): Promise<void> {
+		this.table = await createTable(conn, this.tableName, 'token');
+		await createIndex(conn, this.table, 'user', true);
 	}
 
 	async getBearerUser(ctx: Context, token: string): Promise<User> {
-		const { db } = ctx;
 		const call = await startDBCall(ctx, 'getBearerUser');
 		const doc = await this.table.get(token).run(this.conn);
 		if (!doc) {

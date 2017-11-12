@@ -4,6 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
+/*
 import Context from '../context';
 import { Service } from './';
 import RethinkDB from '../db/rethinkdb';
@@ -31,3 +32,4 @@ export default class SchemaService implements Service {
 		throw new Error('not implemented');
 	}
 }
+*/

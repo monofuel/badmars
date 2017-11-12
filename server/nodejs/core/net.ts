@@ -11,6 +11,8 @@ import Context from '../context';
 import * as querystring from 'querystring';
 
 import { Service } from './';
+import logger from '../logger';
+import db from '../db';
 import * as http from 'http';
 
 const WebSocketServer = ws.Server;
@@ -38,8 +40,6 @@ export default class Net implements Service {
 				callback(false, 401, 'missing token parameter');
 				return;
 			}
-
-			const { logger, db } = ctx;
 			const user = await db.session.getBearerUser(ctx, token);
 			if (!user) {
 				callback(false, 401, 'invalid authorization');

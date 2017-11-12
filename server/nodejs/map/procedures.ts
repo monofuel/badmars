@@ -1,7 +1,7 @@
 const Alea = require('alea');
 import Context from '../context';
 const SimplexNoise = require('simplex-noise');
-import { DetailedError, checkContext } from '../logger';
+import logger, { DetailedError, checkContext } from '../logger';
 import { LAND, CLIFF, WATER, COAST } from './tiletypes';
 import Chunk from './chunk';
 import ChunkLayer from './chunkLayer';
@@ -94,7 +94,7 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
                 await unit.setup(ctx, 'iron', loc);
                 unit = await map.spawnUnitWithoutTileCheck(ctx, unit);
                 if (!unit) {
-                    ctx.logger.info(ctx, 'failed to spawn iron');
+                    logger.info(ctx, 'failed to spawn iron');
                 } else {
                     layer.resources[unit.location.hash[0]] = unit.uuid;
                 }
@@ -105,7 +105,7 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
                 await unit.setup(ctx, 'oil', loc);
                 unit = await map.spawnUnitWithoutTileCheck(ctx, unit);
                 if (!unit) {
-                    ctx.logger.info(ctx, 'failed to spawn oil');
+                    logger.info(ctx, 'failed to spawn oil');
                 } else {
                     layer.resources[unit.location.hash[0]] = unit.uuid;
                 }

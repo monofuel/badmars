@@ -13,7 +13,7 @@ import UnitStat from '../unit/unitStat';
 import { createTable } from './helper';
 import { DetailedError, WrappedError } from '../logger';
 
-import Logger from '../logger';
+import logger from '../logger';
 import Context from '../context';
 
 const UNIT_STAT_FILE = 'config/units.json';
@@ -31,14 +31,14 @@ async function loadDefaults(): Promise<void> {
 			const unitStat = new UnitStat(type, unit);
 			try {
 				unitStat.validateSync();
-			} catch(err) {
+			} catch (err) {
 				throw new WrappedError(err, 'unit failed to validate', { type });
 			}
-			if(!unitsFromDatabase.includes(type)) {
+			if (!unitsFromDatabase.includes(type)) {
 				unitMap[type] = unitStat;
 			}
 		});
-	} catch(err) {
+	} catch (err) {
 		throw new WrappedError(err, 'failed to load unit definitions');
 	}
 	// eslint-disable-next-line no-console
@@ -52,23 +52,22 @@ export default class DBUnitStat {
 	mapName: string;
 	tableName: string;
 	table: r.Table;
-	logger: Logger;
 
-	constructor(connection: r.Connection, logger: Logger, mapName: string) {
+	constructor(connection: r.Connection, mapName: string) {
 		this.conn = connection;
 		this.mapName = mapName;
 		this.tableName = this.mapName + '_unitStats';
 	}
 
 	async setup(): Promise<void> {
-		this.table = await createTable(this.conn, this.logger, this.tableName);
+		this.table = await createTable(this.conn, this.tableName);
 	}
 
 	async init(): Promise<void> {
 		this.table = r.table(this.tableName);
 		await loadDefaults();
 
-		fs.watchFile(UNIT_STAT_FILE, async(): Promise<void> => {
+		fs.watchFile(UNIT_STAT_FILE, async (): Promise<void> => {
 			await loadDefaults();
 		});
 
@@ -81,7 +80,7 @@ export default class DBUnitStat {
 		return (r as any).tableCreate(self.tableName, {
 			primaryKey: 'type'
 		}).run(self.conn);
-			// no indexes for this tables
+		// no indexes for this tables
 	}
 
 	// TODO type this properly
@@ -97,9 +96,9 @@ export default class DBUnitStat {
 	}
 
 	async put(ctx: Context, stat: UnitStat): Promise<void> {
-		const profile = ctx.logger.startProfile('saveUnitStat');
+		const profile = logger.startProfile('saveUnitStat');
 		await this.table.get(stat.details.type).update(stat).run(this.conn);
-		ctx.logger.endProfile(profile);
+		logger.endProfile(profile);
 		return;
 	}
 

@@ -1,5 +1,5 @@
 require('source-map-support').install();
-
+/*
 import RethinkDB from './db/rethinkDB';
 import Schema from './core/schema';
 import Context from './context';
@@ -16,3 +16,4 @@ async function init(): Promise<void> {
 }
 
 init();
+*/

@@ -8,9 +8,10 @@ const grpc = require('grpc');
 import Context from '../context';
 
 import env from '../config/env';
-import { checkContext } from '../logger';
+import logger, { checkContext } from '../logger';
 
 import Chunk from '../map/chunk';
+import db from '../db';
 
 import Logger from '../logger';
 import { WrappedError } from '../logger';
@@ -36,7 +37,6 @@ export default class PlanetService implements Service {
 
 	async start(): Promise<void> {
 		const ctx = this.parentCtx.create();
-		const { db, logger } = ctx;
 
 		const server = new grpc.Server();
 		const services = grpc.load(__dirname + '/../../../protos/chunk.proto').services;
@@ -59,14 +59,12 @@ export default class PlanetService implements Service {
 
 	logRequests() {
 		const ctx = this.parentCtx.create()
-		const { logger } = ctx
 		const count = Object.keys(this.requests).length;
 		logger.info(ctx, 'chunk_requests', { count }, { silent: count === 0 });
 	}
 
 	async getChunk(call: any, callback: Function): Promise<void> {
 		const ctx: Context = this.parentCtx.create({ timeout: 1000 });
-		const { logger } = ctx;
 		try {
 			this.requests[ctx.uuid] = ctx;
 			const request = call.request;
@@ -87,7 +85,6 @@ export default class PlanetService implements Service {
 	// we have to fiddle with the 2d array for GPRC
 	async fetchOrGenChunk(ctx: Context, mapName: string, x: number, y: number): Promise<any> {
 		checkContext(ctx, 'fetchOrGenChunk');
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, mapName);
 
 		const localChunk = await planetDB.planet.fetchOrGenChunk(ctx, x, y);

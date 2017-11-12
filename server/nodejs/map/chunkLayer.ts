@@ -3,6 +3,7 @@ import Context from '../context';
 import { DetailedError, checkContext } from '../logger';
 import * as _ from 'lodash';
 import { Chunk, PlanetLoc } from './';
+import db from '../db';
 
 type EntityMapType = {
 	[key: string]: UUID
@@ -30,7 +31,6 @@ export default class ChunkLayer {
 
 
 	async getUnitsMap(ctx: Context, hash: TileHash): Promise<UnitMap> {
-		const { db } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.map);
 
 		checkContext(ctx, 'getUnitsMap');
@@ -55,7 +55,6 @@ export default class ChunkLayer {
 	}
 
 	async getUnits(ctx: Context): Promise<Unit[]> {
-		const { db } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.map);
 
 		checkContext(ctx, 'getUnits');

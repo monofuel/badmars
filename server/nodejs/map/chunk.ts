@@ -6,7 +6,7 @@
 
 import * as _ from 'lodash';
 import Context from '../context';
-
+import db from '../db';
 import env from '../config/env';
 import { DetailedError, checkContext } from '../logger';
 import PlanetLoc, { getLocationDetails } from './planetloc';
@@ -113,13 +113,11 @@ export default class Chunk {
 	}
 
 	async getLayer(ctx: Context): Promise<ChunkLayer> {
-		const { db } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.map);
 		return await planetDB.chunkLayer.get(ctx, this.hash)
 	}
 
 	async getTiles(ctx: Context): Promise<Array<PlanetLoc>> {
-		const { db } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.map);
 
 		checkContext(ctx, 'getTiles');

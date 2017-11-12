@@ -18,7 +18,7 @@
   "homepage": "https://github.com/monofuel/badMars-JS#readme",
   "dependencies": {
     "@types/axios": "^0.14.0",
-    "@types/body-parser": "^1.16.7",
+    "@types/body-parser": "^1.16.8",
     "@types/chai": "^4.0.4",
     "@types/core-decorators": "^0.10.32",
     "@types/dat-gui": "^0.6.3",

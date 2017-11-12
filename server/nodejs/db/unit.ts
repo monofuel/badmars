@@ -11,7 +11,7 @@ import env from '../config/env';
 import Unit from '../unit/unit';
 import { createTable, createIndex, startDBCall, clearSpareIndices } from './helper';
 
-import Logger from '../logger';
+import logger from '../logger';
 import Context from '../context';
 
 const VALID_INDICES = ['location.chunkHash', 'location.hash', 'details.lastTick', 'awake'];
@@ -34,14 +34,12 @@ type Resource = 'iron' | 'fuel';
 
 export default class DBunit {
 	conn: r.Connection;
-	logger: Logger;
 	mapName: string;
 	table: r.Table;
 	tableName: string;
 
-	constructor(connection: r.Connection, logger: Logger, mapName: string) {
+	constructor(connection: r.Connection, mapName: string) {
 		this.conn = connection;
-		this.logger = logger;
 		this.mapName = mapName;
 		this.tableName = mapName + '_unit';
 	}
@@ -51,11 +49,11 @@ export default class DBunit {
 	}
 
 	async setup(): Promise<void> {
-		this.table = await createTable(this.conn, this.logger, this.tableName, 'uuid');
-		await createIndex(this.conn, this.logger, this.table, 'location.hash', true);
-		await createIndex(this.conn, this.logger, this.table, 'location.chunkHash', true);
-		await createIndex(this.conn, this.logger, this.table, 'details.lastTick');
-		await createIndex(this.conn, this.logger, this.table, 'awake');
+		this.table = await createTable(this.conn, this.tableName, 'uuid');
+		await createIndex(this.conn, this.table, 'location.hash', true);
+		await createIndex(this.conn, this.table, 'location.chunkHash', true);
+		await createIndex(this.conn, this.table, 'details.lastTick');
+		await createIndex(this.conn, this.table, 'awake');
 		await clearSpareIndices(this.conn, this.table, VALID_INDICES);
 	}
 
