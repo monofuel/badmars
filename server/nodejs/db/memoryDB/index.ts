@@ -6,7 +6,7 @@ import Planet from './planet';
 import User from './user';
 import Event from './event';
 
-export default class MemoryDB implements DB.DB {
+class MemoryDB implements DB.DB {
     private planets: { [key: string]: DB.Planet };
     public event: Event;
     public session: Session;
@@ -48,3 +48,6 @@ export default class MemoryDB implements DB.DB {
         return names;
     }
 }
+
+const db = new MemoryDB();
+export default db;

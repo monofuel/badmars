@@ -1,7 +1,7 @@
 require('source-map-support').install();
 
 import RethinkDB from './db/rethinkDB';
-import AI from './core/ai';
+import AI from './core/AI';
 import Context from './util/context';
 import { prepareCtx, start } from './';
 

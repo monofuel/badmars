@@ -6,8 +6,9 @@
 
 const hat = require('hat');
 import * as _ from 'lodash';
-import { checkContext } from '../util/logger';
-import Context from '../util/context';
+import db from '../db';
+import { checkContext } from '../logger';
+import Context from '../context';
 
 type TileHash = string;
 
@@ -39,6 +40,6 @@ export default class User {
 	async update(ctx: Context, patch: Object): Promise<void> {
 		checkContext(ctx, 'user update');
 		Object.assign(this, patch);
-		await ctx.db.user.patch(ctx, this.uuid, patch);
+		await db.user.patch(ctx, this.uuid, patch);
 	}
 }

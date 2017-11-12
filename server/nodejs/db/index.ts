@@ -112,3 +112,11 @@ export interface DB {
     event: Event;
     session: Session;
 }
+
+let db: DB;
+
+export function setupDB(db: DB) {
+    this.db = db;
+}
+
+export default db;
