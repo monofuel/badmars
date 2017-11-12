@@ -11,7 +11,8 @@
         "outDir": "../../bin/server/nodejs",
         "jsx": "react",
         "noUnusedLocals": false,
-        "strictNullChecks": false
+        "strictNullChecks": false,
+        "baseUrl": "."
     },
     "include": [
         "./*",
