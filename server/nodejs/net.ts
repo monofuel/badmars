@@ -2,7 +2,7 @@ require('source-map-support').install();
 
 import RethinkDB from './db/rethinkDB';
 import Net from './core/net';
-import Context from './util/context';
+import Context from './context';
 import { prepareCtx, start } from './';
 
 async function init(): Promise<void> {

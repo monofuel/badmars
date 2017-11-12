@@ -8,12 +8,11 @@ import * as r from 'rethinkdb';
 import { createTable, startDBCall, setupPlanet } from './helper';
 import Map from '../map/map';
 
-import Logger from '../util/logger';
-import Context from '../util/context';
+import Logger from '../logger';
+import Context from '../context';
 
 export default class DBMap {
 	mapCache: any;
-	logger: Logger;
 	conn: r.Connection;
 	table: r.Table;
 	tableName: string;
@@ -23,17 +22,15 @@ export default class DBMap {
 		this.tableName = 'map';
 	}
 
-	async init(conn: r.Connection, logger: Logger): Promise<void> {
+	async init(conn: r.Connection): Promise<void> {
 		this.conn = conn;
-		this.logger = logger;
 		this.table = r.table(this.tableName);
 
 	}
 
-	async setup(conn: r.Connection, logger: Logger): Promise<void> {
+	async setup(conn: r.Connection): Promise<void> {
 		this.conn = conn;
-		this.logger = logger;
-		this.table = await createTable(conn, logger, this.tableName, 'name');
+		this.table = await createTable(conn, this.tableName, 'name');
 	}
 
 	async listNames(): Promise<Array<string>> {
@@ -44,11 +41,11 @@ export default class DBMap {
 		const { ignoreCache } = opts || { ignoreCache: false };
 		const call = await startDBCall(ctx,'getMap');
 		if(!ignoreCache && this.mapCache[name] /*&& Date.now() - mapCache[name].lastUpdate < 2000*/ ) {
-			ctx.logger.addSumStat('mapCacheHit', 1);
+			logger.addSumStat('mapCacheHit', 1);
 			await call.end();
 			return this.mapCache[name].map;
 		} else {
-			ctx.logger.addSumStat('mapCacheMissOrRefresh', 1);
+			logger.addSumStat('mapCacheMissOrRefresh', 1);
 		}
 
 		const doc = await this.table.get(name).run(this.conn);
@@ -89,7 +86,7 @@ export default class DBMap {
 
 	async createRandomMap(name: string): Promise<Object> {
 		const planet = await this.createMap(new Map(name));
-		await setupPlanet(this.conn, this.logger, name);
+		await setupPlanet(this.conn, name);
 		return planet;
 	}
 }

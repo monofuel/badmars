@@ -1,7 +1,7 @@
 const Alea = require('alea');
-import Context from '../util/context';
+import Context from '../context';
 const SimplexNoise = require('simplex-noise');
-import { DetailedError, checkContext } from '../util/logger';
+import { DetailedError, checkContext } from '../logger';
 import { LAND, CLIFF, WATER, COAST } from './tiletypes';
 import Chunk from './chunk';
 import ChunkLayer from './chunkLayer';

@@ -5,8 +5,9 @@
 //	Licensed under included modified BSD license
 
 import env from '../../config/env';
-import Context from '../../util/context';
-import { checkContext } from '../../util/logger';
+import Context from '../../context';
+import db from '../../db';
+import { checkContext } from '../../logger';
 
 import Unit from '../unit';
 import Map from '../../map/map';
@@ -46,11 +47,11 @@ export default class AttackAI {
 			await unit.armFireCooldown(ctx);
 			await enemy.takeDamage(ctx, damage);
 			if(enemy.details.health === 0) {
-				ctx.logger.info(ctx, 'gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
+				logger.info(ctx, 'gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
 				enemy.delete(ctx);
-				ctx.logger.info(ctx, 'gameEvent', { type: 'kill', unitId: enemy.uuid });
+				logger.info(ctx, 'gameEvent', { type: 'kill', unitId: enemy.uuid });
 			} else {
-				ctx.logger.info(ctx, 'gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
+				logger.info(ctx, 'gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
 			}
 			return;
 		} else if(enemy && enemy.distance(unit) < env.attackMoveRange) {

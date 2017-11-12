@@ -16,10 +16,10 @@ import DBChat from './chat';
 import DBEvent from './event';
 import DBSession from './session';
 import { setupPlanet } from './helper';
-import { WrappedError } from '../util/logger';
+import { WrappedError } from '../logger';
 
 import sleep from '../util/sleep';
-import Logger from '../util/logger';
+import logger from '../logger';
 
 type ChunkMapType = {
 	[key: string]: DBChunk
@@ -32,7 +32,6 @@ type UnitStatMapType = {
 };
 
 export default class DB {
-	logger: Logger;
 	conn: r.Connection;
 
 	chunks: ChunkMapType = {};
@@ -43,10 +42,6 @@ export default class DB {
 	session = new DBSession();
 	chat = new DBChat();
 	event = new DBEvent();
-
-	constructor(logger: Logger) {
-		this.logger = logger;
-	}
 
 	async connect(): Promise<void> {
 		const options: {
@@ -72,7 +67,7 @@ export default class DB {
 		try {
 			this.conn = await r.connect(options);
 		} catch (err) {
-			this.logger.trackError(null, new WrappedError(err, 'failed to connect to DB, retrying in 5 seconds'));
+			logger.trackError(null, new WrappedError(err, 'failed to connect to DB, retrying in 5 seconds'));
 			await sleep(5000);
 			return this.init();
 		}
@@ -89,7 +84,7 @@ export default class DB {
 		r.db('badmars');
 
 		try {
-			await this.map.init(this.conn, this.logger);
+			await this.map.init(this.conn);
 		} catch (err) {
 			throw new WrappedError(err, 'failed to initialize map table');
 		}

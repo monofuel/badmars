@@ -7,7 +7,7 @@
 import env from '../config/env';
 import Client from '../net/client';
 import * as ws from 'ws';
-import Context from '../util/context';
+import Context from '../context';
 import * as querystring from 'querystring';
 
 import { Service } from './';

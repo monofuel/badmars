@@ -1,6 +1,6 @@
 import * as DB from '../';
-import Context from '../../util/context';
-import { Lock } from 'semaphore-async-await';
+import Context from '../../context';
+// import { Lock } from 'semaphore-async-await';
 import GameChunk from '../../map/chunk';
 
 export default class Chunk implements DB.Chunk {

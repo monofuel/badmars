@@ -6,11 +6,11 @@
 
 import * as r from 'rethinkdb';
 import { createTable, startDBCall } from './helper';
-import { checkContext, DetailedError } from '../util/logger';
+import { checkContext, DetailedError } from '../logger';
 import Chunk from '../map/chunk';
 
-import Logger from '../util/logger';
-import Context from '../util/context';
+import Logger from '../logger';
+import Context from '../context';
 
 type UUID = string;
 type TileHash = string;

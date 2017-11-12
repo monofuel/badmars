@@ -1,10 +1,10 @@
 import * as DB from '../';
 import * as _ from 'lodash';
-import Context from '../../util/context';
-import { WrappedError } from '../../util/logger';
+import Context from '../../context';
+import { WrappedError } from '../../logger';
 import { startDBCall } from '../helper';
 import { SyncEvent } from 'ts-events';
-import { Lock } from 'semaphore-async-await'
+// import { Lock } from 'semaphore-async-await'
 const hat = require('hat');
 
 export default class Event implements DB.Event {

@@ -4,18 +4,18 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 import Unit from '../../unit/unit';
-import Context from '../../util/context';
+import Context from '../../context';
 import Client from '../client';
-import { WrappedError } from '../../util/logger';
+import logger, { WrappedError } from '../../logger';
 
 import Map from '../../map/map';
 // https://www.youtube.com/watch?v=PK-tVTsSKpw
 
 export default async function createGhost(ctx: Context, client: Client, data: any): Promise<void> {
-	if(!data.unitType) {
+	if (!data.unitType) {
 		return client.sendError(ctx, 'createGhost', 'no unit specified');
 	}
-	if(!data.location || data.location.length !== 2) {
+	if (!data.location || data.location.length !== 2) {
 		return client.sendError(ctx, 'createGhost', 'no or invalid location set');
 	}
 
@@ -36,14 +36,14 @@ export default async function createGhost(ctx: Context, client: Client, data: an
 
 		//wake up nearby ghost builders
 		const units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
-		for(const nearby of units) {
-			if(nearby.details.type === 'builder') {
+		for (const nearby of units) {
+			if (nearby.details.type === 'builder') {
 				nearby.update(ctx, { awake: true });
 			}
 		}
 
-	} catch(err) {
-		ctx.logger.trackError(ctx, new WrappedError(err, 'error creating ghost'));
+	} catch (err) {
+		logger.trackError(ctx, new WrappedError(err, 'error creating ghost'));
 		client.sendError(ctx, 'createGhost', 'server error');
 	}
 }

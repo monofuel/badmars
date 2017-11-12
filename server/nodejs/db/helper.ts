@@ -7,9 +7,9 @@
 import * as r from 'rethinkdb';
 import * as _ from 'lodash';
 
-import Context from '../util/context';
-import Logger from '../util/logger';
-import { checkContext } from '../util/logger';
+import Context from '../context';
+import logger from '../logger';
+import { checkContext } from '../logger';
 
 import DBChunk from './chunk';
 import DBUnit from './unit';
@@ -24,19 +24,19 @@ class DBCall {
 	constructor(ctx: Context, name: string) {
 		this.ctx = ctx;
 		this.name = name;
-		this.profile = ctx.logger.startProfile(this.name);
+		this.profile = logger.startProfile(this.name);
 		checkContext(this.ctx, this.name);
 	}
 	async check(): Promise<void> {
 		checkContext(this.ctx, this.name);
 	}
 	async end(visible?: boolean): Promise<void> {
-		this.ctx.logger.endProfile(this.profile, visible);
+		logger.endProfile(this.profile, visible);
 		checkContext(this.ctx, this.name);
 	}
 }
 
-export async function createTable(conn: r.Connection, logger: Logger, tableName: string, primaryKey?: string): Promise<r.Table> {
+export async function createTable(conn: r.Connection, tableName: string, primaryKey?: string): Promise<r.Table> {
 	let results;
 	if (primaryKey) {
 		results = await (r as any).tableList().contains(tableName).do((exists: boolean): any => {
@@ -57,7 +57,7 @@ export async function createTable(conn: r.Connection, logger: Logger, tableName:
 	return r.table(tableName);
 }
 
-export async function createIndex(conn: r.Connection, logger: Logger, table: r.Table, name: string, multi?: boolean): Promise<void> {
+export async function createIndex(conn: r.Connection, table: r.Table, name: string, multi?: boolean): Promise<void> {
 	const indexList: any = await table.indexList().run(conn);
 	if (multi) {
 		if (!indexList.includes(name)) {
@@ -88,7 +88,7 @@ export function startDBCall(ctx: Context, name: string): DBCall {
 	return new DBCall(ctx, name);
 }
 
-export async function setupPlanet(conn: r.Connection, logger: Logger, name: string): Promise<any> {
+export async function setupPlanet(conn: r.Connection, name: string): Promise<any> {
 	const chunk = new DBChunk(conn, name);
 	const unit = new DBUnit(conn, logger, name);
 	const unitStats = new DBUnitStat(conn, logger, name);

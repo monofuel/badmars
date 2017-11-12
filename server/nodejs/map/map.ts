@@ -7,8 +7,8 @@
 import * as _ from 'lodash';
 const grpc = require('grpc');
 
-import { checkContext, WrappedError } from '../util/logger';
-import Context from '../util/context';
+import { checkContext, WrappedError } from '../logger';
+import Context from '../context';
 import env from '../config/env';
 import { LAND } from './tiletypes';
 import Chunk from './chunk';

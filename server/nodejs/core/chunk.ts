@@ -5,15 +5,15 @@
 //	Licensed under included modified BSD license
 
 const grpc = require('grpc');
-import Context from '../util/context';
+import Context from '../context';
 
 import env from '../config/env';
-import { checkContext } from '../util/logger';
+import { checkContext } from '../logger';
 
 import Chunk from '../map/chunk';
 
-import Logger from '../util/logger';
-import { WrappedError } from '../util/logger';
+import Logger from '../logger';
+import { WrappedError } from '../logger';
 import { Service } from './';
 
 type RequestMapType = {

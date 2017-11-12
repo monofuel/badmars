@@ -8,8 +8,8 @@ import env from '../config/env';
 import Map from '../map/map';
 import PlanetLoc from '../map/planetloc';
 import Unit from '../unit/unit';
-import Context from '../util/context';
-import { DetailedError } from '../util/logger';
+import Context from '../context';
+import { DetailedError } from '../logger';
 import DIRECTION from '../map/directions';
 
 export default class AStarPath {
@@ -82,7 +82,7 @@ export default class AStarPath {
 				this.current = this.current.prev;
 				this.path.push(this.current);
 			}
-			ctx.logger.info(ctx, 'complete path calculated', { length: this.path.length });
+			logger.info(ctx, 'complete path calculated', { length: this.path.length });
 
 			return 'complete';
 		}

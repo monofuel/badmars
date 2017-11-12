@@ -6,8 +6,9 @@
 
 import Client from '../client';
 import Map from '../../map/map';
-import { checkContext} from '../../util/logger';
-import Context from '../../util/context';
+import { checkContext } from '../../logger';
+import db from '../../db';
+import Context from '../../context';
 
 import getPlayers from './getPlayers';
 import getUnits from './getUnits';
@@ -44,14 +45,13 @@ async function mountUserHandlers(client: Client): Promise<void> {
 // TODO refactor this code to use await
 export default async function auth(ctx: Context, client: Client, data: any): Promise<void> {
 	checkContext(ctx, 'auth');
-	const { db, logger } = ctx;
 	const planetDB = await db.getPlanetDB(ctx, this.location.map);
 
-	if(!data.planet) { //TODO change from planet to map
+	if (!data.planet) { //TODO change from planet to map
 		client.sendError(ctx, 'login', 'specify a planet');
 	}
 	const planet: Map = planetDB.planet;
-	if(!planet) {
+	if (!planet) {
 		throw new Error('planet doesn\'t exist');
 	}
 	client.planet = planet;

@@ -6,7 +6,7 @@
 
 import * as r from 'rethinkdb';
 import {createTable} from './helper';
-import Logger from '../util/logger';
+import logger from '../logger';
 import User from '../user/user';
 
 export default class DBChat {
@@ -23,8 +23,8 @@ export default class DBChat {
 		this.table = r.table(this.tableName);
 	}
 
-	async setup(conn: r.Connection, logger: Logger): Promise<void> {
-		this.table = await createTable(conn, logger, this.tableName);
+	async setup(conn: r.Connection): Promise<void> {
+		this.table = await createTable(conn, this.tableName);
 	}
 
 	async watchChat(func: Function): Promise<void> {

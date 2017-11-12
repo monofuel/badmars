@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import * as express from 'express';
-import Context from '../../util/context';
+import Context from '../../context';
 
 export default function route(ctx: Context, app: express.Application) {
 	app.get('/_health', (req: express.Request, res: express.Response) => {

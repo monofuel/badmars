@@ -18,7 +18,7 @@ import managementRoute from '../web/routes/management';
 import healthRoute from '../web/routes/health';
 import authRoute from '../web/routes/auth';
 
-import Context from '../util/context';
+import Context from '../context';
 
 export default class WebService implements Service {
 	private parentCtx: Context;

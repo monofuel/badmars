@@ -4,19 +4,19 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import Context from '../../util/context';
+import Context from '../../context';
 import Client from '../client';
+import db from '../../db';
 import Unit from '../../unit/unit';
 import { sanitizeChunk, sanitizeUnit } from '../../util/socketFilter';
 
 type ChunkHash = string;
 
 export default async function handleSpawn(ctx: Context, client: Client): Promise<void> {
-	const { db, logger } = ctx;
 	const planetDB = await db.getPlanetDB(ctx, this.location.map);
 
 	let units: Array<Unit> = await planetDB.unit.listPlayersUnits(ctx, client.user.uuid);
-	if(units.length > 0) {
+	if (units.length > 0) {
 		client.sendError(ctx, 'spawn', 'already have units');
 		return;
 	}

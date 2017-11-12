@@ -7,12 +7,12 @@
 
 import * as _ from 'lodash';
 
-import { checkContext, DetailedError } from '../util/logger';
+import { checkContext, DetailedError } from '../logger';
 import env from '../config/env';
 import { getTypeName } from './tiletypes';
 import Direction from '../map/directions';
 
-import Context from '../util/context';
+import Context from '../context';
 import Map from './map';
 import Chunk from './chunk';
 import ChunkLayer from './chunkLayer';

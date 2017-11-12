@@ -3,12 +3,13 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
+/*
 'use strict';
 require('babel-register');
 require('babel-polyfill');
 
 const db = require('./db/db');
-const logger = require('./util/logger.js');
+const logger = require('./logger.js');
 const simulate = require('./core/simulate.js');
 
 function init() {
@@ -29,3 +30,4 @@ function init() {
 }
 
 init();
+*/

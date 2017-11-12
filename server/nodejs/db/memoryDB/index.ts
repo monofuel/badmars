@@ -1,5 +1,5 @@
 import * as DB from '../';
-import Context from '../../util/context';
+import Context from '../../context';
 import { startDBCall } from '../helper';
 import Session from './session';
 import Planet from './planet';

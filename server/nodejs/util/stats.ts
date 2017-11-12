@@ -3,8 +3,8 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import Context from './context';
-
+import Context from '../context';
+import logger from '../logger';
 type StatMapType = {
 	[key: string]: Array<number>
 };
@@ -78,7 +78,6 @@ export function addSumStat(key: string, value: number) {
 
 
 function reportStats(ctx: Context) {
-	const { logger } = ctx;
 	const stats: any = {};
 	for (const key of Object.keys(avgStats)) {
 		const array: Array<number> = avgStats[key];

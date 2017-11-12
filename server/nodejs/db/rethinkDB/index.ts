@@ -1,5 +1,5 @@
 import * as DB from '../';
-import Context from '../../util/context';
+import Context from '../../context';
 // import { startDBCall } from '../helper';
 
 export default class RethinkDB implements DB.DB {

@@ -1,6 +1,6 @@
 import * as DB from '../';
-import Context from '../../util/context';
-import { Lock } from 'semaphore-async-await';
+import Context from '../../context';
+// import { Lock } from 'semaphore-async-await';
 import GameUnit from '../../unit/unit';
 
 export default class Unit implements DB.Unit {

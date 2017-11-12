@@ -1,20 +1,19 @@
 import { DB } from './db';
 import env from './config/env';
-import Context from './util/context';
-import Logger from './util/logger';
+import Context from './context';
+import logger from './logger';
 
 export async function prepareCtx(name: string, db: DB): Promise<Context> {
 	const ctx = new Context({ env, name});
     try {
-        ctx.logger = new Logger(name);
+        logger.init(name);
     } catch (err) {
         console.error(err);
         console.log('failed to start logger');
         process.exit(-1);
     }
     try {
-        ctx.db = db;
-        await ctx.db.init(ctx);
+        db.init(ctx);
         ctx.info('parent context ready');
 
 	} catch (err) {
@@ -29,8 +28,8 @@ export async function start(ctx: Context, fn: (ctx: Context) => Promise<void>): 
         await fn(ctx);
 	} catch (err) {
 		console.error(err);
-		ctx.logger.info(ctx, 'main process caught error, exiting');
-		ctx.logger.trackError(ctx, err);
+		logger.info(ctx, 'main process caught error, exiting');
+		logger.trackError(ctx, err);
 		process.exit(-1);
 	}
 }

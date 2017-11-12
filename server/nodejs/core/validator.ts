@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import { Service } from './';
-import Context from '../util/context';
+import Context from '../context';
 import Unit from '../unit/unit';
 import Chunk from '../map/chunk';
 import * as DB from '../db';

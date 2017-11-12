@@ -11,10 +11,10 @@ const parseJson = require('parse-json');
 
 import UnitStat from '../unit/unitStat';
 import { createTable } from './helper';
-import { DetailedError, WrappedError } from '../util/logger';
+import { DetailedError, WrappedError } from '../logger';
 
-import Logger from '../util/logger';
-import Context from '../util/context';
+import Logger from '../logger';
+import Context from '../context';
 
 const UNIT_STAT_FILE = 'config/units.json';
 

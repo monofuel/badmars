@@ -1,6 +1,6 @@
 import Unit from '../unit/unit';
-import Context from '../util/context';
-import { DetailedError, checkContext } from '../util/logger';
+import Context from '../context';
+import { DetailedError, checkContext } from '../logger';
 import * as _ from 'lodash';
 import { Chunk, PlanetLoc } from './';
 

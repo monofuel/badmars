@@ -1,4 +1,4 @@
-import Context from '../util/context';
+import Context from '../context';
 import GamePlanet from '../map/map';
 import GameChunk from '../map/chunk';
 import GameChunkLayer from '../map/chunkLayer';
@@ -113,10 +113,44 @@ export interface DB {
     session: Session;
 }
 
-let db: DB;
+class DelegateDB implements DB {
+    db: DB;
+    setup(db: DB){ 
+        this.db = db;
+    }
+    init(ctx: Context) {
+        return this.db.init(ctx);
+    }
 
-export function setupDB(db: DB) {
-    this.db = db;
+    createPlanet(ctx: Context, name: string): Promise<Planet> {
+        return this.db.createPlanet(ctx, name);
+    }
+    getPlanetDB(ctx: Context, name: string): Promise<Planet> {
+        return this.db.getPlanetDB(ctx, name);
+    }
+    listPlanetNames(ctx: Context): Promise<string[]> {
+        return this.db.listPlanetNames(ctx);
+    }
+    removePlanet(ctx: Context, name: string): Promise<void>{
+        return this.db.removePlanet(ctx, name);
+    }
+
+    get user() {
+        return this.db.user;
+    }
+    get event() {
+        return this.db.event;
+    }
+    get session() {
+        return this.db.session;
+    }
+
 }
 
-export default db;
+const delegate = new DelegateDB();
+
+export function setupDB(db: DB) {
+    delegate.setup(db);
+}
+
+export default delegate;

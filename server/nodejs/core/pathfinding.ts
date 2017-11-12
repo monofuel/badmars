@@ -8,11 +8,11 @@
 import AStarPath from '../nav/astarpath';
 import SimplePath from '../nav/simplepath';
 import DIRECTION from '../map/directions';
-import Context from '../util/context';
-import { WrappedError } from '../util/logger';
+import Context from '../context';
+import { WrappedError } from '../logger';
 import Unit from '../unit/unit';
 
-import Logger from '../util/logger';
+import Logger from '../logger';
 import DB from '../db/db';
 import PlanetLoc from '../map/planetloc';
 import { Service } from './';

@@ -5,14 +5,14 @@
 //	Licensed under included modified BSD license
 
 import Unit from './unit';
-import { DetailedError } from '../util/logger';
-import Context from '../util/context';
+import db from '../db';
+import logger, { DetailedError } from '../logger';
+import Context from '../context';
 
 type Resource = 'iron' | 'fuel';
 
 // returns the amount of resource that could be transfered
 export async function sendResource(ctx: Context, type: Resource, amount: number, src: Unit, dest: Unit): Promise<number> {
-	const { db, logger } = ctx;
 	const planetDB = await db.getPlanetDB(ctx, this.location.map);
 
 	if (!src.storage) {
@@ -25,12 +25,12 @@ export async function sendResource(ctx: Context, type: Resource, amount: number,
 	const maxField = type === 'iron' ? 'maxIron' : 'maxFuel';
 
 	if ((dest.storage as any)[type] === dest.storage[maxField]) {
-		ctx.logger.info(ctx, 'transfer ignored, already full');
+		logger.info(ctx, 'transfer ignored, already full');
 		return 0;
 	}
 
 	if ((src.storage as any)[type] < amount) {
-		ctx.logger.info(ctx, `transfer ignored, not enough vespene gas. i mean ${type}`);
+		logger.info(ctx, `transfer ignored, not enough vespene gas. i mean ${type}`);
 		amount = (src.storage as any)[type];
 		if (amount === 0) {
 			return 0;

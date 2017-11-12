@@ -8,9 +8,9 @@ import * as WebSocket from 'ws';
 import * as _ from 'lodash';
 import * as http from 'http';
 
-import { DetailedError, WrappedError } from '../util/logger';
+import { DetailedError, WrappedError } from '../logger';
 import { sanitizeUnit, sanitizeUser } from '../util/socketFilter';
-import Context from '../util/context';
+import Context from '../context';
 import User from '../user/user';
 import Map from '../map/map';
 import Unit from '../unit/unit';

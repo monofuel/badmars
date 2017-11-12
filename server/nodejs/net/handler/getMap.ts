@@ -4,7 +4,8 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import Context from '../../util/context';
+import Context from '../../context';
+import db from '../../db';
 import Client from '../client';
 import Unit from '../../unit/unit';
 import sleep from '../../util/sleep';
@@ -13,7 +14,6 @@ import { sanitizeChunk, sanitizeUnit, sanitizePlanet, sanitizeUser } from '../..
 type ChunkHash = string;
 
 export default async function getMap(ctx: Context, client: Client): Promise<void> {
-	const { db, logger } = ctx;
 	const planetDB = await db.getPlanetDB(ctx, this.location.map);
 
 	const units: Array<Unit> = await planetDB.unit.listPlayersUnits(ctx, client.user.uuid);
@@ -27,7 +27,7 @@ export default async function getMap(ctx: Context, client: Client): Promise<void
 	const unitStats = await planetDB.unitStat.getAll(ctx);
 	client.send('unitStats', { units: unitStats });
 
-	const userList = await ctx.db.user.list(ctx);
+	const userList = await db.user.list(ctx);
 	client.send('players', { players: userList.map(sanitizeUser) });
 
 	// load chunks that user has units on

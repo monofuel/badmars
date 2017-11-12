@@ -1,8 +1,9 @@
 import * as express from 'express';
-import Context from '../../util/context';
+import Context from '../../context';
 import { newUser, loginUser } from '../../user/procedures';
 import User from '../../user/user';
-import { WrappedError } from '../../util/logger';
+import logger, { WrappedError } from '../../logger';
+import db from '../../db';
 const t = require('flow-runtime');
 
 interface RegisterRequest {
@@ -39,7 +40,6 @@ export default function route(ctx: Context, app: express.Application) {
 
     app.post('/auth/register', async (req: express.Request, res: express.Response) => {
         ctx = ctx.create({ name: '/auth/register' });
-        const { db, logger } = ctx;
         const registration: RegisterRequest = req.body;
         if (!isRegisterRequest(registration)) {
             res.status(400).send();
@@ -60,7 +60,6 @@ export default function route(ctx: Context, app: express.Application) {
 
     app.post('/auth/login', async (req: express.Request, res: express.Response) => {
         ctx = ctx.create({ name: '/auth/login' });
-        const { db, logger } = ctx;
         const login: LoginRequest = req.body;
         if (!isLoginRequest(login)) {
             res.status(400).send();
@@ -82,7 +81,6 @@ export default function route(ctx: Context, app: express.Application) {
 
     app.get('/auth/self', async (req: express.Request, res: express.Response) => {
         ctx = ctx.create({ name: '/auth/self' });
-        const { logger } = ctx;
         try {
             const token = req.headers['Authorization'];
             if (typeof token !== 'string') {
@@ -106,13 +104,11 @@ export default function route(ctx: Context, app: express.Application) {
 }
 
 async function authUser(ctx: Context, token: string): Promise<User> {
-    const { logger, db } = ctx;
     return db.session.getBearerUser(ctx, token);
 }
 
 
 async function grantSession(ctx: Context, req: express.Request, res: express.Response, user: User) {
-    const { db, logger } = ctx;
     try {
         const sess = await db.session.createBearer(ctx, user.uuid);
         res.status(200).send({

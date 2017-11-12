@@ -4,10 +4,10 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import { DetailedError } from '../util/logger';
+import { DetailedError } from '../logger';
 import Map from '../map/map';
 import PlanetLoc from '../map/planetloc';
-import Context from '../util/context';
+import Context from '../context';
 
 import { LAND } from '../map/tiletypes';
 import DIRECTION from '../map/directions';

@@ -6,8 +6,9 @@
 
 import * as r from 'rethinkdb'; //TODO should not be imported in this file
 import * as _ from 'lodash';
-import Context from '../util/context';
-import { checkContext, DetailedError, WrappedError } from '../util/logger';
+import Context from '../context';
+import db from '../db';
+import logger, { checkContext, DetailedError, WrappedError } from '../logger';
 import env from '../config/env';
 import * as groundUnitAI from './ai/groundunit';
 import AttackAI from './ai/attack';
@@ -59,7 +60,6 @@ export default class Unit {
 	// for creating new units
 	async setup(ctx: Context, type: string, loc: PlanetLoc) {
 		this.initModules();
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, loc.map.name);
 		const unitStats = await planetDB.unitStat.get(ctx, type);
 		_.defaultsDeep(this, unitStats);
@@ -118,7 +118,6 @@ export default class Unit {
 	// for units loaded from the database
 	async load(ctx: Context, doc: Object) {
 		this.initModules();
-		const { db, logger } = ctx;
 		const unitStats = await this.getTypeInfo(ctx);
 		_.defaultsDeep(this, unitStats);
 
@@ -191,7 +190,7 @@ export default class Unit {
 		//------------------
 		// execute actionable promises
 		// see what actions are possible
-		const profile = ctx.logger.startProfile('unit_AI');
+		const profile = logger.startProfile('unit_AI');
 
 		const attackAI = new AttackAI();
 		const constructionAI = new ConstructionAI();
@@ -204,17 +203,10 @@ export default class Unit {
 					throw new WrappedError(err, 'mine actionable');
 				}));
 		}
-		// flow sucks
-		const movable = this.movable;
-		if (movable) {
-
-			const mctx = ctx.create();
-			mctx.logger = mctx.logger.clone();
-			mctx.logger.logLevel = 'DEBUG';
-
-			switch (movable.layer) {
+		if (this.movable) {
+			switch (this.movable.layer) {
 				case 'ground':
-					actionPromises.push(groundUnitAI.actionable(mctx, this, map)
+					actionPromises.push(groundUnitAI.actionable(ctx, this, map)
 						.then((result: boolean) => {
 							actionable.groundUnitAI = result;
 						}).catch((err: Error) => {
@@ -253,26 +245,26 @@ export default class Unit {
 		// pick an action to perform
 		try {
 			if (actionable.mineAI) {
-				ctx.logger.info(ctx, 'processing mine', {}, { silent: true });
+				logger.info(ctx, 'processing mine', {}, { silent: true });
 				await mineAI.simulate(ctx, this, map);
 			} else if (actionable.attackAI) {
-				ctx.logger.info(ctx, 'processing attack');
+				logger.info(ctx, 'processing attack');
 				await attackAI.simulate(ctx, this, map);
 			} else if (actionable.groundUnitAI) {
-				ctx.logger.info(ctx, 'processing ground AI', {}, { silent: true });
+				logger.info(ctx, 'processing ground AI', {}, { silent: true });
 				await groundUnitAI.simulate(ctx, this, map);
 			} else if (actionable.constructionAI) {
-				ctx.logger.info(ctx, 'processing construction');
+				logger.info(ctx, 'processing construction');
 				await constructionAI.simulate(ctx, this, map);
 			} else { // if no action is performed
-				ctx.logger.info(ctx, 'sleeping unit');
+				logger.info(ctx, 'sleeping unit');
 				await this.update(ctx, { awake: false });
 			}
 		} catch (err) {
 			throw new WrappedError(err, 'failed to perform action', actionable);
 		}
 		checkContext(ctx, 'post action');
-		ctx.logger.endProfile(profile);
+		logger.endProfile(profile);
 	}
 
 
@@ -283,7 +275,6 @@ export default class Unit {
 
 	async update(ctx: Context, patch: any): Promise<void> {
 		checkContext(ctx, 'update');
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.location.map);
 		// TODO we should also update the unit itself (this breaks currently)
 		// Object.assign(this, patch);
@@ -295,7 +286,6 @@ export default class Unit {
 
 	async delete(ctx: Context): Promise<void> {
 		checkContext(ctx, 'delete');
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.location.map);
 		await this.clearFromChunks(ctx);
 
@@ -303,7 +293,6 @@ export default class Unit {
 	}
 
 	async assertLocation(ctx: Context, map: Map): Promise<void> {
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.location.map);
 
 		const badLocs: PlanetLoc[] = [];
@@ -333,7 +322,7 @@ export default class Unit {
 				} catch (err) {
 					if (err.message === 'unit not found on map') {
 						const loc = badLocs[0];
-						ctx.logger.info(ctx, 'adding unit back to map, was missing');
+						logger.info(ctx, 'adding unit back to map, was missing');
 						loc.chunkLayer.addUnit(ctx, this.uuid, loc.hash);
 						return;
 					} else {
@@ -381,7 +370,7 @@ export default class Unit {
 			throw new DetailedError('unit cannot construct', { uuid: this.uuid, type: this.details.type });
 		}
 
-		const stats = await planetDB.unitStat.get(unitType);
+		const stats = await planetDB.unitStat.get(ctx, unitType);
 		if (!stats) {
 			throw new DetailedError('cannot add invalid factory order', { uuid: this.uuid, type: unitType });
 		}
@@ -557,7 +546,7 @@ export default class Unit {
 		}
 		console.log('moving unit!');
 		if (tile.chunkLayer.units[tile.hash]) {
-			ctx.logger.info(ctx, 'unit movement blocked', { hash: tile.hash, uuid: this.uuid });
+			logger.info(ctx, 'unit movement blocked', { hash: tile.hash, uuid: this.uuid });
 			await this.clearPath(ctx);
 			return;
 		}
@@ -772,7 +761,6 @@ export default class Unit {
 	}
 
 	async getMap(ctx: Context): Promise<Map> {
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.location.map);
 		return planetDB.planet;
 	}
@@ -808,14 +796,11 @@ export default class Unit {
 	}
 
 	async getTypeInfo(ctx: Context): Promise<UnitStat> {
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.location.map);
-
 		return await planetDB.unitStat.get(ctx, this.details.type);
 	}
 
 	async refresh(ctx: Context): Promise<void> {
-		const { db, logger } = ctx;
 		const planetDB = await db.getPlanetDB(ctx, this.location.map);
 		const fresh: any = await planetDB.unit.get(ctx, this.uuid);
 		this.clone(ctx, fresh);

@@ -7,7 +7,7 @@
 import * as r from 'rethinkdb';
 import {createTable} from './helper';
 
-import Logger from '../util/logger';
+import Logger from '../logger';
 
 export default class DBEvent {
 	conn: r.Connection;

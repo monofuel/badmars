@@ -1,5 +1,5 @@
 import * as DB from '../';
-import Context from '../../util/context';
+import Context from '../../context';
 // import { Lock } from 'semaphore-async-await';
 import GameChunkLayer from '../../map/chunkLayer';
 

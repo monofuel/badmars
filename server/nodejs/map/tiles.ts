@@ -1,10 +1,10 @@
 
 
 // import _ from 'lodash';
-import Context from '../util/context';
+import Context from '../context';
 import PlanetLoc from './planetloc';
 import Unit from '../unit/unit';
-import { checkContext, DetailedError } from '../util/logger';
+import { checkContext, DetailedError } from '../logger';
 
 
 type TileMapType = {

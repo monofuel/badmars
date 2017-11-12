@@ -5,11 +5,11 @@
 //	Licensed under included modified BSD license
 
 import * as r from 'rethinkdb';
-import { DetailedError } from '../util/logger';
+import { DetailedError } from '../logger';
 import {createTable, createIndex, startDBCall } from './helper';
-import Context from '../util/context';
+import Context from '../context';
 import User from '../user/user';
-import Logger from '../util/logger';
+import Logger from '../logger';
 
 type UUID = string;
 

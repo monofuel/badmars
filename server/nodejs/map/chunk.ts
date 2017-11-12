@@ -5,10 +5,10 @@
 //	Licensed under included modified BSD license
 
 import * as _ from 'lodash';
-import Context from '../util/context';
+import Context from '../context';
 
 import env from '../config/env';
-import { DetailedError, checkContext } from '../util/logger';
+import { DetailedError, checkContext } from '../logger';
 import PlanetLoc, { getLocationDetails } from './planetloc';
 import Map from './map';
 import ChunkLayer from './chunkLayer';

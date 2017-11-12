@@ -7,8 +7,8 @@ import env from '../config/env';
 const grpc = require('grpc');
 
 import Unit from '../unit/unit';
-import { checkContext, WrappedError, DetailedError } from '../util/logger';
-import Context from '../util/context';
+import { checkContext, WrappedError, DetailedError } from '../logger';
+import Context from '../context';
 import { Service } from './'
 
 const services = grpc.load(__dirname + '/../../../protos/ai.proto').services;

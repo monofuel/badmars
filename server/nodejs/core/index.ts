@@ -1,4 +1,4 @@
-import Context from '../util/context';
+import Context from '../context';
 
 export interface Env {
     nodeEnv: 'dev' | 'prod';

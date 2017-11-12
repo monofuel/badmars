@@ -1,5 +1,5 @@
 import { Service } from './';
-import Context from '../util/context';
+import Context from '../context';
 import Web from './web';
 
 export default class StandaloneService implements Service {

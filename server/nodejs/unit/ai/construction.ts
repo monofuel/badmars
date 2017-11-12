@@ -4,8 +4,9 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import Context from '../../util/context';
-import { checkContext, DetailedError } from '../../util/logger';
+import Context from '../../context';
+import db from '../../db';
+import logger, { checkContext, DetailedError } from '../../logger';
 
 import Unit from '../unit';
 import Map from '../../map/map';
@@ -101,7 +102,7 @@ export default class constructionAI {
 
 		const newUnitType: UnitType = queue[0].type;
 		//const unitInfo: UnitStat = await unit.getTypeInfo(newUnitType);
-		ctx.logger.info(ctx, 'constructing', { type: newUnitType });
+		logger.info(ctx, 'constructing', { type: newUnitType });
 
 		if(queue[0].cost > 0) {
 			if(await map.pullResource(ctx, 'iron', unit, queue[0].cost)) {
@@ -152,13 +153,13 @@ export default class constructionAI {
 		//1.01 is 1 for the unit, + 0.01 for float fudge factor (ffffffffffff)
 		if(nearestGhost.distance(unit) < nearestGhost.details.size + 1.05) {
 			if(await map.pullResource(ctx, 'iron', unit, nearestGhost.details.cost)) {
-				ctx.logger.info(ctx, `${unit.details.type} building ${nearestGhost.details.type}`);
+				logger.info(ctx, `${unit.details.type} building ${nearestGhost.details.type}`);
 				//TODO builder should halt and spend time building
 				//should also make sure the area is clear
 				await nearestGhost.update(ctx, { details: { ghosting: false }, awake: true });
 			}
 		} else { // else if we need to move closer to the nearest ghost
-			ctx.logger.info(ctx, `${unit.details.type} heading to ${nearestGhost.details.type}`);
+			logger.info(ctx, `${unit.details.type} heading to ${nearestGhost.details.type}`);
 
 			const center = await map.getLoc(ctx, nearestGhost.location.x, nearestGhost.location.y);
 			const tile = await map.getNearestFreeTile(ctx, center, unit, true);

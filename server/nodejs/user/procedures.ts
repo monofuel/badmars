@@ -1,6 +1,7 @@
 import User from './user';
-import Context from '../util/context';
+import Context from '../context';
 import * as crypto from 'crypto';
+import db from '../db';
 
 export class InvalidAuthError extends Error {
     constructor(msg: string) {
@@ -19,8 +20,6 @@ export async function newUser(ctx: Context, name: string, email: string, passwor
 }
 
 export async function loginUser(ctx: Context, name: string, password: string): Promise<User> {
-    const { db, logger } = ctx;
-
     const user = await db.user.getByName(ctx, name);
     const salt = user.password.slice(0, 16);
     const hash = await hashPassword(password, salt);

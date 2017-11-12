@@ -6,7 +6,8 @@
 const vorpal = require('vorpal')();
 
 import { Service } from '../core';
-import Context from '../util/context';
+import Context from '../context';
+import db from '../db';
 
 export default class Commands implements Service {
 	private parentCtx: Context;
@@ -34,7 +35,6 @@ export default class Commands implements Service {
 
 	registerCommands() {
 		const ctx = this.parentCtx.create();
-		const { db } = ctx;
 		//==================================================================
 		// map methods
 

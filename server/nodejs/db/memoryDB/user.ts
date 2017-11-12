@@ -1,5 +1,5 @@
 import * as DB from '../';
-import Context from '../../util/context';
+import Context from '../../context';
 import { SyncEvent } from 'ts-events';
 import GameUser from '../../user/user';
 

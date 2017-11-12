@@ -5,8 +5,9 @@
 //	Licensed under included modified BSD license
 
 import * as _ from 'lodash';
-import Context from '../../util/context';
-import { checkContext, WrappedError } from '../../util/logger';
+import Context from '../../context';
+import db from '../../db';
+import logger, { checkContext, WrappedError, DetailedError } from '../../logger';
 
 import PlanetLoc from '../../map/planetloc';
 import DIRECTION from '../../map/directions';
@@ -38,7 +39,6 @@ export async function actionable(ctx: Context, unit: Unit, map: Map): Promise<bo
 
 export async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	checkContext(ctx, 'groundUnit simulate');
-	const { db, logger } = ctx;
 	const planetDB = await db.getPlanetDB(ctx, this.location.map);
 
 	// flow sucks
@@ -56,18 +56,18 @@ export async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void
 	if (movable.transferGoal && !movable.destination) {
 		const transferUnit = await planetDB.unit.get(ctx, movable.transferGoal.uuid);
 		if (await areUnitsAdjacent(ctx, unit, transferUnit)) {
-			ctx.logger.info(ctx, 'performing transfer', { uuid: unit.uuid });
+			logger.info(ctx, 'performing transfer', { uuid: unit.uuid });
 			await performTransfer(ctx, unit, transferUnit);
 		} else {
 			const newDest = await getNearestAdjacentTile(ctx, unit, transferUnit);
-			ctx.logger.info(ctx, 'updating destination to transfer unit', { uuid: unit.uuid });
+			logger.info(ctx, 'updating destination to transfer unit', { uuid: unit.uuid });
 			await unit.setDestination(ctx, newDest.x, newDest.y);
 		}
 		return;
 	}
 
 	if (movable.destination && movable.path.length === 0) {
-		ctx.logger.info(ctx, 'unit waiting for path', { uuid: unit.uuid });
+		logger.info(ctx, 'unit waiting for path', { uuid: unit.uuid });
 		return;
 	}
 
@@ -94,7 +94,7 @@ async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	}
 	const path = unit.movable.path;
 
-	const profile = ctx.logger.startProfile('moving unit');
+	const profile = logger.startProfile('moving unit');
 
 	const start = await map.getLoc(ctx, unit.location.x, unit.location.y);
 	const dir = DIRECTION.getTypeFromName(path.shift());
@@ -111,10 +111,10 @@ async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 			throw new WrappedError(err, 'error updating path');
 		}
 	} catch (err) {
-		ctx.logger.trackError(ctx, new WrappedError(err, 'error moving'));
+		logger.trackError(ctx, new WrappedError(err, 'error moving'));
 		unit.addPathAttempt(ctx);
 		//console.log('move halted');
 	} finally {
-		ctx.logger.endProfile(profile);
+		logger.endProfile(profile);
 	}
 }

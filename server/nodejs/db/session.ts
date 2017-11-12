@@ -5,9 +5,9 @@
 //	Licensed under included modified BSD license
 
 import * as r from 'rethinkdb';
-import Logger from '../util/logger';
-import { DetailedError } from '../util/logger';
-import Context from '../util/context';
+import Logger from '../logger';
+import { DetailedError } from '../logger';
+import Context from '../context';
 import { createTable, createIndex, startDBCall } from './helper';
 import User from '../user/user';
 import Session from '../user/session';

@@ -5,8 +5,9 @@
 //	Licensed under included modified BSD license
 
 import env from '../../config/env';
-import Context from '../../util/context';
-import { checkContext, DetailedError } from '../../util/logger';
+import Context from '../../context';
+import db from '../../db';
+import logger, { checkContext, DetailedError } from '../../logger';
 
 import PlanetLoc from '../../map/planetloc';
 import Unit from '../unit';

@@ -9,7 +9,7 @@ import * as util from 'util';
 
 import env from '../config/env';
 import healthRoute from '../web/routes/health';
-import Context from '../util/context';
+import Context from '../context';
 
 export default class HealthService {
 	private parentCtx: Context;

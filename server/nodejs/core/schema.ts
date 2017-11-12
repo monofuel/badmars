@@ -4,7 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import Context from '../util/context';
+import Context from '../context';
 import { Service } from './';
 import RethinkDB from '../db/rethinkdb';
 

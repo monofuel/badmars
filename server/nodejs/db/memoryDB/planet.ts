@@ -1,5 +1,5 @@
 import * as DB from '../';
-import Context from '../../util/context';
+import Context from '../../context';
 import GamePlanet from '../../map/map';
 import Chunk from './chunk';
 import ChunkLayer from './chunkLayer';
