@@ -49,7 +49,7 @@ export default class ValidatorService implements Service {
 
 		await planetDB.unit.each(ctx, async (ctx: Context, unit: Unit) => {
 			counter++;
-			await unit.validate(ctx);
+			// await unit.validate(ctx);
 		});
 		logger.info(ctx, 'units validated: ', { counter });
 	}
@@ -58,7 +58,7 @@ export default class ValidatorService implements Service {
 		let counter = 0;
 		await planetDB.chunk.each(ctx, async (ctx: Context, chunk: Chunk) => {
 			counter++;
-			await chunk.validate(ctx);
+			// await chunk.validate(ctx);
 		});
 		logger.info(ctx, 'chunks validated: ', { counter });
 	}

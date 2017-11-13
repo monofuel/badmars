@@ -1,6 +1,7 @@
 import logger from '../logger';
 import * as DB from '../db';
 import * as uuidv4 from 'uuid/v4';
+import Map from '../map/map';
 
 interface ContextOpts {
 	name?: string;
@@ -80,5 +81,15 @@ export default class Context {
 		if (this.canceled) {
 			throw new Error('context canceled: ' + msg);
 		}
+	}
+}
+
+export class PlanetContext extends Context {
+	public planet: Map;
+	public planetDB: DB.Planet;
+	constructor(planetDB: DB.Planet, opts: ContextOpts = {}) {
+		super(opts);
+		this.planet = planetDB.planet;
+		this.planetDB = planetDB;
 	}
 }

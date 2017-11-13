@@ -3,7 +3,7 @@
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
-import Unit from '../../unit/unit';
+import Unit, { newUnit } from '../../unit/unit';
 import Context from '../../context';
 import Client from '../client';
 import logger, { WrappedError } from '../../logger';
@@ -23,9 +23,8 @@ export default async function createGhost(ctx: Context, client: Client, data: an
 
 	try {
 		// TODO should have more validation around this stuff
-		const unit = new Unit()
 		const loc = await map.getLoc(ctx, data.location[0], data.location[1]);
-		await unit.setup(ctx, data.unitType, loc);
+		const unit = await newUnit(ctx, data.unitType, loc);
 
 		unit.details.ghosting = true;
 		unit.details.owner = client.user.uuid;
@@ -35,12 +34,15 @@ export default async function createGhost(ctx: Context, client: Client, data: an
 		client.send('createGhost');
 
 		//wake up nearby ghost builders
+		/*
+		// TODO
 		const units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
 		for (const nearby of units) {
 			if (nearby.details.type === 'builder') {
 				nearby.update(ctx, { awake: true });
 			}
 		}
+		*/
 
 	} catch (err) {
 		logger.trackError(ctx, new WrappedError(err, 'error creating ghost'));

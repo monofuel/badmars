@@ -6,8 +6,8 @@
 import env from '../config/env';
 const grpc = require('grpc');
 
-import Unit from '../unit/unit';
-import logger, { checkContext, WrappedError, DetailedError } from '../logger';
+import Unit, { simulate } from '../unit/unit';
+import logger, { WrappedError, DetailedError } from '../logger';
 import Context from '../context';
 import db from '../db';
 import { Service } from './'
@@ -53,7 +53,7 @@ export default class AIService implements Service {
 				throw new DetailedError('unit missing', { uuid });
 			}
 			await this.processUnit(ctx, unit);
-			checkContext(ctx, 'processing unit');
+			ctx.check('processing unit');
 			callback(null, { success: true });
 		} catch (err) {
 			logger.trackError(ctx, new WrappedError(err, 'proccess unit GRPC'));
@@ -63,7 +63,7 @@ export default class AIService implements Service {
 
 	async processUnit(ctx: Context, unit: Unit): Promise<void> {
 		//logger.addSumStat('unit_AI',1);
-		await unit.simulate(ctx);
+		await simulate(ctx, unit);
 	}
 
 	async stop(): Promise<void> {

@@ -8,7 +8,7 @@ const grpc = require('grpc');
 import Context from '../context';
 
 import env from '../config/env';
-import logger, { checkContext } from '../logger';
+import logger from '../logger';
 
 import Chunk from '../map/chunk';
 import db from '../db';
@@ -84,22 +84,28 @@ export default class PlanetService implements Service {
 	// returns a special object for GPRC
 	// we have to fiddle with the 2d array for GPRC
 	async fetchOrGenChunk(ctx: Context, mapName: string, x: number, y: number): Promise<any> {
-		checkContext(ctx, 'fetchOrGenChunk');
+		ctx.check('fetchOrGenChunk');
 		const planetDB = await db.getPlanetDB(ctx, mapName);
 
-		const localChunk = await planetDB.planet.fetchOrGenChunk(ctx, x, y);
+		const chunk = await planetDB.planet.getChunk(ctx, x, y);
+		//const localChunk = await planetDB.planet.fetchOrGenChunk(ctx, x, y);
 
 		// TODO should do proper typescript grpc stuff rather than  butcher this object
+		/*
 		const chunk: any = new Chunk(mapName, x, y);
 		chunk.clone(localChunk);
 		chunk.syncValidate();
+		*/
 
+		/*
+		// TODO update this
 		for (let i = 0; i < chunk.navGrid.length; i++) {
 			chunk.navGrid[i] = { items: chunk.navGrid[i] };
 		}
 		for (let i = 0; i < chunk.grid.length; i++) {
 			chunk.grid[i] = { items: chunk.grid[i] };
 		}
+		*/
 
 		return {
 			x: chunk.x,

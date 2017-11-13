@@ -357,7 +357,7 @@ export default class DBunit {
 
 		const movedAmount = delta.changes[0].old_val.storage[type] - delta.changes[0].new_val.storage[type];
 
-		await unit.refresh(ctx);
+		//await unit.refresh(ctx);
 		return movedAmount;
 	}
 
@@ -377,7 +377,7 @@ export default class DBunit {
 
 		const movedAmount = delta.changes[0].new_val.storage[type] - delta.changes[0].old_val.storage[type];
 
-		await unit.refresh(ctx);
+		//await unit.refresh(ctx);
 		return movedAmount;
 
 	}

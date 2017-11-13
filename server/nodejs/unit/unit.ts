@@ -471,34 +471,32 @@ export async function getChunks(ctx: Context, unit: Unit): Promise<Array<Chunk>>
 	return Promise.all(promises);
 }
 
-/*
+
 export async function addToChunks(ctx: Context, unit: Unit): Promise<void> {
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 	const locs = await getUnitLocs(ctx, unit);
 	for (const loc of locs) {
-		if (unit.details.type === 'oil' || unit.details.type === 'iron') {
-			await loc.chunkLayer.addResource(ctx, unit.uuid, loc.hash);
+		if (unit.details.type === 'iron' || unit.details.type === 'oil') {
+			await planetDB.chunkLayer.setEntity(ctx, loc.hash, 'resource', unit.uuid, loc.hash);
 		} else {
-			try {
-				await loc.chunkLayer.addUnit(ctx, unit.uuid, loc.hash);
-			} catch (err) {
-				throw new WrappedError(err, 'addToChunks addUnit failed', { hash: loc.hash });
-			}
+			await planetDB.chunkLayer.setEntity(ctx, loc.hash, 'ground', unit.uuid, loc.hash);
 		}
 	}
 }
 
 export async function clearFromChunks(ctx: Context, unit: Unit): Promise<void> {
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 	ctx.check('clearFromChunks');
 	const locs = await getUnitLocs(ctx, unit);
 	for (const loc of locs) {
-		try {
-			await loc.chunkLayer.clearUnit(ctx, unit.uuid, loc.hash);
-		} catch (err) {
-			throw new WrappedError(err, 'clearFromChunks clearUnit failed', { hash: loc.hash });
+		if (unit.details.type === 'iron' || unit.details.type === 'oil') {
+			await planetDB.chunkLayer.clearEntity(ctx, loc.hash, 'resource', unit.uuid, loc.hash);
+		} else {
+			await planetDB.chunkLayer.clearEntity(ctx, loc.hash, 'ground', unit.uuid, loc.hash);
 		}
 	}
 }
-*/
+
 
 export async function moveUnit(ctx: Context, unit: Unit, tile: PlanetLoc): Promise<void> {
 	const planetDB = await db.getPlanetDB(ctx, unit.location.map);

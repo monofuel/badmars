@@ -9,7 +9,7 @@ import SimplePath from '../nav/simplepath';
 import DIRECTION from '../map/directions';
 import Context from '../context';
 import { WrappedError } from '../logger';
-import Unit from '../unit/unit';
+import Unit, { clearDestination, setPath, setUnitDestination } from '../unit/unit';
 
 import logger from '../logger';
 import db from '../db';
@@ -76,7 +76,8 @@ export default class PathfindService implements Service {
 			throw new Error('no nearby free tile?');
 		}
 		if (start.equals(end)) {
-			await unit.clearDestination(ctx);
+
+			await clearDestination(ctx, unit);
 			return;
 		}
 
@@ -102,8 +103,8 @@ export default class PathfindService implements Service {
 			}
 		} while (true);
 
-		await unit.setPath(ctx, path);
-		await unit.update(ctx, { destination: end.x + ':' + end.y });
+		await setPath(ctx, unit, path);
+		await setUnitDestination(ctx, unit, end.x, end.y);
 	}
 
 	async stop(): Promise<void> {

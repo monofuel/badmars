@@ -7,11 +7,12 @@
 
 import * as _ from 'lodash';
 
-import { checkContext, DetailedError } from '../logger';
+import { DetailedError } from '../logger';
 import env from '../config/env';
 import { getTypeName } from './tiletypes';
 import Direction from '../map/directions';
 
+import db from '../db';
 import Context from '../context';
 import Map from './map';
 import Chunk from './chunk';
@@ -73,9 +74,12 @@ export default class PlanetLoc {
 	}
 
 	async getUnits(ctx: Context): Promise<Array<Unit>> {
-		checkContext(ctx, 'getUnits');
-		const unitMap = await this.chunkLayer.getUnits(ctx);
-		return _.filter(unitMap, (unit: Unit): boolean => (unit.location.hash as any).includes(this.hash));
+		const planetDB = await db.getPlanetDB(ctx, this.map.name);
+		ctx.check('getUnits');
+		const uuids = Object.values(await this.chunkLayer.units);
+		const units = Object.values(await planetDB.unit.getBulk(ctx, uuids));
+		return _.filter(units,
+			(unit: Unit): boolean => (unit.location.hash as any).includes(this.hash));
 	}
 
 	async isOpen(ctx: Context): Promise<boolean> {

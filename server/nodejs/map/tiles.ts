@@ -3,8 +3,8 @@
 // import _ from 'lodash';
 import Context from '../context';
 import PlanetLoc from './planetloc';
-import Unit from '../unit/unit';
-import { checkContext, DetailedError } from '../logger';
+import Unit, { getUnitLocs } from '../unit/unit';
+import { DetailedError } from '../logger';
 
 
 type TileMapType = {
@@ -24,9 +24,9 @@ export function findOverlaps(tiles1: PlanetLoc[], tiles2: PlanetLoc[]): PlanetLo
 }
 
 export async function areUnitsAdjacent(ctx: Context, unit1: Unit, unit2: Unit): Promise<boolean> {
-	checkContext(ctx, 'areUnitsAdjacent');
-	const tiles1: PlanetLoc[] = await unit1.getLocs(ctx);
-	const tiles2: PlanetLoc[] = await unit2.getLocs(ctx);
+	ctx.check('areUnitsAdjacent');
+	const tiles1: PlanetLoc[] = await getUnitLocs(ctx, unit1);
+	const tiles2: PlanetLoc[] = await getUnitLocs(ctx, unit2);
 
 	for (const j of tiles1) {
 		for (const k of tiles2) {
@@ -42,9 +42,9 @@ export async function areUnitsAdjacent(ctx: Context, unit1: Unit, unit2: Unit): 
 // find the nearest adjacent tile to unit2 that unit1 can reach
 // if no tiles are open, the nearest occupied tile is picked
 export async function getNearestAdjacentTile(ctx: Context, unit1: Unit, unit2: Unit): Promise<PlanetLoc> {
-	checkContext(ctx, 'getNearestFreeTile');
-	const tiles1: PlanetLoc[] = await unit1.getLocs(ctx);
-	const tiles2: PlanetLoc[] = await unit2.getLocs(ctx);
+	ctx.check('getNearestFreeTile');
+	const tiles1: PlanetLoc[] = await getUnitLocs(ctx, unit1);
+	const tiles2: PlanetLoc[] = await getUnitLocs(ctx, unit2);
 
 	if (await areUnitsAdjacent(ctx, unit1, unit2)) {
 		return tiles1[0];

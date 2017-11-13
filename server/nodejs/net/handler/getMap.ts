@@ -9,12 +9,13 @@ import db from '../../db';
 import Client from '../client';
 import Unit from '../../unit/unit';
 import sleep from '../../util/sleep';
+import { listChunkUnits } from '../../map/chunk';
 import { sanitizeChunk, sanitizeUnit, sanitizePlanet, sanitizeUser } from '../../util/socketFilter';
 
 type ChunkHash = string;
 
 export default async function getMap(ctx: Context, client: Client): Promise<void> {
-	const planetDB = await db.getPlanetDB(ctx, this.location.map);
+	const planetDB = await db.getPlanetDB(ctx, client.map.name);
 
 	const units: Array<Unit> = await planetDB.unit.listPlayersUnits(ctx, client.user.uuid);
 	const planet: any = sanitizePlanet(client.planet);
@@ -44,8 +45,7 @@ export default async function getMap(ctx: Context, client: Client): Promise<void
 		const x = parseInt(hash.split(':')[0]);
 		const y = parseInt(hash.split(':')[1]);
 		const chunk = await client.planet.getChunk(ctx, x, y);
-		const chunkLayer = await chunk.getLayer(ctx);
-		const chunkUnits = await chunkLayer.getUnits(ctx);
+		const chunkUnits = await listChunkUnits(ctx, chunk);
 		client.send('chunk', { chunk: sanitizeChunk(chunk) });
 		client.send('units', { units: chunkUnits.map((unit: Unit) => sanitizeUnit(unit, client.user.uuid)) });
 	}));

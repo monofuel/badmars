@@ -12,35 +12,35 @@ export const W = Symbol();
 export const C = Symbol();
 
 export function getTypeName(type: Symbol): string {
-	switch(type) {
-	case this.N:
-		return 'N';
-	case this.S:
-		return 'S';
-	case this.W:
-		return 'W';
-	case this.E:
-		return 'E';
-	case this.C:
-		return 'C';
-	default:
-		return 'unknown';
+	switch (type) {
+		case N:
+			return 'N';
+		case S:
+			return 'S';
+		case W:
+			return 'W';
+		case E:
+			return 'E';
+		case C:
+			return 'C';
+		default:
+			return 'unknown';
 	}
 }
 
 export function getTypeFromName(name: string): Symbol {
-	switch(name) {
-	case 'N':
-		return N;
-	case 'S':
-		return S;
-	case 'E':
-		return E;
-	case 'W':
-		return W;
-	case 'C':
-	default:
-		return C;
+	switch (name) {
+		case 'N':
+			return N;
+		case 'S':
+			return S;
+		case 'E':
+			return E;
+		case 'W':
+			return W;
+		case 'C':
+		default:
+			return C;
 	}
 }
 export default {

@@ -9,7 +9,6 @@ import * as _ from 'lodash';
 
 import Context from '../context';
 import logger from '../logger';
-import { checkContext } from '../logger';
 
 import DBChunk from './chunk';
 import DBUnit from './unit';
@@ -25,14 +24,14 @@ class DBCall {
 		this.ctx = ctx;
 		this.name = name;
 		this.profile = logger.startProfile(this.name);
-		checkContext(this.ctx, this.name);
+		ctx.check(this.name);
 	}
 	async check(): Promise<void> {
-		checkContext(this.ctx, this.name);
+		this.ctx.check(this.name);
 	}
 	async end(visible?: boolean): Promise<void> {
 		logger.endProfile(this.profile, visible);
-		checkContext(this.ctx, this.name);
+		this.ctx.check(this.name);
 	}
 }
 
@@ -84,7 +83,7 @@ export async function clearSpareIndices(conn: r.Connection, table: r.Table, vali
 }
 
 export function startDBCall(ctx: Context, name: string): DBCall {
-	checkContext(ctx, `startDBCall ${name}`);
+	ctx.check(`startDBCall ${name}`);
 	return new DBCall(ctx, name);
 }
 

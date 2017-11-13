@@ -1,17 +1,17 @@
 const Alea = require('alea');
 import Context from '../context';
 const SimplexNoise = require('simplex-noise');
-import logger, { DetailedError, checkContext } from '../logger';
+import logger, { DetailedError } from '../logger';
 import { LAND, CLIFF, WATER, COAST } from './tiletypes';
-import Chunk from './chunk';
-import ChunkLayer from './chunkLayer';
-import Unit from '../unit/unit';
+import Chunk, { newChunk } from './chunk';
+import ChunkLayer, { newChunkLayer } from './chunkLayer';
+import Unit, { newUnit } from '../unit/unit';
 import Map from '../map/map';
 
 export async function generateChunk(ctx: Context, map: Map, x: number, y: number): Promise<{ chunk: Chunk, chunkLayer: ChunkLayer }> {
-    const chunk = new Chunk(map.name, x, y);
-    const layer = new ChunkLayer(map.name, x, y);
-    checkContext(ctx, 'generate');
+    const chunk = await newChunk(ctx, map.name, x, y);
+    const layer = await newChunkLayer(ctx, map.name, x, y);
+    ctx.check('generate');
 
     const waterFudge = 0.15;
     const smoothness = 4.5;
@@ -24,7 +24,7 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
         chunk.grid.push([]);
         const x = (chunk.x * chunk.chunkSize) + i;
         for (let j = 0; j < chunk.chunkSize + 1; j++) {
-            checkContext(ctx, 'generating chunk tiles');
+            ctx.check('generating chunk tiles');
             const y = (chunk.y * chunk.chunkSize) + j;
             //dear god sorry chunk is so ugly, just porting over the same logic from the last generator that was on the client.
             let height = bigNoiseGenerator.noise2D(x * map.settings.bigNoise, y * map.settings.bigNoise) * map.settings.bigNoiseScale;
@@ -45,7 +45,7 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
     for (let i = 0; i < chunk.chunkSize; i++) {
         chunk.navGrid.push([]);
         for (let j = 0; j < chunk.chunkSize; j++) {
-            checkContext(ctx, 'generating chunk types');
+            ctx.check('generating chunk types');
             const corners = [
                 chunk.grid[i][j],
                 chunk.grid[i + 1][j],
@@ -80,7 +80,7 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
     for (let i = 0; i < chunk.chunkSize; i++) {
         const x = (chunk.x * chunk.chunkSize) + i;
         for (let j = 0; j < chunk.chunkSize; j++) {
-            checkContext(ctx, 'generating chunk resources');
+            ctx.check('generating chunk resources');
             const y = (chunk.y * chunk.chunkSize) + j;
 
             if (chunk.navGrid[i][j] != LAND) {
@@ -90,8 +90,7 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
 
             if (resourceAlea() < map.settings.ironChance) {
                 //console.log('spawning iron');
-                let unit: Unit = new Unit();
-                await unit.setup(ctx, 'iron', loc);
+                let unit: Unit = await newUnit(ctx, 'iron', loc);
                 unit = await map.spawnUnitWithoutTileCheck(ctx, unit);
                 if (!unit) {
                     logger.info(ctx, 'failed to spawn iron');
@@ -101,8 +100,7 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
 
             } else if (resourceAlea() < map.settings.oilChance) {
                 //console.log('spawning oil');
-                let unit: Unit = new Unit();
-                await unit.setup(ctx, 'oil', loc);
+                let unit: Unit = await newUnit(ctx, 'oil', loc);
                 unit = await map.spawnUnitWithoutTileCheck(ctx, unit);
                 if (!unit) {
                     logger.info(ctx, 'failed to spawn oil');

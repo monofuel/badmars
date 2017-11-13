@@ -6,7 +6,7 @@
 
 import * as r from 'rethinkdb';
 import { createTable, startDBCall } from './helper';
-import { checkContext, DetailedError } from '../logger';
+import { DetailedError } from '../logger';
 import Chunk from '../map/chunk';
 
 import Logger from '../logger';
@@ -36,6 +36,8 @@ export default class DBChunk {
 	}
 
 	async each(func: Function): Promise<void> {
+		throw new Error('not implemented');
+		/*
 		const cursor = await this.table.run(this.conn);
 		await cursor.each((err: Error, doc: any) => {
 			if (err) {
@@ -45,9 +47,12 @@ export default class DBChunk {
 			chunk.clone(doc);
 			func(chunk);
 		})
+		*/
 	}
 
 	async getChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
+		throw new Error('not implemented');
+		/*
 		const call = await startDBCall(ctx, 'getChunk');
 		const doc = await this.table.get(x + ':' + y).run(this.conn);
 		await call.end();
@@ -57,6 +62,7 @@ export default class DBChunk {
 		const chunk = new Chunk(this.mapName, x, y);
 		chunk.clone(doc);
 		return chunk;
+		*/
 	}
 
 	/*
@@ -119,7 +125,7 @@ export default class DBChunk {
 	//update a specific entity location for a specific layer
 	//note: layers must have different names than other values on chunk for now
 	async setEntity(ctx: Context, chunk: Chunk, uuid: UUID, layer: string, tileHash: TileHash): Promise<void> {
-		checkContext(ctx, 'setEntity');
+		ctx.check('setEntity');
 		const entityUpdate: any = {};
 		entityUpdate[tileHash] = uuid; //copy to save to DB
 		// $FlowFixMe: layers should probably be in their own map that won't conflict

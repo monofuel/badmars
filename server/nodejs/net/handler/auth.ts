@@ -6,7 +6,6 @@
 
 import Client from '../client';
 import Map from '../../map/map';
-import { checkContext } from '../../logger';
 import db from '../../db';
 import Context from '../../context';
 
@@ -44,8 +43,8 @@ async function mountUserHandlers(client: Client): Promise<void> {
 
 // TODO refactor this code to use await
 export default async function auth(ctx: Context, client: Client, data: any): Promise<void> {
-	checkContext(ctx, 'auth');
-	const planetDB = await db.getPlanetDB(ctx, this.location.map);
+	ctx.check('auth');
+	const planetDB = await db.getPlanetDB(ctx, client.map.name);
 
 	if (!data.planet) { //TODO change from planet to map
 		client.sendError(ctx, 'login', 'specify a planet');

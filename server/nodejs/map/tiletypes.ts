@@ -9,23 +9,23 @@
 type TileCode = 0 | 1 | 2 | 3;
 type TileType = 'land' | 'cliff' | 'water' | 'coast' | 'unknown';
 
-export const LAND = 0;
-export const CLIFF = 1;
-export const WATER = 2;
-export const COAST = 3;
+export const LAND: TileCode = 0;
+export const CLIFF: TileCode = 1;
+export const WATER: TileCode = 2;
+export const COAST: TileCode = 3;
 
 export function getTypeName(type: TileCode): TileType {
-	switch(type) {
-	case this.LAND:
-		return 'land';
-	case this.CLIFF:
-		return 'cliff';
-	case this.WATER:
-		return 'water';
-	case this.COAST:
-		return 'coast';
-	default:
-		return 'unknown';
+	switch (type) {
+		case LAND:
+			return 'land';
+		case CLIFF:
+			return 'cliff';
+		case WATER:
+			return 'water';
+		case COAST:
+			return 'coast';
+		default:
+			return 'unknown';
 	}
 }
 

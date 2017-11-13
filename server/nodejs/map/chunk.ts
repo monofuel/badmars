@@ -7,10 +7,10 @@
 import * as _ from 'lodash';
 import Context from '../context';
 import db from '../db';
-import { checkContext } from '../logger';
 import PlanetLoc, { getLocationDetails } from './planetloc';
 import Map from './map';
 import ChunkLayer from './chunkLayer';
+import Unit from '../unit/unit';
 
 export default interface Chunk {
 	x: number;
@@ -50,6 +50,16 @@ export async function planetLocsForChunk(ctx: Context, chunk: Chunk): Promise<Pl
 		}
 	}
 	return tiles;
+}
+
+export async function listChunkUnits(ctx: Context, chunk: Chunk): Promise<Unit[]> {
+	const planetDB = await db.getPlanetDB(ctx, chunk.map);
+	const chunkLayer = await planetDB.chunkLayer.get(ctx, chunk.hash);
+	const ground = Object.values(await planetDB.unit.getBulk(ctx, Object.values(chunkLayer.units)));
+	const resource = Object.values(await planetDB.unit.getBulk(ctx, Object.values(chunkLayer.resources)));
+
+
+	return [...ground, ...resource];
 }
 
 /*
