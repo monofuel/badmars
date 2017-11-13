@@ -6,19 +6,17 @@
 
 import env from '../../config/env';
 import Context from '../../context';
-import db from '../../db';
-import logger, { checkContext } from '../../logger';
+import logger from '../../logger';
+import Unit, { getNearestEnemy, unitDistance, tickFireCooldown, armFireCooldown, takeDamage, destroy } from '../unit';
+import UnitAI from './';
 
-import Unit from '../unit';
-import Map from '../../map/map';
-
-export default class AttackAI {
+export default class AttackAI implements UnitAI {
 	enemy: null | Unit;
-	async actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
+	async actionable(ctx: Context, unit: Unit): Promise<boolean> {
 		if (!unit.attack) {
 			return false;
 		}
-		this.enemy = await map.getNearestEnemy(ctx, unit);
+		this.enemy = await getNearestEnemy(ctx, unit);
 		if (!this.enemy) {
 			return false;
 		}
@@ -26,8 +24,8 @@ export default class AttackAI {
 		return true;
 	}
 
-	async simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
-		checkContext(ctx, 'attack simulate');
+	async simulate(ctx: Context, unit: Unit): Promise<void> {
+		ctx.check('attack simulate');
 		//TODO allow force attacking a specific enemy
 		const enemy = this.enemy;
 
@@ -39,22 +37,22 @@ export default class AttackAI {
 		const damage = unit.attack.damage;
 
 		if (unit.attack.fireCooldown !== 0) {
-			await unit.tickFireCooldown(ctx);
+			await tickFireCooldown(ctx, unit);
 			return;
 		}
 
-		if (enemy && enemy.distance(unit) <= range) {
-			await unit.armFireCooldown(ctx);
-			await enemy.takeDamage(ctx, damage);
+		if (enemy && unitDistance(unit, enemy) <= range) {
+			await armFireCooldown(ctx, unit);
+			await takeDamage(ctx, enemy, damage);
 			if (enemy.details.health === 0) {
 				logger.info(ctx, 'gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
-				enemy.delete(ctx);
+				destroy(ctx, enemy);
 				logger.info(ctx, 'gameEvent', { type: 'kill', unitId: enemy.uuid });
 			} else {
 				logger.info(ctx, 'gameEvent', { type: 'attack', enemyId: enemy.uuid, unitId: unit.uuid });
 			}
 			return;
-		} else if (enemy && enemy.distance(unit) < env.attackMoveRange) {
+		} else if (enemy && unitDistance(unit, enemy) < env.attackMoveRange) {
 			//TODO move to attack them, then return to position
 			return;
 		}

@@ -18,7 +18,7 @@ import { sendResource } from '../procedures';
 import { areUnitsAdjacent, getNearestAdjacentTile } from '../../map/tiles';
 
 
-export async function actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
+export async function actionable(ctx: Context, unit: Unit): Promise<boolean> {
 	if (!unit.movable) {
 		return false;
 	}
@@ -37,7 +37,7 @@ export async function actionable(ctx: Context, unit: Unit, map: Map): Promise<bo
 	return true;
 }
 
-export async function simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
+export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 	checkContext(ctx, 'groundUnit simulate');
 	const planetDB = await db.getPlanetDB(ctx, this.location.map);
 
@@ -85,11 +85,11 @@ async function performTransfer(ctx: Context, src: Unit, dest: Unit): Promise<voi
 		await sendResource(ctx, 'fuel', src.movable.transferGoal.fuel, src, dest);
 	}
 
-	await src.update(ctx, { movable: { transferGoal: null }});
+	await src.update(ctx, { movable: { transferGoal: null } });
 
 }
 async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
-	if(!unit.movable) {
+	if (!unit.movable) {
 		return;
 	}
 	const path = unit.movable.path;

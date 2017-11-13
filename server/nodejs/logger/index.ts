@@ -39,24 +39,6 @@ export class WrappedError extends DetailedError {
 	}
 }
 
-export class NotFoundError extends DetailedError {
-
-}
-
-//==================================================================
-// exported functions
-
-export function checkContext(ctx: Context, msg: string) {
-	if (!ctx) {
-		throw new Error('missing context: ' + msg);
-	}
-
-	if (!ctx.canceled) {
-		return;
-	}
-	throw new Error('context cancelled: ' + msg);
-}
-
 //==================================================================
 // logger
 

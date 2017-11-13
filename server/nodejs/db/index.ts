@@ -3,7 +3,7 @@ import GamePlanet from '../map/map';
 import GameChunk from '../map/chunk';
 import GameChunkLayer from '../map/chunkLayer';
 import GameUser from '../user';
-import GameUnit from '../unit/unit';
+import GameUnit, { UnitPatch } from '../unit/unit';
 import GameSession from '../user/session';
 import GameUnitStat from '../unit/unitStat';
 import { SyncEvent } from 'ts-events';
@@ -18,6 +18,7 @@ export interface ChangeEvent<T> {
 export function AttachChangeHandler<T>(ctx: Context, sync: SyncEvent<T>, fn: Handler<T>) {
     const wrapper = async (e: T) => {
         try {
+            ctx.check('sync event');
             await fn(ctx, e);
         } catch (err) {
             if (err instanceof StopWatchingError) {
@@ -50,6 +51,7 @@ export interface ChunkLayer {
     each(ctx: Context, fn: Handler<GameChunkLayer>): Promise<void>;
     get(ctx: Context, hash: string): Promise<GameChunkLayer>;
     setEntity(ctx: Context, hash: string, layer: string, uuid: string, tileHash: string): Promise<GameChunkLayer>;
+    clearEntity(ctx: Context, hash: string, layer: string, uuid: string, tileHash: string): Promise<GameChunkLayer>;
 }
 
 export interface Unit {
@@ -58,7 +60,7 @@ export interface Unit {
     create(ctx: Context, unit: GameUnit): Promise<GameUnit>;
     getBulk(ctx: Context, uuids: string[]): Promise<{ [uuid: string]: GameUnit }>;
     delete(ctx: Context, uuid: string): Promise<void>;
-    patch(ctx: Context, uuid: string, unit: Partial<GameUnit>): Promise<void>;
+    patch(ctx: Context, uuid: string, unit: Partial<UnitPatch>): Promise<GameUnit>;
     watch(ctx: Context, fn: Handler<GameUnit>): Promise<void>;
     watchPathing(ctx: Context, fn: Handler<GameUnit>): Promise<void>;
     getAtChunk(ctx: Context, hash: string): Promise<GameUnit[]>;
@@ -76,6 +78,14 @@ export interface Unit {
     countUnprocessed(): Promise<number>;
 }
 
+export interface FactoryQueue {
+    create(ctx: Context, order: FactoryOrder): Promise<void>;
+    list(ctx: Context, factory: UUID): Promise<FactoryOrder[]>;
+    pop(ctx: Context, factory: UUID): Promise<FactoryOrder>;
+    delete(ctx: Context, uuid: UUID): Promise<void>;
+
+}
+
 export interface UnitStat {
     getAll(ctx: Context): Promise<GameUnitStat[]>;
     get(ctx: Context, type: string): Promise<GameUnitStat>;
@@ -86,6 +96,7 @@ export interface Planet {
     chunk: Chunk;
     chunkLayer: ChunkLayer;
     unit: Unit;
+    factoryQueue: FactoryQueue;
     unitStat: UnitStat;
     planet: GamePlanet;
     patch(ctx: Context, patch: Partial<GamePlanet>): Promise<void>;
@@ -94,7 +105,7 @@ export interface Planet {
 export interface User {
     list(ctx: Context): Promise<GameUser[]>;
     get(ctx: Context, uuid: string): Promise<GameUser>;
-    getByName(ctx: Context, name: string): Promise<GameUser>
+    getByName(ctx: Context, name: string): Promise<GameUser | null>
     watch(ctx: Context, fn: Handler<ChangeEvent<GameUser>>): Promise<void>;
     create(ctx: Context, user: GameUser): Promise<GameUser>;
     patch(ctx: Context, uuid: string, user: Partial<GameUser>): Promise<GameUser>;
@@ -119,13 +130,13 @@ export interface Event {
 
 export interface Session {
     createBearer(ctx: Context, uuid: string): Promise<GameSession>;
-    getBearerUser(ctx: Context, token: string): Promise<GameUser>;
+    getBearerUser(ctx: Context, token: string): Promise<GameUser | null>;
 }
 
 export interface DB {
     init(ctx: Context): Promise<void>;
     createPlanet(ctx: Context, name: string): Promise<Planet>;
-    getPlanetDB(ctx: Context, name: string): Promise<Planet>;
+    getPlanetDB(ctx: Context, name: string): Promise<Planet | null>;
     // TODO probably should have a .each instead of listPlanetNames
     listPlanetNames(ctx: Context): Promise<string[]>;
     removePlanet(ctx: Context, name: string): Promise<void>;
@@ -146,7 +157,7 @@ class DelegateDB implements DB {
     createPlanet(ctx: Context, name: string): Promise<Planet> {
         return this.db.createPlanet(ctx, name);
     }
-    getPlanetDB(ctx: Context, name: string): Promise<Planet> {
+    getPlanetDB(ctx: Context, name: string): Promise<Planet | null> {
         return this.db.getPlanetDB(ctx, name);
     }
     listPlanetNames(ctx: Context): Promise<string[]> {

@@ -1,20 +1,3 @@
-
-//-----------------------------------
-//	author: Monofuel
-//	website: japura.net/badmars
-//	Licensed under included modified BSD license
-
-type UnitType = string;
-type TileType = 'land' | 'cliff' | 'water' | 'coast' | 'unknown';
-type MovementLayer = 'ground' | 'air' | 'water';
-type TileHash = string;
-
-type FactoryOrder = {
-	type: UnitType,
-	cost: number,
-	remaining: number
-}
-
 export interface UnitDetails {
 	type: UnitType,
 	size: number,
@@ -42,7 +25,7 @@ export interface UnitMovable {
 	layer: MovementLayer,
 	speed: number,
 	movementCooldown: number,
-	path: Array<any>, // TODO look up path type
+	path: Array<TileHash>,
 	pathAttempts: number,
 	pathAttemptAttempts: number,
 	isPathing: boolean,
@@ -84,5 +67,4 @@ export interface UnitStationary {
 export interface UnitConstruct {
 	types: Array<string>,
 	constructing: number,
-	factoryQueue: Array<FactoryOrder>,
 }

@@ -4,50 +4,51 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import Context from '../../context';
 import db from '../../db';
-import logger, { checkContext, DetailedError } from '../../logger';
+import Context from '../../context';
+import logger, { DetailedError } from '../../logger';
+import Unit, { unitDistance, popFactoryOrder } from '../unit';
 
-import Unit from '../unit';
-import Map from '../../map/map';
+import UnitAI from './';
 
 type UnitType = string;
 
-export default class constructionAI {
+export default class constructionAI implements UnitAI {
 	nearestGhost: null | Unit;
 
-	async actionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
+	async actionable(ctx: Context, unit: Unit): Promise<boolean> {
 
-		if(unit.details.ghosting || !unit.construct) {
+		if (unit.details.ghosting || !unit.construct) {
 			return false;
 		}
 
 		if (unit.movable) {
 			switch (unit.movable.layer) {
-			case 'ground':
-				return this.checkGroundActionable(ctx, unit, map);
+				case 'ground':
+					return this.checkGroundActionable(ctx, unit);
 			}
 		}
 		if (unit.stationary) {
-			return this.checkBuildingActionable(ctx, unit, map);
+			return this.checkBuildingActionable(ctx, unit);
 		}
 
 		return false;
 	}
 
-	async checkGroundActionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
-		if(!unit.construct || !unit.storage) {
+	async checkGroundActionable(ctx: Context, unit: Unit): Promise<boolean> {
+		const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+		if (!unit.construct || !unit.storage) {
 			return false;
 		}
 
-		const units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
-		map.sortByNearestUnit(units, unit);
+		const units: Array<Unit> = await planetDB.planet.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
+		planetDB.planet.sortByNearestUnit(units, unit);
 
-		for(const nearbyUnit of units) {
-			if(!nearbyUnit.details.ghosting) {
+		for (const nearbyUnit of units) {
+			if (!nearbyUnit.details.ghosting) {
 				continue;
 			}
-			if(nearbyUnit.details.owner !== unit.details.owner) {
+			if (nearbyUnit.details.owner !== unit.details.owner) {
 				continue;
 			}
 			this.nearestGhost = nearbyUnit;
@@ -57,14 +58,14 @@ export default class constructionAI {
 		return false;
 	}
 
-	async checkBuildingActionable(ctx: Context, unit: Unit, map: Map): Promise<boolean> {
+	async checkBuildingActionable(ctx: Context, unit: Unit): Promise<boolean> {
 		if (!unit.construct) {
 			return false;
 		}
 
 		const queue = unit.construct.factoryQueue;
 		//no units left to build
-		if(!queue || queue.length === 0) {
+		if (!queue || queue.length === 0) {
 			return false;
 		}
 
@@ -74,18 +75,18 @@ export default class constructionAI {
 
 	//pass in the unit to update
 	//returns true if the unit was updated
-	async simulate(ctx: Context, unit: Unit, map: Map): Promise<void> {
-		checkContext(ctx, 'construction simulate');
+	async simulate(ctx: Context, unit: Unit): Promise<void> {
+		ctx.check('construction simulate');
 
-		if(unit.movable) {
-			switch(unit.movable.layer) {
-			case 'ground':
-				return this.simulateGround(ctx, unit, map);
+		if (unit.movable) {
+			switch (unit.movable.layer) {
+				case 'ground':
+					return this.simulateGround(ctx, unit);
 			}
 		}
 
-		if(unit.stationary) {
-			return this.simulateBuilding(ctx, unit, map);
+		if (unit.stationary) {
+			return this.simulateBuilding(ctx, unit);
 		}
 
 		throw new DetailedError('constructor not movable or stationary', {
@@ -94,7 +95,8 @@ export default class constructionAI {
 		});
 	}
 
-	async simulateBuilding(ctx: Context, unit: Unit, map: Map): Promise<void> {
+	async simulateBuilding(ctx: Context, unit: Unit): Promise<void> {
+		const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 		if (!unit.construct) {
 			return;
 		}
@@ -104,8 +106,8 @@ export default class constructionAI {
 		//const unitInfo: UnitStat = await unit.getTypeInfo(newUnitType);
 		logger.info(ctx, 'constructing', { type: newUnitType });
 
-		if(queue[0].cost > 0) {
-			if(await map.pullResource(ctx, 'iron', unit, queue[0].cost)) {
+		if (queue[0].cost > 0) {
+			if (await planetDB.planet.pullResource(ctx, 'iron', unit, queue[0].cost)) {
 				queue[0].cost = 0;
 
 				//TODO this should not be called from outside unit
@@ -116,8 +118,8 @@ export default class constructionAI {
 				});
 			}
 		}
-		if(queue[0].cost === 0) {
-			if(queue[0].remaining > 0) {
+		if (queue[0].cost === 0) {
+			if (queue[0].remaining > 0) {
 				queue[0].remaining--;
 				await unit.update(ctx, {
 					construct: {
@@ -125,17 +127,17 @@ export default class constructionAI {
 					}
 				});
 			} else {
-				await unit.popFactoryOrder(ctx);
+				await popFactoryOrder(ctx, unit);
 				const tile = await map.getLoc(ctx, unit.location.x, unit.location.y);
 				const newTile = await map.getNearestFreeTile(ctx, tile);
 				if (!newTile) {
-					throw new DetailedError('failed to find open tile', {uuid: unit.uuid});
+					throw new DetailedError('failed to find open tile', { uuid: unit.uuid });
 				}
 
 				//if spawn fails, should re-try with a new location
 				const result = await map.factoryMakeUnit(ctx, newUnitType, unit.details.owner, newTile.x, newTile.y);
-				if(!result) {
-					throw new DetailedError('factory failed to create unit', {newUnitType, uuid: unit.uuid});
+				if (!result) {
+					throw new DetailedError('factory failed to create unit', { newUnitType, uuid: unit.uuid });
 				}
 			}
 		}
@@ -143,16 +145,16 @@ export default class constructionAI {
 		return;
 	}
 
-	async simulateGround(ctx: Context, unit: Unit, map: Map): Promise<void> {
-		if(!unit.construct || !unit.storage || !this.nearestGhost) {
+	async simulateGround(ctx: Context, unit: Unit): Promise<void> {
+		if (!unit.construct || !unit.storage || !this.nearestGhost) {
 			return;
 		}
 		const nearestGhost = this.nearestGhost;
 
 		// check if the nearby ghost is close enough to build
 		//1.01 is 1 for the unit, + 0.01 for float fudge factor (ffffffffffff)
-		if(nearestGhost.distance(unit) < nearestGhost.details.size + 1.05) {
-			if(await map.pullResource(ctx, 'iron', unit, nearestGhost.details.cost)) {
+		if (unitDistance(unit, nearestGhost) < nearestGhost.details.size + 1.05) {
+			if (await map.pullResource(ctx, 'iron', unit, nearestGhost.details.cost)) {
 				logger.info(ctx, `${unit.details.type} building ${nearestGhost.details.type}`);
 				//TODO builder should halt and spend time building
 				//should also make sure the area is clear
@@ -173,17 +175,17 @@ export default class constructionAI {
 
 			let iron_available = 0;
 			units.forEach((nearbyUnit2: Unit) => {
-				const distance = nearbyUnit2.distance(nearestGhost);
-				if(!nearbyUnit2.storage || !unit.storage) {
+				const distance = unitDistance(nearestGhost, nearbyUnit2);
+				if (!nearbyUnit2.storage || !unit.storage) {
 					return;
 				}
-				if(distance > unit.storage.transferRange && distance > nearbyUnit2.storage.transferRange) {
+				if (distance > unit.storage.transferRange && distance > nearbyUnit2.storage.transferRange) {
 					return;
 				}
 				iron_available += nearbyUnit2.storage.iron;
 			});
-			if(iron_available > nearestGhost.details.cost) {
-				unit.setDestination(ctx, tile.x, tile.y);
+			if (iron_available > nearestGhost.details.cost) {
+				setDestination(ctx, unit, tile.x, tile.y);
 				return;
 			}
 		}

@@ -22,4 +22,7 @@ export default class ChunkLayer implements DB.ChunkLayer {
     setEntity(ctx: Context, hash: string, layer: string, uuid: string, tileHash: string): Promise<GameChunkLayer> {
         throw new Error("Method not implemented.");
     }
+    clearEntity(ctx: Context, hash: string, layer: string, uuid: string, tileHash: string): Promise<GameChunkLayer> {
+        throw new Error("Method not implemented.");
+    }
 }

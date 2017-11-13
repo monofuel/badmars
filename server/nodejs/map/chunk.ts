@@ -7,35 +7,73 @@
 import * as _ from 'lodash';
 import Context from '../context';
 import db from '../db';
-import env from '../config/env';
-import { DetailedError, checkContext } from '../logger';
+import { checkContext } from '../logger';
 import PlanetLoc, { getLocationDetails } from './planetloc';
 import Map from './map';
 import ChunkLayer from './chunkLayer';
 
-type TileCode = number;
-
-export default class Chunk {
+export default interface Chunk {
 	x: number;
 	y: number;
-	hash: string;
+	hash: TileHash;
 	map: string;
 
 	grid: Array<Array<number>>;
 	navGrid: Array<Array<TileCode>>;
 	chunkSize: number;
 
-	constructor(map: string, x: number, y: number) {
-		if (!map) {
-			throw new Error('chunk missing map');
+}
+
+export async function newChunk(ctx: Context, map: string, x: number, y: number): Promise<Chunk> {
+	return {
+		x,
+		y,
+		hash: `${x}:${y}`,
+		map,
+		grid: [],
+		navGrid: [],
+		chunkSize: ctx.env.chunkSize,
+	}
+}
+
+export async function planetLocsForChunk(ctx: Context, chunk: Chunk): Promise<PlanetLoc[]> {
+	const planetDB = await db.getPlanetDB(ctx, chunk.map);
+
+	ctx.check('planetLocsForChunk');
+	const layer = await planetDB.chunkLayer.get(ctx, chunk.hash);
+	const tiles = [];
+	for (let i = 0; i < chunk.chunkSize; i++) {
+		for (let j = 0; j < chunk.chunkSize; j++) {
+			const x = i + (chunk.x * chunk.chunkSize);
+			const y = j + (chunk.y * chunk.chunkSize);
+			tiles.push(new PlanetLoc(planetDB.planet, chunk, layer, getLocationDetails(x, y, chunk.chunkSize)));
 		}
-		this.x = parseInt(x as any) || 0;
-		this.y = parseInt(y as any) || 0;
-		this.hash = this.x + ':' + this.y;
-		this.map = map;
-		this.grid = []; //grid size should be chunkSize + 1
-		this.navGrid = []; //tile size should be chunkSize
-		this.chunkSize = 16;
+	}
+	return tiles;
+}
+
+/*
+
+	async getLayer(ctx: Context): Promise<ChunkLayer> {
+		const planetDB = await db.getPlanetDB(ctx, this.map);
+		return await planetDB.chunkLayer.get(ctx, this.hash)
+	}
+
+	async getTiles(ctx: Context): Promise<Array<PlanetLoc>> {
+		const planetDB = await db.getPlanetDB(ctx, this.map);
+
+		checkContext(ctx, 'getTiles');
+		const map: Map = planetDB.planet;
+		const layer = await this.getLayer(ctx);
+		const tiles = [];
+		for (let i = 0; i < this.chunkSize; i++) {
+			for (let j = 0; j < this.chunkSize; j++) {
+				const x = i + (this.x * this.chunkSize);
+				const y = j + (this.y * this.chunkSize);
+				tiles.push(new PlanetLoc(map, this, layer, getLocationDetails(x, y, this.chunkSize)));
+			}
+		}
+		return tiles;
 	}
 
 	syncValidate() {
@@ -94,43 +132,5 @@ export default class Chunk {
 
 		this.syncValidate();
 	}
-
-	equals(other: Chunk): boolean {
-		return this.hash === other.hash;
-	}
-
-	clone(object: any) {
-		for (const key in object) {
-			(this as any)[key] = _.cloneDeep(object[key]);
-		}
-		this.x = parseInt(this.x as any);
-		this.y = parseInt(this.y as any);
-
-		if (!this.map) {
-			throw new DetailedError('invalid chunk without map', { x: this.x, y: this.y });
-		}
-		this.syncValidate();
-	}
-
-	async getLayer(ctx: Context): Promise<ChunkLayer> {
-		const planetDB = await db.getPlanetDB(ctx, this.map);
-		return await planetDB.chunkLayer.get(ctx, this.hash)
-	}
-
-	async getTiles(ctx: Context): Promise<Array<PlanetLoc>> {
-		const planetDB = await db.getPlanetDB(ctx, this.map);
-
-		checkContext(ctx, 'getTiles');
-		const map: Map = planetDB.planet;
-		const layer = await this.getLayer(ctx);
-		const tiles = [];
-		for (let i = 0; i < this.chunkSize; i++) {
-			for (let j = 0; j < this.chunkSize; j++) {
-				const x = i + (this.x * this.chunkSize);
-				const y = j + (this.y * this.chunkSize);
-				tiles.push(new PlanetLoc(map, this, layer, getLocationDetails(x, y, this.chunkSize)));
-			}
-		}
-		return tiles;
-	}
 }
+*/

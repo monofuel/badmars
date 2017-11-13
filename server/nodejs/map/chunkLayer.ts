@@ -1,19 +1,6 @@
-import Unit from '../unit/unit';
 import Context from '../context';
-import { DetailedError, checkContext } from '../logger';
-import * as _ from 'lodash';
-import { Chunk, PlanetLoc } from './';
-import db from '../db';
 
-type EntityMapType = {
-	[key: string]: UUID
-};
-
-type UnitMap = {
-	[key: string]: Unit
-}
-
-export default class ChunkLayer {
+export default interface ChunkLayer {
 	x: number;
 	y: number;
 	hash: string;
@@ -23,13 +10,22 @@ export default class ChunkLayer {
 	resources: EntityMapType;
 	airUnits: EntityMapType;
 
-	constructor(map: string, x: number, y: number) {
-		this.units = {};
-		this.resources = {};
-		this.airUnits = {};
+}
+
+export async function newChunkLayer(ctx: Context, map: string, x: number, y: number): Promise<ChunkLayer> {
+	return {
+		x,
+		y,
+		hash: `${x}:${y}`,
+		map,
+		units: {},
+		resources: {},
+		airUnits: {}
 	}
+}
 
 
+/*
 	async getUnitsMap(ctx: Context, hash: TileHash): Promise<UnitMap> {
 		const planetDB = await db.getPlanetDB(ctx, this.map);
 
@@ -84,12 +80,10 @@ export default class ChunkLayer {
 			throw new DetailedError('wrong new position', { hash: newTile.hash, uuid: unit.uuid, otherUuid: newChunk.units[newTile.hash] });
 		}
 		await oldTiles[0].chunk.clearUnit(ctx, unit.uuid, oldTiles[0].hash);
-		*/
 	}
 
 	async clearUnit(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<void> {
 		throw new Error('not implemented')
-		/*
 		checkContext(ctx, 'clearUnit');
 		const table = ctx.db.chunks[this.map].getTable();
 		const conn = ctx.db.chunks[this.map].getConn();
@@ -110,12 +104,10 @@ export default class ChunkLayer {
 				throw new DetailedError('unit did not get removed from position', { uuid, found: newChunk.units[tileHash] });
 			}
 		}
-		*/
 	}
 
 	async addUnit(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<void> {
 		throw new Error('not implemented')
-		/*
 		checkContext(ctx, 'addUnit');
 		await this.getChunkDB(ctx).setUnit(ctx, this, uuid, tileHash);
 
@@ -123,23 +115,20 @@ export default class ChunkLayer {
 		if (uuid !== this.units[tileHash]) {
 			throw new DetailedError('wrong new position after refresh', { uuid, tileHash, found: this.units[tileHash] });
 		}
-		*/
 	}
 
 
 	async addResource(ctx: Context, uuid: UUID, tileHash: TileHash): Promise<void> {
 		throw new Error('not implemented')
-		/*
 		checkContext(ctx, 'addResource');
 		await this.getChunkDB(ctx).setResource(ctx, this, uuid, tileHash);
 		await this.refresh(ctx);
 		if (uuid !== this.resources[tileHash]) {
 			throw new DetailedError('failed to add resource after refresh', { uuid, tileHash, found: this.resources[tileHash] });
 		}
-		*/
 	}
 
 	async refresh(ctx: Context): Promise<void> {
 		throw new Error('not implemented')
 	}
-}
+*/

@@ -5,6 +5,7 @@ import Chunk from './chunk';
 import ChunkLayer from './chunkLayer';
 import Unit from './unit';
 import UnitStat from './unitStat';
+import FactoryQueue from './factoryQueue';
 
 export default class Planet implements DB.Planet {
     planet: GamePlanet;
@@ -14,6 +15,7 @@ export default class Planet implements DB.Planet {
     public chunkLayer: ChunkLayer;
     public unit: Unit;
     public unitStat: UnitStat;
+    public factoryQueue: FactoryQueue;
 
     constructor(name: string) {
         this.name = name;
@@ -31,9 +33,15 @@ export default class Planet implements DB.Planet {
 
         this.unitStat = new UnitStat();
         await this.unitStat.init(ctx.create());
+
+        this.factoryQueue = new FactoryQueue();
+        await this.factoryQueue.init(ctx.create());
+
+        this.planet = new GamePlanet(this.name);
     }
 
     public async patch(ctx: Context, patch: Partial<GamePlanet>): Promise<void> {
-        throw new Error("Method not implemented.");
+        ctx.check('planet.patch');
+        Object.assign(patch, this.planet);
     }
 }

@@ -781,19 +781,6 @@ export default class Map {
 		}
 	}
 
-	async getNearestEnemy(ctx: Context, unit: Unit): Promise<null | Unit> {
-		const units = await this.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
-		this.sortByNearestUnit(units, unit);
-
-		for (const other of units) {
-			if (other.details.owner && unit.details.owner !== other.details.owner) {
-				return other;
-			}
-		}
-
-		return null;
-	}
-
 	// only for debugging purposes
 	async advanceTick(ctx: Context): Promise<void> {
 		return this.update(ctx, { lastTick: this.lastTick + 1 });

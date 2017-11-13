@@ -4,20 +4,16 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import * as r from 'rethinkdb'; //TODO should not be imported in this file
-import * as _ from 'lodash';
 import Context from '../context';
 import db from '../db';
-import logger, { checkContext, DetailedError, WrappedError } from '../logger';
+import logger, { DetailedError, WrappedError } from '../logger';
 import env from '../config/env';
 import * as groundUnitAI from './ai/groundunit';
 import AttackAI from './ai/attack';
 import ConstructionAI from './ai/construction';
 import * as mineAI from './ai/mine';
-import UnitStat from './unitStat';
 import PlanetLoc, { getLocationDetails } from '../map/planetloc';
-
-import Map from '../map/map';
+import * as uuidv4 from 'uuid/v4';
 import Chunk from '../map/chunk';
 
 import {
@@ -31,23 +27,9 @@ import {
 	UnitConstruct
 } from './components';
 
-type ChunkHash = string;
-type UUID = string;
-type UnitType = string;
-type TileHash = string;
-
-type FactoryOrder = {
-	type: UnitType,
-	cost: number,
-	remaining: number
-}
-
-export default class Unit {
-
-	uuid: UUID; // set by database
+export default interface Unit {
+	uuid: UUID;
 	awake: boolean;
-
-	//components
 	details: UnitDetails;
 	location: UnitLocation;
 	movable: null | UnitMovable;
@@ -56,753 +38,551 @@ export default class Unit {
 	graphical: null | UnitGraphical;
 	stationary: null | UnitStationary;
 	construct: null | UnitConstruct;
+}
 
-	// for creating new units
-	async setup(ctx: Context, type: string, loc: PlanetLoc) {
-		this.initModules();
-		const planetDB = await db.getPlanetDB(ctx, loc.map.name);
-		const unitStats = await planetDB.unitStat.get(ctx, type);
-		_.defaultsDeep(this, unitStats);
+export interface UnitPatch {
+	uuid: UUID;
+	awake: boolean;
+	details: Partial<UnitDetails>;
+	location: Partial<UnitLocation>;
+	movable: null | Partial<UnitMovable>;
+	attack: null | Partial<UnitAttack>;
+	storage: null | Partial<UnitStorage>;
+	graphical: null | Partial<UnitGraphical>;
+	stationary: null | Partial<UnitStationary>;
+	construct: null | Partial<UnitConstruct>;
+}
 
-		//------------------
-		// details init
-		this.details.type = type;
-		this.awake = true;
-		this.details.ghosting = false;
-		this.details.owner = '';
-		this.details.health = this.details.maxHealth;
-		this.details.lastTick = 0;
+async function patchUnit(ctx: Context, unit: Unit, patch: Partial<UnitPatch>): Promise<void> {
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+	const newUnit = await planetDB.unit.patch(ctx, unit.uuid, patch);
+	Object.assign(unit, newUnit);
+}
 
-		//------------------
-		// location init
-		const { x, y } = loc;
+// for creating new units
+export async function newUnit(ctx: Context, type: string, loc: PlanetLoc): Promise<Unit> {
+	ctx.check('newUnit');
+	const planetDB = await db.getPlanetDB(ctx, loc.map.name);
+	const unitStats = await planetDB.unitStat.get(ctx, type);
+	const optional: Partial<Unit> = {};
 
-		let hash;
-		if (this.details.size === 1) {
-			hash = [x + ':' + y];
-		} else if (this.details.size === 2) {
-			hash = [
-				(x) + ':' + (y), (x + 1) + ':' + (y),
-				(x) + ':' + (y + 1), (x + 1) + ':' + (y + 1)
-			];
-		} else if (this.details.size === 3) {
-			hash = [
-				(x - 1) + ':' + (y - 1), (x) + ':' + (y - 1), (x + 1) + ':' + (y - 1),
-				(x - 1) + ':' + (y), (x) + ':' + (y), (x + 1) + ':' + (y),
-				(x - 1) + ':' + (y + 1), (x) + ':' + (y + 1), (x + 1) + ':' + (y + 1)
-			];
-		} else {
-			throw new DetailedError('invalid unit size', { type, size: this.details.size });
-		}
-
-		const chunkHash = new Set()
-
-		hash.forEach((tileHash: string) => {
-			const x = parseInt(tileHash.split(':')[0]);
-			const y = parseInt(tileHash.split(':')[1]);
-			const locDetails = getLocationDetails(x, y, loc.map.settings.chunkSize);
-			chunkHash.add(`${locDetails.chunkX}:${locDetails.chunkY}`)
-		})
-
-		this.location = {
-			map: loc.map.name,
-			x,
-			y,
-			hash,
-			chunkX: loc.chunk.x,
-			chunkY: loc.chunk.y,
-			chunkHash: Array.from(chunkHash),
+	if (unitStats.construct) {
+		optional.construct = {
+			...unitStats.construct,
+			constructing: 0,
 		}
 	}
 
-	// for units loaded from the database
-	async load(ctx: Context, doc: Object) {
-		this.initModules();
-		const unitStats = await this.getTypeInfo(ctx);
-		_.defaultsDeep(this, unitStats);
-
-		this.clone(ctx, doc);
-	}
-
-	initModules() {
-		//------------------
-		// construct init
-		if (this.construct) {
-			this.construct.constructing = this.construct.constructing || 0;
-			this.construct.factoryQueue = this.construct.factoryQueue || [];
-		}
-
-		//------------------
-		// attack init
-		if (this.attack) {
-			this.attack.fireCooldown = this.attack.fireCooldown || 0;
-		}
-
-		//------------------
-		// storage init
-		if (this.storage) {
-			this.storage.resourceCooldown = this.storage.resourceCooldown || 0;
-			this.storage.iron = this.storage.iron || 0;
-			this.storage.fuel = this.storage.fuel || 0;
-		}
-
-		//------------------
-		// movable init
-		if (this.movable) {
-			this.movable.movementCooldown = this.movable.movementCooldown || 0;
-			this.movable.path = this.movable.path || [];
-			this.movable.pathAttempts = this.movable.pathAttempts || 0;
-			this.movable.pathAttemptAttempts = this.movable.pathAttemptAttempts || 0;
-			this.movable.isPathing = this.movable.isPathing || false;
-			this.movable.pathUpdate = this.movable.pathUpdate || 0;
-			this.movable.transferGoal = this.movable.transferGoal || null;
+	if (unitStats.attack) {
+		optional.attack = {
+			...unitStats.attack,
+			fireCooldown: 0,
 		}
 	}
 
-	async simulate(ctx: Context): Promise<void> {
-		checkContext(ctx, 'simulate');
-		//TODO pass context through stuff
-		//------------------
-		// init
-		const map = await this.getMap(ctx);
-		const actionPromises = [];
-		const actionable = {
-			mineAI: false,
-			groundUnitAI: false,
-			constructionAI: false,
-			attackAI: false
-		};
-		this.initModules();
-
-		//------------------
-		//iron and oil should always be off
-		if (this.details.type === 'oil' || this.details.type === 'iron') {
-			return this.update(ctx, { awake: false });
-		}
-
-		//ghosting units don't need to be awake
-		if (this.details.ghosting) {
-			return this.update(ctx, { awake: false });
-		}
-
-		await this.assertLocation(ctx, map);
-
-		//------------------
-		// execute actionable promises
-		// see what actions are possible
-		const profile = logger.startProfile('unit_AI');
-
-		const attackAI = new AttackAI();
-		const constructionAI = new ConstructionAI();
-
-		if (this.details.type === 'mine') {
-			actionPromises.push(mineAI.actionable(ctx, this, map)
-				.then((result: boolean) => {
-					actionable.mineAI = result;
-				}).catch((err: Error) => {
-					throw new WrappedError(err, 'mine actionable');
-				}));
-		}
-		if (this.movable) {
-			switch (this.movable.layer) {
-				case 'ground':
-					actionPromises.push(groundUnitAI.actionable(ctx, this, map)
-						.then((result: boolean) => {
-							actionable.groundUnitAI = result;
-						}).catch((err: Error) => {
-							throw new WrappedError(err, 'groundUnitAI actionable');
-						}));
-			}
-		}
-
-		if (this.attack) {
-			actionPromises.push(attackAI.actionable(ctx, this, map)
-				.then((result: boolean) => {
-					actionable.attackAI = result;
-				}).catch((err: Error) => {
-					throw new WrappedError(err, 'attackAI actionable');
-				}));
-		}
-
-		if (this.construct) {
-			actionPromises.push(constructionAI.actionable(ctx, this, map)
-				.then((result: boolean) => {
-					actionable.constructionAI = result;
-				}).catch((err: Error) => {
-					throw new WrappedError(err, 'constructionAI actionable');
-				}));
-		}
-		checkContext(ctx, 'pre actionable');
-		try {
-			await Promise.all(actionPromises);
-		} catch (err) {
-			throw new WrappedError(err, 'failed checking actionables');
-		}
-
-		checkContext(ctx, 'pre action');
-		//------------------
-		// actionable map is filled out
-		// pick an action to perform
-		try {
-			if (actionable.mineAI) {
-				logger.info(ctx, 'processing mine', {}, { silent: true });
-				await mineAI.simulate(ctx, this, map);
-			} else if (actionable.attackAI) {
-				logger.info(ctx, 'processing attack');
-				await attackAI.simulate(ctx, this, map);
-			} else if (actionable.groundUnitAI) {
-				logger.info(ctx, 'processing ground AI', {}, { silent: true });
-				await groundUnitAI.simulate(ctx, this, map);
-			} else if (actionable.constructionAI) {
-				logger.info(ctx, 'processing construction');
-				await constructionAI.simulate(ctx, this, map);
-			} else { // if no action is performed
-				logger.info(ctx, 'sleeping unit');
-				await this.update(ctx, { awake: false });
-			}
-		} catch (err) {
-			throw new WrappedError(err, 'failed to perform action', actionable);
-		}
-		checkContext(ctx, 'post action');
-		logger.endProfile(profile);
-	}
-
-
-	//---------------------------------------------------------------------------
-	// mutators
-	//---------------------------------------------------------------------------
-
-
-	async update(ctx: Context, patch: any): Promise<void> {
-		checkContext(ctx, 'update');
-		const planetDB = await db.getPlanetDB(ctx, this.location.map);
-		// TODO we should also update the unit itself (this breaks currently)
-		// Object.assign(this, patch);
-		//assume the object will be awake, unless we are setting it false
-		patch.awake = patch.awake || patch.awake === undefined;
-		await planetDB.unit.patch(ctx, this.uuid, patch);
-		this.validate(ctx);
-	}
-
-	async delete(ctx: Context): Promise<void> {
-		checkContext(ctx, 'delete');
-		const planetDB = await db.getPlanetDB(ctx, this.location.map);
-		await this.clearFromChunks(ctx);
-
-		return planetDB.unit.delete(ctx, this.uuid);
-	}
-
-	async assertLocation(ctx: Context, map: Map): Promise<void> {
-		const planetDB = await db.getPlanetDB(ctx, this.location.map);
-
-		const badLocs: PlanetLoc[] = [];
-		try {
-			const locs: Array<PlanetLoc> = await this.getLocs(ctx);
-			for (const loc of locs) {
-				const units: Array<Unit> = await loc.getUnits(ctx);
-				const unit: null | Unit = _.find(units, (unit: Unit): boolean => {
-					return this.uuid === unit.uuid;
-				});
-				if (!unit) {
-					badLocs.push(loc);
-				}
-			}
-			if (badLocs.length !== 0) {
-				throw new DetailedError('unit missing from tile', {
-					uuid: this.uuid,
-					unitHash: JSON.stringify(this.location.hash),
-					tileHash: badLocs[0].hash,
-				});
-			}
-		} catch (err) {
-			if (this.details.size === 1) {
-				let chunkHash: ChunkHash;
-				try {
-					chunkHash = await planetDB.chunkLayer.findChunkForUnit(ctx, this.uuid);
-				} catch (err) {
-					if (err.message === 'unit not found on map') {
-						const loc = badLocs[0];
-						logger.info(ctx, 'adding unit back to map, was missing');
-						loc.chunkLayer.addUnit(ctx, this.uuid, loc.hash);
-						return;
-					} else {
-						throw err;
-					}
-				}
-				const x: number = parseInt(chunkHash.split(':')[0]);
-				const y: number = parseInt(chunkHash.split(':')[1]);
-				const chunk: Chunk = await map.getChunk(ctx, x, y);
-				// await chunkLayer.refresh(ctx, { force: true });
-				/*
-				// TODO fix this
-				for (const loc of Object.keys(unitMap)) {
-					if (unitMap[loc] !== this.uuid) {
-						continue;
-					}
-					await this.update(ctx, {
-						location: {
-							hash: [loc],
-							x: parseInt(loc.split(':')[0]),
-							y: parseInt(loc.split(':')[1]),
-							chunkHash:[chunkHash],
-							chunkX: x,
-							chunkY: y,
-						}
-					});
-					// throw an error to abort the current action
-					throw new Error('fixed unit location');
-				}
-				throw new WrappedError(err, 'failed to fix unit location', { chunkHash, unitMap: JSON.stringify(unitMap) });
-				*/
-				throw new WrappedError(err, 'bad unit location', { chunkHash });
-			} else {
-				throw new WrappedError(err, 'invalid location for multi-tile unit');
-			}
-
+	if (unitStats.storage) {
+		optional.storage = {
+			...unitStats.storage,
+			resourceCooldown: 0,
+			iron: 0,
+			fuel: 0
 		}
 	}
 
-	async addFactoryOrder(ctx: Context, unitType: UnitType): Promise<void> {
-		checkContext(ctx, 'addFactoryOrder');
-		const planetDB = await db.getPlanetDB(ctx, this.location.map);
-
-		if (!this.construct) {
-			throw new DetailedError('unit cannot construct', { uuid: this.uuid, type: this.details.type });
+	if (unitStats.movable) {
+		optional.movable = {
+			...unitStats.movable,
+			movementCooldown: 0,
+			path: [],
+			pathAttempts: 0,
+			pathAttemptAttempts: 0,
+			isPathing: false,
+			pathUpdate: 0,
+			transferGoal: null,
 		}
-
-		const stats = await planetDB.unitStat.get(ctx, unitType);
-		if (!stats) {
-			throw new DetailedError('cannot add invalid factory order', { uuid: this.uuid, type: unitType });
-		}
-
-		const order: FactoryOrder = {
-			remaining: stats.details.buildTime,
-			type: unitType,
-			cost: stats.details.cost
-		};
-
-		await this.update(ctx, {
-			construct: {
-				factoryQueue: this.construct.factoryQueue.concat(order)
-			}
-		})
-
 	}
 
-	// TODO this should be typed
-	async popFactoryOrder(ctx: Context): Promise<any> {
-		if (!this.construct) {
-			throw new DetailedError('unit cannot construct', { uuid: this.uuid, type: this.details.type });
-		}
-		const queue = this.construct.factoryQueue;
-		const order = queue.shift();
-		const construct = {
-			factoryQueue: queue
-		};
-		await this.update(ctx, { construct });
 
-		return order;
+	const { x, y } = loc;
+
+	let hash;
+	if (unitStats.details.size === 1) {
+		hash = [x + ':' + y];
+	} else if (unitStats.details.size === 2) {
+		hash = [
+			(x) + ':' + (y), (x + 1) + ':' + (y),
+			(x) + ':' + (y + 1), (x + 1) + ':' + (y + 1)
+		];
+	} else if (unitStats.details.size === 3) {
+		hash = [
+			(x - 1) + ':' + (y - 1), (x) + ':' + (y - 1), (x + 1) + ':' + (y - 1),
+			(x - 1) + ':' + (y), (x) + ':' + (y), (x + 1) + ':' + (y),
+			(x - 1) + ':' + (y + 1), (x) + ':' + (y + 1), (x + 1) + ':' + (y + 1)
+		];
+	} else {
+		throw new DetailedError('invalid unit size', { type, size: unitStats.details.size });
 	}
 
-	async addPathAttempt(ctx: Context): Promise<void> {
-		if (!this.movable) {
-			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
-		}
-		this.movable.pathAttempts++;
+	const chunkHash = new Set()
 
-		if (this.movable.pathAttempts > env.movementAttemptLimit) {
-			const movable = { pathAttempts: this.movable.pathAttempts };
-			await this.update(ctx, { movable });
-		} else if (this.movable.pathAttemptAttempts > 2) {
-			//totally give up on pathing
-			await this.clearDestination(ctx);
-		} else {
-			//blank out the path but leave the destination so that we will re-path
-			const movable: Partial<UnitMovable> = {
-				pathAttempts: 0,
-				isPathing: false,
-				path: [],
-				pathAttemptAttempts: this.movable.pathAttemptAttempts++
-			};
-			this.update(ctx, { movable });
-		}
+	hash.forEach((tileHash: string) => {
+		const x = parseInt(tileHash.split(':')[0]);
+		const y = parseInt(tileHash.split(':')[1]);
+		const locDetails = getLocationDetails(x, y, loc.map.settings.chunkSize);
+		chunkHash.add(`${locDetails.chunkX}:${locDetails.chunkY}`)
+	})
 
-	}
-	async setTransferGoal(ctx: Context, uuid: UUID, iron: number, fuel: number): Promise<void> {
-		if (!this.movable) {
-			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
-		}
-		const movable = {
-			transferGoal: {
-				uuid: uuid,
-				iron: iron,
-				fuel: fuel
-			}
-		};
-		return this.update(ctx, { movable });
+	const location = {
+		map: loc.map.name,
+		x,
+		y,
+		hash,
+		chunkX: loc.chunk.x,
+		chunkY: loc.chunk.y,
+		chunkHash: Array.from(chunkHash),
 	}
 
-	async clearTransferGoal(ctx: Context): Promise<void> {
-		if (!this.movable) {
-			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
-		}
-		const movable = {
-			transferGoal: {}
-		};
-		return this.update(ctx, { movable });
+	return {
+		...unitStats,
+		uuid: uuidv4(),
+		awake: true,
+		details: {
+			...unitStats.details,
+			type,
+			ghosting: false,
+			owner: '',
+			health: unitStats.details.maxHealth,
+			lastTick: 0,
+		},
+		location,
+		...optional
+	}
+}
+
+export async function simulate(ctx: Context, unit: Unit): Promise<void> {
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+	ctx.check('simulate');
+
+	const actionPromises = [];
+	const actionable = {
+		mineAI: false,
+		groundUnitAI: false,
+		constructionAI: false,
+		attackAI: false
+	};
+
+	// TODO handle when unitStat changes
+
+	// ------------------
+	// iron and oil should always be off
+	if (unit.details.type === 'oil' || unit.details.type === 'iron') {
+		await patchUnit(ctx, unit, { awake: false });
+		return
 	}
 
-	async setDestination(ctx: Context, x: number, y: number): Promise<void> {
-		if (!this.movable) {
-			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
-		}
-		const hash = x + ':' + y;
-		const movable: Partial<UnitMovable> = { destination: hash, isPathing: false, path: [] };
-		return await this.update(ctx, { movable });
+	// ghosting units don't need to be awake
+	if (unit.details.ghosting) {
+		await patchUnit(ctx, unit, { awake: false });
+		return
 	}
 
-	async setPath(ctx: Context, path: Array<any>): Promise<void> {
-		if (!this.movable) {
-			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
+	// ------------------
+	// execute actionable promises
+	// see what actions are possible
+	const profile = logger.startProfile('unit_AI');
+
+	const attackAI = new AttackAI();
+	const constructionAI = new ConstructionAI();
+
+	if (unit.details.type === 'mine') {
+		actionPromises.push(mineAI.actionable(ctx, unit)
+			.then((result: boolean) => {
+				actionable.mineAI = result;
+			}).catch((err: Error) => {
+				throw new WrappedError(err, 'mine actionable');
+			}));
+	}
+	if (unit.movable) {
+		switch (unit.movable.layer) {
+			case 'ground':
+				actionPromises.push(groundUnitAI.actionable(ctx, unit)
+					.then((result: boolean) => {
+						actionable.groundUnitAI = result;
+					}).catch((err: Error) => {
+						throw new WrappedError(err, 'groundUnitAI actionable');
+					}));
 		}
-		const movable = { path: path, isPathing: false };
-		return await this.update(ctx, { movable });
 	}
 
-	async clearDestination(ctx: Context): Promise<void> {
-		if (!this.movable) {
-			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
+	if (unit.attack) {
+		actionPromises.push(attackAI.actionable(ctx, unit)
+			.then((result: boolean) => {
+				actionable.attackAI = result;
+			}).catch((err: Error) => {
+				throw new WrappedError(err, 'attackAI actionable');
+			}));
+	}
+
+	if (unit.construct) {
+		actionPromises.push(constructionAI.actionable(ctx, unit)
+			.then((result: boolean) => {
+				actionable.constructionAI = result;
+			}).catch((err: Error) => {
+				throw new WrappedError(err, 'constructionAI actionable');
+			}));
+	}
+	ctx.check('pre actionable');
+	try {
+		await Promise.all(actionPromises);
+	} catch (err) {
+		throw new WrappedError(err, 'failed checking actionables');
+	}
+
+	ctx.check('pre action');
+	//------------------
+	// actionable map is filled out
+	// pick an action to perform
+	try {
+		if (actionable.mineAI) {
+			logger.info(ctx, 'processing mine', {}, { silent: true });
+			await mineAI.simulate(ctx, unit);
+		} else if (actionable.attackAI) {
+			logger.info(ctx, 'processing attack');
+			await attackAI.simulate(ctx, unit);
+		} else if (actionable.groundUnitAI) {
+			logger.info(ctx, 'processing ground AI', {}, { silent: true });
+			await groundUnitAI.simulate(ctx, unit);
+		} else if (actionable.constructionAI) {
+			logger.info(ctx, 'processing construction');
+			await constructionAI.simulate(ctx, unit);
+		} else { // if no action is performed
+			logger.info(ctx, 'sleeping unit');
+			await planetDB.unit.patch(ctx, unit.uuid, { awake: false });
 		}
+	} catch (err) {
+		throw new WrappedError(err, 'failed to perform action', actionable);
+	}
+	ctx.check('post action');
+	logger.endProfile(profile);
+}
+
+export async function addFactoryOrder(ctx: Context, unit: Unit, unitType: UnitType): Promise<void> {
+	ctx.check('addFactoryOrder');
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+
+	if (!unit.construct) {
+		throw new DetailedError('unit cannot construct', { uuid: unit.uuid, type: unit.details.type });
+	}
+
+	const stats = await planetDB.unitStat.get(ctx, unitType);
+	if (!stats) {
+		throw new DetailedError('cannot add invalid factory order', { uuid: unit.uuid, type: unitType });
+	}
+
+	const order: FactoryOrder = {
+		uuid: uuidv4(),
+		type: unitType,
+		factory: unit.uuid,
+		created: Date.now(),
+	};
+
+	planetDB.factoryQueue.create(ctx, order);
+}
+
+export async function popFactoryOrder(ctx: Context, unit: Unit): Promise<any> {
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+	if (!unit.construct) {
+		throw new DetailedError('unit cannot construct', { uuid: unit.uuid, type: unit.details.type });
+	}
+	return await planetDB.factoryQueue.pop(ctx, unit.uuid);
+}
+
+export async function addPathAttempt(ctx: Context, unit: Unit): Promise<void> {
+	if (!unit.movable) {
+		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
+	}
+	unit.movable.pathAttempts++;
+
+	if (unit.movable.pathAttempts > env.movementAttemptLimit) {
+		const movable = { pathAttempts: unit.movable.pathAttempts };
+		await patchUnit(ctx, unit, { movable });
+	} else if (unit.movable.pathAttemptAttempts > 2) {
+		//totally give up on pathing
+		await clearDestination(ctx, unit);
+	} else {
+		//blank out the path but leave the destination so that we will re-path
 		const movable: Partial<UnitMovable> = {
-			destination: null,
+			pathAttempts: 0,
 			isPathing: false,
 			path: [],
-			pathAttemptAttempts: 0
+			pathAttemptAttempts: unit.movable.pathAttemptAttempts++
 		};
-		return this.update(ctx, { movable });
+		patchUnit(ctx, unit, { movable });
 	}
 
-	async clearPath(ctx: Context): Promise<void> {
-		if (!this.movable) {
-			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
-		}
-		const movable: Partial<UnitMovable> = {
-			isPathing: false,
-			path: [],
-			pathAttemptAttempts: 0
-		};
-		return this.update(ctx, { movable });
+}
+export async function setTransferGoal(ctx: Context, unit: Unit, uuid: UUID, iron: number, fuel: number): Promise<void> {
+	if (!unit.movable) {
+		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
-
-	async tickMovement(ctx: Context): Promise<void> {
-		if (!this.movable) {
-			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
+	const movable = {
+		transferGoal: {
+			uuid: uuid,
+			iron: iron,
+			fuel: fuel
 		}
-		const movable = {
-			movementCooldown: this.movable.movementCooldown--
-		};
-		return await this.update(ctx, { movable });
+	};
+	return patchUnit(ctx, unit, { movable });
+}
+
+export async function clearTransferGoal(ctx: Context, unit: Unit): Promise<void> {
+	if (!unit.movable) {
+		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
+	const movable: Partial<UnitMovable> = {
+		transferGoal: null
+	};
+	return patchUnit(ctx, unit, { movable });
+}
 
-	async tickFireCooldown(ctx: Context): Promise<void> {
-		if (!this.attack) {
-			throw new DetailedError('unit can\'t attack', { uuid: this.uuid, type: this.details.type });
-		}
-		const attack = {
-			fireCooldown: this.attack.fireCooldown--
-		};
-		await this.update(ctx, { attack });
+export async function setDestination(ctx: Context, unit: Unit, x: number, y: number): Promise<void> {
+	if (!unit.movable) {
+		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
+	const hash = x + ':' + y;
+	const movable: Partial<UnitMovable> = { destination: hash, isPathing: false, path: [] };
+	return await patchUnit(ctx, unit, { movable });
+}
 
-	async armFireCooldown(ctx: Context): Promise<void> {
-		if (!this.attack) {
-			throw new DetailedError('unit can\'t attack', { uuid: this.uuid, type: this.details.type });
-		}
-		const attack = {
-			fireCooldown: this.attack.fireRate
-		};
-		await this.update(ctx, { attack });
+export async function setPath(ctx: Context, unit: Unit, path: Array<any>): Promise<void> {
+	if (!unit.movable) {
+		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
+	const movable = { path: path, isPathing: false };
+	return await patchUnit(ctx, unit, { movable });
+}
 
-	async takeDamage(ctx: Context, dmg: number): Promise<void> {
-		if (this.details.maxHealth === 0) {
-			throw new DetailedError('non-attackable unit attacked', { uuid: this.uuid, type: this.details.type });
-		}
-		const details = {
-			health: this.details.health - dmg
-		};
-		if (details.health < 0) {
-			details.health = 0;
-		}
-		await this.update(ctx, { details, awake: true });
+export async function clearDestination(ctx: Context, unit: Unit): Promise<void> {
+	if (!unit.movable) {
+		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
+	const movable: Partial<UnitMovable> = {
+		destination: null,
+		isPathing: false,
+		path: [],
+		pathAttemptAttempts: 0
+	};
+	return patchUnit(ctx, unit, { movable });
+}
 
-	async moveToTile(ctx: Context, tile: PlanetLoc): Promise<void> {
-		if (!this.movable) {
-			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
-		}
-		if (this.details.size !== 1) {
-			throw new DetailedError('moving is not supported for large units', { uuid: this.uuid, type: this.details.type });
-		}
-		console.log('moving unit!');
-		if (tile.chunkLayer.units[tile.hash]) {
-			logger.info(ctx, 'unit movement blocked', { hash: tile.hash, uuid: this.uuid });
-			await this.clearPath(ctx);
-			return;
-		}
-		await tile.chunkLayer.moveUnit(ctx, this, tile);
-
-		if (!this.movable) {
-			throw new DetailedError('unit is not movable', { uuid: this.uuid, type: this.details.type });
-		}
-
-		const location = {
-			x: tile.x,
-			y: tile.y,
-			chunkX: tile.chunk.x,
-			chunkY: tile.chunk.y,
-			hash: [tile.hash],
-			chunkHash: [tile.chunk.hash]
-		};
-		const movable: Partial<UnitMovable> = {
-			movementCooldown: this.movable.speed
-		};
-
-		if (tile.hash === this.movable.destination) {
-			movable.destination = '';
-		}
-
-		await this.update(ctx, { location, movable });
+export async function clearPath(ctx: Context, unit: Unit): Promise<void> {
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+	if (!unit.movable) {
+		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
+	const movable: Partial<UnitMovable> = {
+		isPathing: false,
+		path: [],
+		pathAttemptAttempts: 0
+	};
+	await planetDB.unit.patch(ctx, unit.uuid, { movable });
+}
 
-	distance(unit: Unit): number {
-		const deltaX = Math.abs(this.location.x - unit.location.x);
-		const deltaY = Math.abs(this.location.y - unit.location.y);
-		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+export async function tickMovement(ctx: Context, unit: Unit): Promise<void> {
+	if (!unit.movable) {
+		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
+	const movable = {
+		movementCooldown: unit.movable.movementCooldown--
+	};
+	return patchUnit(ctx, unit, { movable });
+}
 
-	//---------------------------------------------------------------------------
-	// helpers
-	//---------------------------------------------------------------------------
-
-	async validateSync(): Promise<void> {
-		//TODO split up async and sync validation work
+export async function tickFireCooldown(ctx: Context, unit: Unit): Promise<void> {
+	if (!unit.attack) {
+		throw new DetailedError('unit can\'t attack', { uuid: unit.uuid, type: unit.details.type });
 	}
+	const attack = {
+		fireCooldown: unit.attack.fireCooldown--
+	};
+	await patchUnit(ctx, unit, { attack });
+}
 
-	async validate(ctx: Context): Promise<void> {
-		checkContext(ctx, 'validate');
-		// TODO set this back to false sometime
-		// was debugging something else and this function gave errors
-		if (env.debug) {
-			return;
-		}
-		await this.refresh(ctx);
-
-		const invalid = (reason: string) => {
-			throw new Error(this.uuid + ': ' + reason);
-		};
-
-		if (!this.uuid) {
-			invalid('missing uuid');
-		}
-		if (!this.details.type) {
-			invalid('missing type');
-		}
-		//TODO verify type is a valid type	
-		if (!this.location.map) {
-			invalid('missing map name');
-		}
-		if (!this.details.owner &&
-			this.details.type !== 'oil' &&
-			this.details.type !== 'iron') {
-			invalid('missing owner');
-		}
-
-		//TODO verify map is valid
-		if (this.location.chunkX == null) {
-			invalid('invalid chunkX: ' + this.location.chunkY);
-		}
-		if (this.location.chunkY == null) {
-			invalid('invalid chunkY: ' + this.location.chunkY);
-		}
-
-		const chunks: Array<Chunk> = await this.getChunks(ctx);
-		chunks.forEach((chunk: Chunk) => {
-			if (!chunk) {
-				invalid('chunk missing for unit');
-			}
-		});
-
-		if (this.location.x == null) {
-			invalid('invalid x: ' + this.location.x);
-		}
-		if (this.location.y == null) {
-			invalid('invalid y: ' + this.location.y);
-		}
-
-		for (const tileHash of this.location.hash) {
-			if (tileHash.split(':').length != 2) {
-				invalid('bad tileHash: ' + tileHash);
-			}
-			Number(tileHash.split(':')[0]);
-			Number(tileHash.split(':')[1]);
-
-		}
-
-		const planetLocs: PlanetLoc[] = await this.getLocs(ctx);
-		for (const loc of planetLocs) {
-			await loc.validate();
-		}
-
-		const map = await this.getMap(ctx);
-		for (const unitTile of this.location.hash) {
-			//skip this check for resources
-			if (this.details.type === 'oil' || this.details.type === 'iron') {
-				break;
-			}
-
-			const tile = await map.getLocFromHash(ctx, unitTile);
-			const unitMap = await tile.chunkLayer.getUnitsMap(ctx, unitTile);
-
-			if (!unitMap[this.uuid]) {
-				//console.log(chunk.units);
-				invalid('unit ' + this.uuid + ' missing from hash: ' + unitTile);
-				/*
-				console.log('fixing');
-				const success = await this.addToChunks();
-				if (!success) {
-					console.log('was not successful');
-					/*
-					//untested!
-					console.log("tile blocked, moving unit")
-					//the tile might be blocked, let's try moving this unit
-					const freeTile = await map.getNearestFreeTile(tile,this,true)
-					console.log('moving from ' + this.tileHash + ' to ' + freeTile.hash);
-					const patch = {
-						x: freeTile.x,
-						y: freeTile.y,
-						tileHash: [freeTile.hash],
-						chunk: freeTile.chunk.x,
-						chunkY: freeTile.chunk.y,
-						chunkHash: [freeTile.chunk.hash]
-					}
-					this.x = freeTile.x;
-					this.y = freeTile.y;
-					this.tileHash = [freeTile.hash]
-					this.chunkX = freeTile.chunk.x;
-					this.chunkY = freeTile.chunk.y;
-					this.chunkHash = [freeTile.chunk.hash]
-
-					const success = await this.addToChunks();
-					if (!success) {
-						invalid('unit not added to chunk map, failed to add');
-					}
-					await this.patch(patch);
-
-				}*/
-			}
-		}
+export async function armFireCooldown(ctx: Context, unit: Unit): Promise<void> {
+	if (!unit.attack) {
+		throw new DetailedError('unit can\'t attack', { uuid: unit.uuid, type: unit.details.type });
 	}
+	const attack = {
+		fireCooldown: unit.attack.fireRate
+	};
+	await patchUnit(ctx, unit, { attack });
+}
 
-	async getLocs(ctx: Context): Promise<Array<PlanetLoc>> {
-		checkContext(ctx, 'getLocs');
-		const promises: Array<Promise<PlanetLoc>> = [];
-		const map: Map = await this.getMap(ctx);
-		this.location.hash.forEach((hash: TileHash) => {
-			const x = Number(hash.split(':')[0]);
-			const y = Number(hash.split(':')[1]);
-			promises.push(map.getLoc(ctx, x, y));
-		});
-		return Promise.all(promises);
+export async function takeDamage(ctx: Context, unit: Unit, dmg: number): Promise<void> {
+	if (unit.details.maxHealth === 0) {
+		throw new DetailedError('non-attackable unit attacked', { uuid: unit.uuid, type: unit.details.type });
 	}
-	async getChunks(ctx: Context): Promise<Array<Chunk>> {
-		checkContext(ctx, 'getChunks');
-		const promises: Array<Promise<Chunk>> = [];
-		const map: Map = await this.getMap(ctx);
-		this.location.chunkHash.forEach((hash: TileHash) => {
-			const x = Number(hash.split(':')[0]);
-			const y = Number(hash.split(':')[1]);
-			promises.push(map.getChunk(ctx, x, y));
-		});
-		return Promise.all(promises);
+	const details = {
+		health: unit.details.health - dmg
+	};
+	if (details.health < 0) {
+		details.health = 0;
 	}
+	await patchUnit(ctx, unit, { details, awake: true });
+}
 
-	//TODO: if this fails halfway, it can leave chunks in a bad state.
-	//validator will catch this situation.
-	//for buildings, we could assume the building's location is correct when
-	//fixing chunks. units are not quite so easy.
+export async function destroy(ctx: Context, unit: Unit): Promise<void> {
+	// TODO should probaly only destroy units at the end of a turn
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+	planetDB.unit.delete(ctx, unit.uuid);
+}
 
-	//is failing sometimes for factories- hint to a bigger issue
-	async addToChunks(ctx: Context): Promise<void> {
-		const locs = await this.getLocs(ctx);
-		for (const loc of locs) {
-			if (this.details.type === 'oil' || this.details.type === 'iron') {
-				await loc.chunkLayer.addResource(ctx, this.uuid, loc.hash);
-			} else {
-				try {
-					await loc.chunkLayer.addUnit(ctx, this.uuid, loc.hash);
-				} catch (err) {
-					throw new WrappedError(err, 'addToChunks addUnit failed', { hash: loc.hash });
-				}
-			}
-		}
-	}
+export function unitDistance(src: Unit, dst: Unit): number {
+	const deltaX = Math.abs(src.location.x - dst.location.x);
+	const deltaY = Math.abs(src.location.y - dst.location.y);
+	return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+}
 
-	async clearFromChunks(ctx: Context): Promise<void> {
-		checkContext(ctx, 'clearFromChunks');
-		const locs = await this.getLocs(ctx);
-		for (const loc of locs) {
+export async function getUnitLocs(ctx: Context, unit: Unit): Promise<Array<PlanetLoc>> {
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+	ctx.check('getLocs');
+	const promises: Array<Promise<PlanetLoc>> = [];
+	unit.location.hash.forEach((hash: TileHash) => {
+		const x = Number(hash.split(':')[0]);
+		const y = Number(hash.split(':')[1]);
+		promises.push(planetDB.planet.getLoc(ctx, x, y));
+	});
+	return Promise.all(promises);
+}
+
+export async function getChunks(ctx: Context, unit: Unit): Promise<Array<Chunk>> {
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+	ctx.check('getChunks');
+	const promises: Array<Promise<Chunk>> = [];
+	unit.location.chunkHash.forEach((hash: TileHash) => {
+		const x = Number(hash.split(':')[0]);
+		const y = Number(hash.split(':')[1]);
+		promises.push(planetDB.planet.getChunk(ctx, x, y));
+	});
+	return Promise.all(promises);
+}
+
+/*
+export async function addToChunks(ctx: Context, unit: Unit): Promise<void> {
+	const locs = await getUnitLocs(ctx, unit);
+	for (const loc of locs) {
+		if (unit.details.type === 'oil' || unit.details.type === 'iron') {
+			await loc.chunkLayer.addResource(ctx, unit.uuid, loc.hash);
+		} else {
 			try {
-				await loc.chunkLayer.clearUnit(ctx, this.uuid, loc.hash);
+				await loc.chunkLayer.addUnit(ctx, unit.uuid, loc.hash);
 			} catch (err) {
-				throw new WrappedError(err, 'clearFromChunks clearUnit failed', { hash: loc.hash });
+				throw new WrappedError(err, 'addToChunks addUnit failed', { hash: loc.hash });
 			}
 		}
 	}
+}
 
-	async getMap(ctx: Context): Promise<Map> {
-		const planetDB = await db.getPlanetDB(ctx, this.location.map);
-		return planetDB.planet;
-	}
-
-	// other should be a database document for a unit (or another unit)
-	clone(ctx: Context, other: any) {
-		for (const key in other) {
-			// $FlowFixMe: hiding this issue for now
-			(this as any)[key] = _.cloneDeep(other[key]);
-		}
-
-
-		const stats: any = this.getTypeInfo(ctx);
-		for (const key in stats) {
-			// $FlowFixMe: hiding this issue for now
-			(this as any)[key] = _.assign((this as any)[key], stats[key]);
+export async function clearFromChunks(ctx: Context, unit: Unit): Promise<void> {
+	ctx.check('clearFromChunks');
+	const locs = await getUnitLocs(ctx, unit);
+	for (const loc of locs) {
+		try {
+			await loc.chunkLayer.clearUnit(ctx, unit.uuid, loc.hash);
+		} catch (err) {
+			throw new WrappedError(err, 'clearFromChunks clearUnit failed', { hash: loc.hash });
 		}
 	}
+}
+*/
 
-	// this function is to work around flow complaining about possibly null values
-	// returned object is a reference to the component on this object, and can be modified.
-	// typing info is not preserved when fetching components, unfortunately
-	// design pattern is to get the components you want at the start of a function
-	// this makes flow happy as then things don't break if a component disappears
-	// after an await (however that should probably never happen)
-	getComponent(comp: string): any {
-		// $FlowFixMe:
-		const compObject = (this as any)[comp];
-		if (!compObject) {
-			throw new DetailedError('bad component', { comp, uuid: this.uuid, type: this.details.type });
+export async function moveUnit(ctx: Context, unit: Unit, tile: PlanetLoc): Promise<void> {
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+	ctx.check('moveUnit');
+
+	if (!unit.movable) {
+		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
+	}
+	if (unit.details.size !== 1) {
+		throw new DetailedError('moving is not supported for large units', { uuid: unit.uuid, type: unit.details.type });
+	}
+	logger.info(ctx, 'moving unit', { prev: unit.location.hash, next: tile.hash });
+	if (tile.chunkLayer.units[tile.hash]) {
+		logger.info(ctx, 'unit movement blocked', { hash: tile.hash, uuid: unit.uuid });
+		await clearPath(ctx, unit);
+		return;
+	}
+
+	const oldTile = (await getUnitLocs(ctx, unit))[0];
+	await planetDB.chunkLayer.setEntity(ctx, tile.chunkLayer.hash, unit.movable.layer, unit.uuid, tile.hash);
+	await planetDB.chunkLayer.clearEntity(ctx, oldTile.chunkLayer.hash, unit.movable.layer, unit.uuid, oldTile.hash);
+
+	const location: Partial<UnitLocation> = {
+		x: tile.x,
+		y: tile.y,
+		chunkX: tile.chunk.x,
+		chunkY: tile.chunk.y,
+		hash: [tile.hash],
+		chunkHash: [tile.chunk.hash]
+	};
+	const movable: Partial<UnitMovable> = {
+		movementCooldown: unit.movable.speed
+	};
+
+	if (tile.hash === unit.movable.destination) {
+		movable.destination = '';
+	}
+	await planetDB.unit.patch(ctx, unit.uuid, { location, movable });
+}
+
+// returns the amount of resource that could be transfered
+export async function sendResource(ctx: Context, type: Resource, amount: number, src: Unit, dest: Unit): Promise<number> {
+	const planetDB = await db.getPlanetDB(ctx, src.location.map);
+
+	if (!src.storage) {
+		throw new DetailedError('source unit does not have storage', { uuid: src.uuid, type: src.details.type });
+	}
+
+	if (!dest.storage) {
+		throw new DetailedError('destination unit does not have storage', { uuid: dest.uuid, type: src.details.type });
+	}
+	const maxField = type === 'iron' ? 'maxIron' : 'maxFuel';
+
+	if ((dest.storage as any)[type] === dest.storage[maxField]) {
+		logger.info(ctx, 'transfer ignored, already full');
+		return 0;
+	}
+
+	if ((src.storage as any)[type] < amount) {
+		logger.info(ctx, `transfer ignored, not enough vespene gas. i mean ${type}`);
+		amount = (src.storage as any)[type];
+		if (amount === 0) {
+			return 0;
 		}
-		return compObject;
 	}
 
-	async getTypeInfo(ctx: Context): Promise<UnitStat> {
-		const planetDB = await db.getPlanetDB(ctx, this.location.map);
-		return await planetDB.unitStat.get(ctx, this.details.type);
+	const pulled: number = await planetDB.unit.pullResource(ctx, type, amount, src.uuid);
+	if (pulled === 0) {
+		return 0;
 	}
 
-	async refresh(ctx: Context): Promise<void> {
-		const planetDB = await db.getPlanetDB(ctx, this.location.map);
-		const fresh: any = await planetDB.unit.get(ctx, this.uuid);
-		this.clone(ctx, fresh);
+	const pushed: number = await planetDB.unit.putResource(ctx, type, pulled, dest.uuid);
+	if (pushed !== pulled) {
+		// TODO attempt to return pulled resources
 	}
+	return pushed;
+}
+
+export async function getNearestEnemy(ctx: Context, unit: Unit): Promise<null | Unit> {
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+	const units = await planetDB.planet.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
+	planetDB.planet.sortByNearestUnit(units, unit);
+
+	for (const other of units) {
+		if (other.details.owner && unit.details.owner !== other.details.owner) {
+			return other;
+		}
+	}
+
+	return null;
 }

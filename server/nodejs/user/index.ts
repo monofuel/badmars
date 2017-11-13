@@ -31,6 +31,9 @@ export async function newUser(ctx: Context, name: string, email: string, passwor
 
 export async function loginUser(ctx: Context, name: string, password: string): Promise<User> {
 	const user = await db.user.getByName(ctx, name);
+	if (!user) {
+		throw new InvalidAuthError('missing user');
+	}
 	const salt = user.passwordHash.slice(0, 16);
 	const hash = await hashPassword(password, salt);
 	if (hash !== user.passwordHash) {

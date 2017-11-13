@@ -63,21 +63,30 @@ export default class Commands implements Service {
 
 		vorpal.command('unpause <name>', 'unpause a map')
 			.action(async (args: any): Promise<void> => {
-				const planet = (await db.getPlanetDB(ctx, args.name)).planet;
-				await planet.setPaused(ctx, false);
+				const planetDB = await db.getPlanetDB(ctx, args.name);
+				if (!planetDB) {
+					throw new Error('could not find planet');
+				}
+				await planetDB.planet.setPaused(ctx, false);
 			});
 
 		vorpal.command('pause <name>', 'pause a map')
 			.action(async (args: any): Promise<void> => {
-				const planet = (await db.getPlanetDB(ctx, args.name)).planet;
-				await planet.setPaused(ctx, true);
+				const planetDB = await db.getPlanetDB(ctx, args.name);
+				if (!planetDB) {
+					throw new Error('could not find planet');
+				}
+				await planetDB.planet.setPaused(ctx, true);
 			});
 
 		vorpal.command('advanceTick <name>', 'advance the tick on a map')
 			.action(async (args: any): Promise<void> => {
 				// TODO would be cool if this function watched for how long it took to simulate the next tick
-				const planet = (await db.getPlanetDB(ctx, args.name)).planet;
-				await planet.advanceTick(ctx);
+				const planetDB = await db.getPlanetDB(ctx, args.name);
+				if (!planetDB) {
+					throw new Error('could not find planet');
+				}
+				await planetDB.planet.advanceTick(ctx);
 			});
 		//==================================================================
 		// user methods

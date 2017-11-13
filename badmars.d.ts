@@ -15,34 +15,18 @@ type Success = boolean;
 
 type ModuleName = 'chunk';
 
-type ChunkProto = {
+interface ChunkProto {
 	grid: Array<Object>;
 	navGrid: Array<Object>;
 }
 
-/*
-type NetHandler = (ctx: Context, client: Client, data: Object) => Promise<void>;
-type UnitMap = {
-	[key: string]: Unit
+interface EntityMapType {
+	[key: string]: UUID
 }
-*/
 
-type FactoryOrder = {
+interface FactoryOrder {
+	uuid: UUID,
+	factory: UUID,
 	type: UnitType,
-	cost: number,
-	remaining: number
-}
-
-declare interface Init {
-	init(): Promise<void>;
-}
-
-declare interface MonoDoc {
-	validateSync(): boolean;
-	validateAsync(): Promise<boolean>;
-	refresh(): Promise<void>;
-}
-
-declare interface Entity extends MonoDoc {
-	clone(): Entity;
+	created: number,
 }

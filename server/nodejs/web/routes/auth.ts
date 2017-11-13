@@ -92,6 +92,10 @@ export default function route(ctx: Context, app: express.Application) {
                 return;
             }
             const user = await authUser(ctx, authSplit[1]);
+            if (!user) {
+                res.status(400).send();
+                return;
+            }
             res.status(200).send({
                 uuid: user.uuid,
                 username: user.name,
@@ -107,7 +111,7 @@ export default function route(ctx: Context, app: express.Application) {
     });
 }
 
-async function authUser(ctx: Context, token: string): Promise<User> {
+async function authUser(ctx: Context, token: string): Promise<User | null> {
     return db.session.getBearerUser(ctx, token);
 }
 
