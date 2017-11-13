@@ -66,5 +66,8 @@ export interface UnitStationary {
 
 export interface UnitConstruct {
 	types: Array<string>,
-	constructing: number,
+	constructing?: {
+		remaining: number,
+		type: string,
+	}
 }

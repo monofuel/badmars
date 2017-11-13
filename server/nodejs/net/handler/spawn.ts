@@ -13,7 +13,7 @@ import { sanitizeChunk, sanitizeUnit } from '../../util/socketFilter';
 type ChunkHash = string;
 
 export default async function handleSpawn(ctx: Context, client: Client): Promise<void> {
-	const planetDB = await db.getPlanetDB(ctx, this.location.map);
+	const planetDB = await db.getPlanetDB(ctx, client.map.name);
 
 	let units: Array<Unit> = await planetDB.unit.listPlayersUnits(ctx, client.user.uuid);
 	if (units.length > 0) {

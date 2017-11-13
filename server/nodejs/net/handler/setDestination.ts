@@ -4,17 +4,17 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import { checkContext, WrappedError } from '../../logger';
+import { WrappedError } from '../../logger';
 import Context from '../../context';
 import Client from '../client';
 import db from '../../db';
 import logger from '../../logger';
-import Unit from '../../unit/unit';
+import Unit, { setUnitDestination } from '../../unit/unit';
 
 export default async function setDestination(ctx: Context, client: Client, data: any): Promise<void> {
-	const planetDB = await db.getPlanetDB(ctx, this.location.map);
+	const planetDB = await db.getPlanetDB(ctx, client.map.name);
 
-	checkContext(ctx, 'setDestination');
+	ctx.check('setDestination');
 	if (!data.unitId) {
 		return client.sendError(ctx, 'setDestination', 'no unit specified');
 	}
@@ -30,7 +30,7 @@ export default async function setDestination(ctx: Context, client: Client, data:
 	}
 
 	try {
-		await unit.setDestination(ctx, x, y);
+		await setUnitDestination(ctx, unit, x, y);
 		client.send('setDestination');
 	} catch (err) {
 		logger.trackError(ctx, new WrappedError(err, 'failed to set destination'));

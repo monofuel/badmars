@@ -7,9 +7,10 @@
 import Context from '../../context';
 import Client from '../client';
 import db from '../../db';
+import { setTransferGoal } from '../../unit/unit';
 
 export default async function transferResource(ctx: Context, client: Client, data: any): Promise<void> {
-	const planetDB = await db.getPlanetDB(ctx, this.location.map);
+	const planetDB = await db.getPlanetDB(ctx, client.map.name);
 
 	if (!data.source) {
 		return client.sendError(ctx, 'transferResource', 'missing source');
@@ -31,7 +32,7 @@ export default async function transferResource(ctx: Context, client: Client, dat
 		return client.sendError(ctx, 'transferResource', 'dest unit is not yours');
 	}
 
-	sourceUnit.setTransferGoal(ctx, destUnit.uuid, data.iron || 0, data.fuel || 0);
+	setTransferGoal(ctx, sourceUnit, destUnit.uuid, data.iron || 0, data.fuel || 0);
 
 	client.send('transferResource');
 

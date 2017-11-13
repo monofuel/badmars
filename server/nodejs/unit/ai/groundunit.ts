@@ -7,14 +7,14 @@
 import * as _ from 'lodash';
 import Context from '../../context';
 import db from '../../db';
-import logger, { checkContext, WrappedError, DetailedError } from '../../logger';
+import logger, { WrappedError, DetailedError } from '../../logger';
 
 import PlanetLoc from '../../map/planetloc';
 import DIRECTION from '../../map/directions';
 import Unit from '../unit';
 import Map from '../../map/map';
 
-import { sendResource } from '../procedures';
+import { sendResource } from '../unit';
 import { areUnitsAdjacent, getNearestAdjacentTile } from '../../map/tiles';
 
 
@@ -38,8 +38,8 @@ export async function actionable(ctx: Context, unit: Unit): Promise<boolean> {
 }
 
 export async function simulate(ctx: Context, unit: Unit): Promise<void> {
-	checkContext(ctx, 'groundUnit simulate');
-	const planetDB = await db.getPlanetDB(ctx, this.location.map);
+	ctx.check('groundUnit simulate');
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 
 	// flow sucks
 	const movable = unit.movable;
@@ -47,7 +47,8 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 		// should never reach this
 		return;
 	}
-
+	/*
+// TODO
 	if (await unit.tickMovement(ctx)) {
 		// waiting until we can move again
 		return;
@@ -74,8 +75,9 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 	if (movable.path) {
 		await advancePath(ctx, unit, map);
 	}
+	*/
 }
-
+/*
 async function performTransfer(ctx: Context, src: Unit, dest: Unit): Promise<void> {
 	if (src.movable && src.movable.transferGoal && src.movable.transferGoal.iron) {
 		await sendResource(ctx, 'iron', src.movable.transferGoal.iron, src, dest);
@@ -117,4 +119,6 @@ async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	} finally {
 		logger.endProfile(profile);
 	}
+	
 }
+*/

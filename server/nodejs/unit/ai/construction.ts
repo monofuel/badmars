@@ -62,8 +62,9 @@ export default class constructionAI implements UnitAI {
 		if (!unit.construct) {
 			return false;
 		}
+		const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 
-		const queue = unit.construct.factoryQueue;
+		const queue = await planetDB.factoryQueue.list(ctx, unit.uuid);
 		//no units left to build
 		if (!queue || queue.length === 0) {
 			return false;
@@ -100,48 +101,48 @@ export default class constructionAI implements UnitAI {
 		if (!unit.construct) {
 			return;
 		}
-		const queue = unit.construct.factoryQueue;
 
-		const newUnitType: UnitType = queue[0].type;
+		const newUnitType: UnitType = unit.construct.constructing.type;
 		//const unitInfo: UnitStat = await unit.getTypeInfo(newUnitType);
 		logger.info(ctx, 'constructing', { type: newUnitType });
-
-		if (queue[0].cost > 0) {
-			if (await planetDB.planet.pullResource(ctx, 'iron', unit, queue[0].cost)) {
-				queue[0].cost = 0;
-
-				//TODO this should not be called from outside unit
-				await unit.update(ctx, {
-					construct: {
-						factoryQueue: queue
+		/*
+		// TODO
+				if (unit.construct.constructing.remaining > 0) {
+					if (await planetDB.planet.pullResource(ctx, 'iron', unit, unit.construct.constructing.remaining)) {
+						await 
+		
+						//TODO this should not be called from outside unit
+						await unit.update(ctx, {
+							construct: {
+								factoryQueue: queue
+							}
+						});
 					}
-				});
-			}
-		}
-		if (queue[0].cost === 0) {
-			if (queue[0].remaining > 0) {
-				queue[0].remaining--;
-				await unit.update(ctx, {
-					construct: {
-						factoryQueue: queue
+				}
+				if (queue[0].cost === 0) {
+					if (queue[0].remaining > 0) {
+						queue[0].remaining--;
+						await unit.update(ctx, {
+							construct: {
+								factoryQueue: queue
+							}
+						});
+					} else {
+						await popFactoryOrder(ctx, unit);
+						const tile = await map.getLoc(ctx, unit.location.x, unit.location.y);
+						const newTile = await map.getNearestFreeTile(ctx, tile);
+						if (!newTile) {
+							throw new DetailedError('failed to find open tile', { uuid: unit.uuid });
+						}
+		
+						//if spawn fails, should re-try with a new location
+						const result = await map.factoryMakeUnit(ctx, newUnitType, unit.details.owner, newTile.x, newTile.y);
+						if (!result) {
+							throw new DetailedError('factory failed to create unit', { newUnitType, uuid: unit.uuid });
+						}
 					}
-				});
-			} else {
-				await popFactoryOrder(ctx, unit);
-				const tile = await map.getLoc(ctx, unit.location.x, unit.location.y);
-				const newTile = await map.getNearestFreeTile(ctx, tile);
-				if (!newTile) {
-					throw new DetailedError('failed to find open tile', { uuid: unit.uuid });
 				}
-
-				//if spawn fails, should re-try with a new location
-				const result = await map.factoryMakeUnit(ctx, newUnitType, unit.details.owner, newTile.x, newTile.y);
-				if (!result) {
-					throw new DetailedError('factory failed to create unit', { newUnitType, uuid: unit.uuid });
-				}
-			}
-		}
-
+		*/
 		return;
 	}
 
@@ -150,7 +151,9 @@ export default class constructionAI implements UnitAI {
 			return;
 		}
 		const nearestGhost = this.nearestGhost;
+		/*
 
+		// TODO
 		// check if the nearby ghost is close enough to build
 		//1.01 is 1 for the unit, + 0.01 for float fudge factor (ffffffffffff)
 		if (unitDistance(unit, nearestGhost) < nearestGhost.details.size + 1.05) {
@@ -189,5 +192,6 @@ export default class constructionAI implements UnitAI {
 				return;
 			}
 		}
+		*/
 	}
 }

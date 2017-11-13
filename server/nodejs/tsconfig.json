@@ -10,7 +10,7 @@
         "experimentalDecorators": true,
         "outDir": "../../bin/server/nodejs",
         "jsx": "react",
-        "noUnusedLocals": true,
+        "noUnusedLocals": false,
         "strictNullChecks": false,
         "noImplicitThis": true
     },

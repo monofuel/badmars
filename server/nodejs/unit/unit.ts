@@ -66,13 +66,6 @@ export async function newUnit(ctx: Context, type: string, loc: PlanetLoc): Promi
 	const unitStats = await planetDB.unitStat.get(ctx, type);
 	const optional: Partial<Unit> = {};
 
-	if (unitStats.construct) {
-		optional.construct = {
-			...unitStats.construct,
-			constructing: 0,
-		}
-	}
-
 	if (unitStats.attack) {
 		optional.attack = {
 			...unitStats.attack,
@@ -345,7 +338,7 @@ export async function clearTransferGoal(ctx: Context, unit: Unit): Promise<void>
 	return patchUnit(ctx, unit, { movable });
 }
 
-export async function setDestination(ctx: Context, unit: Unit, x: number, y: number): Promise<void> {
+export async function setUnitDestination(ctx: Context, unit: Unit, x: number, y: number): Promise<void> {
 	if (!unit.movable) {
 		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
@@ -429,6 +422,17 @@ export async function takeDamage(ctx: Context, unit: Unit, dmg: number): Promise
 		details.health = 0;
 	}
 	await patchUnit(ctx, unit, { details, awake: true });
+}
+
+export async function tickResourceCooldown(ctx: Context, unit: Unit): Promise<void> {
+	let resourceCooldown = unit.storage.resourceCooldown - 1;
+	if (resourceCooldown < 0) {
+		resourceCooldown = ctx.env.resourceTicks;
+	}
+	const storage: Partial<UnitStorage> = {
+		resourceCooldown,
+	}
+	await patchUnit(ctx, unit, { storage });
 }
 
 export async function destroy(ctx: Context, unit: Unit): Promise<void> {

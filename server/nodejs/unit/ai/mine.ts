@@ -4,14 +4,12 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import env from '../../config/env';
-import Context from '../../context';
 import db from '../../db';
-import logger, { checkContext, DetailedError } from '../../logger';
+import Context from '../../context';
+import { DetailedError } from '../../logger';
 
 import PlanetLoc from '../../map/planetloc';
-import Unit from '../unit';
-import Map from '../../map/map';
+import Unit, { tickResourceCooldown } from '../unit';
 
 export async function actionable(ctx: Context, unit: Unit): Promise<boolean> {
 	return Promise.resolve(
@@ -21,20 +19,18 @@ export async function actionable(ctx: Context, unit: Unit): Promise<boolean> {
 }
 
 export async function simulate(ctx: Context, unit: Unit): Promise<void> {
-	checkContext(ctx, 'mine simulate');
+	ctx.check('mine simulate');
 	if (!unit.storage) {
 		return;
 	}
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 
-	if (unit.storage.resourceCooldown > 0) {
-		unit.storage.resourceCooldown--;
-		await unit.update(ctx, { storage: { resourceCooldown: unit.storage.resourceCooldown } });
-	}
+	await tickResourceCooldown(ctx, unit);
+
 	if (unit.storage.resourceCooldown === 0) {
-		await unit.update(ctx, { storage: { resourceCooldown: env.resourceTicks } });
 
-		const tile: PlanetLoc = await map.getLocFromHash(ctx, unit.location.hash[0]);
-		const unitsAtTile: Array<Unit> = await map.unitsTileCheck(ctx, tile);
+		const tile: PlanetLoc = await planetDB.planet.getLocFromHash(ctx, unit.location.hash[0]);
+		const unitsAtTile: Array<Unit> = await planetDB.planet.unitsTileCheck(ctx, tile);
 		//get the iron or oil at the location
 		let resource: null | Unit = null;
 		for (const otherUnit of unitsAtTile) {
@@ -49,9 +45,9 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 			});
 		}
 		if (resource.details.type === 'iron') {
-			map.produceResource(ctx, 'iron', unit, 1);
+			planetDB.planet.produceResource(ctx, 'iron', unit, 1);
 		} else if (resource.details.type === 'oil') {
-			map.produceResource(ctx, 'fuel', unit, 1);
+			planetDB.planet.produceResource(ctx, 'fuel', unit, 1);
 		}
 
 	}
