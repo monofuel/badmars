@@ -2,12 +2,33 @@ import Context from '../context';
 import GamePlanet from '../map/map';
 import GameChunk from '../map/chunk';
 import GameChunkLayer from '../map/chunkLayer';
-import GameUser from '../user/user';
+import GameUser from '../user';
 import GameUnit from '../unit/unit';
 import GameSession from '../user/session';
 import GameUnitStat from '../unit/unitStat';
+import { SyncEvent } from 'ts-events';
+import { WrappedError } from '../logger';
 
 export type Handler<T> = (ctx: Context, newT: T, oldT?: T) => Promise<void>;
+export interface ChangeEvent<T> {
+    next: T;
+    prev?: T;
+}
+
+export function AttachChangeHandler<T>(ctx: Context, sync: SyncEvent<T>, fn: Handler<T>) {
+    const wrapper = async (e: T) => {
+        try {
+            await fn(ctx, e);
+        } catch (err) {
+            if (err instanceof StopWatchingError) {
+                sync.detach(wrapper)
+            } else {
+                throw new WrappedError(err, 'failed to handle change event');
+            }
+        }
+    };
+    sync.attach(wrapper);
+}
 
 export class StopWatchingError extends Error {
     constructor(msg: string) {
@@ -74,7 +95,7 @@ export interface User {
     list(ctx: Context): Promise<GameUser[]>;
     get(ctx: Context, uuid: string): Promise<GameUser>;
     getByName(ctx: Context, name: string): Promise<GameUser>
-    watch(ctx: Context, fn: Handler<GameUser>): Promise<void>;
+    watch(ctx: Context, fn: Handler<ChangeEvent<GameUser>>): Promise<void>;
     create(ctx: Context, user: GameUser): Promise<GameUser>;
     patch(ctx: Context, uuid: string, user: Partial<GameUser>): Promise<GameUser>;
     delete(ctx: Context, uuid: string): Promise<void>;
@@ -115,7 +136,7 @@ export interface DB {
 
 class DelegateDB implements DB {
     db: DB;
-    setup(db: DB){ 
+    setup(db: DB) {
         this.db = db;
     }
     init(ctx: Context) {
@@ -131,7 +152,7 @@ class DelegateDB implements DB {
     listPlanetNames(ctx: Context): Promise<string[]> {
         return this.db.listPlanetNames(ctx);
     }
-    removePlanet(ctx: Context, name: string): Promise<void>{
+    removePlanet(ctx: Context, name: string): Promise<void> {
         return this.db.removePlanet(ctx, name);
     }
 

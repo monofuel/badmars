@@ -7,7 +7,7 @@
 import Context from '../../context';
 import db from '../../db';
 import Client from '../client';
-import User from '../../user/user';
+import User from '../../user';
 import { sanitizeUser } from '../../util/socketFilter';
 
 export default async function getPlayers(ctx: Context, client: Client): Promise<void> {

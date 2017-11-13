@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import Context from '../../context';
-import User from '../../user/user';
+import User from '../../user';
 import Client from '../client';
 import db from '../../db';
 const DEFAULT_CHANNEL = 'global';

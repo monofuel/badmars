@@ -1,6 +1,6 @@
 import { Service } from '.';
-import Context from 'context';
-import Web from 'core/web';
+import Context from '../context';
+import Web from './web';
 
 export default class StandaloneService implements Service {
     private parentCtx: Context;

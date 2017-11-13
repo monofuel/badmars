@@ -1,10 +1,9 @@
 require('source-map-support').install();
-
 import db from './db/memoryDB';
 import { setupDB } from './db';
 import Standalone from './core/standalone';
 import Context from './context';
-import { prepareCtx, start } from './';
+import { prepareCtx, start } from '.';
 
 async function init(): Promise<void> {
     setupDB(db);

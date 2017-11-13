@@ -1,7 +1,6 @@
 import * as express from 'express';
 import Context from '../../context';
-import { newUser, loginUser } from '../../user/procedures';
-import User from '../../user/user';
+import User, { newUser, loginUser } from '../../user';
 import logger, { WrappedError } from '../../logger';
 import db from '../../db';
 const t = require('flow-runtime');
@@ -19,7 +18,7 @@ const RegisterRequestType = t.object({
 })
 
 function isRegisterRequest(r: any): r is RegisterRequest {
-    return RegisterRequestType.assert(r);
+    return RegisterRequestType.accepts(r);
 }
 
 interface LoginRequest {
@@ -33,7 +32,7 @@ const LoginRequestType = t.object({
 })
 
 function isLoginRequest(r: any): r is LoginRequest {
-    return LoginRequestType.assert(r);
+    return LoginRequestType.accepts(r);
 }
 
 export default function route(ctx: Context, app: express.Application) {
@@ -82,12 +81,17 @@ export default function route(ctx: Context, app: express.Application) {
     app.get('/auth/self', async (req: express.Request, res: express.Response) => {
         ctx = ctx.create({ name: '/auth/self' });
         try {
-            const token = req.headers['Authorization'];
-            if (typeof token !== 'string') {
+            const authHeader = req.headers['authorization'];
+            if (!authHeader || typeof authHeader !== 'string') {
                 res.status(400).send();
                 return;
             }
-            const user = await authUser(ctx, token);
+            const authSplit = authHeader.split(' ');
+            if (authSplit.length < 2 || authSplit[0] !== 'Bearer') {
+                res.status(400).send();
+                return;
+            }
+            const user = await authUser(ctx, authSplit[1]);
             res.status(200).send({
                 uuid: user.uuid,
                 username: user.name,

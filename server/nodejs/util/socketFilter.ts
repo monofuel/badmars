@@ -5,7 +5,7 @@
 //	Licensed under included modified BSD license
 
 import Unit from '../unit/unit';
-import User from '../user/user';
+import User from '../user';
 import Chunk from '../map/chunk';
 import Map from '../map/map';
 
@@ -180,12 +180,10 @@ export function sanitizeUser(user: User) {
 	const {
 		uuid,
 		name,
-		color
 	} = user;
 	return {
 		uuid,
 		name,
-		color
 	};
 }
 

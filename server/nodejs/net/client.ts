@@ -12,7 +12,7 @@ import logger, { DetailedError, WrappedError } from '../logger';
 import { sanitizeUnit, sanitizeUser } from '../util/socketFilter';
 import Context from '../context';
 import db from '../db';
-import User from '../user/user';
+import User from '../user';
 import Map from '../map/map';
 import Unit from '../unit/unit';
 import { GameEvent, ChatEvent } from '../db';
@@ -142,8 +142,8 @@ export default class Client {
 	}
 
 	async registerUserListener(): Promise<void> {
-		await db.user.watch(this.ctx, async (ctx: Context, user: User): Promise<void> => {
-			await this.handleUserUpdate(ctx, user);
+		await db.user.watch(this.ctx, async (ctx: Context, { next }): Promise<void> => {
+			await this.handleUserUpdate(ctx, next);
 		});
 	}
 
