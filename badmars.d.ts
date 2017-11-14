@@ -10,6 +10,7 @@ type Dir = Symbol;
 type ProfileKey = string;
 type MovementLayer = 'ground' | 'air' | 'water';
 type Resource = 'iron' | 'fuel';
+type ChunkLayer = 'air' | 'ground' | 'resource';
 
 type Success = boolean;
 

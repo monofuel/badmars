@@ -74,8 +74,16 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
             chunk.navGrid[i].push(type);
         }
     }
-    //-------------------------------------------------
-    //spawn resources
+    return {
+        chunk,
+        chunkLayer: layer,
+    }
+}
+
+
+export async function generateResources(ctx: Context, map: Map, chunk: Chunk, layer: ChunkLayer): Promise<void> {
+
+    ctx.check('generateResources');
     const resourceAlea = new Alea(map.seed * chunk.x * chunk.y);
     for (let i = 0; i < chunk.chunkSize; i++) {
         const x = (chunk.x * chunk.chunkSize) + i;
@@ -93,8 +101,6 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
                 unit = await map.spawnUnitWithoutTileCheck(ctx, unit);
                 if (!unit) {
                     logger.info(ctx, 'failed to spawn iron');
-                } else {
-                    layer.resources[unit.location.hash[0]] = unit.uuid;
                 }
 
             } else if (resourceAlea() < map.settings.oilChance) {
@@ -103,14 +109,8 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
                 unit = await map.spawnUnitWithoutTileCheck(ctx, unit);
                 if (!unit) {
                     logger.info(ctx, 'failed to spawn oil');
-                } else {
-                    layer.resources[unit.location.hash[0]] = unit.uuid;
                 }
             }
         }
-    }
-    return {
-        chunk,
-        chunkLayer: layer,
     }
 }

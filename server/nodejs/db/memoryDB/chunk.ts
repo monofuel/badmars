@@ -8,7 +8,7 @@ export default class Chunk implements DB.Chunk {
     private chunks: { [key: string]: GameChunk } = {};
 
     public async init(ctx: Context): Promise<void> {
-        ctx.check('user.init');
+        ctx.check('chunk.init');
     }
 
     public async each(ctx: Context, fn: DB.Handler<GameChunk>): Promise<void> {
@@ -25,7 +25,7 @@ export default class Chunk implements DB.Chunk {
         return prev;
     }
     public async create(ctx: Context, chunk: GameChunk): Promise<GameChunk> {
-        const call = startDBCall(ctx, 'user.create');
+        const call = startDBCall(ctx, 'chunk.create');
         this.chunks[chunk.hash] = chunk;
         await call.end();
         return chunk;

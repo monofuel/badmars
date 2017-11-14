@@ -17,7 +17,7 @@ import PlanetLoc, { getLocationDetails } from './planetloc';
 import Unit, { newUnit, sendResource, unitDistance, getUnitLocs, addToChunks, clearFromChunks } from '../unit/unit';
 import Client from '../net/client';
 import sleep from '../util/sleep';
-import { generateChunk } from './procedures';
+import { generateChunk, generateResources } from './procedures';
 
 type TileHash = string;
 type ChunkHash = string;
@@ -92,6 +92,9 @@ export default class Map {
 			return chunk;
 		}
 		const res = await generateChunk(ctx, this, x, y);
+		await planetDB.chunk.create(ctx, res.chunk);
+		await planetDB.chunkLayer.create(ctx, res.chunkLayer);
+		await generateResources(ctx, this, res.chunk, res.chunkLayer);
 		return res.chunk;
 
 	}
