@@ -4,14 +4,14 @@ import Context from '../../context';
 import GameChunkLayer from '../../map/chunkLayer';
 
 export default class ChunkLayer implements DB.ChunkLayer {
+    public async init(ctx: Context): Promise<void> {
+
+    }
     create(ctx: Context, layer: GameChunkLayer): Promise<GameChunkLayer> {
         throw new Error("Method not implemented.");
     }
     findChunkForUnit(ctx: Context, uuid: string): Promise<string> {
         throw new Error("Method not implemented.");
-    }
-    public async init(ctx: Context): Promise<void> {
-
     }
     each(ctx: Context, fn: DB.Handler<GameChunkLayer>): Promise<void> {
         throw new Error("Method not implemented.");

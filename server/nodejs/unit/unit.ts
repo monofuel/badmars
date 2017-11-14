@@ -60,9 +60,9 @@ async function patchUnit(ctx: Context, unit: Unit, patch: Partial<UnitPatch>): P
 }
 
 // for creating new units
-export async function newUnit(ctx: Context, type: string, loc: PlanetLoc): Promise<Unit> {
+export async function newUnit(ctx: Context, type: string, loc: PlanetLoc | null, map?: string, x?: number, y?: number): Promise<Unit> {
 	ctx.check('newUnit');
-	const planetDB = await db.getPlanetDB(ctx, loc.map.name);
+	const planetDB = await db.getPlanetDB(ctx, map || loc.map.name);
 	const unitStats = await planetDB.unitStat.get(ctx, type);
 	const optional: Partial<Unit> = {};
 
@@ -96,7 +96,11 @@ export async function newUnit(ctx: Context, type: string, loc: PlanetLoc): Promi
 	}
 
 
-	const { x, y } = loc;
+	// hack for new units before chunk has loaded
+	if (loc) {
+		x = loc.x;
+		y = loc.y;
+	}
 
 	let hash;
 	if (unitStats.details.size === 1) {
@@ -118,20 +122,25 @@ export async function newUnit(ctx: Context, type: string, loc: PlanetLoc): Promi
 
 	const chunkHash = new Set()
 
+	let chunkX: number;
+	let chunkY: number;
 	hash.forEach((tileHash: string) => {
 		const x = parseInt(tileHash.split(':')[0]);
 		const y = parseInt(tileHash.split(':')[1]);
-		const locDetails = getLocationDetails(x, y, loc.map.settings.chunkSize);
+		const locDetails = getLocationDetails(x, y, ctx.env.chunkSize);
+		chunkX = locDetails.chunkX;
+		chunkY = locDetails.chunkY;
+
 		chunkHash.add(`${locDetails.chunkX}:${locDetails.chunkY}`)
 	})
 
 	const location = {
-		map: loc.map.name,
+		map: map || loc.map.name,
 		x,
 		y,
 		hash,
-		chunkX: loc.chunk.x,
-		chunkY: loc.chunk.y,
+		chunkX,
+		chunkY,
 		chunkHash: Array.from(chunkHash),
 	}
 
@@ -474,12 +483,16 @@ export async function getChunks(ctx: Context, unit: Unit): Promise<Array<Chunk>>
 
 export async function addToChunks(ctx: Context, unit: Unit): Promise<void> {
 	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
-	const locs = await getUnitLocs(ctx, unit);
-	for (const loc of locs) {
+	for (const loc of unit.location.hash) {
+		const hashSplit = loc.split(':')
+		const x = parseInt(hashSplit[0]);
+		const y = parseInt(hashSplit[1]);
+		const details = getLocationDetails(x, y, ctx.env.chunkSize);
+		const chunkHash = `${details.chunkX}:${details.chunkY}`
 		if (unit.details.type === 'iron' || unit.details.type === 'oil') {
-			await planetDB.chunkLayer.setEntity(ctx, loc.hash, 'resource', unit.uuid, loc.hash);
+			await planetDB.chunkLayer.setEntity(ctx, chunkHash, 'resource', unit.uuid, loc);
 		} else {
-			await planetDB.chunkLayer.setEntity(ctx, loc.hash, 'ground', unit.uuid, loc.hash);
+			await planetDB.chunkLayer.setEntity(ctx, chunkHash, 'ground', unit.uuid, loc);
 		}
 	}
 }
@@ -487,12 +500,16 @@ export async function addToChunks(ctx: Context, unit: Unit): Promise<void> {
 export async function clearFromChunks(ctx: Context, unit: Unit): Promise<void> {
 	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 	ctx.check('clearFromChunks');
-	const locs = await getUnitLocs(ctx, unit);
-	for (const loc of locs) {
+	for (const loc of unit.location.hash) {
+		const hashSplit = loc.split(':')
+		const x = parseInt(hashSplit[0]);
+		const y = parseInt(hashSplit[1]);
+		const details = getLocationDetails(x, y, ctx.env.chunkSize);
+		const chunkHash = `${details.chunkX}:${details.chunkY}`
 		if (unit.details.type === 'iron' || unit.details.type === 'oil') {
-			await planetDB.chunkLayer.clearEntity(ctx, loc.hash, 'resource', unit.uuid, loc.hash);
+			await planetDB.chunkLayer.clearEntity(ctx, chunkHash, 'resource', unit.uuid, loc);
 		} else {
-			await planetDB.chunkLayer.clearEntity(ctx, loc.hash, 'ground', unit.uuid, loc.hash);
+			await planetDB.chunkLayer.clearEntity(ctx, chunkHash, 'ground', unit.uuid, loc);
 		}
 	}
 }

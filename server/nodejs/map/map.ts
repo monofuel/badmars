@@ -247,7 +247,10 @@ export default class Map {
 	async spawnUnitWithoutTileCheck(ctx: Context, newUnit: Unit): Promise<Unit> {
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 
-		return planetDB.unit.create(ctx, newUnit);
+		// TODO addToChunks is now loop safe, should refactor this
+		const unit = await planetDB.unit.create(ctx, newUnit);
+		await addToChunks(ctx, unit);
+		return unit;
 	}
 
 	async spawnAndValidate(ctx: Context, newUnit: Unit): Promise<Unit> {

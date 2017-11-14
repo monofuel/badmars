@@ -27,6 +27,7 @@ class MemoryDB implements DB.DB {
         const call = startDBCall(ctx, 'createPlanet');
         const planet = new Planet(name);
         await planet.init(ctx);
+        this.planets[name] = planet;
         await call.end();
         return planet;
     }

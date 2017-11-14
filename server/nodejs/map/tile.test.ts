@@ -1,11 +1,3 @@
-
-/*eslint no-console: "off"*/
-//-----------------------------------
-//	author: Monofuel
-//	website: japura.net/badmars
-//	Licensed under included modified BSD license
-
-
 import { getLocationDetails } from './planetloc';
 import { assert } from 'chai';
 

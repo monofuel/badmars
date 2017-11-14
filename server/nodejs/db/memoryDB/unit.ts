@@ -1,9 +1,17 @@
 import * as DB from '../';
 import Context from '../../context';
+import { SyncEvent } from 'ts-events';
+import { startDBCall } from '../helper';
 import GameUnit, { UnitPatch } from '../../unit/unit';
 
 export default class Unit implements DB.Unit {
+
+    private unitChange: SyncEvent<DB.ChangeEvent<GameUnit>>;
+    private units: { [uuid: string]: GameUnit } = {};
+
     public async init(ctx: Context): Promise<void> {
+        ctx.check('unit.init');
+        this.unitChange = new SyncEvent<DB.ChangeEvent<GameUnit>>();
 
     }
     listPlayersUnits(ctx: Context, uuid: string): Promise<GameUnit[]> {
@@ -15,8 +23,12 @@ export default class Unit implements DB.Unit {
     get(ctx: Context, uuid: string): Promise<GameUnit> {
         throw new Error("Method not implemented.");
     }
-    create(ctx: Context, GameUnit: GameUnit): Promise<GameUnit> {
-        throw new Error("Method not implemented.");
+    async create(ctx: Context, unit: GameUnit): Promise<GameUnit> {
+        const call = startDBCall(ctx, 'unit.create');
+        this.units[unit.uuid] = unit;
+        this.unitChange.post({ next: unit });
+        await call.end();
+        return unit;
     }
     getBulk(ctx: Context, uuids: string[]): Promise<{ [uuid: string]: GameUnit; }> {
         throw new Error("Method not implemented.");

@@ -5,7 +5,7 @@ import Map from '../map/map';
 
 interface ContextOpts {
 	name?: string;
-	timeout?: number;
+	timeout?: number; // in milliseconds
 	env?: any; // TODO Generic Type this (requires updating a lot)
 }
 
@@ -17,8 +17,8 @@ export default class Context {
 	public name: string;
 	public uuid: UUID;
 	public canceled: boolean = false
-	private deadlineExceeded: boolean = false;
-	public start: Date;
+	public deadlineExceeded: boolean = false;
+	public start: number;
 	public tick: number;
 	public timeout: number;
 
@@ -29,20 +29,22 @@ export default class Context {
 		this.timeout = opts.timeout;
 		this._env = opts.env;
 		this.name = opts.name;
-		this.start = new Date();
+		this.start = Date.now();
 		if (opts.timeout) {
 			this.timeoutInterval = setTimeout(() => {
 				this.canceled = true;
 				this.deadlineExceeded = true;
-			}, opts.timeout * 1000);
+			}, opts.timeout);
 		}
 	}
 
 	public create(opts: ContextOpts = {}): Context {
+
+		const parentTimeout = this.timeout ? this.timeout - (Date.now() - this.start) : 0;
 		return new Context({
 			...opts,
 			name: opts.name ? `${this.name}_${opts.name}` : this.name,
-			timeout: this.timeout,
+			timeout: this.timeout ? Math.min(opts.timeout, parentTimeout) : opts.timeout,
 			env: {
 				...this._env,
 				...(opts.env || {}),

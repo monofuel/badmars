@@ -18,6 +18,7 @@ export default {
 	pathChunks: parseInt(process.env.PATH_CHUNKS) || 3,
 	chunkExamineRange: parseInt(process.env.EXAMINE_RANGE) || 4,
 	attackMoveRange: parseInt(process.env.ATTACK_MOVE_RANGE) || 25,
+	chunkSize: parseInt(process.env.CHUNK_SIZE) || 16,
 
 	movementAttemptLimit: parseInt(process.env.MOVEMENT_ATTEMPT_LIMIT) || 3,
 	pathComplexityLimit: parseInt(process.env.PATH_COMPLEXITY_LIMIT) || 100,

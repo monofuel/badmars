@@ -86,11 +86,10 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
             if (chunk.navGrid[i][j] != LAND) {
                 continue;
             }
-            const loc = await map.getLoc(ctx, x, y);
 
             if (resourceAlea() < map.settings.ironChance) {
                 //console.log('spawning iron');
-                let unit: Unit = await newUnit(ctx, 'iron', loc);
+                let unit: Unit = await newUnit(ctx, 'iron', null, map.name, x, y);
                 unit = await map.spawnUnitWithoutTileCheck(ctx, unit);
                 if (!unit) {
                     logger.info(ctx, 'failed to spawn iron');
@@ -100,7 +99,7 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
 
             } else if (resourceAlea() < map.settings.oilChance) {
                 //console.log('spawning oil');
-                let unit: Unit = await newUnit(ctx, 'oil', loc);
+                let unit: Unit = await newUnit(ctx, 'oil', null, map.name, x, y);
                 unit = await map.spawnUnitWithoutTileCheck(ctx, unit);
                 if (!unit) {
                     logger.info(ctx, 'failed to spawn oil');
