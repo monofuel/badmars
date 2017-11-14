@@ -18,6 +18,7 @@ import Unit, { newUnit, sendResource, unitDistance, getUnitLocs, addToChunks, cl
 import Client from '../net/client';
 import sleep from '../util/sleep';
 import { generateChunk, generateResources } from './procedures';
+import User from '../user';
 
 type TileHash = string;
 type ChunkHash = string;
@@ -339,7 +340,7 @@ export default class Map {
 		}
 	}
 
-	async spawnUser(ctx: Context, client: Client): Promise<void> {
+	async spawnUser(ctx: Context, user: User): Promise<void> {
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 
 		//find a spawn location
@@ -389,7 +390,7 @@ export default class Map {
 				logger.info(ctx, 'spawning unit', { unitType, x, y });
 
 				if (unitType !== 'iron' && unitType !== 'oil') {
-					unit.details.owner = client.user.uuid;
+					unit.details.owner = user.uuid;
 				}
 				switch (unitType) {
 					case 'storage':
@@ -418,7 +419,7 @@ export default class Map {
 					if (unitType === 'iron' || unitType === 'oil') {
 						//assumes that if we spawn the iron or oil, we can also spawn a mine
 						const mine = await newUnit(ctx, 'mine', loc);
-						mine.details.owner = client.user.uuid;
+						mine.details.owner = user.uuid;
 						try {
 							const spawnedMine: Unit = await this.spawnUnitWithoutTileCheck(ctx, mine);
 							spawnedUnits.push(spawnedMine);

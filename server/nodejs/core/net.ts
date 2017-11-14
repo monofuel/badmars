@@ -53,7 +53,7 @@ export default class Net implements Service {
 			callback(true);
 		}
 
-		const wss = new WebSocketServer({ port: parseInt(env.wsPort), verifyClient });
+		const wss = new WebSocketServer({ port: ctx.env.wsPort, verifyClient });
 		wss.on('connection', (ws: ws, req: http.IncomingMessage) => {
 			new Client(ctx.create(), ws, req);
 		});

@@ -24,7 +24,7 @@ export default async function getChunk(ctx: Context, client: Client, data: any):
 		client.send('chunk', { chunk: sanitizeChunk(chunk) });
 	}
 	const layer = await planetDB.chunkLayer.get(ctx, chunk.hash);
-	const units = Object.values(await planetDB.unit.getBulk(ctx, Object.values(layer.units)));
+	const units = Object.values(await planetDB.unit.getBulk(ctx, Object.values(layer.ground)));
 	if (units.length > 0) {
 		const sanitized = [];
 		for (const unit of units) {

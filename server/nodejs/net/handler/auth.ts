@@ -44,11 +44,10 @@ async function mountUserHandlers(client: Client): Promise<void> {
 // TODO refactor this code to use await
 export default async function auth(ctx: Context, client: Client, data: any): Promise<void> {
 	ctx.check('auth');
-	const planetDB = await db.getPlanetDB(ctx, client.map.name);
-
 	if (!data.planet) { //TODO change from planet to map
 		client.sendError(ctx, 'login', 'specify a planet');
 	}
+	const planetDB = await db.getPlanetDB(ctx, data.planet);
 	const planet: Map = planetDB.planet;
 	if (!planet) {
 		throw new Error('planet doesn\'t exist');
@@ -57,7 +56,7 @@ export default async function auth(ctx: Context, client: Client, data: any): Pro
 	client.map = planet; //TODO remove this when updated in other places
 
 	client.username = client.user.name; // TODO what is this used for?
-	mountUserHandlers(client);
+	await mountUserHandlers(client);
 
 	client.send('login');
 };

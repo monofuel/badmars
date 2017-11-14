@@ -14,8 +14,14 @@ export default class Unit implements DB.Unit {
         this.unitChange = new SyncEvent<DB.ChangeEvent<GameUnit>>();
 
     }
-    listPlayersUnits(ctx: Context, uuid: string): Promise<GameUnit[]> {
-        throw new Error("Method not implemented.");
+    async listPlayersUnits(ctx: Context, uuid: string): Promise<GameUnit[]> {
+        const userUnits: GameUnit[] = [];
+        for (const unit of Object.values(this.units)) {
+            if (unit.details.owner === uuid) {
+                userUnits.push(unit);
+            }
+        }
+        return userUnits;
     }
     each(ctx: Context, fn: DB.Handler<GameUnit>): Promise<void> {
         throw new Error("Method not implemented.");
@@ -30,8 +36,12 @@ export default class Unit implements DB.Unit {
         await call.end();
         return unit;
     }
-    getBulk(ctx: Context, uuids: string[]): Promise<{ [uuid: string]: GameUnit; }> {
-        throw new Error("Method not implemented.");
+    async getBulk(ctx: Context, uuids: UUID[]): Promise<{ [key: string]: GameUnit }> {
+        const res: { [key: string]: GameUnit } = {};
+        for (const uuid of uuids) {
+            res[uuid] = this.units[uuid];
+        }
+        return res;
     }
     delete(ctx: Context, uuid: string): Promise<void> {
         throw new Error("Method not implemented.");

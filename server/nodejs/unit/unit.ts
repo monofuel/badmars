@@ -526,7 +526,7 @@ export async function moveUnit(ctx: Context, unit: Unit, tile: PlanetLoc): Promi
 		throw new DetailedError('moving is not supported for large units', { uuid: unit.uuid, type: unit.details.type });
 	}
 	logger.info(ctx, 'moving unit', { prev: unit.location.hash, next: tile.hash });
-	if (tile.chunkLayer.units[tile.hash]) {
+	if (tile.chunkLayer.ground[tile.hash]) {
 		logger.info(ctx, 'unit movement blocked', { hash: tile.hash, uuid: unit.uuid });
 		await clearPath(ctx, unit);
 		return;

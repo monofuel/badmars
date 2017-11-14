@@ -454,7 +454,7 @@ export default class Net {
 	}
 
 	public async connect(): Promise<void> {
-		const ws_url = `ws://${window.location.hostname}/net?token=${this.state.token}`;
+		const ws_url = `ws://localhost:7005/net?token=${this.state.token}`;
 		log('debug', `connecting to: ${ws_url}`);
 		this.ws = new WebSocket(ws_url);
 

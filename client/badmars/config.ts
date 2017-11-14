@@ -91,7 +91,7 @@ const ConfigType = t.object({
 const defaultConfig: Config = {
 	debug: true,
 	version: 12,
-	logLevel: 'info',
+	logLevel: 'debug',
 	cameraSpeed: 30,
 	orthographic: false,
 	palette: defaultPalette,

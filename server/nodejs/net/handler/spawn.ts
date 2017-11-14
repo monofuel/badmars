@@ -21,7 +21,7 @@ export default async function handleSpawn(ctx: Context, client: Client): Promise
 		return;
 	}
 
-	await client.planet.spawnUser(ctx, client);
+	await client.planet.spawnUser(ctx, client.user);
 	units = await planetDB.unit.listPlayersUnits(ctx, client.user.uuid);
 
 	client.send('spawn');

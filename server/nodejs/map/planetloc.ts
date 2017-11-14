@@ -76,7 +76,7 @@ export default class PlanetLoc {
 	async getUnits(ctx: Context): Promise<Array<Unit>> {
 		const planetDB = await db.getPlanetDB(ctx, this.map.name);
 		ctx.check('getUnits');
-		const uuids = Object.values(await this.chunkLayer.units);
+		const uuids = Object.values(await this.chunkLayer.ground);
 		const units = Object.values(await planetDB.unit.getBulk(ctx, uuids));
 		return _.filter(units,
 			(unit: Unit): boolean => (unit.location.hash as any).includes(this.hash));
