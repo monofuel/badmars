@@ -30,3 +30,5 @@ ADD ./package.json /go/src/github.com/monofuel/badmars
 RUN npm install
 
 ADD . /go/src/github.com/monofuel/badmars
+
+RUN make build

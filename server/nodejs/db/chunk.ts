@@ -71,6 +71,8 @@ export default class DBChunk {
 	* this is mainly used by chunk.refresh
 	*/
 	async getChunkUnits(ctx: Context, x: number, y: number): Promise<Object> {
+		throw new Error('not implemented');
+		/*
 		const call = await startDBCall(ctx, 'getChunkUnits');
 		const doc = await this.table.get(x + ':' + y).pluck('airUnits', 'resources', 'units').run(this.conn);
 		await call.end();
@@ -78,6 +80,7 @@ export default class DBChunk {
 			throw new DetailedError('no chunk returned in getChunkUnits');
 		}
 		return doc;
+		*/
 	}
 
 	// only for single-tile units right now
