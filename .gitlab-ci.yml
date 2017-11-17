@@ -25,13 +25,10 @@ build_containers:
     - docker-compose build
     - docker-compose -f docker-compose-build.yml run node-build chown -R $UID bin/
 
-registration_test:
+standalone_test:
   stage: test
   script:
-    - docker-compose up -d
-    - docker-compose up test
-    - docker-compose -f docker-compose-build.yml run node-build chown -R $UID bin/
-    - docker-compose down
+    - docker-compose -f docker-compose-standalone.yml up
 
 prod_deploy:
   stage: deploy

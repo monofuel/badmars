@@ -18,6 +18,7 @@ import * as http from 'http';
 const WebSocketServer = ws.Server;
 
 export default class Net implements Service {
+	private wss: ws.Server;
 	private parentCtx: Context;
 
 	async init(ctx: Context): Promise<void> {
@@ -53,8 +54,8 @@ export default class Net implements Service {
 			callback(true);
 		}
 
-		const wss = new WebSocketServer({ port: ctx.env.wsPort, verifyClient });
-		wss.on('connection', (ws: ws, req: http.IncomingMessage) => {
+		this.wss = new WebSocketServer({ port: ctx.env.wsPort, verifyClient });
+		this.wss.on('connection', (ws: ws, req: http.IncomingMessage) => {
 			new Client(ctx.create(), ws, req);
 		});
 		return Promise.resolve();
@@ -62,7 +63,7 @@ export default class Net implements Service {
 
 	async stop(): Promise<void> {
 		this.parentCtx.info('stopping net');
-		throw new Error('not implemented');
+		await this.wss.close();
 	}
 
 }

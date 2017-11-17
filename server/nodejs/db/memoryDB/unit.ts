@@ -49,8 +49,8 @@ export default class Unit implements DB.Unit {
     patch(ctx: Context, uuid: string, GameUnit: Partial<UnitPatch>): Promise<GameUnit> {
         throw new Error("Method not implemented.");
     }
-    watch(ctx: Context, fn: DB.Handler<GameUnit>): Promise<void> {
-        throw new Error("Method not implemented.");
+    async watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<GameUnit>>): Promise<void> {
+        DB.AttachChangeHandler(ctx, this.unitChange, fn);
     }
     watchPathing(ctx: Context, fn: DB.Handler<GameUnit>): Promise<void> {
         throw new Error("Method not implemented.");

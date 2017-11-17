@@ -5,6 +5,7 @@
 //	Licensed under included modified BSD license
 
 import * as express from 'express';
+import * as http from 'http';
 import * as path from 'path';
 import * as util from 'util';
 import * as bodyParser from 'body-parser';
@@ -22,6 +23,7 @@ import Context from '../context';
 import logger from '../logger';
 
 export default class WebService implements Service {
+	private server: http.Server;
 	private parentCtx: Context;
 	async init(ctx: Context): Promise<void> {
 		this.parentCtx = ctx;
@@ -42,10 +44,10 @@ export default class WebService implements Service {
 		authRoute(this.parentCtx.create(), app);
 
 		return new Promise<void>((resolve: Function) => {
-			const server = app.listen(env.wwwPort, () => {
+			this.server = app.listen(env.wwwPort, () => {
 				const ctx = this.parentCtx.create();
-				const host = server.address().address;
-				const port = server.address().port;
+				const host = this.server.address().address;
+				const port = this.server.address().port;
 
 				logger.info(ctx, util.format('Express listening at http://%s:%s', host, port));
 				resolve();
@@ -55,6 +57,6 @@ export default class WebService implements Service {
 
 	async stop(): Promise<void> {
 		this.parentCtx.info('stopping web');
-		throw new Error('not implemented');
+		await this.server.close();
 	}
 }

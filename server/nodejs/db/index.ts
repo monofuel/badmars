@@ -9,7 +9,7 @@ import GameUnitStat from '../unit/unitStat';
 import { SyncEvent } from 'ts-events';
 import { WrappedError } from '../logger';
 
-export type Handler<T> = (ctx: Context, newT: T, oldT?: T) => Promise<void>;
+export type Handler<T> = (ctx: Context, t: T) => Promise<void>;
 export interface ChangeEvent<T> {
     next: T;
     prev?: T;
@@ -61,7 +61,7 @@ export interface Unit {
     getBulk(ctx: Context, uuids: string[]): Promise<{ [uuid: string]: GameUnit }>;
     delete(ctx: Context, uuid: string): Promise<void>;
     patch(ctx: Context, uuid: string, unit: Partial<UnitPatch>): Promise<GameUnit>;
-    watch(ctx: Context, fn: Handler<GameUnit>): Promise<void>;
+    watch(ctx: Context, fn: Handler<ChangeEvent<GameUnit>>): Promise<void>;
     watchPathing(ctx: Context, fn: Handler<GameUnit>): Promise<void>;
     getAtChunk(ctx: Context, hash: string): Promise<GameUnit[]>;
     getUnprocessedPath(ctx: Context): Promise<GameUnit>;

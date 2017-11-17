@@ -136,7 +136,7 @@ export default class Client {
 
 	async registerUnitListener(): Promise<void> {
 		const planetDB = await db.getPlanetDB(this.ctx, this.map.name);
-		await planetDB.unit.watch(this.ctx, async (ctx: Context, unit: Unit, oldUnit): Promise<void> => {
+		await planetDB.unit.watch(this.ctx, async (ctx: Context, { next: unit, prev: oldUnit }): Promise<void> => {
 			await this.handleUnitUpdate(ctx, unit, oldUnit);
 		});
 	}

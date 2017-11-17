@@ -23,7 +23,20 @@ check:
 	node_modules/eslint/bin/eslint.js -c .eslintrc.json server/
 
 test:
-	go test -cover
+	make -j 2 apiTest run
+
+apiTest:
+	bash -c 'while [[ "`curl -s -o /dev/null -w '%{http_code}' localhost:3002/_health`" != "200" ]]; do sleep 1; done'
+	echo 'SERVER READY'
+	bash -c 'cd ./tests && BADMARS_SERVER="localhost:3002" go run *.go'
+
+	# hacky, kills the test server
+	# this used so the CI server can run 'make test' and automagically work
+	ps aux | grep 'node standalone.js' | grep -v grep | awk '{print $$2}' | xargs kill
+	# bash -c "ps aux | grep 'node standalone.js' | awk '{print $$2}' | xargs kill -9"
+
+run:
+	bash -c 'cd ./bin/server/nodejs && node standalone.js'
 
 nodeSetup:
 	yarn install

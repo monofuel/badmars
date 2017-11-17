@@ -1,0 +1,32 @@
+FROM node:stretch
+
+RUN apt-get update
+RUN apt-get install make wget git bash --assume-yes
+
+RUN npm install -g webpack
+
+RUN wget https://storage.googleapis.com/golang/go1.7.4.linux-amd64.tar.gz
+RUN tar -xf go1.7.4.linux-amd64.tar.gz
+RUN mv go goroot
+RUN rm go1.7.4.linux-amd64.tar.gz
+
+ENV PATH="/goroot/bin:/go/bin:${PATH}"
+RUN export PATH="/goroot/bin:$PATH"
+ENV GOPATH="/go"
+RUN export GOPATH=/go
+RUN mkdir $GOPATH
+ENV GOROOT="/goroot"
+RUN export GOROOT=/goroot
+
+RUN go get github.com/codegangsta/gin
+
+RUN mkdir -p /go/src/github.com/monofuel/badmars
+ADD ./Makefile /go/src/github.com/monofuel/badmars
+WORKDIR /go/src/github.com/monofuel/badmars
+
+RUN make goSetup
+
+ADD ./package.json /go/src/github.com/monofuel/badmars
+RUN npm install
+
+ADD . /go/src/github.com/monofuel/badmars

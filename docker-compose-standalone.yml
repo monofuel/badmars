@@ -1,0 +1,7 @@
+version: '2'
+services:
+  standalone:
+    build:
+      context: .
+      dockerfile: Dockerfile-go-node
+    command: make test

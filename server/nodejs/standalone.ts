@@ -4,6 +4,7 @@ import { setupDB } from './db';
 import Standalone from './core/standalone';
 import Context from './context';
 import { prepareCtx, start } from '.';
+import logger from './logger';
 
 async function init(): Promise<void> {
     setupDB(db);
@@ -13,6 +14,12 @@ async function init(): Promise<void> {
         await standalone.init(ctx);
         await standalone.start();
         ctx.info('READY');
+
+        process.on('SIGTERM', async () => {
+            logger.info(ctx, 'got SIGTERM')
+            await standalone.stop();
+            process.exit(0);
+        })
     })
 }
 
