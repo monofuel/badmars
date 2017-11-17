@@ -37,7 +37,7 @@ export default class Net implements Service {
 			}
 
 			const { token } = querystring.parse(urlSplit[1]);
-			if (!token) {
+			if (!token || typeof token !== 'string') {
 				callback(false, 401, 'missing token parameter');
 				return;
 			}

@@ -87,7 +87,7 @@ export interface FactoryQueue {
 }
 
 export interface UnitStat {
-    getAll(ctx: Context): Promise<GameUnitStat[]>;
+    getAll(ctx: Context): Promise<{ [key: string]: GameUnitStat }>;
     get(ctx: Context, type: string): Promise<GameUnitStat>;
     patch(ctx: Context, type: string, stats: Partial<GameUnitStat>): Promise<GameUnitStat>;
 }

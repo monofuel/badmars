@@ -32,8 +32,10 @@ export default class UnitStat implements DB.UnitStat {
         logger.info(ctx, 'Unit definitions loaded');
     }
 
-    async getAll(ctx: Context): Promise<GameUnitStat[]> {
-        return Object.values(this.unitMap);
+    async getAll(ctx: Context): Promise<{ [key: string]: GameUnitStat }> {
+        return {
+            ...this.unitMap
+        }
     }
     async get(ctx: Context, type: string): Promise<GameUnitStat> {
         return this.unitMap[type];
