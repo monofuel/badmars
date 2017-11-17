@@ -8,7 +8,7 @@ import * as r from 'rethinkdb';
 import { DetailedError } from '../logger';
 import { createTable, createIndex, startDBCall } from './helper';
 import Context from '../context';
-import User from '../user/user';
+import User from '../user';
 import Logger from '../logger';
 
 type UUID = string;

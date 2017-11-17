@@ -35,11 +35,17 @@ export default class StandaloneService implements Service {
 
         logger.info(ctx, 'creating test user');
         const user = await newUser(ctx, 'test', 'test@japura.net', 'foobar');
+        await db.user.create(ctx, user);
+
+        // Do evil things to memoryDB to setup the test environment
+        (db.session as any).sessions['TEST_SESSION_ID'] = { user: user.uuid, token: 'TEST_SESSION_ID', type: 1 }
 
         logger.info(ctx, 'spawning test user on testmap');
         await testPlanet.planet.spawnUser(ctx, user);
 
         logger.info(ctx, 'standalone init done');
+
+        logger.info(ctx, 'to login as thh test user, visit localhost:3002 and run this in the console: sessionStorage.setItem(\'session-token\', \'TEST_SESSION_ID\')')
     }
 
     async start(): Promise<void> {
