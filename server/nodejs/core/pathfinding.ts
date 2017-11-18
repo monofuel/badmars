@@ -109,7 +109,7 @@ export default class PathfindService implements Service {
 
 	async stop(): Promise<void> {
 		this.parentCtx.info('stopping standalone');
-		throw new Error('not implemented');
+		// TODO stop watching for paths
 	}
 
 }

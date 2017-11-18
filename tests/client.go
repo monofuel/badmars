@@ -21,6 +21,12 @@ func spawnForTestmap(token string) error {
 	return nil
 }
 
+type BMResp struct {
+	Type    string `json:"type"`
+	Success bool   `json:"success"`
+	Reason  string `json:"reason"`
+}
+
 func login(ws *websocket.Conn) error {
 	loginRequest := make(map[string]interface{})
 	loginRequest["type"] = "login"
@@ -29,13 +35,28 @@ func login(ws *websocket.Conn) error {
 	if err != nil {
 		return err
 	}
+
+	connected := &BMResp{}
+	connectedResp := make([]byte, 20480)
+	n, err := ws.Read(connectedResp)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(connectedResp[:n], connected)
+	if err != nil {
+		return err
+	}
+	if connected.Type != "connected" {
+		return fmt.Errorf("invalid response for new connection: %s", connected.Type)
+	}
+
 	_, err = ws.Write(loginStr)
 	if err != nil {
 		return err
 	}
-	loginResp := make(map[string]interface{})
+	loginResp := &BMResp{}
 	loginRespStr := make([]byte, 20480)
-	n, err := ws.Read(loginRespStr)
+	n, err = ws.Read(loginRespStr)
 	if err != nil {
 		return err
 	}
@@ -43,11 +64,11 @@ func login(ws *websocket.Conn) error {
 	if err != nil {
 		return err
 	}
-	if loginResp["type"] != "login" {
-		return fmt.Errorf("invalid response for login: %s", loginResp["type"])
+	if loginResp.Type != "login" {
+		return fmt.Errorf("invalid response for login: %s", loginResp.Type)
 	}
-	if loginResp["success"] != true {
-		return fmt.Errorf("login not successful: %s", loginResp["reason"])
+	if !loginResp.Success {
+		return fmt.Errorf("login not successful: %s", loginResp.Reason)
 	}
 	return nil
 }
