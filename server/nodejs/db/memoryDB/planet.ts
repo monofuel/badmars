@@ -17,8 +17,9 @@ export default class Planet implements DB.Planet {
     public unitStat: UnitStat;
     public factoryQueue: FactoryQueue;
 
-    constructor(name: string) {
+    constructor(name: string, seed?: number) {
         this.name = name;
+        this.planet = new GamePlanet(name, seed);
     }
 
     public async init(ctx: Context): Promise<void> {
@@ -36,8 +37,6 @@ export default class Planet implements DB.Planet {
 
         this.factoryQueue = new FactoryQueue();
         await this.factoryQueue.init(ctx.create());
-
-        this.planet = new GamePlanet(this.name);
     }
 
     public async patch(ctx: Context, patch: Partial<GamePlanet>): Promise<void> {

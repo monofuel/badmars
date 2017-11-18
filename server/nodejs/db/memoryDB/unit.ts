@@ -62,8 +62,12 @@ export default class Unit implements DB.Unit {
     async watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<GameUnit>>): Promise<void> {
         DB.AttachChangeHandler(ctx, this.unitChange, fn);
     }
-    watchPathing(ctx: Context, fn: DB.Handler<GameUnit>): Promise<void> {
-        throw new Error("Method not implemented.");
+    async watchPathing(ctx: Context, fn: DB.Handler<GameUnit>): Promise<void> {
+        DB.AttachChangeHandler(ctx, this.unitChange, async (ctx, { next: unit }) => {
+            if (unit.movable && unit.movable.isPathing == false && unit.movable.path.length === 0) {
+                await fn(ctx, unit)
+            }
+        });
     }
     getAtChunk(ctx: Context, hash: string): Promise<GameUnit[]> {
         throw new Error("Method not implemented.");

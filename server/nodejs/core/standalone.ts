@@ -2,6 +2,7 @@ import { Service } from '.';
 import Context from '../context';
 import Web from './web';
 import Net from './net';
+import Pathfind from './pathfinding';
 import db from '../db';
 import logger from '../logger';
 import User, { newUser } from '../user';
@@ -13,6 +14,7 @@ export default class StandaloneService implements Service {
     private web: Web;
     private net: Net;
     private sim: SimulateService;
+    private pathfind: Pathfind;
 
     async init(ctx: Context): Promise<void> {
         this.parentCtx = ctx;
@@ -25,9 +27,12 @@ export default class StandaloneService implements Service {
         this.sim = new SimulateService();
         await this.sim.init(ctx.create({ name: 'simulate' }));
 
+        this.pathfind = new Pathfind();
+        await this.pathfind.init(ctx.create({ name: 'pathfind' }));
+
         // generate the initial test planet
         logger.info(ctx, 'creating testmap');
-        const testPlanet = await db.createPlanet(ctx, 'testmap');
+        const testPlanet = await db.createPlanet(ctx, 'testmap', 1234);
 
         // force a few chunks to load
         logger.info(ctx, 'loading chunks');
@@ -58,10 +63,12 @@ export default class StandaloneService implements Service {
         await this.web.start();
         await this.net.start();
         await this.sim.start();
+        await this.pathfind.start();
     }
 
     async stop(): Promise<void> {
         this.parentCtx.info('stopping standalone');
+        await this.pathfind.stop();
         await this.sim.stop();
         await this.web.stop();
         await this.net.stop();
@@ -81,6 +88,8 @@ class SimulateService implements Service {
         logger.info(this.parentCtx, 'starting simulation');
         // Don't return the promise, as this will be long-lived
         this.tick();
+
+        const planets = await db.listPlanetNames(this.parentCtx);
     }
     async stop(): Promise<void> {
         clearTimeout(this.tickTimeout);
@@ -123,6 +132,5 @@ class SimulateService implements Service {
         }
 
         await planetDB.planet.advanceTick(ctx);
-
     }
 }

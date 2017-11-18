@@ -23,9 +23,9 @@ class MemoryDB implements DB.DB {
         this.session.init(ctx.create());
     }
 
-    public async createPlanet(ctx: Context, name: string): Promise<DB.Planet> {
+    public async createPlanet(ctx: Context, name: string, seed?: number): Promise<DB.Planet> {
         const call = startDBCall(ctx, 'createPlanet');
-        const planet = new Planet(name);
+        const planet = new Planet(name, seed);
         await planet.init(ctx);
         this.planets[name] = planet;
         await call.end();

@@ -73,7 +73,7 @@ export default class Map {
 	seed: number;
 	paused: boolean;
 
-	constructor(name: string = '') {
+	constructor(name: string = '', seed: number = Math.random()) {
 		if (!name) {
 			return; // null constructor for database
 		}
@@ -82,7 +82,7 @@ export default class Map {
 		this.lastTickTimestamp = (new Date()).getTime();
 		this.lastTick = 0;
 		this.users = [];
-		this.seed = Math.random();
+		this.seed = seed;
 		this.paused = false;
 	}
 
