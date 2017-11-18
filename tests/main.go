@@ -51,10 +51,16 @@ func init() {
 }
 
 func main() {
+	var err error
 	fmt.Println("Starting Tests")
 
 	client := NewClient(hostname)
-	err := performRegistration(client)
+	err = performRegistration(client)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = spawnForTestmap(client.SessionToken)
 	if err != nil {
 		log.Fatal(err)
 	}

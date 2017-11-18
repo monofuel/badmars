@@ -41,6 +41,8 @@ run:
 nodeSetup:
 	yarn install
 
+
+# go deps are listed in here to streamline docker image rebuilding
 goSetup:
 	go get github.com/gorilla/mux
 	go get github.com/gorilla/handlers

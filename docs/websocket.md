@@ -34,13 +34,13 @@ All protected endpoints will require that you pass the authorization bearer head
 
 ## Connecting
 
-Make sure to include the authorization header
+some websocket libraries have issues with headers (I'M LOOKIN AT YOU NODE) so pass the token as a url parameter.
 
 ### Local development
-connect to `ws://localhost:7005`
+connect to `ws://localhost:7005/net?token=${token}`
 
 ### Production
-connect to `wss://japura.net/net`
+connect to `wss://japura.net/net?token=${token}`
 
 ## Object Types
 
