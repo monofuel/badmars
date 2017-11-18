@@ -3,7 +3,7 @@ import Context from '../context';
 import Web from './web';
 import Net from './net';
 import Pathfind from './pathfinding';
-import db from '../db';
+import db, * as DB from '../db';
 import logger from '../logger';
 import User, { newUser } from '../user';
 import Unit, { simulate } from '../unit/unit';
@@ -31,8 +31,14 @@ export default class StandaloneService implements Service {
         await this.pathfind.init(ctx.create({ name: 'pathfind' }));
 
         // generate the initial test planet
-        logger.info(ctx, 'creating testmap');
-        const testPlanet = await db.createPlanet(ctx, 'testmap', 1234);
+        const planets = await db.listPlanetNames(ctx);
+        let testPlanet: DB.Planet;
+        if (!planets.includes('testmap')) {
+            logger.info(ctx, 'creating testmap');
+            testPlanet = await db.createPlanet(ctx, 'testmap', 1234);
+        } else {
+            testPlanet = await db.getPlanetDB(ctx, 'testmap');
+        }
 
         // force a few chunks to load
         logger.info(ctx, 'loading chunks');
@@ -43,15 +49,17 @@ export default class StandaloneService implements Service {
             }
         }
 
-        logger.info(ctx, 'creating test user');
-        const user = await newUser(ctx, 'test', 'test@japura.net', 'foobar');
-        await db.user.create(ctx, user);
+        if (!await db.user.getByName(ctx, 'test')) {
+            logger.info(ctx, 'creating test user');
+            const user = await newUser(ctx, 'test', 'test@japura.net', 'foobar');
+            await db.user.create(ctx, user);
 
-        // Do evil things to memoryDB to setup the test environment
-        (db.session as any).sessions['TEST_SESSION_ID'] = { user: user.uuid, token: 'TEST_SESSION_ID', type: 1 }
+            // Do evil things to memoryDB to setup the test environment
+            (db.session as any).sessions['TEST_SESSION_ID'] = { user: user.uuid, token: 'TEST_SESSION_ID', type: 1 }
 
-        logger.info(ctx, 'spawning test user on testmap');
-        await testPlanet.planet.spawnUser(ctx, user);
+            logger.info(ctx, 'spawning test user on testmap');
+            await testPlanet.planet.spawnUser(ctx, user);
+        }
 
         logger.info(ctx, 'standalone init done');
 
@@ -62,7 +70,7 @@ export default class StandaloneService implements Service {
         this.parentCtx.info('starting standalone');
         await this.web.start();
         await this.net.start();
-        await this.sim.start();
+        // await this.sim.start();
         await this.pathfind.start();
     }
 

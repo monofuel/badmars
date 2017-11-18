@@ -451,6 +451,9 @@ export default class Map {
 					throw new WrappedError(err, 'spawning unit failed, bailing out', { x, y, unitType });
 				}
 			}
+			for (const unit of spawnedUnits) {
+				planetDB.unit.patch(ctx, unit.uuid, unit);
+			}
 		}
 		logger.info(ctx, 'spawn finished');
 	}

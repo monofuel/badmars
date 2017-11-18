@@ -11,8 +11,11 @@ export default {
 	envType: process.env.NODE_ENV || 'dev',
 	debug: process.env.NODE_ENV !== 'prod',
 
+	ephemeralDB: process.env.EPHEMERAL === 'true',
+	memoryDBPath: process.env.MEMORY_DB_PATH || '../../data/memoryDB.json',
+
 	ticksPerSec: parseInt(process.env.TICKS_PER_SEC) || 1,
-	stressTest: process.env.STRESS_TEST || false,
+	stressTest: process.env.STRESS_TEST === 'true',
 	statReportRate: parseInt(process.env.STAT_REPORT_RATE) || 1, //in minutes
 	unitProcessChunks: parseInt(process.env.UNIT_PROCESS_CHUNKS) || 20,
 	pathChunks: parseInt(process.env.PATH_CHUNKS) || 3,

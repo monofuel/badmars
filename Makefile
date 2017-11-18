@@ -28,7 +28,7 @@ test:
 apiTest:
 	bash -c 'while [[ "`curl -s -o /dev/null -w '%{http_code}' localhost:3002/_health`" != "200" ]]; do sleep 1; done'
 	echo 'SERVER READY'
-	bash -c 'cd ./tests && BADMARS_SERVER="localhost:3002" go run *.go'
+	bash -c 'cd ./tests && EPHEMERAL=true BADMARS_SERVER="localhost:3002" go run *.go'
 
 	# hacky, kills the test server
 	# this used so the CI server can run 'make test' and automagically work

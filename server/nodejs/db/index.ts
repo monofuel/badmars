@@ -135,6 +135,7 @@ export interface Session {
 
 export interface DB {
     init(ctx: Context): Promise<void>;
+    stop(ctx: Context): Promise<void>;
     createPlanet(ctx: Context, name: string, seed?: number): Promise<Planet>;
     getPlanetDB(ctx: Context, name: string): Promise<Planet | null>;
     // TODO probably should have a .each instead of listPlanetNames
@@ -152,6 +153,9 @@ class DelegateDB implements DB {
     }
     init(ctx: Context) {
         return this.db.init(ctx);
+    }
+    stop(ctx: Context) {
+        return this.db.stop(ctx);
     }
 
     createPlanet(ctx: Context, name: string, seed?: number): Promise<Planet> {

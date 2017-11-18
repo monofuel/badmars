@@ -18,6 +18,13 @@ async function init(): Promise<void> {
         process.on('SIGTERM', async () => {
             logger.info(ctx, 'got SIGTERM')
             await standalone.stop();
+            await db.stop(ctx);
+            process.exit(0);
+        })
+        process.on('SIGUSR2', async () => {
+            logger.info(ctx, 'got SIGUSR2')
+            await standalone.stop();
+            await db.stop(ctx);
             process.exit(0);
         })
     })

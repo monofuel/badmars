@@ -1,9 +1,3 @@
-
-//-----------------------------------
-//	author: Monofuel
-//	website: japura.net/badmars
-//	Licensed under included modified BSD license
-
 import * as _ from 'lodash';
 import Context from '../../context';
 import db from '../../db';
@@ -41,12 +35,9 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 	ctx.check('groundUnit simulate');
 	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 
-	// flow sucks
-	const movable = unit.movable;
-	if (!movable) {
-		// should never reach this
-		return;
-	}
+
+	logger.info(ctx, 'found movable unit');
+
 	/*
 // TODO
 	if (await unit.tickMovement(ctx)) {

@@ -443,9 +443,26 @@ export default class Net {
 	constructor(state: State) {
 		this.listeners = {};
 		this.state = state;
+
+		setInterval(async () => {
+			if (this.ws && this.getState() !== 1) {
+				this.connectionError(new Error(`bad connection state: ${this.getState()}`));
+
+				/*
+				// horribly breaks things
+				this.ws = null;
+				log('warn', 'reconnecting');
+				await this.connect();
+				log('warn', 'reconnected!');
+				*/
+
+				// should probably only do this in debug builds
+				setTimeout(() => window.location.reload(), 2000);
+			}
+		}, 1000);
 	}
 
-	private connectionError(err: Error) {
+	private async connectionError(err: Error) {
 		logError(err);
 		if (this.state.connected) {
 			DisplayErrorChange.post({ errMsg: 'The connection to the server was lost. You should reload' });
@@ -457,13 +474,6 @@ export default class Net {
 		const ws_url = `ws://localhost:7005/net?token=${this.state.token}`;
 		log('debug', `connecting to: ${ws_url}`);
 		this.ws = new WebSocket(ws_url);
-
-		setInterval(() => {
-			if (this.getState() !== 1) {
-				this.connectionError(new Error(`bad connection state: ${this.getState()}`));
-			}
-		}, 1000);
-
 
 		this.ws.onerror = () => {
 			DisplayErrorChange.post({ errMsg: 'The connection to the server was lost. You should reload' });
