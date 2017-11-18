@@ -25,6 +25,11 @@ stages:
 #    - docker-compose build
 #    - docker-compose -f docker-compose-build.yml run node-build chown -R $UID bin/
 
+standalone_build:
+  stage: build
+  script:
+    - docker-compose -f docker-compose-standalone.yml build
+
 standalone_test:
   stage: test
   script:
