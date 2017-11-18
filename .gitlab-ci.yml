@@ -3,7 +3,7 @@ before_script:
   - docker info
 
 stages:
-#  - build
+  - build
   - test
   - deploy
 
