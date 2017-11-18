@@ -15,6 +15,7 @@ import * as mineAI from './ai/mine';
 import PlanetLoc, { getLocationDetails } from '../map/planetloc';
 import * as uuidv4 from 'uuid/v4';
 import Chunk from '../map/chunk';
+import * as TileType from '../map/tiletypes';
 
 import {
 	UnitDetails,
@@ -53,6 +54,7 @@ export interface UnitPatch {
 	construct: null | Partial<UnitConstruct>;
 }
 
+// Functions that modify the unit directly should probably be in this file
 async function patchUnit(ctx: Context, unit: Unit, patch: Partial<UnitPatch>): Promise<void> {
 	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 	const newUnit = await planetDB.unit.patch(ctx, unit.uuid, patch);
@@ -361,7 +363,7 @@ export async function setPath(ctx: Context, unit: Unit, path: Array<any>): Promi
 		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
 	const movable = { path: path, isPathing: false };
-	return await patchUnit(ctx, unit, { movable });
+	return await patchUnit(ctx, unit, { awake: true, movable });
 }
 
 export async function clearDestination(ctx: Context, unit: Unit): Promise<void> {
@@ -526,8 +528,15 @@ export async function moveUnit(ctx: Context, unit: Unit, tile: PlanetLoc): Promi
 		throw new DetailedError('moving is not supported for large units', { uuid: unit.uuid, type: unit.details.type });
 	}
 	logger.info(ctx, 'moving unit', { prev: unit.location.hash, next: tile.hash });
+	const tileType = tile.chunk.navGrid[tile.localX][tile.localY];
+
+	// TODO should probalby use 'checkvalidforunit' on map
+	if (tileType !== TileType.LAND) {
+		logger.info(ctx, 'ground unit tried to move to tile that was not land', { hash: tile.hash, uuid: unit.uuid, tileType });
+		return;
+	}
 	if (tile.chunkLayer.ground[tile.hash]) {
-		logger.info(ctx, 'unit movement blocked', { hash: tile.hash, uuid: unit.uuid });
+		logger.info(ctx, 'unit movement blocked by another unit', { hash: tile.hash, uuid: unit.uuid });
 		await clearPath(ctx, unit);
 		return;
 	}

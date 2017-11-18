@@ -92,6 +92,7 @@ export default class AStarPath {
 		if (this.cost > env.pathComplexityLimit) {
 			//console.log(this.cost);
 			//console.log("path complexity exceeded");
+			logger.info(ctx, 'path complexity exceeded', { cost: this.cost });
 
 			//save out what we have so far.
 			this.path.push(this.current);
@@ -122,7 +123,7 @@ export default class AStarPath {
 		}
 
 		//check if the tile is open and passable
-		const invalidReason = await this.map.checkValidForUnit(ctx, this.current, this.unit, true);
+		const invalidReason = await this.map.checkValidForUnit(ctx, [this.current], this.unit, true);
 		if (invalidReason) {
 			//console.log('not passible for unit');
 			return 'continue';

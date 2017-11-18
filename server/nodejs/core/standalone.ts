@@ -70,7 +70,7 @@ export default class StandaloneService implements Service {
         this.parentCtx.info('starting standalone');
         await this.web.start();
         await this.net.start();
-        // await this.sim.start();
+        await this.sim.start();
         await this.pathfind.start();
     }
 
@@ -118,7 +118,7 @@ class SimulateService implements Service {
             const tickEndTime = Date.now();
             const tickLength = tickEndTime - tickStartTime;
             const delay = desiredLength - tickLength;
-            logger.info(ctx, 'tick proccessed', { delay });
+            // logger.info(ctx, 'tick proccessed', { delay });
             this.tickTimeout = setTimeout(() => this.tick(), delay > 0 ? delay : 0);
         } catch (err) {
             logger.info(this.parentCtx, 'tick failed');
@@ -130,7 +130,7 @@ class SimulateService implements Service {
         const planetDB = await db.getPlanetDB(ctx, planetName);
         const tick = planetDB.planet.lastTick + 1;
         const unitUUIDs = await planetDB.unit.getUnprocessedUnitUUIDs(ctx, tick);
-        logger.info(ctx, 'processing units', { planetName, count: unitUUIDs.length });
+        // logger.info(ctx, 'processing units', { planetName, count: unitUUIDs.length });
 
         for (let uuid of unitUUIDs) {
             const unit = await planetDB.unit.claimUnitTick(ctx, uuid, tick);

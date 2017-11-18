@@ -77,8 +77,8 @@ export default class PlanetLoc {
 		const planetDB = await db.getPlanetDB(ctx, this.map.name);
 		ctx.check('getUnits');
 		const uuids = [
-			...Object.values(await this.chunkLayer.ground),
-			...Object.values(await this.chunkLayer.resources)
+			...Object.values(this.chunkLayer.ground),
+			...Object.values(this.chunkLayer.resources)
 		];
 		const units = Object.values(await planetDB.unit.getBulk(ctx, uuids));
 		return _.filter(units,

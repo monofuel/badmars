@@ -65,4 +65,14 @@ assert.deepEqual(details, {
 	localY: 2
 }, '-150, -150 |' + JSON.stringify(details));
 
+details = getLocationDetails(-76, 39, 16);
+assert.deepEqual(details, {
+	x: -76,
+	y: 39,
+	chunkX: -5,
+	chunkY: 2,
+	localX: 4,
+	localY: 7
+}, '-76, 39 |' + JSON.stringify(details));
+
 console.log('SUCCESS');

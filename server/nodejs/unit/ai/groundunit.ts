@@ -8,7 +8,7 @@ import DIRECTION from '../../map/directions';
 import Unit from '../unit';
 import Map from '../../map/map';
 
-import { sendResource } from '../unit';
+import { sendResource, tickMovement, setUnitDestination, clearTransferGoal, moveUnit, addPathAttempt, setPath } from '../unit';
 import { areUnitsAdjacent, getNearestAdjacentTile } from '../../map/tiles';
 
 
@@ -38,37 +38,35 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 
 	logger.info(ctx, 'found movable unit');
 
-	/*
-// TODO
-	if (await unit.tickMovement(ctx)) {
-		// waiting until we can move again
+	// waiting to move again
+	if (await tickMovement(ctx, unit)) {
 		return;
 	}
 
-	if (movable.transferGoal && !movable.destination) {
-		const transferUnit = await planetDB.unit.get(ctx, movable.transferGoal.uuid);
+	// if we have a transfer goal, path to the destination
+	if (unit.movable.transferGoal && !unit.movable.destination) {
+		const transferUnit = await planetDB.unit.get(ctx, unit.movable.transferGoal.uuid);
 		if (await areUnitsAdjacent(ctx, unit, transferUnit)) {
 			logger.info(ctx, 'performing transfer', { uuid: unit.uuid });
 			await performTransfer(ctx, unit, transferUnit);
 		} else {
 			const newDest = await getNearestAdjacentTile(ctx, unit, transferUnit);
 			logger.info(ctx, 'updating destination to transfer unit', { uuid: unit.uuid });
-			await unit.setDestination(ctx, newDest.x, newDest.y);
+			await setUnitDestination(ctx, unit, newDest.x, newDest.y);
 		}
 		return;
 	}
 
-	if (movable.destination && movable.path.length === 0) {
+
+	// check if we are waiting for a path
+	if (unit.movable.destination && unit.movable.path.length === 0) {
 		logger.info(ctx, 'unit waiting for path', { uuid: unit.uuid });
 		return;
 	}
-
-	if (movable.path) {
-		await advancePath(ctx, unit, map);
+	if (unit.movable.path) {
+		await advancePath(ctx, unit, planetDB.planet);
 	}
-	*/
 }
-/*
 async function performTransfer(ctx: Context, src: Unit, dest: Unit): Promise<void> {
 	if (src.movable && src.movable.transferGoal && src.movable.transferGoal.iron) {
 		await sendResource(ctx, 'iron', src.movable.transferGoal.iron, src, dest);
@@ -78,9 +76,9 @@ async function performTransfer(ctx: Context, src: Unit, dest: Unit): Promise<voi
 		await sendResource(ctx, 'fuel', src.movable.transferGoal.fuel, src, dest);
 	}
 
-	await src.update(ctx, { movable: { transferGoal: null } });
-
+	await clearTransferGoal(ctx, src);
 }
+
 async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	if (!unit.movable) {
 		return;
@@ -94,22 +92,22 @@ async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	const nextTile = await start.getDirTile(ctx, dir);
 	try {
 		try {
-			await unit.moveToTile(ctx, nextTile);
+			await moveUnit(ctx, unit, nextTile);
 		} catch (err) {
 			throw new WrappedError(err, 'error moving to tile');
 		}
 		try {
-			await unit.update(ctx, { path });
+			await setPath(ctx, unit, path);
 		} catch (err) {
 			throw new WrappedError(err, 'error updating path');
 		}
 	} catch (err) {
 		logger.trackError(ctx, new WrappedError(err, 'error moving'));
-		unit.addPathAttempt(ctx);
+		addPathAttempt(ctx, unit);
 		//console.log('move halted');
 	} finally {
 		logger.endProfile(profile);
 	}
-	
+
+
 }
-*/

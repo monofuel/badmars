@@ -234,11 +234,10 @@ export default class Map {
 
 	async spawnUnit(ctx: Context, newUnit: Unit): Promise<Unit> {
 		ctx.check('spawnUnit');
-		for (const loc of await getUnitLocs(ctx, newUnit)) {
-			const badReason = await this.checkValidForUnit(ctx, loc, newUnit);
-			if (badReason) {
-				throw new WrappedError(new Error(badReason), 'spawnUnit');
-			}
+		const tiles = await getUnitLocs(ctx, newUnit);
+		const badReason = await this.checkValidForUnit(ctx, tiles, newUnit);
+		if (badReason) {
+			throw new WrappedError(new Error(badReason), 'spawnUnit');
 		}
 		const unit = await this.spawnAndValidate(ctx, newUnit);
 		ctx.check('spawnUnit end');
@@ -277,15 +276,16 @@ export default class Map {
 		return unit;
 	}
 
-	async checkValidForUnit(ctx: Context, tile: PlanetLoc, unit: Unit, ignoreAwake: boolean = false): Promise<null | string> {
+	async checkValidForUnit(ctx: Context, tiles: PlanetLoc[], unit: Unit, ignoreAwake: boolean = false): Promise<null | string> {
 		//TODO handle air and water units
-		if (tile.tileType !== LAND) {
-			return 'tiletype is not land';
+		for (const tile of tiles) {
+			if (tile.tileType !== LAND) {
+				return 'tiletype is not land';
+			}
 		}
 
 		const units: Array<Unit> = [];
-		const tilesToCheck: Array<PlanetLoc> = await getUnitLocs(ctx, unit);
-		for (const tile of tilesToCheck) {
+		for (const tile of tiles) {
 			const units2: Array<Unit> = await this.unitsTileCheck(ctx, tile, unit.details.ghosting);
 			for (const unit2 of units2) {
 				units.push(unit2);
@@ -314,10 +314,15 @@ export default class Map {
 		}
 
 		if (ignoreAwake) {
+			let foundSleeping = false;
 			for (const unit of units) {
-				if (!unit.awake && unit.movable.layer === 'ground') {
-					return;
+				// movable or stationary? this is smelly...
+				if (!unit.awake && (unit.movable || unit.stationary).layer === 'ground') {
+					foundSleeping = true;
 				}
+			}
+			if (!foundSleeping) {
+				return;
 			}
 		}
 

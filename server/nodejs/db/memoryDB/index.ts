@@ -46,7 +46,7 @@ class MemoryDB implements DB.DB {
     }
 
     private async saveDB(ctx: Context): Promise<void> {
-        logger.info(ctx, 'updating database file');
+        // logger.info(ctx, 'updating database file');
         const dbpath = path.dirname(ctx.env.memoryDBPath);
         if (!fs.existsSync(dbpath)) {
             fs.mkdirSync(path.dirname(ctx.env.memoryDBPath));
@@ -54,7 +54,7 @@ class MemoryDB implements DB.DB {
         const copyDB = _.cloneDeep(this);
         const dbStr = JSON.stringify(copyDB);
         fs.writeFileSync(ctx.env.memoryDBPath, dbStr);
-        logger.info(ctx, 'saved');
+        // logger.info(ctx, 'saved');
     }
 
     public async stop(ctx: Context): Promise<void> {
