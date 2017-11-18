@@ -101,7 +101,9 @@ class Logger {
 		kargs.name = 'server_' + name;
 		kargs.module = this.moduleName;
 		kargs.hostname = os.hostname();
-		kargs.env = ctx.env.envType;
+		if (ctx) {
+			kargs.env = ctx.env.envType;
+		}
 		verifyTrack(name, kargs);
 
 		/*if (ctx && ctx.db) {

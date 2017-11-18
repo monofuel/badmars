@@ -35,7 +35,6 @@ export default class Entity {
 		cost: number,
 		health: number,
 		maxHealth: number,
-		tick: number,
 		lastTick: number,
 		ghosting: boolean,
 		owner: string,

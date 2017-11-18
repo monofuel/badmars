@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as DB from '../../db';
 import Context from '../../context';
 import { SyncEvent } from 'ts-events';
@@ -44,10 +45,7 @@ export default class User implements DB.User {
     public async patch(ctx: Context, uuid: string, user: Partial<GameUser>): Promise<GameUser> {
         const call = startDBCall(ctx, 'user.patch');
         const prev = this.users[uuid];
-        const next = {
-            ...prev,
-            ...user
-        }
+        const next = _.merge({}, prev, user);
         this.users[uuid] = next;
         this.userChange.post({ next, prev });
         await call.end();

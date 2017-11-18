@@ -788,9 +788,8 @@ export default class Map {
 		}
 	}
 
-	// only for debugging purposes
 	async advanceTick(ctx: Context): Promise<void> {
-		return this.update(ctx, { lastTick: this.lastTick + 1 });
+		return this.update(ctx, { lastTickTimestamp: Date.now(), lastTick: this.lastTick + 1 });
 	}
 
 	async setPaused(ctx: Context, paused: boolean): Promise<void> {

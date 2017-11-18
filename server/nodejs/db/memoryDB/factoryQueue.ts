@@ -2,19 +2,42 @@ import * as DB from '../';
 import Context from '../../context';
 
 export default class FactoryQueue implements DB.FactoryQueue {
-	public async init(ctx: Context): Promise<void> {
 
+	// all of the methods happen to be syncronous- if they were not, we should have a lock around this.
+	private orders: { [key: string]: FactoryOrder[] } = {};
+
+	public async init(ctx: Context): Promise<void> {
+		ctx.check('factoryQueue.init');
 	}
-	create(ctx: Context, order: FactoryOrder): Promise<void> {
-		throw new Error("Method not implemented.");
+	async create(ctx: Context, order: FactoryOrder): Promise<void> {
+		if (!this.orders[order.factory]) {
+			this.orders[order.factory] = [];
+		}
+		this.orders[order.factory].push(order);
 	}
-	list(ctx: Context, factory: string): Promise<FactoryOrder[]> {
-		throw new Error("Method not implemented.");
+	async list(ctx: Context, factory: string): Promise<FactoryOrder[]> {
+		if (!this.orders[factory]) {
+			this.orders[factory] = [];
+		}
+		return this.orders[factory];
 	}
-	pop(ctx: Context, factory: string): Promise<FactoryOrder> {
-		throw new Error("Method not implemented.");
+	async pop(ctx: Context, factory: string): Promise<FactoryOrder | null> {
+		if (!this.orders[factory]) {
+			return null;
+		}
+		return this.orders[factory].pop();
 	}
-	delete(ctx: Context, uuid: string): Promise<void> {
-		throw new Error("Method not implemented.");
+	async delete(ctx: Context, uuid: string): Promise<void> {
+		// HACK slow implementation, but this shouldn't be called that often.
+		for (let factoryuuid in this.orders) {
+			const factory = this.orders[factoryuuid];
+			for (let i = 0; i < factory.length; i++) {
+				const order = factory[i];
+				if (order.uuid === uuid) {
+					this.orders[factoryuuid] = factory.splice(i, 1);
+					return;
+				}
+			}
+		}
 	}
 }

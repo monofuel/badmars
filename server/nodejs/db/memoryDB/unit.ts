@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as DB from '../';
 import Context from '../../context';
 import { SyncEvent } from 'ts-events';
@@ -23,11 +24,14 @@ export default class Unit implements DB.Unit {
         }
         return userUnits;
     }
-    each(ctx: Context, fn: DB.Handler<GameUnit>): Promise<void> {
-        throw new Error("Method not implemented.");
+    async each(ctx: Context, fn: DB.Handler<GameUnit>): Promise<void> {
+        for (let uuid in this.units) {
+            const unit = this.units[uuid];
+            await fn(ctx, unit);
+        }
     }
-    get(ctx: Context, uuid: string): Promise<GameUnit> {
-        throw new Error("Method not implemented.");
+    async get(ctx: Context, uuid: string): Promise<GameUnit> {
+        return this.units[uuid];
     }
     async create(ctx: Context, unit: GameUnit): Promise<GameUnit> {
         const call = startDBCall(ctx, 'unit.create');
@@ -46,8 +50,14 @@ export default class Unit implements DB.Unit {
     delete(ctx: Context, uuid: string): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    patch(ctx: Context, uuid: string, GameUnit: Partial<UnitPatch>): Promise<GameUnit> {
-        throw new Error("Method not implemented.");
+    async patch(ctx: Context, uuid: string, unit: Partial<UnitPatch>): Promise<GameUnit> {
+        const call = startDBCall(ctx, 'unit.patch');
+        const prev = this.units[uuid];
+        const next = _.merge({}, prev, unit);
+        this.units[uuid] = next;
+        this.unitChange.post({ next, prev });
+        await call.end();
+        return next;
     }
     async watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<GameUnit>>): Promise<void> {
         DB.AttachChangeHandler(ctx, this.unitChange, fn);
@@ -61,20 +71,71 @@ export default class Unit implements DB.Unit {
     getUnprocessedPath(ctx: Context): Promise<GameUnit> {
         throw new Error("Method not implemented.");
     }
-    getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]> {
-        throw new Error("Method not implemented.");
+    async getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]> {
+        const uuids: string[] = [];
+
+        for (let uuid in this.units) {
+            const unit = this.units[uuid];
+            if (unit.awake && unit.details.lastTick < tick) {
+                uuids.push(uuid);
+            }
+        }
+        return uuids;
     }
-    claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<GameUnit> {
-        throw new Error("Method not implemented.");
+    async claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<GameUnit> {
+        const unit = this.units[uuid];
+        if (unit.details.lastTick < tick) {
+            unit.details.lastTick = tick;
+            return unit;
+        }
+        return null;
     }
-    pullResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
-        throw new Error("Method not implemented.");
+    async pullResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
+        const unit = this.units[uuid];
+        if (type === 'iron') {
+            if (unit.storage.iron - amount < 0) {
+                const transferred = unit.storage.iron;
+                await this.patch(ctx, uuid, { storage: { iron: 0 } })
+                return transferred;
+            } else {
+                await this.patch(ctx, uuid, { storage: { iron: unit.storage.iron - amount } })
+                return amount;
+            }
+        } else if (type === 'fuel') {
+            if (unit.storage.fuel - amount < 0) {
+                const transferred = unit.storage.fuel;
+                await this.patch(ctx, uuid, { storage: { iron: 0 } })
+                return transferred;
+            } else {
+                await this.patch(ctx, uuid, { storage: { fuel: unit.storage.fuel - amount } })
+                return amount;
+            }
+        }
     }
-    putResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
-        throw new Error("Method not implemented.");
+    async putResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
+        const unit = this.units[uuid];
+        if (type === 'iron') {
+            if (unit.storage.iron + amount > unit.storage.maxIron) {
+                const transferred = unit.storage.maxIron - unit.storage.iron;
+                await this.patch(ctx, uuid, { storage: { iron: unit.storage.maxIron } })
+                return transferred;
+            } else {
+                await this.patch(ctx, uuid, { storage: { iron: unit.storage.iron + amount } })
+                return amount;
+            }
+        } else if (type === 'fuel') {
+            if (unit.storage.fuel + amount > unit.storage.maxFuel) {
+                const transferred = unit.storage.maxFuel - unit.storage.fuel;
+                await this.patch(ctx, uuid, { storage: { fuel: unit.storage.maxFuel } })
+                return transferred;
+            } else {
+                await this.patch(ctx, uuid, { storage: { fuel: unit.storage.fuel + amount } })
+                return amount;
+            }
+        }
     }
-    count(): Promise<number> {
-        throw new Error("Method not implemented.");
+    async count(): Promise<number> {
+        return Object.keys(this.units).length;
     }
     countAwake(): Promise<number> {
         throw new Error("Method not implemented.");

@@ -5,12 +5,14 @@ import Net from './net';
 import db from '../db';
 import logger from '../logger';
 import User, { newUser } from '../user';
+import Unit, { simulate } from '../unit/unit';
 
 export default class StandaloneService implements Service {
     private parentCtx: Context;
 
     private web: Web;
     private net: Net;
+    private sim: SimulateService;
 
     async init(ctx: Context): Promise<void> {
         this.parentCtx = ctx;
@@ -19,6 +21,9 @@ export default class StandaloneService implements Service {
 
         this.net = new Net();
         await this.net.init(ctx.create({ name: 'net' }));
+
+        this.sim = new SimulateService();
+        await this.sim.init(ctx.create({ name: 'simulate' }));
 
         // generate the initial test planet
         logger.info(ctx, 'creating testmap');
@@ -52,11 +57,72 @@ export default class StandaloneService implements Service {
         this.parentCtx.info('starting standalone');
         await this.web.start();
         await this.net.start();
+        await this.sim.start();
     }
 
     async stop(): Promise<void> {
         this.parentCtx.info('stopping standalone');
+        await this.sim.stop();
         await this.web.stop();
         await this.net.stop();
+    }
+}
+
+
+class SimulateService implements Service {
+    private parentCtx: Context;
+
+    private tickTimeout: NodeJS.Timer;
+
+    async init(ctx: Context): Promise<void> {
+        this.parentCtx = ctx;
+    }
+    async start(): Promise<void> {
+        logger.info(this.parentCtx, 'starting simulation');
+        // Don't return the promise, as this will be long-lived
+        this.tick();
+    }
+    async stop(): Promise<void> {
+        clearTimeout(this.tickTimeout);
+    }
+
+    async tick() {
+        try {
+            const ctx = this.parentCtx.create({ name: "tick" });
+            const desiredLength = 1000 / ctx.env.ticksPerSec;
+            const tickStartTime = Date.now();
+
+            const planets = await db.listPlanetNames(ctx);
+
+            for (let planet of planets) {
+                await this.simulate(ctx, planet);
+            }
+
+            const tickEndTime = Date.now();
+            const tickLength = tickEndTime - tickStartTime;
+            const delay = desiredLength - tickLength;
+            logger.info(ctx, 'tick proccessed', { delay });
+            this.tickTimeout = setTimeout(() => this.tick(), delay > 0 ? delay : 0);
+        } catch (err) {
+            logger.info(this.parentCtx, 'tick failed');
+            logger.trackError(this.parentCtx, err);
+            process.exit(-1);
+        }
+    }
+    async simulate(ctx: Context, planetName: string): Promise<void> {
+        const planetDB = await db.getPlanetDB(ctx, planetName);
+        const tick = planetDB.planet.lastTick + 1;
+        const unitUUIDs = await planetDB.unit.getUnprocessedUnitUUIDs(ctx, tick);
+        logger.info(ctx, 'processing units', { planetName, count: unitUUIDs.length });
+
+        for (let uuid of unitUUIDs) {
+            const unit = await planetDB.unit.claimUnitTick(ctx, uuid, tick);
+            if (unit) {
+                await simulate(ctx, unit);
+            }
+        }
+
+        await planetDB.planet.advanceTick(ctx);
+
     }
 }
