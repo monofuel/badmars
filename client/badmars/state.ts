@@ -4,14 +4,13 @@ import axios from 'axios';
 import Player from './player';
 import * as _ from 'lodash';
 import Map from './map/map';
-import Net from './net';
 import Display from './display';
 import Input from './input';
 import MainLoop from './mainLoop';
 import Entity from './units/entity';
 import PlanetLoc from './map/planetLoc';
 import { GameStageChange, GameFocusChange } from './gameEvents';
-import { MapChange, RequestChange, PlayersChange } from './net';
+import Net, { MapChange, RequestChange, PlayersChange, UnitEvent, UnitChange } from './net';
 import sleep from './util/sleep';
 import { log } from './logger';
 
@@ -73,16 +72,20 @@ export default class State {
 				RequestChange.post({ type: 'spawn' });
 				return;
 			}
-
-			// wait for units to load
-			await sleep(5000);
+		});
+		const cameraHandler = async ({ units }: UnitEvent) => {
+			if (units.length == 0) {
+				return;
+			}
 			for (let unit of this.map.units) {
 				if (unit.details.owner === this.playerInfo.uuid) {
 					this.display.viewTile(unit.loc);
+					UnitChange.detach(cameraHandler);
 					return;
 				}
 			}
-		});
+		}
+		UnitChange.attach(cameraHandler);
 	}
 
 	public async refreshSelf() {
