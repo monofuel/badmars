@@ -3,10 +3,11 @@
 import { autobind } from 'core-decorators';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import { Button, Modal, Well, ProgressBar, ListGroup, ListGroupItem } from 'react-bootstrap';
 import State from '../state';
 import Entity from '../units/entity';
 import { UnitDeltaChange } from '../net';
+import { Paper } from 'material-ui';
+import LinearProgress from 'material-ui/LinearProgress';
 
 const infoStyle = {
 	position: 'absolute',
@@ -64,31 +65,31 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 		if (selectedUnit.details.type === 'iron' || selectedUnit.details.type === 'oil') {
 			return (
 				<div id='SelectedUnitWell'>
-					<Well bsSize='small' style={infoStyle as any}>
+					<Paper zDepth={3} style={infoStyle as any}>
 						<div>Rate: {rate}</div>
-					</Well>
+					</Paper>
 				</div>
 			);
 		} else {
 			return (
 				<div id='SelectedUnitWell'>
-					<Well bsSize='small' style={infoStyle as any}>
-						<ListGroup>
-							<ListGroupItem>Unit: {type}</ListGroupItem>
-							<ListGroupItem>Owner: {playerName}</ListGroupItem>
+					<Paper zDepth={3} style={infoStyle as any}>
+						<ul style={{ listStyle: 'none' }}>
+							<li>Unit: {type}</li>
+							<li>Owner: {playerName}</li>
 							{ironStorage !== 0 ?
-								<ListGroupItem>Iron: <ProgressBar now={iron} max={ironStorage} label={String(iron)} /></ListGroupItem>
+								<li>Iron: {iron}<LinearProgress mode="determinate" value={iron} max={ironStorage} /></li>
 								:
 								null
 							}
 							{fuelStorage !== 0 ?
-								<ListGroupItem>Fuel: <ProgressBar now={fuel} max={fuelStorage} label={String(fuel)} /></ListGroupItem>
+								<li>Fuel: {fuel}<LinearProgress mode="determinate" value={fuel} max={fuelStorage} /></li>
 								:
 								null
 							}
-							<ListGroupItem>Health: <ProgressBar now={health} max={maxHealth} label={String(health)} /></ListGroupItem>
-						</ListGroup>
-					</Well>
+							<li>Health: {health}<LinearProgress mode="determinate"value={health} max={maxHealth}/></li>
+						</ul>
+					</Paper>
 				</div>
 			)
 		}

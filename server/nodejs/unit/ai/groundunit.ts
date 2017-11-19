@@ -35,7 +35,6 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 	ctx.check('groundUnit simulate');
 	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 
-
 	logger.info(ctx, 'found movable unit');
 
 	// waiting to move again

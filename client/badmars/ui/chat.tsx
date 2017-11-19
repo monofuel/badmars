@@ -60,7 +60,7 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 		minimized: true,
 		sendText: ''
 	};
-	textField: TextField;
+	textField: TextField | null;
 	interval: NodeJS.Timer;
 
 	render() {
@@ -122,7 +122,7 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 
 	@autobind
 	private onFocusChange(e: GameFocusEvent) {
-		if (e.prev === 'chat' && e.focus !== 'chat') {
+		if (e.prev === 'chat' && e.focus !== 'chat' && this.textField) {
 			this.textField.blur();
 		}
 	}
