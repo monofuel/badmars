@@ -5,7 +5,6 @@ import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import { Button } from 'react-bootstrap';
 
 import IconButton from 'material-ui/IconButton';
 import FontIcon from 'material-ui/FontIcon';
@@ -94,6 +93,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 	};
 	public props: HUDProps;
 
+	// TODO error messsages are not wired up
 	public state: HUDState = {
 		login: false,
 		selectedUnits: null,

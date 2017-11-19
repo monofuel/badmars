@@ -3,7 +3,6 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import * as _ from 'lodash';
-import { Button, Modal, Alert } from 'react-bootstrap';
 import config from '../config';
 import { RequestChange } from '../net';
 import State from '../state';
@@ -21,7 +20,7 @@ export default class LoginModal extends React.Component<{}, {}> {
 
 	_onLoginClick() {
 		let username = this.usernameField.value;
-		let color = this.colorField.value;
+		//let color = this.colorField.value;
 		this.context.state.username = username;
 
 		RequestChange.post({
@@ -31,8 +30,12 @@ export default class LoginModal extends React.Component<{}, {}> {
 	}
 
 	render() {
-		let randomColor = (Math.round(Math.random() * 0xffffff)).toString(16);
 
+		// TODO
+		return <div/>
+		//let randomColor = (Math.round(Math.random() * 0xffffff)).toString(16);
+
+		/*
 		return (
 			<div id='loginModal'>
 				<Modal show={true} onHide={_.noop}>
@@ -64,5 +67,6 @@ export default class LoginModal extends React.Component<{}, {}> {
 				</Modal>
 			</div>
 		);
+		*/
 	}
 }

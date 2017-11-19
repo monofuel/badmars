@@ -2,15 +2,8 @@
 
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import {Alert} from 'react-bootstrap';
+import Snackbar from 'material-ui/Snackbar';
 import State from '../state';
-
-const errorStyle: any = {
-	top: '100px',
-	position: 'absolute',
-	left: '10%',
-	width: '80%'
-}
 
 type Props = {
 	errorMessage: string;
@@ -36,10 +29,7 @@ export default class ErrorAlert extends React.Component<Props,{}> {
 			'Looks like there\'s been an unknown error! Monkeys have been dispatched to fix the issue, but you might want to reload.';
 
 		return (
-			<Alert bsStyle='danger' style={errorStyle} onDismiss={onClose}>
-				<h4>Oops!</h4>
-				<p>{message}</p>
-			</Alert>
+			<Snackbar open={true} message={message} onRequestClose={onClose}/>
 		);
 	}
 };
