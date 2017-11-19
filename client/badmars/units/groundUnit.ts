@@ -126,6 +126,10 @@ export default class GroundUnit extends Entity {
 	hilightDestination() {
 		const { display } = this.state;
 		if (!this.movable || !this.movable.destination) {
+			if (this.destHilightPlane) {
+				display.removeMesh(this.destHilightPlane);
+				this.destHilightPlane = null;
+			}
 			return;
 		}
 		const dest: TileHash = this.movable.destination;
