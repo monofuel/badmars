@@ -59,7 +59,7 @@ export default class GroundUnit extends Entity {
 		this.timeToMove = time;
 		// I wish i knew what i was doing
 		const angle = tile.getEuler().toVector3().add(
-			new THREE.Vector3(-Math.PI / 2, 0,0)
+			new THREE.Vector3(-Math.PI / 2, 0, 0)
 		);
 		const x = (this.loc.x - tile.x) * (Math.PI / 2);
 		const y = ((this.loc.y - tile.y) * Math.PI);
@@ -84,7 +84,7 @@ export default class GroundUnit extends Entity {
 				this.location.y
 			);
 			if (!this.loc.equals(nextTile)) {
-				this.updateNextMove(nextTile, this.movable.speed / 2); // TODO should divide by tickrate
+				this.updateNextMove(nextTile, this.movable.speed / 1); // TODO should divide by tickrate
 			}
 		}
 
