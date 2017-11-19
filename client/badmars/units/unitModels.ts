@@ -20,14 +20,16 @@ export function getMesh(name: string): THREE.Group {
 
 export function handleModelChanges(state: State) {
 	async function updateUnitsListener(data: UnitStatsEvent) {
-		for (const unitType of Object.keys(data.units)) {
+		log('debug', 'loading models');
+		await Promise.all(Object.keys(data.units).map(async (unitType) => {
 			await updateModel(unitType, data.units[unitType].graphical);
-
+			
 			// update all models of that type
 			state.map.units
 				.filter((unit) => unit.details.type === unitType)
 				.map((unit) => unit.refreshMesh());
-		}
+		}));
+		log('debug', 'done loading models');
 	}
 	UnitStatsChange.attach(updateUnitsListener);
 }

@@ -43,12 +43,14 @@ declare const $: any;
 
 async function gameInit(): Promise<State> {
 	const state = new State();
+	console.log('requesting self', new Date());
 	await state.refreshSelf();
 	state.display = new Display(state);
 	state.net = new Net(state);
 	state.input = new Input(state);
 	state.mainLoop = new MainLoop(state);
 
+	console.log('setting up UI', new Date());
 	ui(state);
 	attachGlobalListeners(state);
 
@@ -62,16 +64,20 @@ async function gameInit(): Promise<State> {
 	});
 	handleBalanceChanges(state);
 	handleModelChanges(state);
+	console.log('requesting animation frame', new Date());
 	window.requestAnimationFrame(state.mainLoop.logicLoop);
 	return state;
 }
-
+console.log('mounting onload', new Date());
 window.onload = async (): Promise<void> => {
+	console.log('onload started', new Date());
 	const state = await gameInit();
+	console.log('requesting map', new Date());
 	RequestChange.post({
 		type: 'login',
 		planet: 'testmap'
 	});
+	
 
 	// TODO planet selection page
 	/*

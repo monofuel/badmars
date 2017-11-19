@@ -7,7 +7,7 @@ import { DisplayErrorChange } from './gameEvents';
 import Player from './player';
 import State from './state';
 import { log, logError } from './logger';
-import { AsyncEvent } from 'ts-events';
+import { SyncEvent, AsyncEvent } from 'ts-events';
 import config from './config';
 const t = require('flow-runtime');
 
@@ -371,8 +371,8 @@ interface TransferRequest {
 // ------------------------------------------
 // event emitters
 
-export const MapChange = new AsyncEvent<MapEvent>();
-export const ConnectedChange = new AsyncEvent<ConnectedEvent>();
+export const MapChange = new SyncEvent<MapEvent>();
+export const ConnectedChange = new SyncEvent<ConnectedEvent>();
 export const PlayersChange = new AsyncEvent<PlayersEvent>();
 export const SpawnChange = new AsyncEvent<SpawnEvent>();
 export const UnitChange = new AsyncEvent<UnitEvent>();
@@ -507,12 +507,6 @@ export default class Net {
 			log('debug', `message failed: ${data.type} reason: ${data.reason}`);
 		}
 		log('silly', `recieved message ${data.type}`, { data });
-
-		// TODO ask for unit stats
-		// TODO load planet information for map
-		// TODO ask for units
-		// TODO ask for spawning
-		// TODO get players
 
 		switch (data.type) {
 			case 'map':

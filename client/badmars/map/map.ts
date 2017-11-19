@@ -131,9 +131,11 @@ export default class Map {
 			jsonpatch.applyPatch(unit, data.delta);
 		};
 		UnitDeltaChange.attach(this.updateUnitDeltaListener);
+		log('info', 'attached map handlers');
 
 	}
 	private addUnit(unit: ServerUnit) {
+		log('silly', 'adding unit to map');
 		if (!unit.graphical) {
 			log('debug', 'unit without graphical component added');
 			return;

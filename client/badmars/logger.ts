@@ -52,9 +52,9 @@ LogChange.attach(async (event: LogEvent): Promise<void> => {
 	}
 	const logFn = event.level === 'error' ? console.error : console.log;
 	if (event.meta && Object.keys(event.meta).length > 0) {
-		logFn(`${event.level} | ${event.name} | ${JSON.stringify(event.meta)}`);
+		logFn(`${new Date()} ${event.level} | ${event.name} | ${JSON.stringify(event.meta)}`);
 	} else {
-		logFn(`${event.level} | ${event.name}`);
+		logFn(`${new Date()} ${event.level} | ${event.name}`);
 	}
 });
 

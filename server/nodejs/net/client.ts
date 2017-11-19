@@ -78,7 +78,7 @@ export default class Client {
 		}, KEEP_ALIVE);
 	}
 
-	send(type: string, data?: any) {
+	async send(type: string, data?: any) {
 		if (!this.ws) {
 			//logger.errorWithInfo('sending data on closed websocket', { type, data });
 			return;
@@ -88,7 +88,7 @@ export default class Client {
 		data.success = true;
 		try {
 			//console.log('sending ', type);
-			this.ws.send(JSON.stringify(data));
+			await this.ws.send(JSON.stringify(data));
 		} catch (err) {
 			this.handleLogOut();
 		}
@@ -174,13 +174,13 @@ export default class Client {
 			//console.log('unit change');
 			const sanitizedOldUnit = sanitizeUnit(oldUnit, this.user.uuid);
 			if (!_.isEqual(sanitizedNewUnit, sanitizedOldUnit)) {
-				this.send('unitDelta', {
+				await this.send('unitDelta', {
 					uuid: sanitizedNewUnit.uuid,
 					delta: jsonpatch.compare(sanitizedOldUnit, sanitizedNewUnit)
 				});
 			}
 		} else {
-			this.send('units', {
+			await this.send('units', {
 				units: [sanitizedNewUnit]
 			});
 		}
@@ -188,7 +188,7 @@ export default class Client {
 
 	async handleUserUpdate(ctx: Context, user: User) {
 		const newUser = sanitizeUser(user);
-		this.send('players', { players: [newUser] });
+		await this.send('players', { players: [newUser] });
 	}
 
 	async handleEvents(ctx: Context, gameEvent: any) {
@@ -204,13 +204,13 @@ export default class Client {
 				if (!gameEvent.unitId) {
 					logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
 				}
-				this.send('attack', { enemyId: gameEvent.enemyId, unitId: gameEvent.unitId });
+				await this.send('attack', { enemyId: gameEvent.enemyId, unitId: gameEvent.unitId });
 				break;
 			case 'kill':
 				if (!gameEvent.unitId) {
 					logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
 				}
-				this.send('attack', { unitId: gameEvent.unitId });
+				await this.send('attack', { unitId: gameEvent.unitId });
 				break;
 			default:
 				logger.trackError(ctx, new DetailedError('invalid event', { id: gameEvent.id, type: gameEvent.type }));
@@ -219,6 +219,6 @@ export default class Client {
 
 	async handleChat(ctx: Context, e: ChatEvent): Promise<void> {
 		// TODO filtering based on channel and planet
-		this.send('chat', e);
+		await this.send('chat', e);
 	}
 }
