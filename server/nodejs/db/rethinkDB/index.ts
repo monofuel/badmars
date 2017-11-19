@@ -12,6 +12,10 @@ export default class RethinkDB implements DB.DB {
         throw new Error('not implemented');
     }
 
+    stop(ctx: Context): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
     async createPlanet(ctx: Context, name: string): Promise<DB.Planet> {
         throw new Error('not implemented');
     }
