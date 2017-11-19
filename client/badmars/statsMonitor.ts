@@ -1,45 +1,44 @@
-// monofuel
-
-// Stats comes from stats.min.js
 declare interface StatsType {
 	setMode(num: number): void;
 	domElement: any;
 	begin(): void;
 	end(): void;
 }
-declare var Stats: any;
+
+const Stats = require('stats.js');
 
 export default class StatsMonitor {
 	fpsStats: StatsType;
 	msStats: StatsType;
 	mbStats: StatsType;
+
 	constructor() {
 		this.fpsStats = new Stats();
 		this.msStats = new Stats();
 		this.mbStats = new Stats();
 
-		this.fpsStats.setMode(0);
-		this.msStats.setMode(1);
-		this.mbStats.setMode(2);
+		const { fpsStats, msStats, mbStats } = this;
 
-		this.fpsStats.domElement.style.position = 'absolute';
-		this.fpsStats.domElement.style.left = '0px';
-		this.fpsStats.domElement.style.bottom = '0px';
+		fpsStats.setMode(0);
+		msStats.setMode(1);
+		mbStats.setMode(2);
 
-		this.msStats.domElement.style.position = 'absolute';
-		this.msStats.domElement.style.left = '80px';
-		this.msStats.domElement.style.bottom = '0px';
+		fpsStats.domElement.style.position = 'absolute';
+		fpsStats.domElement.style.left = '0px';
+		fpsStats.domElement.style.bottom = '0px';
 
-		this.mbStats.domElement.style.position = 'absolute';
-		this.mbStats.domElement.style.left = '160px';
-		this.mbStats.domElement.style.bottom = '0px';
+		msStats.domElement.style.position = 'absolute';
+		msStats.domElement.style.left = '80px';
+		msStats.domElement.style.bottom = '0px';
 
-		const body = document.body;
-		if (body) {
-			body.appendChild(this.fpsStats.domElement);
-			body.appendChild(this.msStats.domElement);
-			body.appendChild(this.mbStats.domElement);
-		}
+		mbStats.domElement.style.position = 'absolute';
+		mbStats.domElement.style.left = '160px';
+		mbStats.domElement.style.bottom = '0px';
+
+		const div = document.getElementById('stats');
+		div.appendChild(fpsStats.domElement);
+		div.appendChild(msStats.domElement);
+		div.appendChild(mbStats.domElement);
 
 		console.log('stats monitor loaded');
 	}

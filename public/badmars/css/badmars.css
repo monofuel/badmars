@@ -1,11 +1,11 @@
 body {
     margin: 0;
     overflow: hidden;
-}
-
-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 100%
+    height: 100%;
 }
 
 button {
@@ -55,6 +55,12 @@ button {
     bottom: 0;
 }
 
+#stats {
+    position: absolute;
+    left: 0;
+    bottom: 50px;
+}
+
 #threePanel {
     z-index: 0;
 }
@@ -71,6 +77,8 @@ button {
     position: absolute;
     top: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 @font-face {
