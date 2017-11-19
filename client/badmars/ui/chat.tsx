@@ -140,11 +140,13 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 
 
 	componentDidMount() {
+		/*
 		if (!this.interval) {
 			this.interval = setInterval(() => {
 				this.forceUpdate();
 			}, 1000);
 		}
+		*/
 		GameFocusChange.attach(this.onFocusChange);
 	}
 

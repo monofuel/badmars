@@ -18,8 +18,6 @@ export default class MainLoop {
 
 	@autobind
 	public logicLoop() {
-		window.requestAnimationFrame(this.logicLoop);
-
 		this.statsMonitor.begin();
 		try {
 			const delta = this.clock.getDelta();
@@ -33,5 +31,6 @@ export default class MainLoop {
 			logError(err);
 		}
 		this.statsMonitor.end();
+		window.requestAnimationFrame(this.logicLoop);
 	}
 }
