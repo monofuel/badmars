@@ -1,20 +1,39 @@
 // monofuel
 
 import { autobind } from 'core-decorators';
-import Map from './map/map';
-import Entity from './units/entity';
-import { DisplayErrorChange } from './gameEvents';
-import Player from './player';
-import State from './state';
+import State, {
+	DisplayErrorChange,
+	MapChange,
+	ConnectedChange,
+	PlayersChange,
+	SpawnChange,
+	UnitChange,
+	LoginChange,
+	ChunkChange,
+	UnitStatsChange,
+	UnitDeltaChange,
+} from './state';
 import { log, logError } from './logger';
-import { SyncEvent, AsyncEvent } from 'ts-events';
+import { AsyncEvent } from 'ts-events';
 import config from './config';
+import {
+	Planet,
+	ServerMapType,
+	User,
+	UserType,
+	Unit,
+	UnitType,
+	ChunkType,
+	UnitStats,
+	UnitStatsType
+} from './';
 const t = require('flow-runtime');
 
 // ------------------------------------------
 // server event types
 
 type UUID = string;
+type TileHash = string;
 
 type NetworkEvent = MapEvent |
 	ConnectedEvent |
@@ -40,53 +59,8 @@ interface BaseEvent {
 
 interface MapEvent extends BaseEvent {
 	type: 'map';
-	map: ServerMap;
+	map: Planet;
 }
-
-interface ServerMap {
-	settings: {
-		chunkSize: number,
-		waterHeight: number,
-		cliffDelta: number,
-		water: boolean,
-		bigNoise: number,
-		medNoise: number,
-		smallNoise: number,
-		bigNoiseScale: number,
-		medNoiseScale: number,
-		smallNoiseScale: number,
-		ironChance: number,
-		oilChance: number,
-	};
-	seed: number;
-	isSpawned: boolean;
-	name: string;
-	paused: boolean;
-	users: UUID[];
-}
-
-const ServerMapType = t.object({
-	settings: t.object({
-		chunkSize: t.number(),
-		waterHeight: t.number(),
-		cliffDelta: t.number(),
-		water: t.boolean(),
-		bigNoise: t.number(),
-		medNoise: t.number(),
-		smallNoise: t.number(),
-		bigNoiseScale: t.number(),
-		medNoiseScale: t.number(),
-		smallNoiseScale: t.number(),
-		ironChance: t.number(),
-		oilChance: t.number(),
-	}),
-	seed: t.number(),
-	isSpawned: t.boolean(),
-	name: t.string(),
-	paused: t.boolean(),
-	users: t.array(t.string()),
-})
-
 
 interface SetDestinationResponse extends BaseEvent {
 	type: 'setDestination';
@@ -107,90 +81,21 @@ export interface ConnectedEvent extends BaseEvent {
 
 interface PlayersEvent extends BaseEvent {
 	type: 'players';
-	players: {
-		uuid: UUID,
-		name: string,
-		color: string,
-	}[];
+	players: User[];
 }
 
 const PlayersEventType = t.object({
 	type: t.string('players'),
-	players: t.array(t.object({
-		uuid: t.string(),
-		name: t.string(),
-		color: t.string(),
-	}))
+	players: t.array(UserType)
 });
 
 export interface SpawnEvent extends BaseEvent {
 	type: 'spawn';
 }
 
-export interface ServerUnit {
-	uuid: string;
-	awake: boolean;
-	details: {
-		type: string;
-		health: number;
-		ghosting: boolean;
-		owner: string;
-	};
-	location: {
-		hash: TileHash[];
-		x: number;
-		y: number;
-		chunkHash: TileHash[];
-		chunkX: number;
-		chunkY: number;
-	};
-	movable?: {
-
-	};
-	attack?: {
-
-	};
-
-	storage?: {
-
-	};
-	graphical?: {
-		model: string;
-		scale: number;
-	};
-	stationary?: {
-
-	};
-	construct?: {
-
-	};
-}
-const UnitType = t.object({
-	uuid: t.string(),
-	awake: t.boolean(),
-	details: t.object({
-		type: t.string(),
-		health: t.number(),
-		ghosting: t.boolean(),
-		owner: t.string(),
-	}),
-	location: t.object({
-		hash: t.array(t.string()),
-		chunkHash: t.array(t.string()),
-		x: t.number(),
-		y: t.number(),
-		chunkX: t.number(),
-		chunkY: t.number(),
-	}),
-	graphical: t.nullable(t.object({
-		model: t.string(),
-		scale: t.number(),
-	}))
-});
-
 export interface UnitEvent extends BaseEvent {
 	type: 'units';
-	units: ServerUnit[];
+	units: Unit[];
 }
 
 const UnitEventType = t.object({
@@ -209,36 +114,6 @@ const UnitDeltaType = t.object({
 	uuid: t.string(),
 	delta: t.array(t.object()),
 });
-
-export interface UnitStats {
-	details: {
-		size: number
-		buildTime: number
-		cost: number
-		maxHealth: number
-	}
-	graphical: {
-		model: string
-		material: string
-		texture: string
-		scale: number
-	}
-}
-
-const UnitStatsType = t.object({
-	details: t.object({
-		size: t.number(),
-		buildTime: t.number(),
-		cost: t.number(),
-		maxHealth: t.number(),
-	}),
-	graphical: t.object({
-		model: t.string(),
-		material: t.mixed(),
-		texture: t.mixed(),
-		scale: t.number(),
-	})
-})
 
 const UnitStatsEventType = t.object({
 	type: t.string('unitStats'),
@@ -269,7 +144,7 @@ const LoginEventType = t.object({
 export interface ChunkEvent extends BaseEvent {
 	type: 'chunk';
 	hash: string;
-	[key: string]: any; // TODO
+	chunk: Chunk;
 }
 
 export interface AttackEvent extends BaseEvent {
@@ -368,22 +243,6 @@ interface TransferRequest {
 	fuel: number;
 }
 
-// ------------------------------------------
-// event emitters
-
-export const MapChange = new SyncEvent<MapEvent>();
-export const ConnectedChange = new SyncEvent<ConnectedEvent>();
-export const PlayersChange = new AsyncEvent<PlayersEvent>();
-export const SpawnChange = new AsyncEvent<SpawnEvent>();
-export const UnitChange = new AsyncEvent<UnitEvent>();
-export const UnitDeltaChange = new AsyncEvent<UnitDeltaEvent>();
-export const UnitStatsChange = new AsyncEvent<UnitStatsEvent>();
-export const ChatChange = new AsyncEvent<ChatEvent>();
-export const LoginChange = new AsyncEvent<LoginEvent>();
-export const ChunkChange = new AsyncEvent<ChunkEvent>();
-export const AttackChange = new AsyncEvent<AttackEvent>();
-export const KillChange = new AsyncEvent<KillEvent>();
-
 export const RequestChange = new AsyncEvent<RequestType>();
 
 // ------------------------------------------
@@ -393,30 +252,6 @@ export const RequestChange = new AsyncEvent<RequestType>();
 
 if (config.debug) {
 	log('debug', 'mounted runtime server type checkers');
-
-	MapChange.attach((event) => {
-		MapEventType.assert(event);
-	})
-
-	UnitChange.attach((event) => {
-		UnitEventType.assert(event);
-	});
-
-	UnitDeltaChange.attach((event) => {
-		UnitDeltaType.assert(event);
-	});
-
-	UnitStatsChange.attach((event) => {
-		UnitStatsEventType.assert(event);
-	})
-
-	PlayersChange.attach((event) => {
-		PlayersEventType.assert(event);
-	});
-
-	LoginChange.attach((event) => {
-		LoginEventType.assert(event);
-	});
 
 	RequestChange.attach((event) => {
 		switch (event.type) {
@@ -481,12 +316,6 @@ export default class Net {
 
 		this.ws.onmessage = this.onmessage;
 
-		PlayersChange.attach((event: PlayersEvent) => {
-			event.players.forEach((player) => {
-				this.state.addPlayer(player.uuid, player.name, player.color);
-			});
-		});
-
 		await new Promise((resolve) => {
 			this.ws.onopen = () => {
 				log('debug', 'connected!');
@@ -510,35 +339,46 @@ export default class Net {
 
 		switch (data.type) {
 			case 'map':
-				MapChange.post(data);
+				MapEventType.assert(data);
+				MapChange.post({
+					map: data.map,
+				})
 				return;
 			case 'connected':
-				ConnectedChange.post(data);
+				ConnectedChange.post({});
 				return;
 			case 'players':
-				PlayersChange.post(data);
+				PlayersEventType.assert(data);
+				PlayersChange.post({
+					list: data.players,
+				});
 				return;
 			case 'spawn':
-				SpawnChange.post(data);
+				SpawnChange.post({});
 				return;
 			case 'units':
-				UnitChange.post(data);
+				UnitChange.post({
+					list: data.units,
+				});
 				return;
 			case 'login':
-				LoginChange.post(data);
+				LoginChange.post({});
 				return;
 			case 'chunk':
-				ChunkChange.post(data);
+				ChunkChange.post({
+					chunk: data.chunk
+				});
 				return;
 			case 'unitStats':
-				UnitStatsChange.post(data);
+				UnitStatsChange.post({
+					stats: data.units
+				});
 				return;
 			case 'unitDelta':
-				UnitDeltaChange.post(data);
-				return;
-			case 'setDestination':
-				return;
-			case 'transferResource':
+				UnitDeltaChange.post({
+					uuid: data.uuid,
+					delta: data.delta,
+				});
 				return;
 			default:
 				log('error', `unknown message type: ${(data as any).type} with fields ${Object.keys(data)}`);

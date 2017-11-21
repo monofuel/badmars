@@ -31,3 +31,14 @@ interface FactoryOrder {
 	type: UnitType,
 	created: number,
 }
+
+interface Chunk {
+	x: number;
+	y: number;
+	hash: TileHash;
+	map: string;
+
+	grid: Array<Array<number>>;
+	navGrid: Array<Array<TileCode>>;
+	chunkSize: number;
+}

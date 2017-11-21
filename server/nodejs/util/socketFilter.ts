@@ -179,11 +179,11 @@ function sanitizeOwnedUnitConstruct(construct: UnitConstruct) {
 export function sanitizeUser(user: User) {
 	const {
 		uuid,
-		name,
+		username,
 	} = user;
 	return {
 		uuid,
-		name,
+		username,
 	};
 }
 

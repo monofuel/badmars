@@ -2,9 +2,10 @@
 
 import { autobind } from 'core-decorators';
 import StatsMonitor from './statsMonitor';
-import State from './state';
 import { log, logError } from './logger';
 import * as THREE from 'three';
+import State from './state';
+import * as tsevents from 'ts-events';
 
 export default class MainLoop {
 	clock: THREE.Clock;
@@ -19,6 +20,9 @@ export default class MainLoop {
 	@autobind
 	public logicLoop() {
 		this.statsMonitor.begin();
+		
+		// TODO should compare using .flush() and flushOnce()
+		tsevents.flushOnce();
 		try {
 			const delta = this.clock.getDelta();
 			this.state.input.update(delta);

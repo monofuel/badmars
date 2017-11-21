@@ -1,8 +1,5 @@
-// monofuel
-
-import { UnitStatsChange, UnitStatsEvent } from '../net';
 import Entity from '../units/entity';
-import State from '../state';
+import State, { UnitStatsChange, UnitStatsEvent } from '../state';
 import * as _ from 'lodash';
 
 let units: any = {};
@@ -24,8 +21,8 @@ export function getUnitInfo(type: string) {
 
 export function handleBalanceChanges(state: State) {
 	function updateUnitsListener(data: UnitStatsEvent) {
-		console.log('new units data', data.units);
-		units = data.units;
+		console.log('new units data', data.stats);
+		units = data.stats;
 
 		if (state.map) {
 			state.map.units.forEach(updateUnit);

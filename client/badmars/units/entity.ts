@@ -2,7 +2,6 @@
 
 import { N, S, E, W, C } from './directions';
 import PlanetLoc from '../map/planetLoc';
-import Player from '../player';
 import State from '../state';
 import { updateUnit } from './unitBalance';
 import { getMesh } from './unitModels';
@@ -25,6 +24,7 @@ export default class Entity {
 
 	/* stuff from server */
 
+	// TODO unify this with typing in badmars.d.ts
 	uuid: string;
 	awake: boolean;
 
