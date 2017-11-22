@@ -55,7 +55,7 @@ export interface User {
 export const UserType = t.object({
     uuid: t.string(),
     username: t.string(),
-    email: t.optional(t.string()),
+    email: t.nullable(t.string()),
 });
 
 
@@ -128,4 +128,35 @@ export const ChunkType = t.object({
     grid: t.array(t.array(t.number())),
     navGrid: t.array(t.array(t.number())),
     chunkSize: t.number(),
+})
+
+// TODO partial typing
+export interface UnitStats {
+	details: {
+		size: number
+		buildTime: number
+		cost: number
+		maxHealth: number
+	}
+	graphical: {
+		model: string
+		material: string
+		texture: string
+		scale: number
+	}
+}
+
+export const UnitStatsType = t.object({
+	details: t.object({
+		size: t.number(),
+		buildTime: t.number(),
+		cost: t.number(),
+		maxHealth: t.number(),
+	}),
+	graphical: t.object({
+		model: t.string(),
+		material: t.mixed(),
+		texture: t.mixed(),
+		scale: t.number(),
+	})
 })

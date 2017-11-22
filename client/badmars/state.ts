@@ -2,14 +2,14 @@ import axios from 'axios';
 import * as _ from 'lodash';
 import Map from './map/map';
 import Display from './display';
-import Input from './input';
+import Input, { MouseMoveChanged } from './input';
 import MainLoop from './mainLoop';
 import Entity from './units/entity';
 import PlanetLoc from './map/planetLoc';
 import Net, { RequestChange } from './net';
 import { log } from './logger';
 // import config from './config';
-import { QueuedEvent } from 'ts-events';
+import { QueuedEvent, EventQueue } from 'ts-events';
 import { Planet, User, Unit, UnitStats } from './';
 export type GameStageType = 'login' | 'planet';
 export type Focused = 'chat' | 'hud' | 'game';
@@ -99,10 +99,12 @@ export const LoginChange = new QueuedEvent<LoginEvent>();
 export const GameStageChange = new QueuedEvent<GameStageEvent>();
 export const GameFocusChange = new QueuedEvent<GameFocusEvent>();
 export const PlayersChange = new QueuedEvent<PlayersEvent>();
-export const MapChange = new QueuedEvent<MapEvent>();
+export const MapQueue = new EventQueue();
+export const MapChange = new QueuedEvent<MapEvent>({ queue: MapQueue });
 export const ConnectedChange = new QueuedEvent<ConnectedEvent>();
 export const SpawnChange = new QueuedEvent<SpawnEvent>();
-export const UnitChange = new QueuedEvent<UnitEvent>();
+export const UnitQueue = new EventQueue();
+export const UnitChange = new QueuedEvent<UnitEvent>({ queue: UnitQueue });
 
 export const UnitStatsChange = new QueuedEvent<UnitStatsEvent>();
 export const ChunkChange = new QueuedEvent<ChunkEvent>();
@@ -212,6 +214,19 @@ export async function newState(): Promise<State> {
 		});
 	}
 	SpawnChange.once(spawnListener);
+
+	function loginListener() {
+		RequestChange.post({
+			type: 'getMap'
+		});
+
+		GameStageChange.post({ stage: 'planet' });
+		
+		// TODO why is mouesmode here?
+		state.input.mouseMode = 'select';
+		LoginChange.detach(loginListener);
+	}
+	LoginChange.attach(loginListener);
 
 	const cameraHandler = async ({ list: units }: UnitEvent) => {
 		if (units.length == 0) {

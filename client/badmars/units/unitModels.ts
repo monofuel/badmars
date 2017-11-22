@@ -6,8 +6,7 @@ import { log } from '../logger';
 const ColladaLoader = require('three-collada-loader');
 // const textureLoader = new THREE.TextureLoader();
 
-import { UnitStatsChange, UnitStatsEvent } from '../net';
-import State from '../state';
+import State,{ UnitStatsChange, UnitStatsEvent } from '../state';
 
 const modelMap: { [key: string]: THREE.Group } = {}
 
@@ -21,8 +20,8 @@ export function getMesh(name: string): THREE.Group {
 export function handleModelChanges(state: State) {
 	async function updateUnitsListener(data: UnitStatsEvent) {
 		log('debug', 'loading models');
-		await Promise.all(Object.keys(data.units).map(async (unitType) => {
-			await updateModel(unitType, data.units[unitType].graphical);
+		await Promise.all(Object.keys(data.stats).map(async (unitType) => {
+			await updateModel(unitType, data.stats[unitType].graphical);
 			
 			// update all models of that type
 			state.map.units

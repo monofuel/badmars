@@ -11,9 +11,8 @@ import TextField from 'material-ui/TextField';
 import { Paper } from 'material-ui';
 import { Table, TableBody, TableRow, TableRowColumn } from 'material-ui/Table';
 
-import State from '../state';
+import State, { GameFocusChange, GameFocusEvent } from '../state';
 import { RequestChange } from '../net';
-import { GameFocusChange, GameFocusEvent } from '../gameEvents';
 
 const chatWellStyle = {
 	position: 'absolute',
@@ -129,12 +128,12 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 
 	@autobind
 	private setGameFocus() {
-		this.context.state.setFocus('game');
+		GameFocusChange.post({ focus: 'game', prev: this.context.state.focused });
 	}
 
 	@autobind
 	private setChatFocus(e: React.MouseEvent<HTMLDivElement>) {
-		this.context.state.setFocus('chat');
+		GameFocusChange.post({ focus: 'chat', prev: this.context.state.focused });
 		e.stopPropagation();
 	}
 

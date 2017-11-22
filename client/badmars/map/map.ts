@@ -3,7 +3,16 @@
 import PlanetLoc from './planetLoc';
 import { TILE_LAND, TILE_WATER, TILE_CLIFF, TILE_COAST } from './tileTypes';
 import Entity from '../units/entity';
-import State from '../state';
+import State, {
+	ChunkEvent,
+	ChunkChange,
+
+	UnitEvent,
+	UnitChange,
+	UnitDeltaEvent,
+	UnitDeltaChange,
+
+} from '../state';
 import Iron from '../units/iron';
 import Oil from '../units/oil';
 import PlayerUnit from '../units/playerUnit';
@@ -15,21 +24,8 @@ import config from '../config';
 import * as jsonpatch from 'fast-json-patch';
 import * as THREE from 'three';
 import * as _ from 'lodash';
-
-import {
-	ChunkEvent,
-	ChunkChange,
-	AttackEvent,
-	AttackChange,
-	KillEvent,
-	KillChange,
-	UnitEvent,
-	UnitChange,
-	UnitDeltaEvent,
-	UnitDeltaChange,
-	RequestChange,
-	ServerUnit,
-} from '../net';
+import { Unit } from '../';
+import { RequestChange } from '../net';
 
 // TODO chunk should be a type
 
@@ -42,15 +38,16 @@ export default class Map {
 	units: Array<Entity>;
 	planetData: any;
 	worldSettings: any;
-	attackListener: (data: AttackEvent) => void;
-	killListener: (data: KillEvent) => void;
+	// TODO
+	// attackListener: (data: AttackEvent) => void;
+	// killListener: (data: KillEvent) => void;
 	chunkListener: (data: ChunkEvent) => void;
 	updateUnitsListener: (data: UnitEvent) => void;
 	updateUnitDeltaListener: (data: UnitDeltaEvent) => void;
 	chunkCache: any;
 	requestedChunks: any;
 
-	chunkInterval: NodeJS.Timer;
+	chunkInterval: any;
 
 	constructor(state: State, planet: any) {
 		this.state = state;
@@ -90,6 +87,7 @@ export default class Map {
 		}
 		ChunkChange.attach(this.chunkListener);
 
+		/*
 		this.attackListener = (data: AttackEvent) => {
 			var unit = this.getUnitById(data.enemyId);
 			var attackingUnit = this.getUnitById(data.unitId);
@@ -108,9 +106,10 @@ export default class Map {
 			unit.destroy();
 		};
 		KillChange.attach(this.killListener);
+		*/
 
 		this.updateUnitsListener = (data: UnitEvent) => {
-			for (let updated of data.units) {
+			for (let updated of data.list) {
 				let unit = this.getUnitById(updated.uuid);
 				if (unit) {
 					if (unit.updateUnitData) {
@@ -134,7 +133,7 @@ export default class Map {
 		log('info', 'attached map handlers');
 
 	}
-	private addUnit(unit: ServerUnit) {
+	private addUnit(unit: Unit) {
 		log('silly', 'adding unit to map');
 		if (!unit.graphical) {
 			log('debug', 'unit without graphical component added');
@@ -186,8 +185,9 @@ export default class Map {
 	destroy() {
 		const { display } = this.state;
 		clearInterval(this.chunkInterval);
-		AttackChange.detach(this.attackListener);
+		/*AttackChange.detach(this.attackListener);
 		KillChange.detach(this.killListener);
+		*/
 		ChunkChange.detach(this.chunkListener);
 		for (const mesh of this.landMeshes) {
 			display.removeMesh(mesh);

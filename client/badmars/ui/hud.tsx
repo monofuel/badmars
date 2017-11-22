@@ -19,21 +19,16 @@ import AboutModal from './about';
 import SelectedUnitWell from './selectedUnit';
 import Transfer from './transfer';
 import Entity from '../units/entity';
-import State from '../state';
-import BMDatGui from './datgui';
-import {
-	DisplayErrorChange,
-	LoginChange,
+import State, {
 	SelectedUnitsChange,
+	UnitChange,
 	TransferChange,
-	TransferEvent,
 	GameStageChange,
+	GameFocusChange,
 	GameStageEvent,
-} from '../gameEvents';
-import {
-	ChatChange,
-	UnitChange
-} from '../net';
+	StartTransferEvent
+} from '../state';
+import BMDatGui from './datgui';
 
 const { palette } = config;
 
@@ -113,9 +108,10 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 
 	public componentDidMount() {
 		SelectedUnitsChange.attach(({ units }) => this.selectedUnitsHandler(units));
-		UnitChange.attach(({ units }) => this.updateUnitsHandler(units));
+		UnitChange.attach(({ list }) => this.updateUnitsHandler(list));
 		TransferChange.attach(this.unitTransferHandler);
-		ChatChange.attach((msg) => this._addChatMessage(msg));
+		// TODO update for new event system
+		// ChatChange.attach((msg) => this._addChatMessage(msg));
 		GameStageChange.attach(this._gameStateChange);
 		BMDatGui();
 	}
@@ -149,7 +145,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 						{aboutOpen
 							? <AboutModal
 								onClose={() => {
-									this.props.state.setFocus('game');
+									GameFocusChange.post({ focus: 'game', prev: state.focused });
 									this.setState({ aboutOpen: false });
 								}} />
 							: null
@@ -187,12 +183,12 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 
 	@autobind
 	private setGameFocus(e: React.MouseEvent<HTMLDivElement>) {
-		this.props.state.setFocus('game');
+		GameFocusChange.post({ focus: 'game', prev: this.props.state.focused });
 	}
 
 	@autobind
 	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
-		this.props.state.setFocus('hud');
+		GameFocusChange.post({ focus: 'hud', prev: this.props.state.focused });
 		e.stopPropagation();
 	}
 
@@ -222,7 +218,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 	}
 
 	@autobind
-	unitTransferHandler(e: TransferEvent) {
+	unitTransferHandler(e: StartTransferEvent) {
 		console.log('unit transfering');
 		this.setState({
 			transfering: true,

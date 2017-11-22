@@ -3,9 +3,8 @@
 import { autobind } from 'core-decorators';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import State from '../state';
+import State, { getPlayerByUUID, UnitDeltaChange } from '../state';
 import Entity from '../units/entity';
-import { UnitDeltaChange } from '../net';
 import { Paper } from 'material-ui';
 import LinearProgress from 'material-ui/LinearProgress';
 
@@ -59,7 +58,7 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 		const fuelStorage = (selectedUnit.storage ? selectedUnit.storage.maxFuel : 0);
 
 		let health = (selectedUnit.details.health ? selectedUnit.details.health : 0);;
-		let player = state.getPlayerByUUID(selectedUnit.details.owner);
+		let player = getPlayerByUUID(state, selectedUnit.details.owner);
 		let playerName = (player ? player.username : '');
 
 		if (selectedUnit.details.type === 'iron' || selectedUnit.details.type === 'oil') {

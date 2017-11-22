@@ -21,7 +21,7 @@ export default class LoginModal extends React.Component<{}, {}> {
 	_onLoginClick() {
 		let username = this.usernameField.value;
 		//let color = this.colorField.value;
-		this.context.state.username = username;
+		// this.context.state.username = username;
 
 		RequestChange.post({
 			type: 'login',

@@ -11,11 +11,10 @@ import ContentAdd from 'material-ui/svg-icons/content/add';
 import { Paper } from 'material-ui';
 
 import Entity from '../units/entity';
-import State from '../state';
+import State, { GameFocusChange, SelectedUnitsChange, SelectedUnitsEvent } from '../state';
 import { RequestChange } from '../net';
 import { MouseReleaseEvent } from '../input';
 import { log } from '../logger';
-import { SelectedUnitsChange, SelectedUnitsEvent } from '../gameEvents';
 
 interface Props {
 	selectedUnits: Entity[]
@@ -149,8 +148,7 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 
 	@autobind
 	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
-		this.context.state.setFocus('hud');
-		console.log('set hud focus');
+		GameFocusChange.post({ focus: 'hud', prev: this.context.state.focused });
 		e.stopPropagation();
 	}
 

@@ -4,7 +4,7 @@ import { autobind } from 'core-decorators';
 import StatsMonitor from './statsMonitor';
 import { log, logError } from './logger';
 import * as THREE from 'three';
-import State from './state';
+import State, { MapQueue, UnitQueue } from './state';
 import * as tsevents from 'ts-events';
 
 export default class MainLoop {
@@ -20,10 +20,12 @@ export default class MainLoop {
 	@autobind
 	public logicLoop() {
 		this.statsMonitor.begin();
-		
-		// TODO should compare using .flush() and flushOnce()
-		tsevents.flushOnce();
 		try {
+
+			MapQueue.flush();
+			UnitQueue.flush();
+			tsevents.flushOnce();
+
 			const delta = this.clock.getDelta();
 			this.state.input.update(delta);
 			if (this.state.map) {

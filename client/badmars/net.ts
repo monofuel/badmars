@@ -340,6 +340,7 @@ export default class Net {
 		switch (data.type) {
 			case 'map':
 				MapEventType.assert(data);
+				console.log('GOT MAP')
 				MapChange.post({
 					map: data.map,
 				})
