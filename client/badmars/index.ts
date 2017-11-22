@@ -54,8 +54,9 @@ export interface User {
 
 export const UserType = t.object({
     uuid: t.string(),
-    username: t.string(),
-    email: t.nullable(t.string()),
+	username: t.string(),
+	// TOOD optional field?
+    // email: t.nullable(t.string()),
 });
 
 

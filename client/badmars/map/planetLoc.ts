@@ -54,9 +54,9 @@ export class PlanetLoc {
 				this.chunkY--;
 			}
 
-			this.chunk = this.planet.chunkMap[this.chunkX + ':' + this.chunkY];
+			this.chunk = planet.state.chunkMap[this.chunkX + ':' + this.chunkY];
 
-			if (!planet || !planet.chunkMap) {
+			if (!planet || !planet.state.chunkMap) {
 				console.log('invalid call to PlanetLoc');
 				console.log(new Error()
 					.stack);

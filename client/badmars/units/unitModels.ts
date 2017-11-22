@@ -24,7 +24,7 @@ export function handleModelChanges(state: State) {
 			await updateModel(unitType, data.stats[unitType].graphical);
 			
 			// update all models of that type
-			state.map.units
+			state.units
 				.filter((unit) => unit.details.type === unitType)
 				.map((unit) => unit.refreshMesh());
 		}));

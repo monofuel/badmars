@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 import config from './config';
-import { AsyncEvent } from 'ts-events';
+import { SyncEvent } from 'ts-events';
 
 interface MetaType {
 	[key: string]: any;
@@ -16,12 +16,15 @@ interface LogEvent {
 	level: LogLevelType;
 }
 
-const LogChange = new AsyncEvent<LogEvent>();
+const LogChange = new SyncEvent<LogEvent>();
 
 export function log(level: LogLevelType, name: string, meta: MetaType = {}) {
 	LogChange.post({ name, meta, level })
 }
 export function logError(err: Error) {
+	
+	// for pretty sourcemapped errors
+	console.error(err);
 	const meta = {
 		message: err.message,
 		stack: err.stack
@@ -50,11 +53,10 @@ LogChange.attach(async (event: LogEvent): Promise<void> => {
 	if (numberForLevel(event.level) > numberForLevel(config.logLevel)) {
 		return;
 	}
-	const logFn = event.level === 'error' ? console.error : console.log;
 	if (event.meta && Object.keys(event.meta).length > 0) {
-		logFn(`${new Date()} ${event.level} | ${event.name} | ${JSON.stringify(event.meta)}`);
+		console.log(`${new Date()} ${event.level} | ${event.name} | ${JSON.stringify(event.meta)}`);
 	} else {
-		logFn(`${new Date()} ${event.level} | ${event.name}`);
+		console.log(`${new Date()} ${event.level} | ${event.name}`);
 	}
 });
 

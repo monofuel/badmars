@@ -25,7 +25,7 @@ export function handleBalanceChanges(state: State) {
 		units = data.stats;
 
 		if (state.map) {
-			state.map.units.forEach(updateUnit);
+			state.units.forEach(updateUnit);
 		}
 	}
 
