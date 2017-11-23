@@ -7,6 +7,8 @@ import * as THREE from 'three';
 import State, { MapQueue, UnitQueue, UnitStatsQueue } from './state';
 import * as tsevents from 'ts-events';
 import config from './config';
+import { updateUnitEntity } from './units';
+import { clearTimeout } from 'timers';
 
 export default class MainLoop {
 	clock: THREE.Clock;
@@ -35,25 +37,14 @@ export default class MainLoop {
 
 			const delta = this.clock.getDelta();
 			this.state.input.update(delta);
-			if (this.state.map) {
-				this.state.map.update(delta);
-			}
+			Object.values(this.state.unitEntities)
+				.map((unit) => updateUnitEntity(this.state, unit, delta));
 			this.state.display.render(delta);
-
-			// in development, trigger the next frame on success
-			// If the frame failed, the debugger is started
-			if (config.debug) {
-				window.requestAnimationFrame(this.logicLoop);
-			}
 		} catch (err) {
 			logError(err);
 			debugger;
 		}
 		this.statsMonitor.end();
-
-		// in production, always render another frame
-		if (!config.debug) {
-			window.requestAnimationFrame(this.logicLoop);
-		}
+		window.requestAnimationFrame(this.logicLoop);		
 	}
 }

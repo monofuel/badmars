@@ -3,20 +3,19 @@ import * as DB from '../';
 import Context from '../../context';
 import { SyncEvent } from 'ts-events';
 import { startDBCall } from '../helper';
-import GameUnit, { UnitPatch } from '../../unit/unit';
 
-export default class Unit implements DB.Unit {
+export default class DBUnit implements DB.DBUnit {
 
-    private unitChange: SyncEvent<DB.ChangeEvent<GameUnit>>;
-    private units: { [uuid: string]: GameUnit } = {};
+    private unitChange: SyncEvent<DB.ChangeEvent<Unit>>;
+    private units: { [uuid: string]: Unit } = {};
 
     public async init(ctx: Context): Promise<void> {
         ctx.check('unit.init');
-        this.unitChange = new SyncEvent<DB.ChangeEvent<GameUnit>>();
+        this.unitChange = new SyncEvent<DB.ChangeEvent<Unit>>();
 
     }
-    async listPlayersUnits(ctx: Context, uuid: string): Promise<GameUnit[]> {
-        const userUnits: GameUnit[] = [];
+    async listPlayersUnits(ctx: Context, uuid: string): Promise<Unit[]> {
+        const userUnits: Unit[] = [];
         for (const unit of Object.values(this.units)) {
             if (unit.details.owner === uuid) {
                 userUnits.push(unit);
@@ -24,24 +23,24 @@ export default class Unit implements DB.Unit {
         }
         return userUnits;
     }
-    async each(ctx: Context, fn: DB.Handler<GameUnit>): Promise<void> {
+    async each(ctx: Context, fn: DB.Handler<Unit>): Promise<void> {
         for (let uuid in this.units) {
             const unit = this.units[uuid];
             await fn(ctx, unit);
         }
     }
-    async get(ctx: Context, uuid: string): Promise<GameUnit> {
+    async get(ctx: Context, uuid: string): Promise<Unit> {
         return this.units[uuid];
     }
-    async create(ctx: Context, unit: GameUnit): Promise<GameUnit> {
+    async create(ctx: Context, unit: Unit): Promise<Unit> {
         const call = startDBCall(ctx, 'unit.create');
         this.units[unit.uuid] = unit;
         this.unitChange.post({ next: unit });
         await call.end();
         return unit;
     }
-    async getBulk(ctx: Context, uuids: UUID[]): Promise<{ [key: string]: GameUnit }> {
-        const res: { [key: string]: GameUnit } = {};
+    async getBulk(ctx: Context, uuids: UUID[]): Promise<{ [key: string]: Unit }> {
+        const res: { [key: string]: Unit } = {};
         for (const uuid of uuids) {
             res[uuid] = this.units[uuid];
         }
@@ -50,7 +49,7 @@ export default class Unit implements DB.Unit {
     delete(ctx: Context, uuid: string): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    async patch(ctx: Context, uuid: string, unit: Partial<UnitPatch>): Promise<GameUnit> {
+    async patch(ctx: Context, uuid: string, unit: Partial<UnitPatch>): Promise<Unit> {
         const call = startDBCall(ctx, 'unit.patch');
         const prev = this.units[uuid];
         const next = _.merge({}, prev, unit);
@@ -59,20 +58,20 @@ export default class Unit implements DB.Unit {
         await call.end();
         return next;
     }
-    async watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<GameUnit>>): Promise<void> {
+    async watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<Unit>>): Promise<void> {
         DB.AttachChangeHandler(ctx, this.unitChange, fn);
     }
-    async watchPathing(ctx: Context, fn: DB.Handler<GameUnit>): Promise<void> {
+    async watchPathing(ctx: Context, fn: DB.Handler<Unit>): Promise<void> {
         DB.AttachChangeHandler(ctx, this.unitChange, async (ctx, { next: unit }) => {
             if (unit.movable && unit.movable.isPathing == false && unit.movable.path.length === 0) {
                 await fn(ctx, unit)
             }
         });
     }
-    getAtChunk(ctx: Context, hash: string): Promise<GameUnit[]> {
+    getAtChunk(ctx: Context, hash: string): Promise<Unit[]> {
         throw new Error("Method not implemented.");
     }
-    getUnprocessedPath(ctx: Context): Promise<GameUnit> {
+    getUnprocessedPath(ctx: Context): Promise<Unit> {
         throw new Error("Method not implemented.");
     }
     async getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]> {
@@ -86,7 +85,7 @@ export default class Unit implements DB.Unit {
         }
         return uuids;
     }
-    async claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<GameUnit> {
+    async claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<Unit> {
         const unit = this.units[uuid];
         if (unit.details.lastTick < tick) {
             unit.details.lastTick = tick;

@@ -9,7 +9,7 @@ import Context from '../../context';
 import Client from '../client';
 import db from '../../db';
 import logger from '../../logger';
-import Unit, { setUnitDestination } from '../../unit/unit';
+import { setUnitDestination } from '../../unit/unit';
 
 export default async function setDestination(ctx: Context, client: Client, data: any): Promise<void> {
 	const planetDB = await db.getPlanetDB(ctx, client.map.name);

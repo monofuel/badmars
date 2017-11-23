@@ -4,14 +4,14 @@ import Map from './map/map';
 import Display from './display';
 import Input, { MouseMoveChanged } from './input';
 import MainLoop from './mainLoop';
-import Entity from './units/entity';
 import PlanetLoc from './map/planetLoc';
 import Net, { RequestChange } from './net';
 import { log } from './logger';
 // import config from './config';
 import { QueuedEvent, EventQueue } from 'ts-events';
-import { Planet, User, Unit, UnitStats } from './';
+import { Planet, User, UnitStats } from './';
 import * as jsonpatch from 'fast-json-patch';
+import UnitEntity, { newUnitEntity, updateGraphicalEntity } from './units';
 export type GameStageType = 'login' | 'planet';
 export type Focused = 'chat' | 'hud' | 'game';
 
@@ -28,12 +28,12 @@ export type Focused = 'chat' | 'hud' | 'game';
 
 
 export interface SelectedUnitsEvent {
-	units: Entity[];
+	units: UnitEntity[];
 }
 
 export interface StartTransferEvent {
-	source: Entity;
-	dest: Entity;
+	source: Unit;
+	dest: Unit;
 }
 
 // TODO properly type this
@@ -118,6 +118,7 @@ export const UnitDeltaChange = new QueuedEvent<UnitDeltaEvent>();
 export default interface State {
 	// TODO should be a hash : Player map
 	players: User[];
+	playerLocation?: PlanetLoc;
 	connected: boolean;
 
 	sunSpeed: number;
@@ -136,14 +137,15 @@ export default interface State {
 	mainLoop?: MainLoop;
 
 	// TODO should be a hash : Unit map
-	selectedUnits: Entity[];
+	selectedUnits: UnitEntity[];
 	stage: GameStageType;
 
-	// TODO should have a map of uuid: ServerUnit
-	units: Entity[];
-	chunkMap: any; // TOOD type this
+	// Server representations
+	units: { [key: string]: Unit };
+	chunks: any; // TOOD type this
 
-	playerLocation?: PlanetLoc;
+	// Client representations
+	unitEntities: { [key: string]: UnitEntity };
 }
 
 export async function newState(): Promise<State> {
@@ -179,8 +181,10 @@ export async function newState(): Promise<State> {
 
 		stage: 'login',
 		selectedUnits: [],
-		units: [],
-		chunkMap: {},
+		units: {},
+		chunks: {},
+		
+		unitEntities: {},
 	};
 
 	(window as any).state = state;
@@ -240,9 +244,10 @@ export async function newState(): Promise<State> {
 		if (units.length == 0) {
 			return;
 		}
-		for (let unit of state.units) {
-			if (unit.details.owner === state.playerInfo.uuid) {
-				state.display.viewTile(unit.loc);
+		for (let uuid in state.unitEntities) {
+			const entity = state.unitEntities[uuid];
+			if (entity.unit.details.owner === state.playerInfo.uuid) {
+				state.display.viewTile(entity.loc);
 				UnitChange.detach(cameraHandler);
 				return;
 			}
@@ -255,22 +260,18 @@ export async function newState(): Promise<State> {
 		if (!unit) {
 			throw new Error(`unit ${data.uuid} does not exist`);
 		}
-		jsonpatch.applyPatch(unit, data.delta);
+		const updated = _.cloneDeep(unit);
+		jsonpatch.applyPatch(updated, data.delta);
+		state.units[unit.uuid] = updated;
 	};
 	UnitDeltaChange.attach(updateUnitDeltaListener);
 
 	const updateUnitsListener = (data: UnitEvent) => {
 		for (let updated of data.list) {
-			let unit = getUnitById(state, updated.uuid);
-			if (unit) {
-				if (unit.updateUnitData) {
-					unit.updateUnitData(updated);
-				}
-			} else {
-				// HACK this is gross
-				if (state.map) {
-					state.map.addUnit(updated);
-				}
+			if (!state.units[updated.uuid]) {
+				const entity = newUnitEntity(state, updated);
+				state.unitEntities[updated.uuid] = entity;
+				state.units[updated.uuid] = updated;
 			}
 		}
 	};
@@ -280,18 +281,20 @@ export async function newState(): Promise<State> {
 		// console.log('loading chunk');
 		// console.log('got chunk data', data);
 		var chunk = data.chunk;
-		if (state.chunkMap[data.chunk.hash]) {
+		if (state.chunks[data.chunk.hash]) {
 			// console.log('CHUNK ALREADY LOADED');
 			return;
 		}
-		state.chunkMap[data.chunk.hash] = chunk;
+		state.chunks[data.chunk.hash] = chunk;
 		// HACK this is gross
 		if (state.map) {
 			state.map.generateChunk(chunk.x, chunk.y, chunk);
-
-			// TODO: should force only units at the specific chunk to re-check their location
-			// this is to avoid issues when chunks load after units do.
-			state.map.fixAllLocations();
+		}
+		for (let entity of Object.values(state.unitEntities)) {
+			if (entity.loc.chunkX === data.chunk.x && entity.loc.chunkY === data.chunk.y) {
+				entity.loc = new PlanetLoc(state.map, entity.unit.location.x, entity.unit.location.y);
+				updateGraphicalEntity(state, entity);
+			}
 		}
 	}
 	ChunkChange.attach(chunkListener);
@@ -319,15 +322,4 @@ export function setFocus(state: State, focus: Focused) {
 	const prev = state.focused;
 	state.focused = focus;
 	GameFocusChange.post({ focus, prev });
-}
-
-
-// TODO this should never be used, units should be stored in a map
-export function getUnitById(state: State, unitId: string): Entity | null {
-	for (var unit of state.units) {
-		if (unit.uuid === unitId) {
-			return unit;
-		}
-	}
-	return null;
 }

@@ -3,7 +3,7 @@
 // import _ from 'lodash';
 import Context from '../context';
 import PlanetLoc from './planetloc';
-import Unit, { getUnitLocs } from '../unit/unit';
+import { getUnitLocs } from '../unit/unit';
 import { DetailedError } from '../logger';
 
 

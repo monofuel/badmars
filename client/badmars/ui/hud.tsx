@@ -18,7 +18,6 @@ import Chat from './chat';
 import AboutModal from './about';
 import SelectedUnitWell from './selectedUnit';
 import Transfer from './transfer';
-import Entity from '../units/entity';
 import State, {
 	SelectedUnitsChange,
 	UnitChange,
@@ -29,6 +28,7 @@ import State, {
 	StartTransferEvent
 } from '../state';
 import BMDatGui from './datgui';
+import UnitEntity from '../units';
 
 const { palette } = config;
 
@@ -37,9 +37,9 @@ interface HUDProps {
 }
 interface HUDState {
 	login: boolean;
-	selectedUnits: Entity[];
-	transferUnit: Entity | null;
-	transferDestUnit: Entity | null;
+	selectedUnits: UnitEntity[];
+	transferUnit: Unit | null;
+	transferDestUnit: Unit | null;
 	errorMessage: string | null;
 	aboutOpen: boolean;
 	transfering: boolean;
@@ -193,7 +193,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 	}
 
 	@autobind
-	private selectedUnitsHandler(units: Entity[]) {
+	private selectedUnitsHandler(units: UnitEntity[]) {
 		this.setState({ selectedUnits: units, transferUnit: null });
 	}
 	updateUnitsHandler(units: any[]) {

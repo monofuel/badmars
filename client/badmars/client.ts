@@ -3,7 +3,6 @@
 import Display from './display';
 import Map from './map/map';
 import Input from './input';
-import Entity from './units/entity';
 import PlanetLoc from './map/planetLoc';
 import MainLoop from './mainLoop';
 import Net from './net';

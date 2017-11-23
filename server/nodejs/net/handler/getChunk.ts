@@ -7,7 +7,6 @@
 import { sanitizeChunk, sanitizeUnit } from '../../util/socketFilter';
 import Context from '../../context';
 import Client from '../client';
-import Chunk from '../../map/chunk';
 import db from '../../db';
 
 export default async function getChunk(ctx: Context, client: Client, data: any): Promise<void> {

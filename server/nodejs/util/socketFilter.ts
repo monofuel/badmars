@@ -4,23 +4,10 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import Unit from '../unit/unit';
 import User from '../user';
-import Chunk from '../map/chunk';
 import Map from '../map/map';
 
 type UUID = string;
-
-import {
-	UnitDetails,
-	UnitLocation,
-	UnitMovable,
-	UnitAttack,
-	UnitStorage,
-	UnitGraphical,
-	UnitStationary,
-	UnitConstruct
-} from '../unit/components';
 
 export function sanitizeUnit(unit: Unit, owner: UUID) {
 

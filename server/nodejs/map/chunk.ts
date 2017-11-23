@@ -10,7 +10,6 @@ import db from '../db';
 import PlanetLoc, { getLocationDetails } from './planetloc';
 import Map from './map';
 import ChunkLayer from './chunkLayer';
-import Unit from '../unit/unit';
 
 export async function newChunk(ctx: Context, map: string, x: number, y: number): Promise<Chunk> {
 	return {

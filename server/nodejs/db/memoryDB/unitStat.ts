@@ -8,7 +8,7 @@ const parseJson = require('parse-json');
 
 const UNIT_STAT_FILE = 'config/units.json';
 
-export default class UnitStat implements DB.UnitStat {
+export default class UnitStat implements DB.DBUnitStat {
 
     unitMap: { [key: string]: GameUnitStat } = {};
 

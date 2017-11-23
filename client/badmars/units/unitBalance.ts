@@ -1,4 +1,3 @@
-import Entity from '../units/entity';
 import State, { UnitStatsChange, UnitStatsEvent } from '../state';
 import * as _ from 'lodash';
 
@@ -25,7 +24,7 @@ export function handleBalanceChanges(state: State) {
 		units = data.stats;
 
 		if (state.map) {
-			state.units.forEach(updateUnit);
+			Object.values(state.units).forEach(updateUnit);
 		}
 	}
 

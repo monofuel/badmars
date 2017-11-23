@@ -7,7 +7,7 @@
 import env from '../../config/env';
 import Context from '../../context';
 import logger from '../../logger';
-import Unit, { getNearestEnemy, unitDistance, tickFireCooldown, armFireCooldown, takeDamage, destroy } from '../unit';
+import { getNearestEnemy, unitDistance, tickFireCooldown, armFireCooldown, takeDamage, destroy } from '../unit';
 import UnitAI from './';
 
 export default class AttackAI implements UnitAI {

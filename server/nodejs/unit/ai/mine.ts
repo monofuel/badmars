@@ -9,7 +9,7 @@ import Context from '../../context';
 import { DetailedError } from '../../logger';
 
 import PlanetLoc from '../../map/planetloc';
-import Unit, { tickResourceCooldown } from '../unit';
+import { tickResourceCooldown } from '../unit';
 
 export async function actionable(ctx: Context, unit: Unit): Promise<boolean> {
 	return Promise.resolve(

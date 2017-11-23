@@ -2,8 +2,6 @@
 
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import * as _ from 'lodash';
-import Entity from '../units/entity';
 import State, { GameFocusChange } from '../state';
 import { RequestChange } from '../net';
 import Dialog from 'material-ui/Dialog';
@@ -11,8 +9,8 @@ import FlatButton from 'material-ui/FlatButton';
 
 interface TransferProps {
 	onClose: () => void;
-	transferUnit: Entity;
-	transferDestUnit: Entity;
+	transferUnit: Unit;
+	transferDestUnit: Unit;
 }
 interface TransferState {
 	iron: number;
@@ -115,7 +113,7 @@ export default class Transfer extends React.Component<TransferProps, TransferSta
 			</div>
 		)
 	}
-	private onTransfer(selectedUnit: Entity, transferDestUnit: Entity, iron: number, fuel: number) {
+	private onTransfer(selectedUnit: Unit, transferDestUnit: Unit, iron: number, fuel: number) {
 		RequestChange.post({
 			type: 'transferResource',
 			source: selectedUnit.uuid,

@@ -7,7 +7,6 @@
 import Context from '../../context';
 import Client from '../client';
 import db from '../../db';
-import Unit from '../../unit/unit';
 import { sanitizeChunk, sanitizeUnit } from '../../util/socketFilter';
 
 type ChunkHash = string;

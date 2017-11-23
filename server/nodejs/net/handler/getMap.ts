@@ -7,7 +7,6 @@
 import Context from '../../context';
 import db from '../../db';
 import Client from '../client';
-import Unit from '../../unit/unit';
 import sleep from '../../util/sleep';
 import { listChunkUnits } from '../../map/chunk';
 import { sanitizeChunk, sanitizeUnit, sanitizePlanet, sanitizeUser } from '../../util/socketFilter';

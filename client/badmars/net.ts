@@ -21,7 +21,6 @@ import {
 	ServerMapType,
 	User,
 	UserType,
-	Unit,
 	UnitType,
 	ChunkType,
 	UnitStats,

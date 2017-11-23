@@ -101,7 +101,7 @@ export default function route(ctx: Context, app: express.Application) {
             }
             res.status(200).send({
                 uuid: user.uuid,
-                username: user.name,
+                username: user.username,
                 email: user.email,
             });
         } catch (err) {

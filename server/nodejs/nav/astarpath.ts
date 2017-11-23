@@ -7,7 +7,6 @@
 import env from '../config/env';
 import Map from '../map/map';
 import PlanetLoc from '../map/planetloc';
-import Unit from '../unit/unit';
 import Context from '../context';
 import logger, { DetailedError } from '../logger';
 import DIRECTION from '../map/directions';

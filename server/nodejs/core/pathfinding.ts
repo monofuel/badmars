@@ -9,7 +9,7 @@ import SimplePath from '../nav/simplepath';
 import DIRECTION from '../map/directions';
 import Context from '../context';
 import { WrappedError } from '../logger';
-import Unit, { clearDestination, setPath, setUnitDestination } from '../unit/unit';
+import { clearDestination, setPath, setUnitDestination } from '../unit/unit';
 
 import logger from '../logger';
 import db from '../db';

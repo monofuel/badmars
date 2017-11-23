@@ -10,7 +10,6 @@ import Context from '../context';
 import env from '../config/env';
 import logger from '../logger';
 
-import Chunk from '../map/chunk';
 import db from '../db';
 
 import Logger from '../logger';

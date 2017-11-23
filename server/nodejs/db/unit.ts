@@ -8,7 +8,6 @@ import * as _ from 'lodash';
 import { DetailedError } from '../logger';
 import * as r from 'rethinkdb';
 import env from '../config/env';
-import Unit from '../unit/unit';
 import { createTable, createIndex, startDBCall, clearSpareIndices } from './helper';
 
 import logger from '../logger';

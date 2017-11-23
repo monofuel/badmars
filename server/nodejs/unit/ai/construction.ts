@@ -7,7 +7,7 @@
 import db from '../../db';
 import Context from '../../context';
 import logger, { DetailedError } from '../../logger';
-import Unit, { unitDistance, popFactoryOrder } from '../unit';
+import { unitDistance, popFactoryOrder } from '../unit';
 
 import UnitAI from './';
 

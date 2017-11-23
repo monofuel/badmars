@@ -7,7 +7,6 @@
 import * as r from 'rethinkdb';
 import { createTable, startDBCall } from './helper';
 import { DetailedError } from '../logger';
-import Chunk from '../map/chunk';
 
 import Logger from '../logger';
 import Context from '../context';

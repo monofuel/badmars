@@ -3,9 +3,9 @@ import Context from '../context';
 const SimplexNoise = require('simplex-noise');
 import logger, { DetailedError } from '../logger';
 import { LAND, CLIFF, WATER, COAST } from './tiletypes';
-import Chunk, { newChunk } from './chunk';
+import { newChunk } from './chunk';
 import ChunkLayer, { newChunkLayer } from './chunkLayer';
-import Unit, { newUnit } from '../unit/unit';
+import { newUnit } from '../unit/unit';
 import Map from '../map/map';
 
 export async function generateChunk(ctx: Context, map: Map, x: number, y: number): Promise<{ chunk: Chunk, chunkLayer: ChunkLayer }> {

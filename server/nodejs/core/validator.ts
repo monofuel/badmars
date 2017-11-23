@@ -6,8 +6,6 @@
 
 import { Service } from './';
 import Context from '../context';
-import Unit from '../unit/unit';
-import Chunk from '../map/chunk';
 import db from '../db';
 import * as DB from '../db';
 import logger from '../logger';

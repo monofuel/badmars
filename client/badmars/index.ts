@@ -60,44 +60,7 @@ export const UserType = t.object({
 });
 
 
-export interface Unit {
-	uuid: string;
-	awake: boolean;
-	details: {
-		type: string;
-		health: number;
-		ghosting: boolean;
-		owner: string;
-	};
-	location: {
-		hash: TileHash[];
-		x: number;
-		y: number;
-		chunkHash: TileHash[];
-		chunkX: number;
-		chunkY: number;
-	};
-	movable?: {
-
-	};
-	attack?: {
-
-	};
-
-	storage?: {
-
-	};
-	graphical?: {
-		model: string;
-		scale: number;
-	};
-	stationary?: {
-
-	};
-	construct?: {
-
-	};
-}
+// TODO partial typing
 export const UnitType = t.object({
 	uuid: t.string(),
 	awake: t.boolean(),

@@ -6,7 +6,7 @@ import Pathfind from './pathfinding';
 import db, * as DB from '../db';
 import logger from '../logger';
 import User, { newUser } from '../user';
-import Unit, { simulate } from '../unit/unit';
+import { simulate } from '../unit/unit';
 
 export default class StandaloneService implements Service {
     private parentCtx: Context;

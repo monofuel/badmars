@@ -5,7 +5,6 @@ import logger, { WrappedError, DetailedError } from '../../logger';
 
 import PlanetLoc from '../../map/planetloc';
 import DIRECTION from '../../map/directions';
-import Unit from '../unit';
 import Map from '../../map/map';
 
 import { sendResource, tickMovement, setUnitDestination, clearTransferGoal, moveUnit, addPathAttempt, setPath } from '../unit';

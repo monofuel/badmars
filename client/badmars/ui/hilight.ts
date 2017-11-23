@@ -10,7 +10,6 @@ import {
 } from '../map/tileTypes';
 import State from '../state';
 import * as THREE from 'three';
-import { MouseReleaseEvent } from '../input';
 import { log } from '../logger';
 
 export default class Hilight {
@@ -54,6 +53,8 @@ export default class Hilight {
 
 		this.setGoodColor();
 
+		/*
+		// TODO update this to be context sensitive for the unit
 		if (this.deconstruct) {
 			this.setBadColor();
 			if (this.tile.planet.unitTileCheck(this.tile) != null) {
@@ -67,6 +68,7 @@ export default class Hilight {
 				this.setBadColor();
 			}
 		}
+		*/
 
 		if (!this.hilightPlane || !this.tile.equals(prevTile)) {
 			console.log('new hilight tile', this.tile);
