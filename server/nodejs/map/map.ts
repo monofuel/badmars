@@ -69,6 +69,7 @@ export default class Map {
 	settings: any;
 	lastTickTimestamp: number;
 	lastTick: number;
+	tps: number;
 	users: Array<any>;
 	seed: number;
 	paused: boolean;
@@ -81,6 +82,7 @@ export default class Map {
 		this.settings = _.cloneDeep(defaultSettings);
 		this.lastTickTimestamp = (new Date()).getTime();
 		this.lastTick = 0;
+		this.tps = 2;
 		this.users = [];
 		this.seed = seed;
 		this.paused = false;

@@ -6,6 +6,7 @@ import * as _ from 'lodash';
 
 export interface GraphicalEntity {
     mesh: THREE.Group
+    movementDelta: number
 }
 
 export interface AudioEntity {
@@ -44,7 +45,7 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
     }
 
     const scale = entity.unit.graphical.scale;
-    
+
     const geom = getMesh(entity.unit.details.type);
     const mesh = new THREE.Group();
     mesh.copy(geom, true);
@@ -63,6 +64,7 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
     entity.graphical = {
         ...(entity.graphical || {}),
         mesh,
+        movementDelta: 0,
     }
     setToLocation(entity, entity.loc);
 
@@ -71,11 +73,11 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
 export function updateUnitEntity(state: State, entity: UnitEntity, delta: number) {
     const prev = state.units[entity.unit.uuid];
     // Check for state changes, and update accordingly
-    if (!_.isEqual(prev.location, entity.unit.location)) {
+    // entity.loc isn't updated until it has fully animated
+    const loc = new PlanetLoc(state.map, entity.unit.location.x, entity.unit.location.y);
+    if (!entity.loc.equals(loc)) {
         console.log('location change');
-        // TODO animate to next position
-        const loc = new PlanetLoc(state.map, entity.unit.location.x, entity.unit.location.y);
-        setToLocation(entity, loc);
+        animateToLocation(state, entity, loc, delta);
     }
     if (!_.isEqual(prev.graphical.model, entity.unit.graphical.model)) {
         // TODO
@@ -110,4 +112,20 @@ function setToLocation(entity: UnitEntity, loc: PlanetLoc) {
     entity.graphical.mesh.position.y = loc.real_z + 0.25;
     entity.graphical.mesh.position.x = loc.real_x;
     entity.graphical.mesh.position.z = - loc.real_y;
+}
+
+function animateToLocation(state: State, entity: UnitEntity, loc: PlanetLoc, delta: number) {
+    const tps = state.map.tps;
+    // speed / tps gets the number of seconds to reach the destination
+    const frameDistance = (delta / ( entity.unit.movable.speed / tps));
+    const dv = entity.graphical.movementDelta +=frameDistance;
+    if (dv < 1) {
+        const prev = entity.loc;
+        const lerp = prev.getVec().lerp(loc.getVec(), dv);
+        lerp.y += 0.25;
+        entity.graphical.mesh.position.set(lerp.x, lerp.y, lerp.z);
+    } else {
+        entity.graphical.movementDelta = 0;
+        setToLocation(entity, loc);
+    }
 }

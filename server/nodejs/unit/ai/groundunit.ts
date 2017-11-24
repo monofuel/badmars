@@ -37,7 +37,8 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 	logger.info(ctx, 'found movable unit');
 
 	// waiting to move again
-	if (await tickMovement(ctx, unit)) {
+	if (unit.movable.movementCooldown > 0) {
+		await tickMovement(ctx, unit);
 		return;
 	}
 

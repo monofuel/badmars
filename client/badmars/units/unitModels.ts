@@ -35,13 +35,12 @@ export function handleModelChanges(state: State) {
 
 async function updateModel(type: string, graphical: any): Promise<void> {
 	return new Promise<void>((resolve, reject) => {
-		log('debug', 'loading model', { type, graphical });
+		// log('debug', 'loading model', { type, graphical });
 		const daeLoader = new ColladaLoader();
 		daeLoader.load(`models/${graphical.model}`, (collada: any) => {
 			log('debug', 'loaded model', { type });
 
 			modelMap[type] = collada.scene;
-			console.log(collada)
 
 			resolve();
 		}, _.noop, reject);

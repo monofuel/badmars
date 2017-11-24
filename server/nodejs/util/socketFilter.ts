@@ -204,6 +204,7 @@ export function sanitizePlanet(map: Map) {
 		settings,
 		paused,
 		users,
+		tps,
 	} = map;
 	return {
 		name,
@@ -211,5 +212,6 @@ export function sanitizePlanet(map: Map) {
 		settings,
 		paused,
 		users,
+		tps,
 	}
 }

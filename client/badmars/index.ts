@@ -20,6 +20,7 @@ export interface Planet {
 	seed: number;
 	isSpawned: boolean;
 	name: string;
+	tps: number;
 	paused: boolean;
 	users: UUID[];
 }
@@ -42,6 +43,7 @@ export const ServerMapType = t.object({
 	seed: t.number(),
 	isSpawned: t.boolean(),
 	name: t.string(),
+	tps: t.number(),
 	paused: t.boolean(),
 	users: t.array(t.string()),
 })

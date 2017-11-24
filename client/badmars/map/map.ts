@@ -20,12 +20,14 @@ import * as THREE from 'three';
 import * as _ from 'lodash';
 import { RequestChange } from '../net';
 import UnitEntity from '../units/index';
+import { Planet } from '../';
 
 // TODO chunk should be a type
 
 export default class Map {
 	state: State;
 	settings: Settings;
+	tps: number;
 	landMeshes: Array<THREE.Object3D>;
 	waterMeshes: Array<THREE.Object3D>;
 	planetData: any;
@@ -38,7 +40,7 @@ export default class Map {
 
 	chunkInterval: any;
 
-	constructor(state: State, planet: any) {
+	constructor(state: State, planet: Planet) {
 		this.state = state;
 		this.planetData = planet;
 		this.landMeshes = [];
@@ -46,6 +48,7 @@ export default class Map {
 		this.planetData = {};
 		this.chunkCache = {};
 		this.requestedChunks = {};
+		this.tps = planet.tps;
 
 		this.worldSettings = planet.settings;
 

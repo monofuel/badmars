@@ -31,7 +31,7 @@ export default class MainLoop {
 			tsevents.flushOnce();
 		} catch (err) {
 			logError(err);
-			debugger;
+			// debugger;
 		}
 		try {
 

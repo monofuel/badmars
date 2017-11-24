@@ -359,7 +359,7 @@ export async function tickMovement(ctx: Context, unit: Unit): Promise<void> {
 		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
 	const movable = {
-		movementCooldown: unit.movable.movementCooldown--
+		movementCooldown: --unit.movable.movementCooldown
 	};
 	return patchUnit(ctx, unit, { movable });
 }
