@@ -148,6 +148,7 @@ class DelegateDB implements DB {
     db: DB;
     setup(db: DB) {
         this.db = db;
+        (global as any).db = db;
     }
     init(ctx: Context) {
         return this.db.init(ctx);

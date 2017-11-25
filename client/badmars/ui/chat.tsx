@@ -11,7 +11,7 @@ import TextField from 'material-ui/TextField';
 import { Paper } from 'material-ui';
 import { Table, TableBody, TableRow, TableRowColumn } from 'material-ui/Table';
 
-import State, { GameFocusChange, GameFocusEvent } from '../state';
+import State, { GameFocusChange, GameFocusEvent, ChatEvent } from '../state';
 import { RequestChange } from '../net';
 
 const chatWellStyle = {
@@ -38,7 +38,7 @@ const chatBodyStyle = {
 }
 
 interface ChatPropsType {
-	chatLog: any[]; // TODO type this
+	chatLog: ChatEvent[];
 }
 
 interface ChatStateType {
@@ -65,8 +65,8 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 	render() {
 		const { sendText, minimized } = this.state;
 		const { chatLog } = this.props;
-		let recentChat: any[] = [];
-		chatLog.map((line: any) => {
+		let recentChat: ChatEvent[] = [];
+		chatLog.map((line: ChatEvent) => {
 			if (Date.now() - line.timestamp < 1000 * 8 && recentChat.length < 3) {
 				recentChat.push(line);
 			}

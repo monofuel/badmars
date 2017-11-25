@@ -7,6 +7,7 @@ import MainLoop from './mainLoop';
 import PlanetLoc from './map/planetLoc';
 import Net, { RequestChange } from './net';
 import { log } from './logger';
+import Config from './config';
 // import config from './config';
 import { QueuedEvent, EventQueue } from 'ts-events';
 import { Planet, User, UnitStats } from './';
@@ -14,7 +15,7 @@ import * as jsonpatch from 'fast-json-patch';
 import UnitEntity, { newUnitEntity, updateGraphicalEntity } from './units';
 export type GameStageType = 'login' | 'planet';
 export type Focused = 'chat' | 'hud' | 'game';
-
+import * as qs from 'query-string';
 
 // ------------------------------------------
 // Game State should not be modified directly
@@ -36,9 +37,10 @@ export interface StartTransferEvent {
 	dest: Unit;
 }
 
-// TODO properly type this
 export interface ChatEvent {
-	username: string;
+	uuid: UUID;
+	user: string;
+	channel: string;
 	text: string;
 	timestamp: number;
 }
@@ -106,6 +108,7 @@ export const ConnectedChange = new QueuedEvent<ConnectedEvent>();
 export const SpawnChange = new QueuedEvent<SpawnEvent>();
 export const UnitQueue = new EventQueue();
 export const UnitChange = new QueuedEvent<UnitEvent>({ queue: UnitQueue });
+export const ChatChange = new QueuedEvent<ChatEvent>();
 
 export const UnitStatsQueue = new EventQueue();
 export const UnitStatsChange = new QueuedEvent<UnitStatsEvent>({ queue: UnitStatsQueue });
@@ -146,6 +149,9 @@ export default interface State {
 
 	// Client representations
 	unitEntities: { [key: string]: UnitEntity };
+
+	chatOpen: boolean;
+	chatHistory: ChatEvent[];
 }
 
 export async function newState(): Promise<State> {
@@ -185,9 +191,14 @@ export async function newState(): Promise<State> {
 		chunks: {},
 		
 		unitEntities: {},
+		chatOpen: false,
+		chatHistory: [],
 	};
 
 	(window as any).state = state;
+	if (Config.debug && window.location.hash) {
+		loadFromHash(state);
+	}
 
 	GameStageChange.attach((event) => {
 		state.stage = event.stage;
@@ -240,6 +251,11 @@ export async function newState(): Promise<State> {
 	}
 	LoginChange.attach(loginListener);
 
+	const gameFocusHandler = async(data: GameFocusEvent) => {
+		state.focused = data.focus;
+	}
+
+	GameFocusChange.attach(gameFocusHandler);
 	const cameraHandler = async ({ list: units }: UnitEvent) => {
 		if (units.length == 0) {
 			return;
@@ -302,6 +318,18 @@ export async function newState(): Promise<State> {
 	return state;
 }
 
+function loadFromHash(state: State) {
+	// disabling this in production mode for #security
+	if (!Config.debug) {
+		throw new Error('only supported in debug mode');
+	}
+
+	// type is not enforced, but this is a dangerous dev feature anyway
+	const hashObj: Partial<State> = qs.parse(window.location.hash);
+	console.log(hashObj);
+	_.merge(state, hashObj);
+}
+
 // ------------------------------
 // handy state functions
 
@@ -312,7 +340,6 @@ export function getPlayerByName(state: State, username: string): User | undefine
 export function getPlayerByUUID(state: State, uuid: UUID): User | undefined {
 	return _.find(state.players, (p: User) => p.uuid === uuid);
 }
-
 export function setFocus(state: State, focus: Focused) {
 	if (focus === state.focused) {
 		return;
@@ -320,6 +347,5 @@ export function setFocus(state: State, focus: Focused) {
 
 	log('debug', 'changed focus', { prev: state.focused, focus });
 	const prev = state.focused;
-	state.focused = focus;
 	GameFocusChange.post({ focus, prev });
 }

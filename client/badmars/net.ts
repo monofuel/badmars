@@ -10,6 +10,7 @@ import State, {
 	UnitChange,
 	LoginChange,
 	ChunkChange,
+	ChatChange,
 	UnitStatsChange,
 	UnitDeltaChange,
 } from './state';
@@ -127,6 +128,7 @@ export interface UnitStatsEvent extends BaseEvent {
 interface ChatEvent extends BaseEvent {
 	type: 'chat';
 	uuid: UUID;
+	user: string;
 	channel: string;
 	text: string;
 	timestamp: number;
@@ -379,6 +381,15 @@ export default class Net {
 					uuid: data.uuid,
 					delta: data.delta,
 				});
+				return;
+			case 'chat':
+				ChatChange.post({
+					uuid: data.uuid,
+					user: data.user,
+					channel: data.channel,
+					text: data.text,
+					timestamp: data.timestamp,
+				})
 				return;
 			default:
 				log('error', `unknown message type: ${(data as any).type} with fields ${Object.keys(data)}`);

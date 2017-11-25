@@ -146,7 +146,7 @@ export default class Client {
 	}
 
 	async registerEventHandler(): Promise<void> {
-		db.event.watch(this.ctx, async (ctx: Context, e: GameEvent): Promise<void> => {
+		await db.event.watch(this.ctx, async (ctx: Context, e: GameEvent): Promise<void> => {
 			if (e.type === 'chat') {
 				this.handleChat(ctx, e);
 			} else {
