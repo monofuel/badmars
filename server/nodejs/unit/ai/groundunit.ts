@@ -82,7 +82,7 @@ async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	if (!unit.movable) {
 		return;
 	}
-	const path = unit.movable.path;
+	const path = [ ...unit.movable.path];
 
 	const profile = logger.startProfile('moving unit');
 

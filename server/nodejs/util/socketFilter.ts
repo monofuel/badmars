@@ -137,6 +137,7 @@ function sanitizeOwnedUnitMovable(movable: UnitMovable) {
 		movementCooldown,
 		destination,
 		transferGoal,
+		path,
 	} = movable;
 	return {
 		layer,
@@ -144,6 +145,7 @@ function sanitizeOwnedUnitMovable(movable: UnitMovable) {
 		movementCooldown,
 		destination,
 		transferGoal,
+		path,
 	};
 }
 

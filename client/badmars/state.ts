@@ -284,6 +284,7 @@ export async function newState(): Promise<State> {
 		const updated = _.cloneDeep(unit);
 		jsonpatch.applyPatch(updated, data.delta);
 		state.units[unit.uuid] = updated;
+		state.unitEntities[unit.uuid].unit = updated;
 	};
 	UnitDeltaChange.attach(updateUnitDeltaListener);
 

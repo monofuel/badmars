@@ -9,6 +9,9 @@ export interface GraphicalEntity {
     movementDelta: number
     selectedLoc: PlanetLoc | null;
     selectionMesh: THREE.Mesh | null;
+    pathMesh: THREE.Line | null;
+    pathLoc: PlanetLoc | null;
+    prevPath: string[];
 }
 
 export interface AudioEntity {
@@ -69,6 +72,9 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
         movementDelta: 0,
         selectedLoc: null,
         selectionMesh: null,
+        pathMesh: null,
+        pathLoc: null,
+        prevPath: [],
     }
     setToLocation(entity, entity.loc);
 
@@ -90,8 +96,14 @@ export function updateUnitEntity(state: State, entity: UnitEntity, delta: number
 
     if (state.selectedUnits.includes(entity)) {
         markSelected(state, entity, loc);
-    } else if (entity.graphical.selectionMesh){
-        clearSelected(state, entity);
+        markPath(state, entity, loc);
+    } else {
+        if (entity.graphical.selectionMesh) {
+            clearSelected(state, entity);
+        }
+        if (entity.graphical.pathMesh) {
+            clearPath(state, entity);
+        }
     }
 
     // Since the entity has handled all the changes, update it for the next frame.
@@ -152,19 +164,19 @@ function markSelected(state: State, entity: UnitEntity, loc: PlanetLoc) {
         ];
         const center = new THREE.Vector3(0, 0, 0);
 
-        const edges = [[0,1], [1,3], [2,0], [3,2]];
+        const edges = [[0, 1], [1, 3], [2, 0], [3, 2]];
         // create a trapezoid for each edge
         const thickness = 0.15;
         const selectedGeom = new THREE.Geometry();
         for (let i = 0; i < edges.length; i++) {
-            const [j,k] = edges[i];
+            const [j, k] = edges[i];
             selectedGeom.vertices.push(corners[j]);
             selectedGeom.vertices.push(corners[k]);
             selectedGeom.vertices.push(corners[j].clone().lerp(center, thickness));
             selectedGeom.vertices.push(corners[k].clone().lerp(center, thickness));
             const offset = i * 4;
             selectedGeom.faces.push(new THREE.Face3(offset, offset + 2, offset + 1));
-            selectedGeom.faces.push(new THREE.Face3(offset + 1,offset + 2, offset + 3));
+            selectedGeom.faces.push(new THREE.Face3(offset + 1, offset + 2, offset + 3));
         }
 
         /*
@@ -206,4 +218,78 @@ function clearSelected(state: State, entity: UnitEntity) {
     state.display.removeMesh(entity.graphical.selectionMesh);
     delete entity.graphical.selectionMesh;
     delete entity.graphical.selectedLoc;
+}
+
+function markPath(state: State, entity: UnitEntity, start: PlanetLoc) {
+    const path = entity.unit.movable.path || [];
+    if (!start.equals(entity.graphical.pathLoc) || path.length === 0 || !_.isEqual(path, entity.graphical.prevPath )) {
+        clearPath(state, entity);
+    }
+
+    if (!entity.graphical.pathMesh && path.length > 0) {
+        const verticalOffset = 0.5;
+        const points: THREE.Vector3[] = [new THREE.Vector3(0,0,0)];
+
+        let prev = start;
+        for (let i = 0; i < Math.min(20, path.length); i++) {
+            let next: PlanetLoc;
+            switch (path[i]) {
+                case 'N':
+                    next = prev.N();
+                    break;
+                case 'S':
+                    next = prev.S();
+                    break
+                case 'E':
+                    next = prev.E();
+                    break;
+                case 'W':
+                    next = prev.W();
+                    break;
+                default:
+                    throw new Error('invalid value in path');
+            }
+            const vec = next.getVec().clone().sub(start.getVec());
+            prev = next;
+            points.push(vec);
+        }
+
+        const pathCurve = new THREE.CatmullRomCurve3(points);
+
+        const subdivisions = 6;
+        const pathGeom = new THREE.Geometry();
+        for (var i = 0; i < points.length * subdivisions; i++) {
+
+            var t = i / (points.length * subdivisions);
+            pathGeom.vertices[i] = pathCurve.getPoint(t);
+
+        }
+
+        pathGeom.computeLineDistances();
+
+        var selectedMaterial = new THREE.LineDashedMaterial({
+            color: '#7b44bf',
+            linewidth: 1,
+            scale: 1,
+            dashSize: 1,
+            gapSize: 0.5,
+        });
+
+        const pathMesh = new THREE.Line(pathGeom);
+        pathMesh.position.copy(start.getVec());
+        pathMesh.position.y += verticalOffset;
+        state.display.addMesh(pathMesh);
+        entity.graphical.pathMesh = pathMesh;
+        entity.graphical.pathLoc = start;
+        entity.graphical.prevPath = path;
+
+        console.log('rendering path');
+    }
+}
+
+function clearPath(state: State, entity: UnitEntity) {
+    state.display.removeMesh(entity.graphical.pathMesh);
+    delete entity.graphical.pathMesh;
+    delete entity.graphical.pathLoc;
+    entity.graphical.prevPath = [];
 }

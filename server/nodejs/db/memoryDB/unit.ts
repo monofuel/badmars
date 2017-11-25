@@ -53,6 +53,11 @@ export default class DBUnit implements DB.DBUnit {
         const call = startDBCall(ctx, 'unit.patch');
         const prev = this.units[uuid];
         const next = _.merge({}, prev, unit);
+        // HACK don't merge arrays
+        if (unit.movable && unit.movable.path) {
+            next.movable.path = unit.movable.path
+        }
+        
         this.units[uuid] = next;
         this.unitChange.post({ next, prev });
         await call.end();
@@ -63,7 +68,10 @@ export default class DBUnit implements DB.DBUnit {
     }
     async watchPathing(ctx: Context, fn: DB.Handler<Unit>): Promise<void> {
         DB.AttachChangeHandler(ctx, this.unitChange, async (ctx, { next: unit }) => {
-            if (unit.movable && unit.movable.isPathing == false && unit.movable.path.length === 0) {
+            if (unit.movable && 
+                unit.movable.destination &&
+                unit.movable.isPathing == false &&
+                 unit.movable.path.length === 0) {
                 await fn(ctx, unit)
             }
         });
