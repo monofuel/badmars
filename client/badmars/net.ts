@@ -281,7 +281,7 @@ export default class Net {
 		this.state = state;
 
 		setInterval(async () => {
-			if (this.ws && this.getState() !== 1) {
+			if (this.ws && this.getState() > 1) {
 				this.connectionError(new Error(`bad connection state: ${this.getState()}`));
 
 				/*

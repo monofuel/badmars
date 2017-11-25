@@ -132,8 +132,7 @@ export default class Map {
 		// waterGeom.computeFaceNormals();
 		waterGeom.computeVertexNormals();
 
-		// fiddle with the normals
-
+		// fiddle with the normals to give a nice 'tiled' look
 		for (var index = 0; index < gridGeom.faces.length; index += 2) {
 			var landVector1 = gridGeom.faces[index].normal;
 			var landVector2 = gridGeom.faces[index + 1].normal;

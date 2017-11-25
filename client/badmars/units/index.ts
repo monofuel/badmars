@@ -7,6 +7,8 @@ import * as _ from 'lodash';
 export interface GraphicalEntity {
     mesh: THREE.Group
     movementDelta: number
+    selectedLoc: PlanetLoc | null;
+    selectionMesh: THREE.Mesh | null;
 }
 
 export interface AudioEntity {
@@ -65,6 +67,8 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
         ...(entity.graphical || {}),
         mesh,
         movementDelta: 0,
+        selectedLoc: null,
+        selectionMesh: null,
     }
     setToLocation(entity, entity.loc);
 
@@ -83,6 +87,13 @@ export function updateUnitEntity(state: State, entity: UnitEntity, delta: number
         // TODO
         // also should check scale
     }
+
+    if (state.selectedUnits.includes(entity)) {
+        markSelected(state, entity, loc);
+    } else if (entity.graphical.selectionMesh){
+        clearSelected(state, entity);
+    }
+
     // Since the entity has handled all the changes, update it for the next frame.
     entity.unit = prev;
 }
@@ -117,8 +128,8 @@ function setToLocation(entity: UnitEntity, loc: PlanetLoc) {
 function animateToLocation(state: State, entity: UnitEntity, loc: PlanetLoc, delta: number) {
     const tps = state.map.tps;
     // speed / tps gets the number of seconds to reach the destination
-    const frameDistance = (delta / ( entity.unit.movable.speed / tps));
-    const dv = entity.graphical.movementDelta +=frameDistance;
+    const frameDistance = (delta / (entity.unit.movable.speed / tps));
+    const dv = entity.graphical.movementDelta += frameDistance;
     if (dv < 1) {
         const prev = entity.loc;
         const lerp = prev.getVec().lerp(loc.getVec(), dv);
@@ -128,4 +139,71 @@ function animateToLocation(state: State, entity: UnitEntity, loc: PlanetLoc, del
         entity.graphical.movementDelta = 0;
         setToLocation(entity, loc);
     }
+}
+
+function markSelected(state: State, entity: UnitEntity, loc: PlanetLoc) {
+    if (!entity.graphical.selectionMesh) {
+        // relative tile locations
+        const corners = [
+            new THREE.Vector3(-0.5, loc.corners[2] - loc.real_z, -0.5),
+            new THREE.Vector3(0.5, loc.corners[3] - loc.real_z, -0.5),
+            new THREE.Vector3(-0.5, loc.corners[0] - loc.real_z, 0.5),
+            new THREE.Vector3(0.5, loc.corners[1] - loc.real_z, 0.5),
+        ];
+        const center = new THREE.Vector3(0, 0, 0);
+
+        const edges = [[0,1], [1,3], [2,0], [3,2]];
+        // create a trapezoid for each edge
+        const thickness = 0.15;
+        const selectedGeom = new THREE.Geometry();
+        for (let i = 0; i < edges.length; i++) {
+            const [j,k] = edges[i];
+            selectedGeom.vertices.push(corners[j]);
+            selectedGeom.vertices.push(corners[k]);
+            selectedGeom.vertices.push(corners[j].clone().lerp(center, thickness));
+            selectedGeom.vertices.push(corners[k].clone().lerp(center, thickness));
+            const offset = i * 4;
+            selectedGeom.faces.push(new THREE.Face3(offset, offset + 2, offset + 1));
+            selectedGeom.faces.push(new THREE.Face3(offset + 1,offset + 2, offset + 3));
+        }
+
+        /*
+        // useful for some material types;
+
+                selectedGeom.computeBoundingSphere();
+        selectedGeom.computeFaceNormals();
+        selectedGeom.computeVertexNormals();
+        const up = new THREE.Vector3(0, 0, 1);
+        selectedGeom.faces[0].normal.copy(up);
+        selectedGeom.faces[1].normal.copy(up);
+
+        for (var i = 0; i <= 2; i++) {
+            selectedGeom.faces[0].vertexNormals[i].copy(up);
+            selectedGeom.faces[1].vertexNormals[i].copy(up);
+        }
+        */
+
+        var selectedMaterial = new THREE.MeshBasicMaterial({
+            color: '#7b44bf'
+        });
+
+        const selectedMesh = new THREE.Mesh(selectedGeom, selectedMaterial);
+        selectedMesh.position.copy(loc.getVec());
+        selectedMesh.position.y += 0.05;
+        state.display.addMesh(selectedMesh);
+        entity.graphical.selectionMesh = selectedMesh;
+
+    } else {
+        if (!loc.equals(entity.graphical.selectedLoc)) {
+            entity.graphical.selectionMesh.position.copy(loc.getVec());
+            entity.graphical.selectionMesh.position.y += 0.05;
+        }
+    }
+
+}
+
+function clearSelected(state: State, entity: UnitEntity) {
+    state.display.removeMesh(entity.graphical.selectionMesh);
+    delete entity.graphical.selectionMesh;
+    delete entity.graphical.selectedLoc;
 }
