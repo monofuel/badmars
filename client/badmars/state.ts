@@ -271,6 +271,11 @@ export async function newState(): Promise<State> {
 	}
 	UnitChange.attach(cameraHandler);
 
+	const chatHandler = async (e: ChatEvent) => {
+		state.chatHistory.push(e);
+	}
+	ChatChange.attach(chatHandler);
+
 	const updateUnitDeltaListener = async (data: UnitDeltaEvent) => {
 		const unit = _.find(state.units, (unit) => unit.uuid === data.uuid);
 		if (!unit) {
@@ -314,6 +319,11 @@ export async function newState(): Promise<State> {
 		}
 	}
 	ChunkChange.attach(chunkListener);
+
+	const playerHandler = (data: PlayersEvent) => {
+		state.players = data.list;
+	}
+	PlayersChange.attach(playerHandler);
 
 	return state;
 }

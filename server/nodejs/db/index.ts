@@ -98,6 +98,7 @@ export interface Planet {
     unitStat: DBUnitStat;
     planet: GamePlanet;
     patch(ctx: Context, patch: Partial<GamePlanet>): Promise<void>;
+    addUser(ctx: Context, uuid: UUID): Promise<void>;
 }
 
 export interface User {

@@ -463,6 +463,8 @@ export default class Map {
 			}
 		}
 		logger.info(ctx, 'spawn finished');
+
+		await planetDB.addUser(ctx, user.uuid);
 	}
 
 	//find random spawn locations, looking farther away depending on how many attempts tried

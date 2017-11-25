@@ -49,4 +49,9 @@ export default class Planet implements DB.Planet {
         ctx.check('planet.patch');
         Object.assign(patch, this.planet);
     }
+
+    public async addUser(ctx: Context, uuid: UUID): Promise<void> {
+        ctx.check('planet.addUser');
+        this.planet.users.push(uuid);
+    }
 }
