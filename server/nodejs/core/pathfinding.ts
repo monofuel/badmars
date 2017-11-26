@@ -104,7 +104,7 @@ export default class PathfindService implements Service {
 		} while (true);
 
 		await setPath(ctx, unit, path);
-		await setUnitDestination(ctx, unit, end.x, end.y);
+		// await setUnitDestination(ctx, unit, end.x, end.y);
 	}
 
 	async stop(): Promise<void> {

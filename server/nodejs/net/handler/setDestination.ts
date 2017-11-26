@@ -9,7 +9,7 @@ import Context from '../../context';
 import Client from '../client';
 import db from '../../db';
 import logger from '../../logger';
-import { setUnitDestination } from '../../unit/unit';
+import { setUnitDestination, clearPath } from '../../unit/unit';
 
 export default async function setDestination(ctx: Context, client: Client, data: any): Promise<void> {
 	const planetDB = await db.getPlanetDB(ctx, client.map.name);
@@ -30,6 +30,7 @@ export default async function setDestination(ctx: Context, client: Client, data:
 	}
 
 	try {
+		await clearPath(ctx, unit);
 		await setUnitDestination(ctx, unit, x, y);
 		client.send('setDestination');
 	} catch (err) {

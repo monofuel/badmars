@@ -85,7 +85,7 @@ export function updateUnitEntity(state: State, entity: UnitEntity, delta: number
     // Check for state changes, and update accordingly
     // entity.loc isn't updated until it has fully animated
     const loc = new PlanetLoc(state.map, entity.unit.location.x, entity.unit.location.y);
-    if (!entity.loc.equals(loc)) {
+    if (!entity.loc.equals(loc) && entity.unit.movable) {
         console.log('location change');
         animateToLocation(state, entity, loc, delta);
     }
@@ -96,7 +96,9 @@ export function updateUnitEntity(state: State, entity: UnitEntity, delta: number
 
     if (state.selectedUnits.includes(entity)) {
         markSelected(state, entity, loc);
+        if (entity.unit.movable) {
         markPath(state, entity, loc);
+        }
     } else {
         if (entity.graphical.selectionMesh) {
             clearSelected(state, entity);
@@ -246,8 +248,11 @@ function markPath(state: State, entity: UnitEntity, start: PlanetLoc) {
                 case 'W':
                     next = prev.W();
                     break;
+                case 'C':
+                // shouldn't ever happen
+                continue;
                 default:
-                    throw new Error('invalid value in path');
+                    throw new Error(`invalid value in path ${i}`);
             }
             const vec = next.getVec().clone().sub(start.getVec());
             prev = next;
