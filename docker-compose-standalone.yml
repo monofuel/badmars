@@ -4,7 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-go-node
-    command: make test
+    command: make run
+    volumes:
+      - ./bin/data/:/go/src/github.com/monofuel/badmars/bin/data
   proxy:
     build:
       context: ./nginx
