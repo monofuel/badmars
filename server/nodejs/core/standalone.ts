@@ -135,7 +135,15 @@ class SimulateService implements Service {
         for (let uuid of unitUUIDs) {
             const unit = await planetDB.unit.claimUnitTick(ctx, uuid, tick);
             if (unit) {
-                await simulate(ctx, unit);
+                try {
+                    await simulate(ctx, unit);
+                } catch (err) {
+                    if (ctx.env.debug) {
+                        throw err;
+                    } else {
+                        logger.trackError(ctx, err);
+                    }
+                }
             }
         }
 

@@ -5,3 +5,12 @@ services:
       context: .
       dockerfile: Dockerfile-go-node
     command: make test
+  proxy:
+    build:
+      context: ./nginx
+    volumes:
+      - ./nginx/standalone_nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - '80:80'
+    links:
+      - standalone
