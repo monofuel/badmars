@@ -30,8 +30,9 @@ export default async function setDestination(ctx: Context, client: Client, data:
 	}
 
 	try {
-		await clearPath(ctx, unit);
 		await setUnitDestination(ctx, unit, x, y);
+		// clear the current path so the pathfinder will run
+		await clearPath(ctx, unit);
 		client.send('setDestination');
 	} catch (err) {
 		logger.trackError(ctx, new WrappedError(err, 'failed to set destination'));

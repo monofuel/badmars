@@ -253,6 +253,7 @@ export async function addFactoryOrder(ctx: Context, unit: Unit, unitType: UnitTy
 	};
 
 	planetDB.factoryQueue.create(ctx, order);
+	planetDB.unit.patch(ctx, unit.uuid, { awake: true });
 }
 
 export async function popFactoryOrder(ctx: Context, unit: Unit): Promise<any> {

@@ -12,6 +12,7 @@ export interface GraphicalEntity {
     pathMesh: THREE.Line | null;
     pathLoc: PlanetLoc | null;
     prevPath: string[];
+    ghosting: boolean;
 }
 
 export interface AudioEntity {
@@ -64,6 +65,12 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
             (mat as any).color = new THREE.Color();
             mat.update();
         }
+        // TODO fix this
+        if (entity.unit.details.ghosting) {
+            mat.transparent = true;
+            mat.opacity = 0.5;
+            mat.update();
+        }
     });
     state.display.addMesh(mesh);
     entity.graphical = {
@@ -75,13 +82,14 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
         pathMesh: null,
         pathLoc: null,
         prevPath: [],
+        ghosting: entity.unit.details.ghosting,
     }
     setToLocation(entity, entity.loc);
 
 }
 
 export function updateUnitEntity(state: State, entity: UnitEntity, delta: number) {
-    const prev = state.units[entity.unit.uuid];
+    const next = state.units[entity.unit.uuid];
     // Check for state changes, and update accordingly
     // entity.loc isn't updated until it has fully animated
     const loc = new PlanetLoc(state.map, entity.unit.location.x, entity.unit.location.y);
@@ -89,7 +97,7 @@ export function updateUnitEntity(state: State, entity: UnitEntity, delta: number
         console.log('location change');
         animateToLocation(state, entity, loc, delta);
     }
-    if (!_.isEqual(prev.graphical.model, entity.unit.graphical.model)) {
+    if (!_.isEqual(next.graphical.model, entity.unit.graphical.model)) {
         // TODO
         // also should check scale
     }
@@ -109,7 +117,10 @@ export function updateUnitEntity(state: State, entity: UnitEntity, delta: number
     }
 
     // Since the entity has handled all the changes, update it for the next frame.
-    entity.unit = prev;
+    entity.unit = next;
+    if (entity.graphical.ghosting !== next.details.ghosting) {
+        updateGraphicalEntity(state, entity);
+    }
 }
 
 export function destroyUnitEntity(state: State, entity: UnitEntity) {

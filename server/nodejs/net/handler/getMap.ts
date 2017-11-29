@@ -5,6 +5,7 @@
 //	Licensed under included modified BSD license
 
 import Context from '../../context';
+import * as _ from 'lodash';
 import db from '../../db';
 import Client from '../client';
 import sleep from '../../util/sleep';
@@ -44,6 +45,16 @@ export default async function getMap(ctx: Context, client: Client): Promise<void
 		const chunk = await client.planet.getChunk(ctx, x, y);
 		const chunkUnits = await listChunkUnits(ctx, chunk);
 		await client.send('chunk', { chunk: sanitizeChunk(chunk) });
-		await client.send('units', { units: chunkUnits.map((unit: Unit) => sanitizeUnit(unit, client.user.uuid)) });
+		await client.send('units', {
+			units: await Promise.all(chunkUnits.map(async (unit: Unit) => {
+				// HACK for factory queues
+				// TODO should do this for other unit endpoints
+				unit = _.clone(unit);
+				if (unit.details.type === 'factory') {
+					unit.construct.queue = await planetDB.factoryQueue.list(ctx, unit.uuid);
+				}
+				return sanitizeUnit(unit, client.user.uuid);
+			}))
+		});
 	}));
 }

@@ -140,4 +140,6 @@ interface UnitConstruct {
 		remaining: number,
 		type: string,
 	}
+	// HACK is separately loaded from the factoryQueue table
+	queue?: FactoryOrder[],
 }
