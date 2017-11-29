@@ -7,7 +7,7 @@
 import db from '../../db';
 import Context from '../../context';
 import logger, { DetailedError } from '../../logger';
-import { unitDistance, popFactoryOrder, patchUnit } from '../unit';
+import { unitDistance, popFactoryOrder, setConstructing } from '../unit';
 
 import UnitAI from './';
 
@@ -106,7 +106,7 @@ export default class constructionAI implements UnitAI {
 			// logger.info(ctx, 'constructing', { type: newUnitType });
 			const next = await planetDB.factoryQueue.pop(ctx, unit.uuid);
 			if (!next) {
-				logger.info(ctx, 'nothing left in factory queue', { uuid: unit.uuid});
+				logger.info(ctx, 'nothing left in factory queue', { uuid: unit.uuid });
 				return;
 			}
 			logger.info(ctx, 'popped unit off factory queue', { uuid: unit.uuid, next });
@@ -115,11 +115,11 @@ export default class constructionAI implements UnitAI {
 				type: next.type,
 				remaining: unitInfo.details.buildTime,
 			};
-			await patchUnit(ctx, unit, { construct: { constructing }});
+			await setConstructing(ctx, unit, constructing);
 		}
 
 		const constructing = unit.construct.constructing;
-		logger.info(ctx, 'constructing unit', { uuid: unit.uuid,constructing });
+		logger.info(ctx, 'constructing unit', { uuid: unit.uuid, constructing });
 		/*
 		// TODO
 				if (unit.construct.constructing.remaining > 0) {

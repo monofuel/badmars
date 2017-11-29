@@ -398,6 +398,13 @@ export async function takeDamage(ctx: Context, unit: Unit, dmg: number): Promise
 	await patchUnit(ctx, unit, { details, awake: true });
 }
 
+export async function setConstructing(ctx: Context, unit: Unit, constructing: { type: string, remaining: number }): Promise<void> {
+	if (!unit.construct) {
+		throw new DetailedError('unit cannot construct');
+	}
+	await patchUnit(ctx, unit, { construct: { constructing } });
+}
+
 export async function tickResourceCooldown(ctx: Context, unit: Unit): Promise<void> {
 	let resourceCooldown = unit.storage.resourceCooldown - 1;
 	if (resourceCooldown < 0) {

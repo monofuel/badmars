@@ -19,7 +19,7 @@ import * as jsonpatch from 'fast-json-patch';
 import * as THREE from 'three';
 import * as _ from 'lodash';
 import { RequestChange } from '../net';
-import UnitEntity from '../units/index';
+import UnitEntity, { destroyUnitEntity } from '../units/index';
 import { Planet } from '../';
 
 // TODO chunk should be a type
@@ -241,6 +241,12 @@ export default class Map {
 	}
 	*/
 
+	destroyUnits(units: Array<UnitEntity>) {
+		for (const unit of units) {
+			destroyUnitEntity(this.state, unit);
+		}
+	}
+
 	getSelectedUnit(mouse: THREE.Vector2): UnitEntity {
 		const { display } = this.state;
 		var raycaster = new THREE.Raycaster();
@@ -407,7 +413,7 @@ export default class Map {
 			if (Math.sqrt(xdist * xdist + ydist * ydist) > config.loadDistance + 2) {
 				//console.log("removing chunk:" + hash);
 				// TODO handle removing units again	
-				// this.destroyUnits(this.getUnitsOnChunk(hash));
+				this.destroyUnits(this.getUnitsOnChunk(hash));
 
 
 				var chunk = this.state.chunks[hash];

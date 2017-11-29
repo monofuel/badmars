@@ -65,7 +65,6 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
             (mat as any).color = new THREE.Color();
             mat.update();
         }
-        // TODO fix this
         if (entity.unit.details.ghosting) {
             mat.transparent = true;
             mat.opacity = 0.5;
@@ -105,7 +104,7 @@ export function updateUnitEntity(state: State, entity: UnitEntity, delta: number
     if (state.selectedUnits.includes(entity)) {
         markSelected(state, entity, loc);
         if (entity.unit.movable) {
-        markPath(state, entity, loc);
+            markPath(state, entity, loc);
         }
     } else {
         if (entity.graphical.selectionMesh) {
@@ -126,19 +125,24 @@ export function updateUnitEntity(state: State, entity: UnitEntity, delta: number
 export function destroyUnitEntity(state: State, entity: UnitEntity) {
     if (entity.graphical) {
         state.display.removeMesh(entity.graphical.mesh);
+        clearPath(state, entity);
+        clearSelected(state, entity);
     }
+    delete state.unitEntities[entity.unit.uuid];
 }
 
 function applyToMaterials(mesh: THREE.Group, fn: (mat: THREE.MeshLambertMaterial) => void) {
     mesh.children.map((obj: THREE.Mesh) => {
-        const objmat: THREE.MeshLambertMaterial | THREE.MeshLambertMaterial[] | undefined = obj.material as any;
-        if (!objmat) {
+        if (!obj.material) {
+            const objmat = new THREE.MeshPhongMaterial({ color: new THREE.Color() });
+            fn(objmat);
+            obj.material = objmat;
             return;
         }
-        if (Array.isArray(objmat)) {
-            objmat.map((mat: THREE.MeshLambertMaterial) => fn(mat))
+        if (Array.isArray(obj.material)) {
+            obj.material.map((mat: THREE.MeshLambertMaterial) => fn(mat))
         } else {
-            fn(objmat);
+            fn(obj.material as any);
         }
     })
 }
@@ -235,13 +239,13 @@ function clearSelected(state: State, entity: UnitEntity) {
 
 function markPath(state: State, entity: UnitEntity, start: PlanetLoc) {
     const path = entity.unit.movable.path || [];
-    if (!start.equals(entity.graphical.pathLoc) || path.length === 0 || !_.isEqual(path, entity.graphical.prevPath )) {
+    if (!start.equals(entity.graphical.pathLoc) || path.length === 0 || !_.isEqual(path, entity.graphical.prevPath)) {
         clearPath(state, entity);
     }
 
     if (!entity.graphical.pathMesh && path.length > 0) {
         const verticalOffset = 0.5;
-        const points: THREE.Vector3[] = [new THREE.Vector3(0,0,0)];
+        const points: THREE.Vector3[] = [new THREE.Vector3(0, 0, 0)];
 
         let prev = start;
         for (let i = 0; i < Math.min(20, path.length); i++) {
@@ -260,8 +264,8 @@ function markPath(state: State, entity: UnitEntity, start: PlanetLoc) {
                     next = prev.W();
                     break;
                 case 'C':
-                // shouldn't ever happen
-                continue;
+                    // shouldn't ever happen
+                    continue;
                 default:
                     throw new Error(`invalid value in path ${i}`);
             }

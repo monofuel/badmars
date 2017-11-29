@@ -83,7 +83,7 @@ export interface ChunkEvent {
 }
 
 export interface UnitStatsEvent {
-	stats:{ [key: string]: UnitStats }
+	stats: { [key: string]: UnitStats }
 }
 
 export interface UnitDeltaEvent {
@@ -189,7 +189,7 @@ export async function newState(): Promise<State> {
 		selectedUnits: [],
 		units: {},
 		chunks: {},
-		
+
 		unitEntities: {},
 		chatOpen: false,
 		chatHistory: [],
@@ -244,14 +244,14 @@ export async function newState(): Promise<State> {
 		});
 
 		GameStageChange.post({ stage: 'planet' });
-		
+
 		// TODO why is mouesmode here?
 		state.input.mouseMode = 'select';
 		LoginChange.detach(loginListener);
 	}
 	LoginChange.attach(loginListener);
 
-	const gameFocusHandler = async(data: GameFocusEvent) => {
+	const gameFocusHandler = async (data: GameFocusEvent) => {
 		state.focused = data.focus;
 	}
 
@@ -277,24 +277,24 @@ export async function newState(): Promise<State> {
 	ChatChange.attach(chatHandler);
 
 	const updateUnitDeltaListener = async (data: UnitDeltaEvent) => {
-		const unit = _.find(state.units, (unit) => unit.uuid === data.uuid);
+		const unit = state.units[data.uuid];
 		if (!unit) {
-			throw new Error(`unit ${data.uuid} does not exist`);
+			return;
 		}
 		const updated = _.cloneDeep(unit);
 		jsonpatch.applyPatch(updated, data.delta);
 		state.units[unit.uuid] = updated;
-		state.unitEntities[unit.uuid].unit = updated;
+		if (state.unitEntities[unit.uuid]) {
+			state.unitEntities[unit.uuid].unit = updated;
+		}
 	};
 	UnitDeltaChange.attach(updateUnitDeltaListener);
 
 	const updateUnitsListener = (data: UnitEvent) => {
 		for (let updated of data.list) {
-			if (!state.units[updated.uuid]) {
-				const entity = newUnitEntity(state, updated);
-				state.unitEntities[updated.uuid] = entity;
-				state.units[updated.uuid] = updated;
-			}
+			const entity = newUnitEntity(state, updated);
+			state.unitEntities[updated.uuid] = entity;
+			state.units[updated.uuid] = updated;
 		}
 	};
 	UnitChange.attach(updateUnitsListener);
