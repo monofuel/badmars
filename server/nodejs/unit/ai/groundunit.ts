@@ -5,7 +5,6 @@ import logger, { WrappedError, DetailedError } from '../../logger';
 
 import PlanetLoc from '../../map/planetloc';
 import DIRECTION from '../../map/directions';
-import Unit from '../unit';
 import Map from '../../map/map';
 
 import { sendResource, tickMovement, setUnitDestination, clearTransferGoal, moveUnit, addPathAttempt, setPath } from '../unit';
@@ -38,7 +37,8 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 	logger.info(ctx, 'found movable unit');
 
 	// waiting to move again
-	if (await tickMovement(ctx, unit)) {
+	if (unit.movable.movementCooldown > 0) {
+		await tickMovement(ctx, unit);
 		return;
 	}
 
@@ -82,7 +82,7 @@ async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	if (!unit.movable) {
 		return;
 	}
-	const path = unit.movable.path;
+	const path = [ ...unit.movable.path];
 
 	const profile = logger.startProfile('moving unit');
 

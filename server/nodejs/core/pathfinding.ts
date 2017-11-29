@@ -9,7 +9,7 @@ import SimplePath from '../nav/simplepath';
 import DIRECTION from '../map/directions';
 import Context from '../context';
 import { WrappedError } from '../logger';
-import Unit, { clearDestination, setPath, setUnitDestination } from '../unit/unit';
+import { clearDestination, setPath, setUnitDestination } from '../unit/unit';
 
 import logger from '../logger';
 import db from '../db';
@@ -104,7 +104,7 @@ export default class PathfindService implements Service {
 		} while (true);
 
 		await setPath(ctx, unit, path);
-		await setUnitDestination(ctx, unit, end.x, end.y);
+		// await setUnitDestination(ctx, unit, end.x, end.y);
 	}
 
 	async stop(): Promise<void> {

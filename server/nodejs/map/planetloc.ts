@@ -15,9 +15,7 @@ import Direction from '../map/directions';
 import db from '../db';
 import Context from '../context';
 import Map from './map';
-import Chunk from './chunk';
 import ChunkLayer from './chunkLayer';
-import Unit from '../unit/unit';
 
 type TileHash = string;
 type TileCode = 0 | 1 | 2 | 3;

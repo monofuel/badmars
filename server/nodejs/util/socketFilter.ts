@@ -4,23 +4,10 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
-import Unit from '../unit/unit';
 import User from '../user';
-import Chunk from '../map/chunk';
 import Map from '../map/map';
 
 type UUID = string;
-
-import {
-	UnitDetails,
-	UnitLocation,
-	UnitMovable,
-	UnitAttack,
-	UnitStorage,
-	UnitGraphical,
-	UnitStationary,
-	UnitConstruct
-} from '../unit/components';
 
 export function sanitizeUnit(unit: Unit, owner: UUID) {
 
@@ -150,6 +137,7 @@ function sanitizeOwnedUnitMovable(movable: UnitMovable) {
 		movementCooldown,
 		destination,
 		transferGoal,
+		path,
 	} = movable;
 	return {
 		layer,
@@ -157,6 +145,7 @@ function sanitizeOwnedUnitMovable(movable: UnitMovable) {
 		movementCooldown,
 		destination,
 		transferGoal,
+		path,
 	};
 }
 
@@ -179,11 +168,11 @@ function sanitizeOwnedUnitConstruct(construct: UnitConstruct) {
 export function sanitizeUser(user: User) {
 	const {
 		uuid,
-		name,
+		username,
 	} = user;
 	return {
 		uuid,
-		name,
+		username,
 	};
 }
 
@@ -217,6 +206,7 @@ export function sanitizePlanet(map: Map) {
 		settings,
 		paused,
 		users,
+		tps,
 	} = map;
 	return {
 		name,
@@ -224,5 +214,6 @@ export function sanitizePlanet(map: Map) {
 		settings,
 		paused,
 		users,
+		tps,
 	}
 }

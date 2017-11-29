@@ -47,7 +47,7 @@ export default class Net implements Service {
 				return;
 			}
 
-			logger.info(ctx, 'user connected', { username: user.name });
+			logger.info(ctx, 'user connected', { username: user.username });
 
 			(info.req as any).user = user;
 

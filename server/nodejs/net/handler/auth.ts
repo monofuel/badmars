@@ -54,8 +54,6 @@ export default async function auth(ctx: Context, client: Client, data: any): Pro
 	}
 	client.planet = planet;
 	client.map = planet; //TODO remove this when updated in other places
-
-	client.username = client.user.name; // TODO what is this used for?
 	await mountUserHandlers(client);
 
 	client.send('login');

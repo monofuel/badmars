@@ -12,9 +12,9 @@ import Context from '../context';
 import db from '../db';
 import env from '../config/env';
 import { LAND } from './tiletypes';
-import Chunk, { newChunk, planetLocsForChunk, listChunkUnits } from './chunk';
+import { newChunk, planetLocsForChunk, listChunkUnits } from './chunk';
 import PlanetLoc, { getLocationDetails } from './planetloc';
-import Unit, { newUnit, sendResource, unitDistance, getUnitLocs, addToChunks, clearFromChunks } from '../unit/unit';
+import { newUnit, sendResource, unitDistance, getUnitLocs, addToChunks, clearFromChunks } from '../unit/unit';
 import Client from '../net/client';
 import sleep from '../util/sleep';
 import { generateChunk, generateResources } from './procedures';
@@ -69,6 +69,7 @@ export default class Map {
 	settings: any;
 	lastTickTimestamp: number;
 	lastTick: number;
+	tps: number;
 	users: Array<any>;
 	seed: number;
 	paused: boolean;
@@ -81,6 +82,7 @@ export default class Map {
 		this.settings = _.cloneDeep(defaultSettings);
 		this.lastTickTimestamp = (new Date()).getTime();
 		this.lastTick = 0;
+		this.tps = 2;
 		this.users = [];
 		this.seed = seed;
 		this.paused = false;
@@ -461,6 +463,8 @@ export default class Map {
 			}
 		}
 		logger.info(ctx, 'spawn finished');
+
+		await planetDB.addUser(ctx, user.uuid);
 	}
 
 	//find random spawn locations, looking farther away depending on how many attempts tried

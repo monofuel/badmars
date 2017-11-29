@@ -14,45 +14,7 @@ import ConstructionAI from './ai/construction';
 import * as mineAI from './ai/mine';
 import PlanetLoc, { getLocationDetails } from '../map/planetloc';
 import * as uuidv4 from 'uuid/v4';
-import Chunk from '../map/chunk';
 import * as TileType from '../map/tiletypes';
-
-import {
-	UnitDetails,
-	UnitLocation,
-	UnitMovable,
-	UnitAttack,
-	UnitStorage,
-	UnitGraphical,
-	UnitStationary,
-	UnitConstruct
-} from './components';
-
-export default interface Unit {
-	uuid: UUID;
-	awake: boolean;
-	details: UnitDetails;
-	location: UnitLocation;
-	movable: null | UnitMovable;
-	attack: null | UnitAttack;
-	storage: null | UnitStorage;
-	graphical: null | UnitGraphical;
-	stationary: null | UnitStationary;
-	construct: null | UnitConstruct;
-}
-
-export interface UnitPatch {
-	uuid: UUID;
-	awake: boolean;
-	details: Partial<UnitDetails>;
-	location: Partial<UnitLocation>;
-	movable: null | Partial<UnitMovable>;
-	attack: null | Partial<UnitAttack>;
-	storage: null | Partial<UnitStorage>;
-	graphical: null | Partial<UnitGraphical>;
-	stationary: null | Partial<UnitStationary>;
-	construct: null | Partial<UnitConstruct>;
-}
 
 // Functions that modify the unit directly should probably be in this file
 async function patchUnit(ctx: Context, unit: Unit, patch: Partial<UnitPatch>): Promise<void> {
@@ -397,7 +359,7 @@ export async function tickMovement(ctx: Context, unit: Unit): Promise<void> {
 		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
 	const movable = {
-		movementCooldown: unit.movable.movementCooldown--
+		movementCooldown: --unit.movable.movementCooldown
 	};
 	return patchUnit(ctx, unit, { movable });
 }

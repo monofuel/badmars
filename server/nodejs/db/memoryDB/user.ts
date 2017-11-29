@@ -27,7 +27,7 @@ export default class User implements DB.User {
     public async getByName(ctx: Context, name: string): Promise<GameUser | null> {
         const call = startDBCall(ctx, 'user.getByName');
         for (const uuid in this.users) {
-            if (this.users[uuid].name === name) {
+            if (this.users[uuid].username === name) {
                 await call.end();
                 return this.users[uuid];
             }

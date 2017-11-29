@@ -14,7 +14,7 @@ export default {
 	ephemeralDB: process.env.EPHEMERAL === 'true',
 	memoryDBPath: process.env.MEMORY_DB_PATH || '../../data/memoryDB.json',
 
-	ticksPerSec: parseInt(process.env.TICKS_PER_SEC) || 1,
+	ticksPerSec: parseInt(process.env.TICKS_PER_SEC) || 2,
 	stressTest: process.env.STRESS_TEST === 'true',
 	statReportRate: parseInt(process.env.STAT_REPORT_RATE) || 1, //in minutes
 	unitProcessChunks: parseInt(process.env.UNIT_PROCESS_CHUNKS) || 20,

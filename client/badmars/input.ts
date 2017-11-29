@@ -4,11 +4,10 @@ import { autobind } from 'core-decorators';
 import * as _ from 'lodash';
 import { SyncEvent } from 'ts-events';
 
-import State from './state';
-import Entity from './units/entity';
+import State, { SelectedUnitsChange, TransferChange } from './state';
 import PlanetLoc from './map/planetLoc';
-import { SelectedUnitsChange, TransferChange } from './gameEvents';
 import { RequestChange } from './net';
+import UnitEntity from './units';
 import * as THREE from 'three';
 import Hilight from './ui/hilight';
 
@@ -163,7 +162,7 @@ export default class Input {
 	}
 
 	@autobind
-	private setMoveHandler(selectedUnits: Entity[]): void {
+	private setMoveHandler(selectedUnits: UnitEntity[]): void {
 		this.state.selectedUnits = selectedUnits;
 		SelectedUnitsChange.post({ units: this.state.selectedUnits });
 		this.mouseMode = 'move';
@@ -175,7 +174,7 @@ export default class Input {
 			for (const unit of this.state.selectedUnits) {
 				RequestChange.post({
 					type: 'setDestination',
-					unitId: unit.uuid,
+					unitId: unit.unit.uuid,
 					location: [Math.floor(tile.real_x), Math.floor(tile.real_y)]
 				});
 			}
@@ -232,11 +231,11 @@ export default class Input {
 				case RIGHT_MOUSE:
 					if (this.mouseMode === 'move') {
 						const selectedTile = this.state.map.getTileAtRay(mouse);
-						const unit = this.state.map.getSelectedUnit(mouse);
-						const selectedUnit = this.state.selectedUnits.length > 0 ? this.state.selectedUnits[0] : null
-						if (unit && selectedUnit && this.state.playerInfo && unit.details.owner === this.state.playerInfo.uuid && unit.uuid !== selectedUnit.uuid) {
+						const entity = this.state.map.getSelectedUnit(mouse);
+						const selected = this.state.selectedUnits.length > 0 ? this.state.selectedUnits[0] : null
+						if (entity && selected && this.state.playerInfo && entity.unit.details.owner === this.state.playerInfo.uuid && entity.unit.uuid !== selected.unit.uuid) {
 							console.log('right clicked players own unit');
-							TransferChange.post({ dest: unit, source: selectedUnit });
+							TransferChange.post({ dest: entity.unit, source: selected.unit });
 						}
 						if (selectedTile) {
 							MouseReleaseChanged.post({ type: 'mouseRelease', event: event })

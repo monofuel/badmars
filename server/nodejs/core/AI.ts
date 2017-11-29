@@ -6,7 +6,7 @@
 import env from '../config/env';
 const grpc = require('grpc');
 
-import Unit, { simulate } from '../unit/unit';
+import { simulate } from '../unit/unit';
 import logger, { WrappedError, DetailedError } from '../logger';
 import Context from '../context';
 import db from '../db';

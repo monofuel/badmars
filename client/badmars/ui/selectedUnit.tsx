@@ -3,11 +3,10 @@
 import { autobind } from 'core-decorators';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import State from '../state';
-import Entity from '../units/entity';
-import { UnitDeltaChange } from '../net';
+import State, { getPlayerByUUID, UnitDeltaChange } from '../state';
 import { Paper } from 'material-ui';
 import LinearProgress from 'material-ui/LinearProgress';
+import UnitEntity from '../units';
 
 const infoStyle = {
 	position: 'absolute',
@@ -20,7 +19,7 @@ const infoStyle = {
 }
 
 interface SelectedUnitProps {
-	selectedUnits: Entity[];
+	selectedUnits: UnitEntity[];
 }
 
 export default class SelectedUnitWell extends React.Component<SelectedUnitProps,{}> {
@@ -48,7 +47,7 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 	render() {
 		const { state } = this.context;
 		const { selectedUnits } = this.props;
-		const selectedUnit = selectedUnits[0];
+		const selectedUnit = selectedUnits[0].unit;
 		const iron = (selectedUnit.storage ? selectedUnit.storage.iron : 0) || 0;
 		const fuel = (selectedUnit.storage ? selectedUnit.storage.fuel : 0) || 0;
 		const rate = 1;
@@ -59,7 +58,7 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 		const fuelStorage = (selectedUnit.storage ? selectedUnit.storage.maxFuel : 0);
 
 		let health = (selectedUnit.details.health ? selectedUnit.details.health : 0);;
-		let player = state.getPlayerByUUID(selectedUnit.details.owner);
+		let player = getPlayerByUUID(state, selectedUnit.details.owner);
 		let playerName = (player ? player.username : '');
 
 		if (selectedUnit.details.type === 'iron' || selectedUnit.details.type === 'oil') {

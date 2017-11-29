@@ -2,9 +2,13 @@
 
 import { autobind } from 'core-decorators';
 import StatsMonitor from './statsMonitor';
-import State from './state';
 import { log, logError } from './logger';
 import * as THREE from 'three';
+import State, { MapQueue, UnitQueue, UnitStatsQueue } from './state';
+import * as tsevents from 'ts-events';
+import config from './config';
+import { updateUnitEntity } from './units';
+import { clearTimeout } from 'timers';
 
 export default class MainLoop {
 	clock: THREE.Clock;
@@ -20,17 +24,27 @@ export default class MainLoop {
 	public logicLoop() {
 		this.statsMonitor.begin();
 		try {
+
+			UnitStatsQueue.flush();
+			MapQueue.flush();
+			UnitQueue.flush();
+			tsevents.flushOnce();
+		} catch (err) {
+			logError(err);
+			// debugger;
+		}
+		try {
+
 			const delta = this.clock.getDelta();
 			this.state.input.update(delta);
-			if (this.state.map) {
-				this.state.map.update(delta);
-			}
+			Object.values(this.state.unitEntities)
+				.map((unit) => updateUnitEntity(this.state, unit, delta));
 			this.state.display.render(delta);
 		} catch (err) {
-			console.error(err);
 			logError(err);
+			debugger;
 		}
 		this.statsMonitor.end();
-		window.requestAnimationFrame(this.logicLoop);
+		window.requestAnimationFrame(this.logicLoop);		
 	}
 }

@@ -7,7 +7,6 @@
 import Context from '../../context';
 import db from '../../db';
 import Client from '../client';
-import Unit from '../../unit/unit';
 import sleep from '../../util/sleep';
 import { listChunkUnits } from '../../map/chunk';
 import { sanitizeChunk, sanitizeUnit, sanitizePlanet, sanitizeUser } from '../../util/socketFilter';
@@ -25,6 +24,7 @@ export default async function getMap(ctx: Context, client: Client): Promise<void
 	const unitStats = await planetDB.unitStat.getAll(ctx);
 	await client.send('unitStats', { units: unitStats });
 
+	// TODO should only send users in planet.users[]
 	const userList = await db.user.list(ctx);
 	await client.send('players', { players: userList.map(sanitizeUser) });
 

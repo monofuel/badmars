@@ -1,11 +1,9 @@
 import Context from '../context';
 import GamePlanet from '../map/map';
-import GameChunk from '../map/chunk';
-import GameChunkLayer from '../map/chunkLayer';
+import ChunkLayer from '../map/chunkLayer';
 import GameUser from '../user';
-import GameUnit, { UnitPatch } from '../unit/unit';
 import GameSession from '../user/session';
-import GameUnitStat from '../unit/unitStat';
+import UnitStat from '../unit/unitStat';
 import { SyncEvent } from 'ts-events';
 import { WrappedError } from '../logger';
 
@@ -38,37 +36,37 @@ export class StopWatchingError extends Error {
     }
 }
 
-export interface Chunk {
-    each(ctx: Context, fn: Handler<GameChunk>): Promise<void>;
-    get(ctx: Context, hash: string): Promise<GameChunk>;
-    patch(ctx: Context, uuid: string, chunk: Partial<GameChunk>): Promise<GameChunk>;
-    create(ctx: Context, chunk: GameChunk): Promise<GameChunk>;
+export interface DBChunk {
+    each(ctx: Context, fn: Handler<Chunk>): Promise<void>;
+    get(ctx: Context, hash: string): Promise<Chunk>;
+    patch(ctx: Context, uuid: string, chunk: Partial<Chunk>): Promise<Chunk>;
+    create(ctx: Context, chunk: Chunk): Promise<Chunk>;
 }
 
-export interface ChunkLayer {
-    create(ctx: Context, layer: GameChunkLayer): Promise<GameChunkLayer>;
+export interface DBChunkLayer {
+    create(ctx: Context, layer: ChunkLayer): Promise<ChunkLayer>;
     findChunkForUnit(ctx: Context, uuid: string): Promise<string>;
-    each(ctx: Context, fn: Handler<GameChunkLayer>): Promise<void>;
-    get(ctx: Context, hash: string): Promise<GameChunkLayer>;
-    setEntity(ctx: Context, hash: string, layer: string, uuid: string, tileHash: string): Promise<GameChunkLayer>;
-    clearEntity(ctx: Context, hash: string, layer: string, uuid: string, tileHash: string): Promise<GameChunkLayer>;
+    each(ctx: Context, fn: Handler<ChunkLayer>): Promise<void>;
+    get(ctx: Context, hash: string): Promise<ChunkLayer>;
+    setEntity(ctx: Context, hash: string, layer: string, uuid: string, tileHash: string): Promise<ChunkLayer>;
+    clearEntity(ctx: Context, hash: string, layer: string, uuid: string, tileHash: string): Promise<ChunkLayer>;
 }
 
-export interface Unit {
-    each(ctx: Context, fn: Handler<GameUnit>): Promise<void>;
-    get(ctx: Context, uuid: string): Promise<GameUnit>;
-    create(ctx: Context, unit: GameUnit): Promise<GameUnit>;
-    getBulk(ctx: Context, uuids: string[]): Promise<{ [uuid: string]: GameUnit }>;
+export interface DBUnit {
+    each(ctx: Context, fn: Handler<Unit>): Promise<void>;
+    get(ctx: Context, uuid: string): Promise<Unit>;
+    create(ctx: Context, unit: Unit): Promise<Unit>;
+    getBulk(ctx: Context, uuids: string[]): Promise<{ [uuid: string]: Unit }>;
     delete(ctx: Context, uuid: string): Promise<void>;
-    patch(ctx: Context, uuid: string, unit: Partial<UnitPatch>): Promise<GameUnit>;
-    watch(ctx: Context, fn: Handler<ChangeEvent<GameUnit>>): Promise<void>;
-    watchPathing(ctx: Context, fn: Handler<GameUnit>): Promise<void>;
-    getAtChunk(ctx: Context, hash: string): Promise<GameUnit[]>;
-    getUnprocessedPath(ctx: Context): Promise<GameUnit>;
+    patch(ctx: Context, uuid: string, unit: Partial<UnitPatch>): Promise<Unit>;
+    watch(ctx: Context, fn: Handler<ChangeEvent<Unit>>): Promise<void>;
+    watchPathing(ctx: Context, fn: Handler<Unit>): Promise<void>;
+    getAtChunk(ctx: Context, hash: string): Promise<Unit[]>;
+    getUnprocessedPath(ctx: Context): Promise<Unit>;
     getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]>;
-    claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<GameUnit>;
+    claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<Unit>;
 
-    listPlayersUnits(ctx: Context, uuid: string): Promise<GameUnit[]>;
+    listPlayersUnits(ctx: Context, uuid: string): Promise<Unit[]>;
 
     pullResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number>;
     putResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number>;
@@ -86,20 +84,21 @@ export interface FactoryQueue {
 
 }
 
-export interface UnitStat {
-    getAll(ctx: Context): Promise<{ [key: string]: GameUnitStat }>;
-    get(ctx: Context, type: string): Promise<GameUnitStat>;
-    patch(ctx: Context, type: string, stats: Partial<GameUnitStat>): Promise<GameUnitStat>;
+export interface DBUnitStat {
+    getAll(ctx: Context): Promise<{ [key: string]: UnitStat }>;
+    get(ctx: Context, type: string): Promise<UnitStat>;
+    patch(ctx: Context, type: string, stats: Partial<UnitStat>): Promise<UnitStat>;
 }
 
 export interface Planet {
-    chunk: Chunk;
-    chunkLayer: ChunkLayer;
-    unit: Unit;
+    chunk: DBChunk;
+    chunkLayer: DBChunkLayer;
+    unit: DBUnit;
     factoryQueue: FactoryQueue;
-    unitStat: UnitStat;
+    unitStat: DBUnitStat;
     planet: GamePlanet;
     patch(ctx: Context, patch: Partial<GamePlanet>): Promise<void>;
+    addUser(ctx: Context, uuid: UUID): Promise<void>;
 }
 
 export interface User {
@@ -150,6 +149,7 @@ class DelegateDB implements DB {
     db: DB;
     setup(db: DB) {
         this.db = db;
+        (global as any).db = db;
     }
     init(ctx: Context) {
         return this.db.init(ctx);

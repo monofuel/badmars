@@ -18,13 +18,8 @@ class MemoryDB implements DB.DB {
 
     public async init(ctx: Context): Promise<void> {
         this.user = new User();
-        this.user.init(ctx.create());
-
         this.event = new Event();
-        this.event.init(ctx.create());
-
         this.session = new Session();
-        this.session.init(ctx.create());
 
         if (!ctx.env.ephemeral && fs.existsSync(ctx.env.memoryDBPath)) {
             logger.info(ctx, 'loading database file');
@@ -40,6 +35,12 @@ class MemoryDB implements DB.DB {
                 await (this.planets[planetName] as Planet).init(ctx, prevDB.planets[planetName]);
             }
         }
+
+        // init needs to be called after assigning previous values
+        this.user.init(ctx.create());
+        this.event.init(ctx.create());
+        this.session.init(ctx.create());
+
         if (!ctx.env.ephemeral) {
             setInterval(() => this.saveDB(ctx.create({ name: 'db_updater' })), 10000);
         }
@@ -51,6 +52,7 @@ class MemoryDB implements DB.DB {
         if (!fs.existsSync(dbpath)) {
             fs.mkdirSync(path.dirname(ctx.env.memoryDBPath));
         }
+        // TODO should remove SyncEvent instances
         const copyDB = _.cloneDeep(this);
         const dbStr = JSON.stringify(copyDB);
         fs.writeFileSync(ctx.env.memoryDBPath, dbStr);

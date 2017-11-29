@@ -14,7 +14,6 @@ import Context from '../context';
 import db from '../db';
 import User from '../user';
 import Map from '../map/map';
-import Unit from '../unit/unit';
 import { GameEvent, ChatEvent } from '../db';
 import * as jsonpatch from 'fast-json-patch';
 
@@ -37,7 +36,6 @@ export default class Client {
 	unitStatWatcher: any;
 	planet: Map;
 	user: User;
-	username: string;
 	ctx: Context;
 	loadedChunks: ChunkHash[];
 
@@ -109,9 +107,9 @@ export default class Client {
 
 	handleLogOut() {
 		logger.info(this.ctx, 'client closed connection');
-		if (this.username) {
+		if (this.user) {
 			logger.info(this.ctx, 'logout', {
-				player: this.username
+				player: this.user.username
 			});
 		}
 		if (this.unitStatWatcher) {
@@ -148,7 +146,7 @@ export default class Client {
 	}
 
 	async registerEventHandler(): Promise<void> {
-		db.event.watch(this.ctx, async (ctx: Context, e: GameEvent): Promise<void> => {
+		await db.event.watch(this.ctx, async (ctx: Context, e: GameEvent): Promise<void> => {
 			if (e.type === 'chat') {
 				this.handleChat(ctx, e);
 			} else {

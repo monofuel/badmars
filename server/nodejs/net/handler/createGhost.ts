@@ -3,7 +3,7 @@
 //	author: Monofuel
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
-import Unit, { newUnit } from '../../unit/unit';
+import { newUnit } from '../../unit/unit';
 import Context from '../../context';
 import Client from '../client';
 import logger, { WrappedError } from '../../logger';

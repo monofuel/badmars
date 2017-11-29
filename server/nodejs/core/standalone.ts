@@ -6,7 +6,7 @@ import Pathfind from './pathfinding';
 import db, * as DB from '../db';
 import logger from '../logger';
 import User, { newUser } from '../user';
-import Unit, { simulate } from '../unit/unit';
+import { simulate } from '../unit/unit';
 
 export default class StandaloneService implements Service {
     private parentCtx: Context;
@@ -106,6 +106,8 @@ class SimulateService implements Service {
     async tick() {
         try {
             const ctx = this.parentCtx.create({ name: "tick" });
+            // TODO should use tps from the planet
+            // we should have separate timeouts for each planet
             const desiredLength = 1000 / ctx.env.ticksPerSec;
             const tickStartTime = Date.now();
 

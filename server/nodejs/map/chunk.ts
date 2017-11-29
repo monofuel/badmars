@@ -10,19 +10,6 @@ import db from '../db';
 import PlanetLoc, { getLocationDetails } from './planetloc';
 import Map from './map';
 import ChunkLayer from './chunkLayer';
-import Unit from '../unit/unit';
-
-export default interface Chunk {
-	x: number;
-	y: number;
-	hash: TileHash;
-	map: string;
-
-	grid: Array<Array<number>>;
-	navGrid: Array<Array<TileCode>>;
-	chunkSize: number;
-
-}
 
 export async function newChunk(ctx: Context, map: string, x: number, y: number): Promise<Chunk> {
 	return {

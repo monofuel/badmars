@@ -1,30 +1,29 @@
 import * as DB from '../';
 import Context from '../../context';
-import GameChunk from '../../map/chunk';
 import { startDBCall } from '../helper';
 
-export default class Chunk implements DB.Chunk {
+export default class DBChunk implements DB.DBChunk {
 
-    private chunks: { [key: string]: GameChunk } = {};
+    private chunks: { [key: string]: Chunk } = {};
 
     public async init(ctx: Context): Promise<void> {
         ctx.check('chunk.init');
     }
 
-    public async each(ctx: Context, fn: DB.Handler<GameChunk>): Promise<void> {
+    public async each(ctx: Context, fn: DB.Handler<Chunk>): Promise<void> {
         for (const hash in this.chunks) {
             await fn(ctx, this.chunks[hash]);
         }
     }
-    public async get(ctx: Context, hash: string): Promise<GameChunk | null> {
+    public async get(ctx: Context, hash: string): Promise<Chunk | null> {
         return this.chunks[hash];
     }
-    public async patch(ctx: Context, hash: string, chunk: Partial<GameChunk>): Promise<GameChunk> {
+    public async patch(ctx: Context, hash: string, chunk: Partial<Chunk>): Promise<Chunk> {
         const prev = this.chunks[hash];
         Object.assign(prev, chunk);
         return prev;
     }
-    public async create(ctx: Context, chunk: GameChunk): Promise<GameChunk> {
+    public async create(ctx: Context, chunk: Chunk): Promise<Chunk> {
         const call = startDBCall(ctx, 'chunk.create');
         this.chunks[chunk.hash] = chunk;
         await call.end();

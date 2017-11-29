@@ -5,7 +5,7 @@ import * as uuidv4 from 'uuid/v4';
 
 export default interface User {
 	uuid: string;
-	name: string;
+	username: string;
 	email: string;
 	passwordHash: Buffer; // pbkdf2 byte array
 
@@ -18,12 +18,12 @@ export class InvalidAuthError extends Error {
 	}
 }
 
-export async function newUser(ctx: Context, name: string, email: string, password: string): Promise<User> {
+export async function newUser(ctx: Context, username: string, email: string, password: string): Promise<User> {
 	const salt = await randomBytes(16);
 	const passwordHash = await hashPassword(password, salt);
 	return {
 		uuid: uuidv4(),
-		name,
+		username,
 		email,
 		passwordHash
 	}

@@ -2,8 +2,6 @@
 
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import * as _ from 'lodash';
-import config from '../config';
 import { RequestChange } from '../net';
 import State from '../state';
 
@@ -19,9 +17,9 @@ export default class LoginModal extends React.Component<{}, {}> {
 	colorField: HTMLInputElement;
 
 	_onLoginClick() {
-		let username = this.usernameField.value;
+		// let username = this.usernameField.value;
 		//let color = this.colorField.value;
-		this.context.state.username = username;
+		// this.context.state.username = username;
 
 		RequestChange.post({
 			type: 'login',

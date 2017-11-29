@@ -6,19 +6,16 @@ import * as React from 'react';
 import * as PropTypes from 'prop-types';
 
 import RaisedButton from 'material-ui/RaisedButton';
-import FloatingActionButton from 'material-ui/FloatingActionButton';
-import ContentAdd from 'material-ui/svg-icons/content/add';
 import { Paper } from 'material-ui';
 
-import Entity from '../units/entity';
-import State from '../state';
+import State, { GameFocusChange, SelectedUnitsChange, SelectedUnitsEvent } from '../state';
 import { RequestChange } from '../net';
-import { MouseReleaseEvent } from '../input';
 import { log } from '../logger';
-import { SelectedUnitsChange, SelectedUnitsEvent } from '../gameEvents';
+
+import UnitEntity from '../units';
 
 interface Props {
-	selectedUnits: Entity[]
+	selectedUnits: UnitEntity[]
 }
 
 interface MenuButtonsState {
@@ -43,15 +40,6 @@ const buildPanelStyle = {
 	zIndex: '5',
 };
 
-const addButtonStyle = {
-	position: 'absolute',
-	top: '90%',
-	right: '5%',
-	marginLeft: 'auto',
-	marginRight: 'auto',
-	zIndex: '5'
-}
-
 export default class MenuButtons extends React.Component<Props, MenuButtonsState> {
 	public static contextTypes = {
 		state: PropTypes.any.isRequired
@@ -74,7 +62,7 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 
 	@autobind
 	public onSelectionChange(e: SelectedUnitsEvent) {
-		const factories = _.filter(e.units, (unit) => unit.details.type === 'factory');
+		const factories = _.filter(e.units, (e) => e.unit.details.type === 'factory');
 
 		this.setState({
 			menuMode: factories.length === 0 ? 'factory' : 'builder',
@@ -82,14 +70,15 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 	}
 
 	public render() {
-		const { menuMode } = this.state;
 		const { selectedUnits } = this.props;
 		const selectedUnit = selectedUnits && selectedUnits.length > 0 ? selectedUnits[0] : null;
-		const selectedUnitType = selectedUnit ? selectedUnit.details.type : null;
+		const selectedUnitType = selectedUnit ? selectedUnit.unit.details.type : null;
 
 		let buttons;
 		let queuePane = <div>Nothing queued</div>;
 		// TODO refactor all of this using construct.types listing the constructable types
+		/*
+		// TODO update for new queue system
 		if (selectedUnitType === 'factory' && selectedUnit && selectedUnit.construct && selectedUnit.construct.factoryQueue && selectedUnit.construct.factoryQueue.length > 0) {
 			let buildingUnit = selectedUnit.construct.factoryQueue[0];
 			let remaining = buildingUnit.remaining;
@@ -110,17 +99,17 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 					</ul>
 				</div>
 			);
-		}
+		}*/
 
 		if (selectedUnitType !== 'factory') {
 			buttons = (
 				<div>
-					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('transfer_tower')}>Transfer Tower</RaisedButton>
-					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('storage')}>Storage</RaisedButton>
-					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('mine')}>Mine</RaisedButton>
-					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('factory')}>Factory</RaisedButton>
-					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('wall')}>Wall</RaisedButton>
-					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('cancel')}>Cancel</RaisedButton>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('transfer_tower')}label='Transfer Tower'/>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('storage')} label='Storage'/>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('mine')}label='Mine'/>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('factory')} label='Factory'/>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('wall')} label='Wall'/>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('cancel')} label='Cancel'/>
 				</div>
 			);
 		} else {
@@ -149,8 +138,7 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 
 	@autobind
 	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
-		this.context.state.setFocus('hud');
-		console.log('set hud focus');
+		GameFocusChange.post({ focus: 'hud', prev: this.context.state.focused });
 		e.stopPropagation();
 	}
 
@@ -167,12 +155,12 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 		if (selectedUnits.length != 1) {
 			throw new Error('multiple unit selected not supported yet');
 		}
-		if (selectedUnits[0].details.type !== 'factory') {
+		if (selectedUnits[0].unit.details.type !== 'factory') {
 			throw new Error('invalid unit type');
 		}
 		RequestChange.post({
 			type: 'factoryOrder',
-			factory: selectedUnits[0].uuid,
+			factory: selectedUnits[0].unit.uuid,
 			unitType,
 		});
 	}

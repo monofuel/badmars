@@ -4,7 +4,7 @@ import { startDBCall } from '../helper';
 import GameChunkLayer from '../../map/chunkLayer';
 import { DetailedError } from '../../logger/index';
 
-export default class ChunkLayer implements DB.ChunkLayer {
+export default class ChunkLayer implements DB.DBChunkLayer {
     private chunksLayers: { [key: string]: GameChunkLayer } = {};
 
     public async init(ctx: Context): Promise<void> {

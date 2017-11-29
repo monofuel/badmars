@@ -11,9 +11,8 @@ import TextField from 'material-ui/TextField';
 import { Paper } from 'material-ui';
 import { Table, TableBody, TableRow, TableRowColumn } from 'material-ui/Table';
 
-import State from '../state';
+import State, { GameFocusChange, GameFocusEvent, ChatEvent } from '../state';
 import { RequestChange } from '../net';
-import { GameFocusChange, GameFocusEvent } from '../gameEvents';
 
 const chatWellStyle = {
 	position: 'absolute',
@@ -39,7 +38,7 @@ const chatBodyStyle = {
 }
 
 interface ChatPropsType {
-	chatLog: any[]; // TODO type this
+	chatLog: ChatEvent[];
 }
 
 interface ChatStateType {
@@ -66,8 +65,8 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 	render() {
 		const { sendText, minimized } = this.state;
 		const { chatLog } = this.props;
-		let recentChat: any[] = [];
-		chatLog.map((line: any) => {
+		let recentChat: ChatEvent[] = [];
+		chatLog.map((line: ChatEvent) => {
 			if (Date.now() - line.timestamp < 1000 * 8 && recentChat.length < 3) {
 				recentChat.push(line);
 			}
@@ -129,12 +128,12 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 
 	@autobind
 	private setGameFocus() {
-		this.context.state.setFocus('game');
+		GameFocusChange.post({ focus: 'game', prev: this.context.state.focused });
 	}
 
 	@autobind
 	private setChatFocus(e: React.MouseEvent<HTMLDivElement>) {
-		this.context.state.setFocus('chat');
+		GameFocusChange.post({ focus: 'chat', prev: this.context.state.focused });
 		e.stopPropagation();
 	}
 

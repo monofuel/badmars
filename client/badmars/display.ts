@@ -55,6 +55,7 @@ export default class Display {
 		this.light = new THREE.DirectionalLight(this.state.sunColor, 1);
 		this.updateSunPosition(0);
 		this.scene.add(this.light);
+		// this.scene.fog = new THREE.Fog( 0x111111, 40, 130 );
 
 		if (config.orthographic) {
 			this.camera.position.set(25, 80, -15);

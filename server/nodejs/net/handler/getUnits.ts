@@ -6,7 +6,6 @@
 
 import Context from '../../context';
 import Client from '../client';
-import Unit from '../../unit/unit';
 import db from '../../db';
 
 export default async function getUnits(ctx: Context, client: Client): Promise<void> {
