@@ -2,12 +2,13 @@ import Context from '../context';
 import * as crypto from 'crypto';
 import db from '../db';
 import * as uuidv4 from 'uuid/v4';
+import * as _ from 'lodash';
 
 export default interface User {
 	uuid: string;
 	username: string;
 	email: string;
-	passwordHash: Buffer; // pbkdf2 byte array
+	passwordHash: number[]; // pbkdf2 byte array
 
 	location?: TileHash; // TODO should be unique for each planet
 }
@@ -20,7 +21,7 @@ export class InvalidAuthError extends Error {
 
 export async function newUser(ctx: Context, username: string, email: string, password: string): Promise<User> {
 	const salt = await randomBytes(16);
-	const passwordHash = await hashPassword(password, salt);
+	const passwordHash = [...await hashPassword(password, salt)];
 	return {
 		uuid: uuidv4(),
 		username,
@@ -34,9 +35,9 @@ export async function loginUser(ctx: Context, name: string, password: string): P
 	if (!user) {
 		throw new InvalidAuthError('missing user');
 	}
-	const salt = user.passwordHash.slice(0, 16);
-	const hash = await hashPassword(password, salt);
-	if (hash !== user.passwordHash) {
+	const salt = new Buffer(user.passwordHash).slice(0, 16);
+	const hash = [...await hashPassword(password, salt)];
+	if (_.isEqual(hash, user.passwordHash)) {
 		throw new InvalidAuthError('bad credentials');
 	}
 
