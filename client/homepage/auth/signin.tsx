@@ -7,8 +7,8 @@ import RaisedButton from 'material-ui/RaisedButton';
 import CircularProgress from 'material-ui/CircularProgress';
 import axios from 'axios';
 interface SigninState {
-	email?: string,
-	emailError?: string,
+	username?: string,
+	usernameError?: string,
 	password?: string,
 	passwordError?: string
 	submitting: boolean
@@ -16,72 +16,70 @@ interface SigninState {
 }
 
 export default class Signin extends React.Component<{}, SigninState> {
-    state: SigninState = {
+	state: SigninState = {
 		submitting: false,
-		email: '',
+		username: '',
 		password: '',
 	};
 
 
 	render() {
-		const { email, emailError, password, passwordError, submitting } = this.state;
+		const { username, usernameError, password, passwordError, submitting } = this.state;
 		return (
-		<Paper className='login-paper' zDepth={5}>
-			{/* https://www.youtube.com/watch?v=gzU_4NNfmi4 */}
-			<Card>
-				<CardHeader title='Login'/>
-				<CardText>
-					<form
-						onSubmit={(e) => {
-							e.preventDefault();
-							this.submit();
-						}}>
-						<TextField
-							hintText='racha@japura.net'
-							hintStyle={{ color: '#666' }}
-							floatingLabelText="email"
-							floatingLabelStyle={{ color: '#666' }}
-							value={email}
-							errorText={emailError}
-							onChange={(e, email) => this.setState({ email, emailError: undefined })}/>
-						<br/>
-						<TextField
-							hintText="**********"
-							hintStyle={{ color: '#666' }}
-							floatingLabelText="password"
-							floatingLabelStyle={{ color: '#666' }}
-							type="password"
-							value={password}
-							errorText={passwordError}
-							onChange={(e, password) => this.setState({ password, passwordError: undefined })}/>
-						<br/>
-						<RaisedButton
-							label={submitting ? <CircularProgress size={30}/> : 'Submit' }
-							primary
-							type='submit'
-							disabled={submitting}
-							disabledBackgroundColor='rgb(101, 150, 43)'/>
-					</form>
-				</CardText>
-			</Card>
-		</Paper>
+			<Paper className='login-paper' zDepth={5}>
+				{/* https://www.youtube.com/watch?v=gzU_4NNfmi4 */}
+				<Card>
+					<CardHeader title='Login' />
+					<CardText>
+						<form
+							onSubmit={(e) => {
+								e.preventDefault();
+								this.submit();
+							}}>
+							<TextField
+								hintText='racha'
+								hintStyle={{ color: '#666' }}
+								floatingLabelText="username"
+								floatingLabelStyle={{ color: '#666' }}
+								value={username}
+								errorText={usernameError}
+								onChange={(e, username) => this.setState({ username, usernameError: undefined })} />
+							<br />
+							<TextField
+								hintText="**********"
+								hintStyle={{ color: '#666' }}
+								floatingLabelText="password"
+								floatingLabelStyle={{ color: '#666' }}
+								type="password"
+								value={password}
+								errorText={passwordError}
+								onChange={(e, password) => this.setState({ password, passwordError: undefined })} />
+							<br />
+							<RaisedButton
+								label={submitting ? <CircularProgress size={30} /> : 'Submit'}
+								primary
+								type='submit'
+								disabled={submitting}
+								disabledBackgroundColor='rgb(101, 150, 43)' />
+						</form>
+					</CardText>
+				</Card>
+			</Paper>
 		);
 	}
 
 	@autobind
 	private async submit() {
 		console.log('SUBMITTING');
-		const { email, password } = this.state;
+		const { username, password } = this.state;
 
-		// Yes, email regexes aren't perfect
-		// no, i do not care
-		if (!email || !email.match(/\S+@\S+\.\S+/)) {
-			this.setState({ emailError: 'Invalid Email'});
+		if (!username) {
+			this.setState({ usernameError: 'Invalid Email' });
 			return false;
 		}
 
 		if (!password) {
-			this.setState({ passwordError: 'Missing Password'});
+			this.setState({ passwordError: 'Missing Password' });
 			return false;
 		}
 
@@ -91,18 +89,18 @@ export default class Signin extends React.Component<{}, SigninState> {
 		});
 
 		const resp = await axios.post('/auth/login', {
-			email, password
+			username, password
 		});
 
 		try {
 			const resp = await axios.post('/auth/login', {
-				email, password
+				username, password
 			});
 			const {
 				sessionToken
 			}: {
-				sessionToken: string
-			} = resp.data;
+					sessionToken: string
+				} = resp.data;
 			window.sessionStorage.setItem('session-token', sessionToken);
 			this.setState({ submitting: false });
 			(window as any).location = '/badmars';
