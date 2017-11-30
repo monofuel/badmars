@@ -45,7 +45,7 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 	// if we have a transfer goal, path to the destination
 	if (unit.movable.transferGoal && !unit.movable.destination) {
 		const transferUnit = await planetDB.unit.get(ctx, unit.movable.transferGoal.uuid);
-		if (await areUnitsAdjacent(ctx, unit, transferUnit)) {
+		if (await areUnitsAdjacent(ctx, transferUnit, unit)) {
 			logger.info(ctx, 'performing transfer', { uuid: unit.uuid });
 			await performTransfer(ctx, unit, transferUnit);
 		} else {
@@ -68,11 +68,11 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 }
 async function performTransfer(ctx: Context, src: Unit, dest: Unit): Promise<void> {
 	if (src.movable && src.movable.transferGoal && src.movable.transferGoal.iron) {
-		await sendResource(ctx, 'iron', src.movable.transferGoal.iron, src, dest);
+		await sendResource(ctx, 'iron', src.movable.transferGoal.iron, dest, src);
 	}
 
 	if (src.movable && src.movable.transferGoal && src.movable.transferGoal.fuel) {
-		await sendResource(ctx, 'fuel', src.movable.transferGoal.fuel, src, dest);
+		await sendResource(ctx, 'fuel', src.movable.transferGoal.fuel, dest, src);
 	}
 
 	await clearTransferGoal(ctx, src);
@@ -82,7 +82,7 @@ async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	if (!unit.movable) {
 		return;
 	}
-	const path = [ ...unit.movable.path];
+	const path = [...unit.movable.path];
 
 	const profile = logger.startProfile('moving unit');
 

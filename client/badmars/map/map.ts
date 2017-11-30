@@ -257,7 +257,6 @@ export default class Map {
 			meshList.push(entity.graphical.mesh);
 		}
 		var intersects = raycaster.intersectObjects(meshList, true);
-		console.log(intersects);
 		if (intersects.length > 0) {
 			return intersects[0].object.userData;
 		}

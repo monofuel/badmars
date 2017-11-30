@@ -11,7 +11,9 @@
 			"speed": 1
 		},
 		"attack": {
-			"layers": ["ground"],
+			"layers": [
+				"ground"
+			],
 			"range": 5.0,
 			"damage": 5,
 			"fireRate": 3
@@ -62,7 +64,9 @@
 			"speed": 1
 		},
 		"attack": {
-			"layers": ["ground"],
+			"layers": [
+				"ground"
+			],
 			"range": 5,
 			"fireRate": 5,
 			"damage": 15
@@ -79,7 +83,8 @@
 		"details": {
 			"size": 1,
 			"buildTime": 10,
-			"cost": 100
+			"cost": 100,
+			"maxHealth": 100
 		},
 		"stationary": {
 			"layer": "ground"
@@ -91,7 +96,8 @@
 	},
 	"mine": {
 		"details": {
-			"size": 1
+			"size": 1,
+			"maxHealth": 20
 		},
 		"storage": {
 			"maxIron": 1000,
@@ -109,7 +115,8 @@
 		"details": {
 			"size": 3,
 			"buildTime": 50,
-			"cost": 750
+			"cost": 750,
+			"maxHealth": 50
 		},
 		"construct": {
 			"types": [
@@ -168,7 +175,7 @@
 		}
 	},
 	"transfer_tower": {
-		"details":{
+		"details": {
 			"size": 2
 		},
 		"stationary": {
