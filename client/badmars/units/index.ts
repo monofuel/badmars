@@ -266,7 +266,7 @@ function markPath(state: State, entity: UnitEntity, start: PlanetLoc) {
         const points: THREE.Vector3[] = [new THREE.Vector3(0, 0, 0)];
 
         let prev = start;
-        for (let i = 0; i < Math.min(20, path.length); i++) {
+        for (let i = 0; i < Math.min(40, path.length); i++) {
             let next: PlanetLoc;
             switch (path[i]) {
                 case 'N':

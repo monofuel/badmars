@@ -27,8 +27,13 @@ export interface MouseReleaseEvent {
 	event: any; // TODO
 }
 
+interface MoveCameraEvent {
+	dir: 'w' | 'a' | 's' | 'd'
+}
+
 export const MouseMoveChanged = new SyncEvent<MouseMoveEvent>();
 export const MouseReleaseChanged = new SyncEvent<MouseReleaseEvent>();
+export const MoveCameraChange = new SyncEvent<MoveCameraEvent>();
 
 export default class Input {
 	state: State;
@@ -71,19 +76,23 @@ export default class Input {
 			switch (key) {
 				case 87: // w
 					this.state.display.cameraForward(delta);
+					MoveCameraChange.post({ dir: 'w' });
 					break;
 				case 65: // a
 					if (this.ctrlKey) {
 						this.setMoveHandler(this.state.map.getSelectedUnitsInView());
 					} else {
 						this.state.display.cameraLeft(delta);
+						MoveCameraChange.post({ dir: 'a' });
 					}
 					break;
 				case 83: // s
 					this.state.display.cameraBackward(delta);
+					MoveCameraChange.post({ dir: 's' });
 					break;
 				case 68: // d
 					this.state.display.cameraRight(delta);
+					MoveCameraChange.post({ dir: 'd' });
 					break;
 				case 82: // r
 					this.state.display.cameraUp(delta);
@@ -265,20 +274,41 @@ export default class Input {
 		} else {
 			color = new THREE.Color('#FF00FF');
 		}
+		let lastMousePos: MouseMoveEvent
 		const mouseMoveHandler = (e: MouseMoveEvent) => {
 			if (this.mouseMode !== 'focus') {
 				clearSelection(state);
 				MouseMoveChanged.detach(mouseMoveHandler);
+				MoveCameraChange.detach(cameraMoveHandler);
+				return;
 			}
+			lastMousePos = e;
 			const tile = this.getTileUnderCursor(e.event);
 			setSelection(state, tile, color);
 		}
 		MouseMoveChanged.attach(mouseMoveHandler);
 
+		const cameraMoveHandler = (e: MoveCameraEvent) => {
+			if (this.mouseMode !== 'focus') {
+				clearSelection(state);
+				MouseMoveChanged.detach(mouseMoveHandler);
+				MoveCameraChange.detach(cameraMoveHandler)
+				return;
+			}
+			if (!lastMousePos) {
+				return;
+			}
+			const tile = this.getTileUnderCursor(lastMousePos.event);
+			setSelection(state, tile, color);
+		}
+
+		MoveCameraChange.attach(cameraMoveHandler);
+
 		this.mouseAction = (event: MouseReleaseEvent) => {
 
 			clearSelection(state);
 			MouseMoveChanged.detach(mouseMoveHandler);
+			MoveCameraChange.detach(cameraMoveHandler)
 			if (this.mouseMode !== 'focus') {
 				return
 			}

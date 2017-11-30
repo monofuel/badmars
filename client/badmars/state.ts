@@ -379,7 +379,7 @@ export function setSelection(state: State, loc: PlanetLoc, color: THREE.Color) {
 		}
 	}
 	const mesh = tileSquareMesh(loc, new THREE.Color('#ff00ff'));
-	state.display.addMesh(state.mouseHilight.mesh);
+	state.display.addMesh(mesh);
 	state.mouseHilight = {
 		mesh,
 		loc
