@@ -4,12 +4,11 @@ import { autobind } from 'core-decorators';
 import * as _ from 'lodash';
 import { SyncEvent } from 'ts-events';
 
-import State, { SelectedUnitsChange, TransferChange } from './state';
+import State, { SelectedUnitsChange, TransferChange, clearSelection, setSelection } from './state';
 import PlanetLoc from './map/planetLoc';
 import { RequestChange } from './net';
 import UnitEntity from './units';
 import * as THREE from 'three';
-import Hilight from './ui/hilight';
 
 export type MouseMode = 'select' | 'move' | 'focus';
 
@@ -40,8 +39,6 @@ export default class Input {
 	dragCurrent: THREE.Vector2;
 	public mouseMode: MouseMode;
 	public mouseAction: Function;
-
-	hilight: Hilight;
 
 	constructor(state: State) {
 		this.state = state;
@@ -247,7 +244,7 @@ export default class Input {
 			}
 		}, 0);
 	}
-	
+
 	@autobind
 	private getTileUnderCursor(event: MouseEvent): PlanetLoc {
 		const mouse = new THREE.Vector2();
@@ -258,28 +255,29 @@ export default class Input {
 
 	@autobind
 	public construct(unitType: string) {
+		const state = this.state;
 		this.mouseMode = 'focus';
 		console.log('adding mouse click function for ' + unitType);
-		this.hilight = new Hilight(this.state)
+		let color: THREE.Color;
 		if (unitType !== 'cancel') {
 			console.log('building ' + unitType);
-			this.hilight.setDeconstruct(false);
+			color = new THREE.Color('#00FF00');
 		} else {
-			this.hilight.setDeconstruct(true);
+			color = new THREE.Color('#FF00FF');
 		}
 		const mouseMoveHandler = (e: MouseMoveEvent) => {
 			if (this.mouseMode !== 'focus') {
-				this.hilight.destroy();
+				clearSelection(state);
 				MouseMoveChanged.detach(mouseMoveHandler);
 			}
 			const tile = this.getTileUnderCursor(e.event);
-			this.hilight.updateLocation(tile);
+			setSelection(state, tile, color);
 		}
 		MouseMoveChanged.attach(mouseMoveHandler);
 
 		this.mouseAction = (event: MouseReleaseEvent) => {
-			
-			this.hilight.destroy();
+
+			clearSelection(state);
 			MouseMoveChanged.detach(mouseMoveHandler);
 			if (this.mouseMode !== 'focus') {
 				return

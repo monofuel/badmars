@@ -57,7 +57,11 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
     mesh.copy(geom, true);
     mesh.scale.set(scale, scale, scale);
     mesh.rotation.x = -Math.PI / 2;
-    mesh.userData = entity;
+    mesh.children.map((obj: THREE.Object3D) => {
+        obj.children.map((objMesh: THREE.Mesh) => {
+            objMesh.userData = entity;
+        });
+    });
 
     // TODO flag colors
     applyToMaterials(mesh, (mat: THREE.MeshLambertMaterial) => {
@@ -71,6 +75,8 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
         if (entity.unit.details.ghosting) {
             mat.transparent = true;
             mat.opacity = 0.2;
+        } else {
+            mat.transparent = false;
         }
     });
     state.display.addMesh(mesh);
@@ -120,6 +126,7 @@ export function updateUnitEntity(state: State, entity: UnitEntity, delta: number
     // Since the entity has handled all the changes, update it for the next frame.
     entity.unit = next;
     if (entity.graphical.ghosting !== next.details.ghosting) {
+        console.log('no longer ghosting');
         updateGraphicalEntity(state, entity);
     }
 }
@@ -179,53 +186,7 @@ function animateToLocation(state: State, entity: UnitEntity, loc: PlanetLoc, del
 
 function markSelected(state: State, entity: UnitEntity, loc: PlanetLoc) {
     if (!entity.graphical.selectionMesh) {
-        // relative tile locations
-        const corners = [
-            new THREE.Vector3(-0.5, loc.corners[2] - loc.real_z, -0.5),
-            new THREE.Vector3(0.5, loc.corners[3] - loc.real_z, -0.5),
-            new THREE.Vector3(-0.5, loc.corners[0] - loc.real_z, 0.5),
-            new THREE.Vector3(0.5, loc.corners[1] - loc.real_z, 0.5),
-        ];
-        const center = new THREE.Vector3(0, 0, 0);
-
-        const edges = [[0, 1], [1, 3], [2, 0], [3, 2]];
-        // create a trapezoid for each edge
-        const thickness = 0.15;
-        const selectedGeom = new THREE.Geometry();
-        for (let i = 0; i < edges.length; i++) {
-            const [j, k] = edges[i];
-            selectedGeom.vertices.push(corners[j]);
-            selectedGeom.vertices.push(corners[k]);
-            selectedGeom.vertices.push(corners[j].clone().lerp(center, thickness));
-            selectedGeom.vertices.push(corners[k].clone().lerp(center, thickness));
-            const offset = i * 4;
-            selectedGeom.faces.push(new THREE.Face3(offset, offset + 2, offset + 1));
-            selectedGeom.faces.push(new THREE.Face3(offset + 1, offset + 2, offset + 3));
-        }
-
-        /*
-        // useful for some material types;
-
-                selectedGeom.computeBoundingSphere();
-        selectedGeom.computeFaceNormals();
-        selectedGeom.computeVertexNormals();
-        const up = new THREE.Vector3(0, 0, 1);
-        selectedGeom.faces[0].normal.copy(up);
-        selectedGeom.faces[1].normal.copy(up);
-
-        for (var i = 0; i <= 2; i++) {
-            selectedGeom.faces[0].vertexNormals[i].copy(up);
-            selectedGeom.faces[1].vertexNormals[i].copy(up);
-        }
-        */
-
-        var selectedMaterial = new THREE.MeshBasicMaterial({
-            color: '#7b44bf'
-        });
-
-        const selectedMesh = new THREE.Mesh(selectedGeom, selectedMaterial);
-        selectedMesh.position.copy(loc.getVec());
-        selectedMesh.position.y += 0.05;
+        const selectedMesh = tileSquareMesh(loc, new THREE.Color('#7b44bf'));
         state.display.addMesh(selectedMesh);
         entity.graphical.selectionMesh = selectedMesh;
 
@@ -236,6 +197,56 @@ function markSelected(state: State, entity: UnitEntity, loc: PlanetLoc) {
         }
     }
 
+}
+
+export function tileSquareMesh(loc: PlanetLoc, color: THREE.Color): THREE.Mesh {
+    const corners = [
+        new THREE.Vector3(-0.5, loc.corners[2] - loc.real_z, -0.5),
+        new THREE.Vector3(0.5, loc.corners[3] - loc.real_z, -0.5),
+        new THREE.Vector3(-0.5, loc.corners[0] - loc.real_z, 0.5),
+        new THREE.Vector3(0.5, loc.corners[1] - loc.real_z, 0.5),
+    ];
+    const center = new THREE.Vector3(0, 0, 0);
+
+    const edges = [[0, 1], [1, 3], [2, 0], [3, 2]];
+    // create a trapezoid for each edge
+    const thickness = 0.15;
+    const selectedGeom = new THREE.Geometry();
+    for (let i = 0; i < edges.length; i++) {
+        const [j, k] = edges[i];
+        selectedGeom.vertices.push(corners[j]);
+        selectedGeom.vertices.push(corners[k]);
+        selectedGeom.vertices.push(corners[j].clone().lerp(center, thickness));
+        selectedGeom.vertices.push(corners[k].clone().lerp(center, thickness));
+        const offset = i * 4;
+        selectedGeom.faces.push(new THREE.Face3(offset, offset + 2, offset + 1));
+        selectedGeom.faces.push(new THREE.Face3(offset + 1, offset + 2, offset + 3));
+    }
+
+    /*
+    // useful for some material types;
+
+            selectedGeom.computeBoundingSphere();
+    selectedGeom.computeFaceNormals();
+    selectedGeom.computeVertexNormals();
+    const up = new THREE.Vector3(0, 0, 1);
+    selectedGeom.faces[0].normal.copy(up);
+    selectedGeom.faces[1].normal.copy(up);
+
+    for (var i = 0; i <= 2; i++) {
+        selectedGeom.faces[0].vertexNormals[i].copy(up);
+        selectedGeom.faces[1].vertexNormals[i].copy(up);
+    }
+    */
+
+    var selectedMaterial = new THREE.MeshBasicMaterial({
+        color
+    });
+
+    const selectedMesh = new THREE.Mesh(selectedGeom, selectedMaterial);
+    selectedMesh.position.copy(loc.getVec());
+    selectedMesh.position.y += 0.05;
+    return selectedMesh;
 }
 
 function clearSelected(state: State, entity: UnitEntity) {

@@ -582,8 +582,8 @@ export default class Map {
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 
 		//TODO should calculate based on transfer range
-		const units: Array<Unit> = await this.getNearbyUnitsFromChunk(ctx, taker.location.chunkHash[0]);
-
+		let units: Array<Unit> = await this.getNearbyUnitsFromChunk(ctx, taker.location.chunkHash[0]);
+		units = _.filter(units, (unit: Unit) => !!unit.storage);
 		this.sortByNearestUnit(units, taker);
 		this.sortBuildingsOverOther(units);
 

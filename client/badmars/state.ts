@@ -12,11 +12,11 @@ import Config from './config';
 import { QueuedEvent, EventQueue } from 'ts-events';
 import { Planet, User, UnitStats } from './';
 import * as jsonpatch from 'fast-json-patch';
-import UnitEntity, { newUnitEntity, updateGraphicalEntity } from './units';
+import UnitEntity, { newUnitEntity, updateGraphicalEntity, tileSquareMesh } from './units';
 export type GameStageType = 'login' | 'planet';
 export type Focused = 'chat' | 'hud' | 'game';
 import * as qs from 'query-string';
-
+import * as THREE from 'three';
 // ------------------------------------------
 // Game State should not be modified directly
 // Fire an event to trigger the change to happen on the next frame
@@ -152,6 +152,11 @@ export default interface State {
 
 	chatOpen: boolean;
 	chatHistory: ChatEvent[];
+
+	mouseHilight?: {
+		loc: PlanetLoc,
+		mesh: THREE.Mesh,
+	}
 }
 
 export async function newState(): Promise<State> {
@@ -359,4 +364,25 @@ export function setFocus(state: State, focus: Focused) {
 	log('debug', 'changed focus', { prev: state.focused, focus });
 	const prev = state.focused;
 	GameFocusChange.post({ focus, prev });
+}
+
+export function clearSelection(state: State) {
+	state.display.removeMesh(state.mouseHilight.mesh);
+	delete state.mouseHilight;
+}
+export function setSelection(state: State, loc: PlanetLoc, color: THREE.Color) {
+	if (state.mouseHilight) {
+		if (state.mouseHilight.loc.equals(loc)) {
+			return;
+		} else {
+			clearSelection(state);
+		}
+	}
+	const mesh = tileSquareMesh(loc, new THREE.Color('#ff00ff'));
+	state.display.addMesh(state.mouseHilight.mesh);
+	state.mouseHilight = {
+		mesh,
+		loc
+	}
+
 }

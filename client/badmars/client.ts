@@ -13,15 +13,14 @@ import {
 	RequestChange,
 } from './net';
 import { log } from './logger';
-import State, { 
+import State, {
 	newState,
 	DisplayErrorChange,
 	SelectedUnitsChange,
 	TransferChange,
 	ChatEvent,
-	GameStageChange, } from './state';
-
-import Hilight from './ui/hilight';
+	GameStageChange,
+} from './state';
 import './units/unitBalance';
 import config from './config';
 import { handleBalanceChanges } from './units/unitBalance';
@@ -56,7 +55,7 @@ window.onload = async (): Promise<void> => {
 		type: 'login',
 		planet: 'testmap'
 	});
-	
+
 
 	// TODO planet selection page
 	/*

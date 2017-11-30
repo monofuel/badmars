@@ -405,6 +405,11 @@ export async function setConstructing(ctx: Context, unit: Unit, constructing: { 
 	await patchUnit(ctx, unit, { construct: { constructing } });
 }
 
+
+export async function setBuilt(ctx: Context, unit: Unit): Promise<void> {
+	await patchUnit(ctx, unit, { details: { ghosting: false } });
+}
+
 export async function tickResourceCooldown(ctx: Context, unit: Unit): Promise<void> {
 	let resourceCooldown = unit.storage.resourceCooldown - 1;
 	if (resourceCooldown < 0) {

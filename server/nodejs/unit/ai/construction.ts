@@ -7,7 +7,7 @@
 import db from '../../db';
 import Context from '../../context';
 import logger, { DetailedError } from '../../logger';
-import { unitDistance, popFactoryOrder, setConstructing } from '../unit';
+import { unitDistance, popFactoryOrder, setConstructing, setUnitDestination, setBuilt } from '../unit';
 
 import UnitAI from './';
 
@@ -162,34 +162,33 @@ export default class constructionAI implements UnitAI {
 	}
 
 	async simulateGround(ctx: Context, unit: Unit): Promise<void> {
+		const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 		if (!unit.construct || !unit.storage || !this.nearestGhost) {
 			return;
 		}
 		const nearestGhost = this.nearestGhost;
-		/*
-
-		// TODO
-		// check if the nearby ghost is close enough to build
-		//1.01 is 1 for the unit, + 0.01 for float fudge factor (ffffffffffff)
-		if (unitDistance(unit, nearestGhost) < nearestGhost.details.size + 1.05) {
-			if (await map.pullResource(ctx, 'iron', unit, nearestGhost.details.cost)) {
+		const distance = unitDistance(unit, nearestGhost)
+		if (distance < nearestGhost.details.size + 1.05) {
+			if (await planetDB.planet.pullResource(ctx, 'iron', unit, nearestGhost.details.cost)) {
 				logger.info(ctx, `${unit.details.type} building ${nearestGhost.details.type}`);
 				//TODO builder should halt and spend time building
 				//should also make sure the area is clear
-				await nearestGhost.update(ctx, { details: { ghosting: false }, awake: true });
+				await setBuilt(ctx, nearestGhost);
+			} else {
+				logger.info(ctx, `${unit.details.type} waiting on resources`)
 			}
 		} else { // else if we need to move closer to the nearest ghost
 			logger.info(ctx, `${unit.details.type} heading to ${nearestGhost.details.type}`);
 
-			const center = await map.getLoc(ctx, nearestGhost.location.x, nearestGhost.location.y);
-			const tile = await map.getNearestFreeTile(ctx, center, unit, true);
+			const center = await planetDB.planet.getLoc(ctx, nearestGhost.location.x, nearestGhost.location.y);
+			const tile = await planetDB.planet.getNearestFreeTile(ctx, center, unit, true);
 			if (!tile) {
 				throw new DetailedError('no nearby open tile', { x: center.x, y: center.y });
 			}
 
 			//check if there are resources within range
-			const units: Array<Unit> = await map.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
-			map.sortByNearestUnit(units, unit);
+			const units: Array<Unit> = await planetDB.planet.getNearbyUnitsFromChunk(ctx, unit.location.chunkHash[0]);
+			planetDB.planet.sortByNearestUnit(units, unit);
 
 			let iron_available = 0;
 			units.forEach((nearbyUnit2: Unit) => {
@@ -203,10 +202,9 @@ export default class constructionAI implements UnitAI {
 				iron_available += nearbyUnit2.storage.iron;
 			});
 			if (iron_available > nearestGhost.details.cost) {
-				setDestination(ctx, unit, tile.x, tile.y);
+				setUnitDestination(ctx, unit, tile.x, tile.y);
 				return;
 			}
 		}
-		*/
 	}
 }

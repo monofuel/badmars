@@ -104,12 +104,12 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 		if (selectedUnitType !== 'factory') {
 			buttons = (
 				<div>
-					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('transfer_tower')}label='Transfer Tower'/>
-					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('storage')} label='Storage'/>
-					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('mine')}label='Mine'/>
-					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('factory')} label='Factory'/>
-					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('wall')} label='Wall'/>
-					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('cancel')} label='Cancel'/>
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('transfer_tower')} label='Transfer Tower' />
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('storage')} label='Storage' />
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('mine')} label='Mine' />
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('factory')} label='Factory' />
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('wall')} label='Wall' />
+					<RaisedButton style={buttonStyle} primary onTouchTap={() => this.constructClicked('cancel')} label='Cancel' />
 				</div>
 			);
 		} else {
@@ -131,7 +131,7 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 				onMouseDown={this.setHUDFocus}
 				id='buttons'
 				style={buildPanelStyle as any}>
-				{ buttons }
+				{buttons}
 			</Paper>
 		);
 	}

@@ -247,7 +247,7 @@ export default class Map {
 		}
 	}
 
-	getSelectedUnit(mouse: THREE.Vector2): UnitEntity {
+	getSelectedUnit(mouse: THREE.Vector2): UnitEntity | null {
 		const { display } = this.state;
 		var raycaster = new THREE.Raycaster();
 
@@ -256,7 +256,8 @@ export default class Map {
 		for (var entity of Object.values(this.state.unitEntities)) {
 			meshList.push(entity.graphical.mesh);
 		}
-		var intersects = raycaster.intersectObjects(meshList);
+		var intersects = raycaster.intersectObjects(meshList, true);
+		console.log(intersects);
 		if (intersects.length > 0) {
 			return intersects[0].object.userData;
 		}
