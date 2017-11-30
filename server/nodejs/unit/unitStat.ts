@@ -10,7 +10,7 @@ import env from '../config/env';
 
 const ALL_COMPONENTS = ['details', 'movable', 'attack', 'storage', 'graphical', 'stationary', 'construct'];
 
-const DETAIL_FIELDS = ['size', 'buildTime', 'cost', 'maxHealth'];
+const DETAIL_FIELDS = ['size', 'buildTime', 'cost', 'maxHealth', 'vision'];
 const MOVABLE_FIELDS = ['layer', 'speed'];
 const ATTACK_FIELDS = ['layers', 'range', 'damage', 'fireRate'];
 const STORAGE_FIELDS = ['maxIron', 'maxFuel', 'transferRange'];
@@ -24,6 +24,7 @@ const COMPONENT_DEFAULTS = {
 	'details': {
 		'size': 0,
 		'buildTime': 0,
+		'vision': 0,
 		'cost': 0,
 		'maxHealth': 0
 	},
@@ -50,17 +51,17 @@ export default class UnitStat {
 		_.defaultsDeep(this, stats);
 		//_.defaultsDeep(this,COMPONENT_DEFAULTS);
 		_.defaultsDeep(this.details, COMPONENT_DEFAULTS.details);
-		if(this.storage) {
+		if (this.storage) {
 			_.defaultsDeep(this.storage, COMPONENT_DEFAULTS.storage);
 		}
 	}
 
 	validateSync() {
-		if(!env.debug) {
+		if (!env.debug) {
 			return;
 		}
 		_.map(Object.keys(this), (key: string) => {
-			if(key !== 'type' && !_.includes(ALL_COMPONENTS, key)) {
+			if (key !== 'type' && !_.includes(ALL_COMPONENTS, key)) {
 				throw new Error('invalid component named ' + key);
 			}
 		});
@@ -75,26 +76,26 @@ export default class UnitStat {
 		// DETAILS
 		//==============================
 
-		if(!this.details) {
+		if (!this.details) {
 			throwError('missing detail component');
 		}
-		if(typeof this.details.size !== 'number') {
+		if (typeof this.details.size !== 'number') {
 			throwError('invalid size type');
 		}
-		if(this.details.size <= 0) {
+		if (this.details.size <= 0) {
 			throwError('invalid size value');
 		}
-		if(typeof this.details.buildTime !== 'number') {
+		if (typeof this.details.buildTime !== 'number') {
 			throwError('invalid build time');
 		}
-		if(typeof this.details.cost !== 'number') {
+		if (typeof this.details.cost !== 'number') {
 			throwError('invalid cost');
 		}
-		if(typeof this.details.maxHealth !== 'number') {
+		if (typeof this.details.maxHealth !== 'number') {
 			throwError('invalid max health');
 		}
 		_.map(this.details, (value: any, key: string) => {
-			if(!_.includes(DETAIL_FIELDS, key)) {
+			if (!_.includes(DETAIL_FIELDS, key)) {
 				throwError('bad detail field ' + key);
 			}
 		});
@@ -102,19 +103,19 @@ export default class UnitStat {
 		//==============================
 		// STORAGE
 		//==============================
-		if(this.storage) {
-			if(typeof this.storage.maxIron !== 'number') {
+		if (this.storage) {
+			if (typeof this.storage.maxIron !== 'number') {
 				throwError('invalid maxIron');
 			}
-			if(typeof this.storage.maxFuel !== 'number') {
+			if (typeof this.storage.maxFuel !== 'number') {
 				throwError('invalid maxFuel');
 			}
-			if(typeof this.storage.transferRange !== 'number') {
+			if (typeof this.storage.transferRange !== 'number') {
 				throwError('invalid transferRange');
 			}
 
 			_.map(this.storage, (value: any, key: string) => {
-				if(!_.includes(STORAGE_FIELDS, key)) {
+				if (!_.includes(STORAGE_FIELDS, key)) {
 					throwError('bad storage field ' + key);
 				}
 			});
@@ -124,16 +125,16 @@ export default class UnitStat {
 		// MOVABLE
 		//==============================
 
-		if(this.movable) {
-			if(!_.includes(VALID_LAYERS, this.movable.layer)) {
+		if (this.movable) {
+			if (!_.includes(VALID_LAYERS, this.movable.layer)) {
 				throwError('invalid movement layer');
 			}
-			if(typeof this.movable.speed !== 'number' || this.movable.speed === 0) {
+			if (typeof this.movable.speed !== 'number' || this.movable.speed === 0) {
 				throwError('invalid movement speed');
 			}
 
 			_.map(this.movable, (value: any, key: string) => {
-				if(!_.includes(MOVABLE_FIELDS, key)) {
+				if (!_.includes(MOVABLE_FIELDS, key)) {
 					throwError('bad movable field ' + key);
 				}
 			});
@@ -142,29 +143,29 @@ export default class UnitStat {
 		//==============================
 		// ATTACK
 		//==============================
-		if(this.attack) {
-			if(!Array.isArray(this.attack.layers)) {
+		if (this.attack) {
+			if (!Array.isArray(this.attack.layers)) {
 				throwError('attack layers need to be a list of layers');
 			}
-			if(this.attack.layers.length === 0) {
+			if (this.attack.layers.length === 0) {
 				throwError('attack has to have layers');
 			}
 			_.each(this.attack.layers, (layer: TileType) => {
-				if(!_.includes(VALID_LAYERS, layer)) {
+				if (!_.includes(VALID_LAYERS, layer)) {
 					throwError('invalid layer ' + layer);
 				}
 			});
-			if(typeof this.attack.range !== 'number') {
+			if (typeof this.attack.range !== 'number') {
 				throwError('attack range needs to be a number');
 			}
-			if(typeof this.attack.fireRate !== 'number') {
+			if (typeof this.attack.fireRate !== 'number') {
 				throwError('attack fireRate needs to be a number');
 			}
-			if(typeof this.attack.damage !== 'number') {
+			if (typeof this.attack.damage !== 'number') {
 				throwError('attack damage needs to be a number');
 			}
 			_.map(this.attack, (value: any, key: string) => {
-				if(!_.includes(ATTACK_FIELDS, key)) {
+				if (!_.includes(ATTACK_FIELDS, key)) {
 					throwError('bad attack field ' + key);
 				}
 			});
@@ -174,13 +175,13 @@ export default class UnitStat {
 		// STATIONARY
 		//==============================
 
-		if(this.stationary) {
-			if(!_.includes(VALID_LAYERS, this.stationary.layer)) {
+		if (this.stationary) {
+			if (!_.includes(VALID_LAYERS, this.stationary.layer)) {
 				throwError('invalid stationary layer');
 			}
 
 			_.map(this.stationary, (value: any, key: string) => {
-				if(!_.includes(STATIONARY_FIELDS, key)) {
+				if (!_.includes(STATIONARY_FIELDS, key)) {
 					throwError('bad stationary field ' + key);
 				}
 			});
@@ -190,13 +191,13 @@ export default class UnitStat {
 		// CONSTRUCT
 		//==============================
 
-		if(this.construct) {
-			if(!Array.isArray(this.construct.types)) {
+		if (this.construct) {
+			if (!Array.isArray(this.construct.types)) {
 				throwError('construct.types needs to be an array');
 			}
 
 			_.map(this.construct, (value: any, key: string) => {
-				if(!_.includes(CONSTRUCT_FIELDS, key)) {
+				if (!_.includes(CONSTRUCT_FIELDS, key)) {
 					throwError('bad construct field ' + key);
 				}
 			});
@@ -206,24 +207,24 @@ export default class UnitStat {
 		// GRAPHICAL
 		//==============================
 
-		if(this.graphical) {
-			if(!this.graphical.model) {
+		if (this.graphical) {
+			if (!this.graphical.model) {
 				throwError('model is missing');
 			}
-			if(typeof this.graphical.model !== 'string') {
+			if (typeof this.graphical.model !== 'string') {
 				throwError('model is invalid');
 			}
-			if(!this.graphical.model.toLocaleLowerCase().includes('.dae')) {
+			if (!this.graphical.model.toLocaleLowerCase().includes('.dae')) {
 				throwError('only Collada .dae is supported');
 			}
-			if(!this.graphical.scale) {
+			if (!this.graphical.scale) {
 				throwError('model scale is missing');
 			}
-			if(typeof this.graphical.scale !== 'number') {
+			if (typeof this.graphical.scale !== 'number') {
 				throwError('model scale needs to be a number');
 			}
 			_.map(this.graphical, (value: any, key: string) => {
-				if(!_.includes(GRAPHICAL_FIELDS, key)) {
+				if (!_.includes(GRAPHICAL_FIELDS, key)) {
 					throwError('bad graphical field ' + key);
 				}
 			});
@@ -232,7 +233,7 @@ export default class UnitStat {
 	}
 
 	async validateAsync(): Promise<void> {
-		if(!env.debug) {
+		if (!env.debug) {
 			return;
 		}
 

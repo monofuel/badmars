@@ -60,6 +60,10 @@ export default class MainLoop {
 						});
 						(snow.geometry as THREE.Geometry).verticesNeedUpdate = true;
 					});
+			} else {
+				if (this.state.map) {
+					this.state.map.updateFogOfWar();
+				}
 			}
 			this.state.display.render(delta);
 		} catch (err) {

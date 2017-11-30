@@ -52,12 +52,14 @@ function sanitizeUnitDetails(details: UnitDetails) {
 	const {
 		type,
 		health,
+		vision,
 		ghosting,
 		owner
 	} = details;
 	return {
 		type,
 		health,
+		vision,
 		ghosting,
 		owner
 	};

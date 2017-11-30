@@ -174,7 +174,6 @@ export default class Display {
 
 
 	addMesh(mesh: THREE.Object3D) {
-		console.log('addMesh', mesh);
 		this.scene.add(mesh);
 	}
 

@@ -19,7 +19,7 @@ import * as jsonpatch from 'fast-json-patch';
 import * as THREE from 'three';
 import * as _ from 'lodash';
 import { RequestChange } from '../net';
-import UnitEntity, { destroyUnitEntity } from '../units/index';
+import UnitEntity, { destroyUnitEntity, isTileVisible } from '../units/index';
 import { Planet } from '../';
 
 // TODO chunk should be a type
@@ -40,6 +40,8 @@ export default class Map {
 
 	chunkInterval: any;
 
+	chunkFogToUpdate: boolean;
+
 	constructor(state: State, planet: Planet) {
 		this.state = state;
 		this.planetData = planet;
@@ -49,6 +51,7 @@ export default class Map {
 		this.chunkCache = {};
 		this.requestedChunks = {};
 		this.tps = planet.tps;
+		this.chunkFogToUpdate = false;
 
 		this.worldSettings = planet.settings;
 
@@ -79,6 +82,7 @@ export default class Map {
 		var chunkArray = chunk.grid;
 		var navGrid = chunk.navGrid;
 		var gridGeom = new THREE.Geometry();
+		// TODO water needs to be a grid for fog of war
 		var waterGeom = new THREE.PlaneBufferGeometry(this.worldSettings.chunkSize, this.worldSettings.chunkSize);
 
 		var landMaterial = new THREE.MeshPhongMaterial({
@@ -90,6 +94,14 @@ export default class Map {
 		var waterMaterial = new THREE.MeshLambertMaterial({
 			color: config.palette.water
 		});
+
+		const tint = new THREE.Color('#888888');
+		var landFogMaterial = landMaterial.clone()
+		landFogMaterial.color.sub(tint);
+		var cliffFogMaterial = cliffMaterial.clone()
+		cliffFogMaterial.color.sub(tint);
+		var waterFogMaterial = waterMaterial.clone()
+		waterFogMaterial.color.sub(tint);
 
 		for (var x = 0; x <= this.worldSettings.chunkSize; x++) {
 			for (var y = 0; y <= this.worldSettings.chunkSize; y++) {
@@ -110,13 +122,25 @@ export default class Map {
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x + 1,
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x);
 
-				if (navGrid[x][y] != 1) {
-					landFace1.materialIndex = 0;
-					landFace2.materialIndex = 0;
+				const loc = new PlanetLoc(this, x, y, true);
+				if (chunk.navGrid[x][y] != 1) {
+					if (isTileVisible(this.state, loc)) {
+						landFace1.materialIndex = 0;
+						landFace2.materialIndex = 0;
+					} else {
+						landFace1.materialIndex = 2;
+						landFace2.materialIndex = 2;
+					}
 
 				} else {
-					landFace1.materialIndex = 1;
-					landFace2.materialIndex = 1;
+					if (isTileVisible(this.state, loc)) {
+						landFace1.materialIndex = 1;
+						landFace2.materialIndex = 1;
+					} else {
+
+						landFace1.materialIndex = 3;
+						landFace2.materialIndex = 3;
+					}
 				}
 
 				gridGeom.faces.push(landFace1);
@@ -157,10 +181,10 @@ export default class Map {
 
 		gridGeom.normalsNeedUpdate = true;
 
-		var planetMaterials = [landMaterial, cliffMaterial];
+		var planetMaterials = [landMaterial, cliffMaterial, landFogMaterial, cliffFogMaterial];
 
-		var gridMesh = new THREE.Mesh(gridGeom, (planetMaterials as any) as THREE.Material); // types not updated
-		var waterMesh = new THREE.Mesh(waterGeom, waterMaterial);
+		var gridMesh = new THREE.Mesh(gridGeom, planetMaterials);
+		var waterMesh = new THREE.Mesh(waterGeom, [waterMaterial, waterFogMaterial]);
 
 		var centerMatrix = new THREE.Matrix4()
 			.makeTranslation(chunkX * this.worldSettings.chunkSize, chunkY * this.worldSettings.chunkSize, 0);
@@ -218,6 +242,56 @@ export default class Map {
 		this.state.display.addMesh(cloud);
 		this.state.snow[chunk.hash] = cloud;
 
+	}
+
+	async updateFogOfWar() {
+		if (!this.chunkFogToUpdate) {
+			return;
+		}
+		console.log('updating fog of war');
+		this.chunkFogToUpdate = false;
+		// this should probably be a queue
+		for (const key of Object.keys(this.state.chunks)) {
+			// async in case if we have to render a frame between updating chunks
+			await this.updateFog(key);
+		}
+	}
+
+	async updateFog(hash: string) {
+		const chunk = this.state.chunks[hash];
+		const landMesh: THREE.Mesh = this.state.chunks[hash].landMesh;
+
+		// I'm sure someone more clever than i could iterate over this
+		const faces = [...(landMesh.geometry as THREE.Geometry).faces];
+		for (var y1 = 0; y1 < this.worldSettings.chunkSize; y1++) {
+			for (var x1 = 0; x1 < this.worldSettings.chunkSize; x1++) {
+				const x = this.worldSettings.chunkSize * chunk.x + x1;
+				const y = this.worldSettings.chunkSize * chunk.y + y1;
+				const landFace1 = faces.shift();
+				const landFace2 = faces.shift();
+				const loc = new PlanetLoc(this, x, y, true);
+				if (chunk.navGrid[x1][y1] != 1) {
+					if (isTileVisible(this.state, loc)) {
+						landFace1.materialIndex = 0;
+						landFace2.materialIndex = 0;
+					} else {
+						landFace1.materialIndex = 2;
+						landFace2.materialIndex = 2;
+					}
+
+				} else {
+					if (isTileVisible(this.state, loc)) {
+						landFace1.materialIndex = 1;
+						landFace2.materialIndex = 1;
+					} else {
+
+						landFace1.materialIndex = 3;
+						landFace2.materialIndex = 3;
+					}
+				}
+			}
+		}
+		(landMesh.geometry as THREE.Geometry).groupsNeedUpdate = true;
 	}
 
 	nearestStorage(tile: PlanetLoc): UnitEntity | null {

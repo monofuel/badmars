@@ -73,6 +73,7 @@ interface UnitDetails {
 	type: UnitType,
 	size: number,
 	buildTime: number,
+	vision: number,
 	cost: number,
 	health: number,
 	maxHealth: number,

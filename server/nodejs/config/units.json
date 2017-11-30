@@ -4,7 +4,8 @@
 			"size": 1,
 			"buildTime": 10,
 			"cost": 100,
-			"maxHealth": 20
+			"maxHealth": 20,
+			"vision": 20
 		},
 		"movable": {
 			"layer": "ground",
@@ -31,7 +32,8 @@
 			"size": 1,
 			"buildTime": 10,
 			"cost": 250,
-			"maxHealth": 50
+			"maxHealth": 50,
+			"vision": 10
 		},
 		"movable": {
 			"layer": "ground",
@@ -57,7 +59,8 @@
 			"size": 1,
 			"buildTime": 20,
 			"cost": 300,
-			"maxHealth": 50
+			"maxHealth": 50,
+			"vision": 10
 		},
 		"movable": {
 			"layer": "ground",
@@ -84,7 +87,8 @@
 			"size": 1,
 			"buildTime": 10,
 			"cost": 100,
-			"maxHealth": 100
+			"maxHealth": 100,
+			"vision": 2
 		},
 		"stationary": {
 			"layer": "ground"
@@ -97,7 +101,8 @@
 	"mine": {
 		"details": {
 			"size": 1,
-			"maxHealth": 20
+			"maxHealth": 20,
+			"vision": 5
 		},
 		"storage": {
 			"maxIron": 1000,
@@ -116,7 +121,8 @@
 			"size": 3,
 			"buildTime": 50,
 			"cost": 750,
-			"maxHealth": 50
+			"maxHealth": 50,
+			"vision": 2
 		},
 		"construct": {
 			"types": [
@@ -141,7 +147,8 @@
 			"size": 1,
 			"buildTime": 10,
 			"cost": 500,
-			"maxHealth": 100
+			"maxHealth": 100,
+			"vision": 10
 		},
 		"movable": {
 			"layer": "ground",
@@ -176,7 +183,9 @@
 	},
 	"transfer_tower": {
 		"details": {
-			"size": 2
+			"size": 2,
+			"maxHealth": 30,
+			"vision": 40
 		},
 		"stationary": {
 			"layer": "ground"

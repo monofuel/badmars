@@ -36,6 +36,7 @@ export function newUnitEntity(state: State, unit: Unit): UnitEntity {
     }
     if (unit.graphical) {
         updateGraphicalEntity(state, entity);
+        state.map.chunkFogToUpdate = true;
     }
     return entity
 }
@@ -101,7 +102,6 @@ export function updateUnitEntity(state: State, entity: UnitEntity, delta: number
     // entity.loc isn't updated until it has fully animated
     const loc = new PlanetLoc(state.map, entity.unit.location.x, entity.unit.location.y);
     if (!entity.loc.equals(loc) && entity.unit.movable) {
-        console.log('location change');
         animateToLocation(state, entity, loc, delta);
     }
     if (!_.isEqual(next.graphical.model, entity.unit.graphical.model)) {
@@ -181,6 +181,7 @@ function animateToLocation(state: State, entity: UnitEntity, loc: PlanetLoc, del
     } else {
         entity.graphical.movementDelta = 0;
         setToLocation(entity, loc);
+        state.map.chunkFogToUpdate = true;
     }
 }
 
@@ -330,4 +331,12 @@ function clearPath(state: State, entity: UnitEntity) {
     delete entity.graphical.pathMesh;
     delete entity.graphical.pathLoc;
     entity.graphical.prevPath = [];
+}
+
+export function isTileVisible(state: State, loc: PlanetLoc): boolean {
+    const units = _.filter(state.unitEntities, (unit) => {
+        const distance = loc.distance(unit.loc);
+        return distance < unit.unit.details.vision && unit.unit.details.owner === state.playerInfo.uuid;
+    });
+    return units.length > 0;
 }
