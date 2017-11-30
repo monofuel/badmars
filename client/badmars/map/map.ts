@@ -202,7 +202,7 @@ export default class Map {
 
 		const snowGeom = new THREE.Geometry();
 
-		_.times(100, (n) => {
+		_.times(50, (n) => {
 			const x = (Math.random() * this.worldSettings.chunkSize);
 			const y = (Math.random() * 20);
 			const z = (Math.random() * this.worldSettings.chunkSize);
