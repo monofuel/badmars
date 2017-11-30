@@ -61,14 +61,16 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
 
     // TODO flag colors
     applyToMaterials(mesh, (mat: THREE.MeshLambertMaterial) => {
+        if (!mat) {
+            throw new Error("mesh missing material");
+        }
+
         if (mat.name.includes('flag')) {
-            (mat as any).color = new THREE.Color();
-            mat.update();
+            mat.color = new THREE.Color();
         }
         if (entity.unit.details.ghosting) {
             mat.transparent = true;
-            mat.opacity = 0.5;
-            mat.update();
+            mat.opacity = 0.2;
         }
     });
     state.display.addMesh(mesh);
@@ -132,18 +134,23 @@ export function destroyUnitEntity(state: State, entity: UnitEntity) {
 }
 
 function applyToMaterials(mesh: THREE.Group, fn: (mat: THREE.MeshLambertMaterial) => void) {
-    mesh.children.map((obj: THREE.Mesh) => {
-        if (!obj.material) {
-            const objmat = new THREE.MeshPhongMaterial({ color: new THREE.Color() });
-            fn(objmat);
-            obj.material = objmat;
-            return;
-        }
-        if (Array.isArray(obj.material)) {
-            obj.material.map((mat: THREE.MeshLambertMaterial) => fn(mat))
-        } else {
-            fn(obj.material as any);
-        }
+
+    // mesh is a THREE.Group of all the objects for the unit
+    // collada objects are an Object3D with children meshes from the model
+    mesh.children.map((obj: THREE.Object3D) => {
+        obj.children.map((objMesh: THREE.Mesh) => {
+            if (!objMesh.material || (Array.isArray(objMesh.material) && objMesh.material.length === 0)) {
+                const objmat = new THREE.MeshLambertMaterial({ color: new THREE.Color() });
+                fn(objmat);
+                objMesh.material = objmat;
+                return;
+            }
+            if (Array.isArray(objMesh.material)) {
+                objMesh.material.map((mat: THREE.MeshLambertMaterial) => fn(mat))
+            } else {
+                fn(objMesh.material as any);
+            }
+        })
     })
 }
 

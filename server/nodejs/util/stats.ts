@@ -46,6 +46,7 @@ export function startProfile(name: string): ProfileKey {
 export function endProfile(key: ProfileKey, visible?: boolean) {
 
 	const profileRun: ProfileType = runningProfiles[key];
+	delete runningProfiles[key];
 	const name: string = profileRun.name;
 	profileRun.endTime = (new Date()).getTime();
 	profileRun.delta = profileRun.endTime - profileRun.startTime;

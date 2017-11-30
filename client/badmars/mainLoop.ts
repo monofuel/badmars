@@ -31,7 +31,7 @@ export default class MainLoop {
 			tsevents.flushOnce();
 		} catch (err) {
 			logError(err);
-			// debugger;
+			debugger;
 		}
 		try {
 
@@ -45,6 +45,6 @@ export default class MainLoop {
 			debugger;
 		}
 		this.statsMonitor.end();
-		window.requestAnimationFrame(this.logicLoop);		
+		window.requestAnimationFrame(this.logicLoop);
 	}
 }
