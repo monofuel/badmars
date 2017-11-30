@@ -275,6 +275,8 @@ export default class Input {
 			color = new THREE.Color('#FF00FF');
 		}
 		let lastMousePos: MouseMoveEvent
+		// mouse move and camera move should get refactored
+		// should also check if the tile is valid for the unit to build
 		const mouseMoveHandler = (e: MouseMoveEvent) => {
 			if (this.mouseMode !== 'focus') {
 				clearSelection(state);

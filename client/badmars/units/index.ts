@@ -261,7 +261,7 @@ function markPath(state: State, entity: UnitEntity, start: PlanetLoc) {
         clearPath(state, entity);
     }
 
-    if (!entity.graphical.pathMesh && path.length > 0) {
+    if (!entity.graphical.pathMesh && path.length > 1) {
         const verticalOffset = 0.5;
         const points: THREE.Vector3[] = [new THREE.Vector3(0, 0, 0)];
 
