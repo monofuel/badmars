@@ -61,6 +61,11 @@ export default class StandaloneService implements Service {
             await testPlanet.planet.spawnUser(ctx, user);
         }
 
+        // force all units awake to update
+        testPlanet.unit.each(ctx, async (ctx: Context, unit: Unit) => {
+            await testPlanet.unit.patch(ctx, unit.uuid, { awake: true });
+        });
+
         logger.info(ctx, 'standalone init done');
 
         logger.info(ctx, 'to login as the test user, visit localhost:3002 and run this in the console: sessionStorage.setItem(\'session-token\', \'TEST_SESSION_ID\')')
