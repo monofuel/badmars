@@ -56,6 +56,7 @@ const defaultPalette = {
 }
 */
 
+/*
 const defaultPalette = {
 	uiBackground: 'rgba(0, 26, 5, 0.67)',
 	uiPrimary: '#1b3006',
@@ -64,6 +65,18 @@ const defaultPalette = {
 	fontColor: '#72b033',
 	land: '#8DC05C',
 	water: '#265349',
+	cliff: '#142329',
+}
+*/
+
+const defaultPalette = {
+	uiBackground: 'rgba(0, 26, 5, 0.67)',
+	uiPrimary: '#1b3006',
+	uiSecondary: '#1b3006',
+	uiTertiary: '#D01F09',
+	fontColor: '#72b033',
+	land: '#c6c6c6',
+	water: '#53b0e2',
 	cliff: '#142329',
 }
 

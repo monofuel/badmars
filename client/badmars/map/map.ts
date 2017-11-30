@@ -194,6 +194,30 @@ export default class Map {
 
 		// console.log("Generated Geometry");
 
+		// add snow
+		const snowMat = new THREE.PointsMaterial({
+			color: 0x9b9b9b,
+			size: 0.25
+		});
+
+		const snowGeom = new THREE.Geometry();
+
+		_.times(100, (n) => {
+			const x = (Math.random() * this.worldSettings.chunkSize);
+			const y = (Math.random() * 20);
+			const z = (Math.random() * this.worldSettings.chunkSize);
+
+			snowGeom.vertices.push(new THREE.Vector3(x, y, z));
+		});
+
+		const cloud = new THREE.Points(snowGeom, snowMat);
+		cloud.geometry.applyMatrix(centerMatrix);
+		cloud.position.copy(gridMesh.position);
+		cloud.rotation.copy(gridMesh.rotation);
+
+		this.state.display.addMesh(cloud);
+		this.state.snow[chunk.hash] = cloud;
+
 	}
 
 	nearestStorage(tile: PlanetLoc): UnitEntity | null {
@@ -431,6 +455,8 @@ export default class Map {
 				if (display) {
 					display.removeMesh(chunk.landMesh);
 					display.removeMesh(chunk.waterMesh);
+					display.removeMesh(this.state.snow[chunk.hash]);
+					delete this.state.snow[chunk.hash];
 				}
 				chunk.landMesh = null;
 				chunk.waterMesh = null;

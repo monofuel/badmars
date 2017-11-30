@@ -174,6 +174,7 @@ export default class Display {
 
 
 	addMesh(mesh: THREE.Object3D) {
+		console.log('addMesh', mesh);
 		this.scene.add(mesh);
 	}
 
@@ -206,7 +207,7 @@ export default class Display {
 		var maxY = Math.round(Math.max(startVec.y, curVec.y));
 		var minY = Math.round(Math.min(startVec.y, curVec.y));
 
-		
+
 		this.HUDContext.strokeStyle = '#7CFC00';
 		this.HUDContext.lineWidth = 1;
 		this.HUDContext.strokeRect(minX, minY, maxX - minX, maxY - minY);

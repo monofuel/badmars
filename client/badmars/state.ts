@@ -153,6 +153,11 @@ export default interface State {
 	chatOpen: boolean;
 	chatHistory: ChatEvent[];
 
+	// map of chunks to point clouds
+	snow: {
+		[key: string]: THREE.Points
+	}
+
 	mouseHilight?: {
 		loc: PlanetLoc,
 		mesh: THREE.Mesh,
@@ -177,6 +182,12 @@ export async function newState(): Promise<State> {
 	}
 	const playerInfo = resp.data;
 
+	/*
+			sunSpeed: 0.025,
+		sunColor: 0xDD9A70,
+		moonColor: 0x9AA09A,
+		*/
+
 	const state: State = {
 		token,
 		playerInfo,
@@ -184,8 +195,8 @@ export async function newState(): Promise<State> {
 		connected: false,
 
 		sunSpeed: 0.025,
-		sunColor: 0xDD9A70,
-		moonColor: 0x9AA09A,
+		sunColor: 0xcccccc,
+		moonColor: 0x5e647a,
 
 		focused: 'game',
 		spawned: false,
@@ -198,6 +209,8 @@ export async function newState(): Promise<State> {
 		unitEntities: {},
 		chatOpen: false,
 		chatHistory: [],
+
+		snow: {}
 	};
 
 	(window as any).state = state;
