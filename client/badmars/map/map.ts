@@ -82,8 +82,7 @@ export default class Map {
 		var chunkArray = chunk.grid;
 		var navGrid = chunk.navGrid;
 		var gridGeom = new THREE.Geometry();
-		// TODO water needs to be a grid for fog of war
-		var waterGeom = new THREE.PlaneBufferGeometry(this.worldSettings.chunkSize, this.worldSettings.chunkSize);
+		var waterGeom = new THREE.Geometry();
 
 		var landMaterial = new THREE.MeshPhongMaterial({
 			color: config.palette.land
@@ -94,6 +93,9 @@ export default class Map {
 		var waterMaterial = new THREE.MeshLambertMaterial({
 			color: config.palette.water
 		});
+
+		waterMaterial.transparent = true;
+		waterMaterial.opacity = 0.9;
 
 		const tint = new THREE.Color('#888888');
 		var landFogMaterial = landMaterial.clone()
@@ -107,6 +109,7 @@ export default class Map {
 			for (var y = 0; y <= this.worldSettings.chunkSize; y++) {
 				gridGeom.vertices.push(new THREE.Vector3(y, x,
 					chunkArray[y][x]));
+				waterGeom.vertices.push(new THREE.Vector3(y, x, 0));
 			}
 		}
 
@@ -116,15 +119,31 @@ export default class Map {
 					y * (this.worldSettings.chunkSize + 1) + x,
 					y * (this.worldSettings.chunkSize + 1) + 1 + x,
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x);
-				landFace1.materialIndex = 0;
 				var landFace2 = new THREE.Face3(
 					y * (this.worldSettings.chunkSize + 1) + x + 1,
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x + 1,
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x);
 
+				var waterFace1 = new THREE.Face3(
+					y * (this.worldSettings.chunkSize + 1) + x,
+					y * (this.worldSettings.chunkSize + 1) + 1 + x,
+					(y + 1) * (this.worldSettings.chunkSize + 1) + x);
+				var waterFace2 = new THREE.Face3(
+					y * (this.worldSettings.chunkSize + 1) + x + 1,
+					(y + 1) * (this.worldSettings.chunkSize + 1) + x + 1,
+					(y + 1) * (this.worldSettings.chunkSize + 1) + x);
+
 				const loc = new PlanetLoc(this, x, y, true);
+				const visible = isTileVisible(this.state, loc);
+				if (visible) {
+					waterFace1.materialIndex = 0;
+					waterFace2.materialIndex = 0;
+				} else {
+					waterFace1.materialIndex = 1;
+					waterFace2.materialIndex = 1;
+				}
 				if (chunk.navGrid[x][y] != 1) {
-					if (isTileVisible(this.state, loc)) {
+					if (visible) {
 						landFace1.materialIndex = 0;
 						landFace2.materialIndex = 0;
 					} else {
@@ -133,7 +152,7 @@ export default class Map {
 					}
 
 				} else {
-					if (isTileVisible(this.state, loc)) {
+					if (visible) {
 						landFace1.materialIndex = 1;
 						landFace2.materialIndex = 1;
 					} else {
@@ -145,6 +164,8 @@ export default class Map {
 
 				gridGeom.faces.push(landFace1);
 				gridGeom.faces.push(landFace2);
+				waterGeom.faces.push(waterFace1);
+				waterGeom.faces.push(waterFace2);
 			}
 		}
 
@@ -153,7 +174,7 @@ export default class Map {
 		gridGeom.computeVertexNormals();
 
 		waterGeom.computeBoundingSphere();
-		// waterGeom.computeFaceNormals();
+		waterGeom.computeFaceNormals();
 		waterGeom.computeVertexNormals();
 
 		// fiddle with the normals to give a nice 'tiled' look
@@ -192,17 +213,14 @@ export default class Map {
 		waterMesh.geometry.applyMatrix(centerMatrix);
 
 		gridMesh.rotation.x = -Math.PI / 2;
-		waterMesh.rotation.x = -Math.PI / 2;
-
-		// gridMesh.position.z = (chunkX);
 		gridMesh.position.y = 0;
-		// gridMesh.position.x = (chunkY);
 
 
-		waterMesh.position.copy(gridMesh.position)
-		waterMesh.position.x += this.worldSettings.chunkSize / 2;
+		waterMesh.position.copy(gridMesh.position);
+		waterMesh.rotation.copy(gridMesh.rotation);
+		// waterMesh.position.x += this.worldSettings.chunkSize / 2;
 		waterMesh.position.y += this.worldSettings.waterHeight;
-		waterMesh.position.z -= this.worldSettings.chunkSize / 2;
+		//waterMesh.position.z -= this.worldSettings.chunkSize / 2;
 
 
 
@@ -260,18 +278,30 @@ export default class Map {
 	async updateFog(hash: string) {
 		const chunk = this.state.chunks[hash];
 		const landMesh: THREE.Mesh = this.state.chunks[hash].landMesh;
+		const waterMesh: THREE.Mesh = this.state.chunks[hash].waterMesh;
 
 		// I'm sure someone more clever than i could iterate over this
-		const faces = [...(landMesh.geometry as THREE.Geometry).faces];
+		const landFaces = [...(landMesh.geometry as THREE.Geometry).faces];
+		const waterFaces = [...(waterMesh.geometry as THREE.Geometry).faces];
 		for (var y1 = 0; y1 < this.worldSettings.chunkSize; y1++) {
 			for (var x1 = 0; x1 < this.worldSettings.chunkSize; x1++) {
 				const x = this.worldSettings.chunkSize * chunk.x + x1;
 				const y = this.worldSettings.chunkSize * chunk.y + y1;
-				const landFace1 = faces.shift();
-				const landFace2 = faces.shift();
+				const landFace1 = landFaces.shift();
+				const landFace2 = landFaces.shift();
+				const waterFace1 = waterFaces.shift();
+				const waterFace2 = waterFaces.shift();
 				const loc = new PlanetLoc(this, x, y, true);
+				const visible = isTileVisible(this.state, loc);
+				if (visible) {
+					waterFace1.materialIndex = 0;
+					waterFace2.materialIndex = 0;
+				} else {
+					waterFace1.materialIndex = 1;
+					waterFace2.materialIndex = 1;
+				}
 				if (chunk.navGrid[x1][y1] != 1) {
-					if (isTileVisible(this.state, loc)) {
+					if (visible) {
 						landFace1.materialIndex = 0;
 						landFace2.materialIndex = 0;
 					} else {
@@ -280,7 +310,7 @@ export default class Map {
 					}
 
 				} else {
-					if (isTileVisible(this.state, loc)) {
+					if (visible) {
 						landFace1.materialIndex = 1;
 						landFace2.materialIndex = 1;
 					} else {
@@ -292,6 +322,7 @@ export default class Map {
 			}
 		}
 		(landMesh.geometry as THREE.Geometry).groupsNeedUpdate = true;
+		(waterMesh.geometry as THREE.Geometry).groupsNeedUpdate = true;
 	}
 
 	nearestStorage(tile: PlanetLoc): UnitEntity | null {

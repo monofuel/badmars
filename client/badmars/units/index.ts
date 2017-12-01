@@ -336,7 +336,7 @@ function clearPath(state: State, entity: UnitEntity) {
 export function isTileVisible(state: State, loc: PlanetLoc): boolean {
     const units = _.filter(state.unitEntities, (unit) => {
         const distance = loc.distance(unit.loc);
-        return distance < unit.unit.details.vision && unit.unit.details.owner === state.playerInfo.uuid;
+        return distance < unit.unit.details.vision && unit.unit.details.owner === state.playerInfo.uuid && !unit.unit.details.ghosting;
     });
     return units.length > 0;
 }
