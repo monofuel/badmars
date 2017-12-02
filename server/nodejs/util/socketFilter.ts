@@ -53,6 +53,8 @@ function sanitizeUnitDetails(details: UnitDetails) {
 		type,
 		health,
 		vision,
+		fuelBurn,
+		fuelBurnLength,
 		ghosting,
 		owner
 	} = details;
@@ -61,7 +63,9 @@ function sanitizeUnitDetails(details: UnitDetails) {
 		health,
 		vision,
 		ghosting,
-		owner
+		owner,
+		fuelBurn,
+		fuelBurnLength,
 	};
 }
 

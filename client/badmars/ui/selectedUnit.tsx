@@ -22,7 +22,7 @@ interface SelectedUnitProps {
 	selectedUnits: UnitEntity[];
 }
 
-export default class SelectedUnitWell extends React.Component<SelectedUnitProps,{}> {
+export default class SelectedUnitWell extends React.Component<SelectedUnitProps, {}> {
 	public static contextTypes = {
 		state: PropTypes.any.isRequired
 	};
@@ -86,7 +86,8 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 								:
 								null
 							}
-							<li>Health: {health}<LinearProgress mode="determinate"value={health} max={maxHealth}/></li>
+							<li>Health: {health}<LinearProgress mode="determinate" value={health} max={maxHealth} /></li>
+							<li>FuelCountdown: {selectedUnit.details.fuelBurn}/{selectedUnit.details.fuelBurnLength}</li>
 						</ul>
 					</Paper>
 				</div>

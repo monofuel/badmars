@@ -46,8 +46,10 @@ export default class DBUnit implements DB.DBUnit {
         }
         return res;
     }
-    delete(ctx: Context, uuid: string): Promise<void> {
-        throw new Error("Method not implemented.");
+    async delete(ctx: Context, uuid: string): Promise<void> {
+        const unit = this.units[uuid];
+        delete this.units[uuid];
+        this.unitChange.post({ next: null, prev: unit });
     }
     async patch(ctx: Context, uuid: string, unit: Partial<UnitPatch>): Promise<Unit> {
         const call = startDBCall(ctx, 'unit.patch');
@@ -57,7 +59,7 @@ export default class DBUnit implements DB.DBUnit {
         if (unit.movable && unit.movable.path) {
             next.movable.path = unit.movable.path
         }
-        
+
         this.units[uuid] = next;
         this.unitChange.post({ next, prev });
         await call.end();
@@ -68,10 +70,10 @@ export default class DBUnit implements DB.DBUnit {
     }
     async watchPathing(ctx: Context, fn: DB.Handler<Unit>): Promise<void> {
         DB.AttachChangeHandler(ctx, this.unitChange, async (ctx, { next: unit }) => {
-            if (unit.movable && 
+            if (unit.movable &&
                 unit.movable.destination &&
                 unit.movable.isPathing == false &&
-                 unit.movable.path.length === 0) {
+                unit.movable.path.length === 0) {
                 await fn(ctx, unit)
             }
         });

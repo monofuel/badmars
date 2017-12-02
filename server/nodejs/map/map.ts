@@ -578,6 +578,9 @@ export default class Map {
 		return true;
 	}
 
+	// TODO should have 2 methods
+	// one for pulling 'as much as possible' (for pulling fuel)
+	// and another for only pulling exact amounts (for construction)
 	async pullResource(ctx: Context, type: string, taker: Unit, amount: number): Promise<boolean> {
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 
@@ -590,6 +593,9 @@ export default class Map {
 		//first check if we can pull enough
 		let amountCanPull = 0;
 		for (const unit of units) {
+			if (taker.uuid === unit.uuid) {
+				continue;
+			}
 			if (!unit.storage) {
 				continue;
 			}

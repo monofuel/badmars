@@ -80,6 +80,8 @@ interface UnitDetails {
 	lastTick: number,
 	ghosting: boolean,
 	owner: string,
+	fuelBurn: number,
+	fuelBurnLength: number, // ticks to use 1 unit of fuel
 }
 
 interface UnitLocation {
@@ -123,7 +125,11 @@ interface UnitStorage {
 	maxIron: number,
 	maxFuel: number,
 	transferRange: number,
-	resourceCooldown: number
+	resourceCooldown: number,
+	desired?: {
+		iron: number,
+		fuel: number
+	}
 }
 
 interface UnitGraphical {

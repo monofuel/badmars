@@ -5,7 +5,8 @@
 			"buildTime": 10,
 			"cost": 100,
 			"maxHealth": 20,
-			"vision": 20
+			"vision": 20,
+			"fuelBurnLength": 20
 		},
 		"movable": {
 			"layer": "ground",
@@ -17,7 +18,7 @@
 			],
 			"range": 5.0,
 			"damage": 5,
-			"fireRate": 3
+			"fireRate": 40
 		},
 		"storage": {
 			"maxFuel": 50
@@ -33,7 +34,8 @@
 			"buildTime": 10,
 			"cost": 250,
 			"maxHealth": 50,
-			"vision": 10
+			"vision": 5,
+			"fuelBurnLength": 30
 		},
 		"movable": {
 			"layer": "ground",
@@ -60,7 +62,8 @@
 			"buildTime": 20,
 			"cost": 300,
 			"maxHealth": 50,
-			"vision": 10
+			"vision": 7,
+			"fuelBurnLength": 20
 		},
 		"movable": {
 			"layer": "ground",
@@ -102,7 +105,7 @@
 		"details": {
 			"size": 1,
 			"maxHealth": 20,
-			"vision": 5
+			"vision": 3
 		},
 		"storage": {
 			"maxIron": 1000,
@@ -148,7 +151,8 @@
 			"buildTime": 10,
 			"cost": 500,
 			"maxHealth": 100,
-			"vision": 10
+			"vision": 4,
+			"fuelBurnLength": 30
 		},
 		"movable": {
 			"layer": "ground",
@@ -166,7 +170,9 @@
 	},
 	"storage": {
 		"details": {
-			"size": 3
+			"size": 3,
+			"maxHealth": 100,
+			"vision": 3
 		},
 		"stationary": {
 			"layer": "ground"

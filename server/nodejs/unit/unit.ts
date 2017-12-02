@@ -144,13 +144,24 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 	// iron and oil should always be off
 	if (unit.details.type === 'oil' || unit.details.type === 'iron') {
 		await patchUnit(ctx, unit, { awake: false });
-		return
+		return;
 	}
 
 	// ghosting units don't need to be awake
 	if (unit.details.ghosting) {
 		await patchUnit(ctx, unit, { awake: false });
-		return
+		return;
+	}
+
+	if (unit.details.fuelBurnLength && !await burnFuel(ctx, unit)) {
+		logger.info(ctx, 'unit out of fuel', { uuid: unit.uuid });
+		await patchUnit(ctx, unit, {
+			details: {
+				health: unit.details.health - 5,
+				fuelBurn: unit.details.fuelBurnLength
+			}
+		});
+		return;
 	}
 
 	// ------------------
@@ -222,7 +233,7 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 		} else if (actionable.constructionAI) {
 			logger.info(ctx, 'processing construction');
 			await constructionAI.simulate(ctx, unit);
-		} else { // if no action is performed
+		} else if (!unit.details.fuelBurnLength) { // if no action is performed
 			logger.info(ctx, 'sleeping unit');
 			await planetDB.unit.patch(ctx, unit.uuid, { awake: false });
 		}
@@ -589,4 +600,29 @@ export async function getNearestEnemy(ctx: Context, unit: Unit): Promise<null | 
 	}
 
 	return null;
+}
+
+// return if the unit has been able to burn fuel
+export async function burnFuel(ctx: Context, unit: Unit): Promise<boolean> {
+	if (!unit.details.fuelBurnLength) {
+		return;
+	}
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+
+	let fuelBurn = unit.details.fuelBurnLength;
+	if (!unit.details.fuelBurn) {
+		const burned = await planetDB.unit.pullResource(ctx, 'fuel', 1, unit.uuid);
+		if (burned <= 0 || unit.storage.fuel < unit.storage.maxFuel / 2) {
+			// pull fuel from nearby
+			if (await planetDB.planet.pullResource(ctx, 'fuel', unit, unit.storage.maxFuel)) {
+				await planetDB.unit.putResource(ctx, 'fuel', unit.storage.maxFuel - 1, unit.uuid);
+			} else if (burned <= 0) {
+				return false;
+			}
+		}
+	} else {
+		fuelBurn = unit.details.fuelBurn - 1;
+	}
+	await patchUnit(ctx, unit, { details: { fuelBurn } });
+	return true;
 }
