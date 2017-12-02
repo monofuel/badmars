@@ -237,7 +237,7 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 			logger.info(ctx, 'processing ground AI', {}, { silent: true });
 			await groundUnitAI.simulate(ctx, unit);
 		} else if (actionable.constructionAI) {
-			logger.info(ctx, 'processing construction');
+			logger.info(ctx, 'processing construction', {}, { silent: true });
 			await constructionAI.simulate(ctx, unit);
 		} else if (!unit.details.fuelBurnLength) { // if no action is performed
 			logger.info(ctx, 'sleeping unit');

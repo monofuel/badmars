@@ -142,6 +142,7 @@ export default class constructionAI implements UnitAI {
 		}
 
 		//if spawn fails, should re-try with a new location
+		await setConstructing(ctx, unit, null);
 		const result = await planetDB.planet.factoryMakeUnit(ctx, constructing.type, unit.details.owner, newTile.x, newTile.y);
 		if (!result) {
 			throw new DetailedError('factory failed to create unit', { type: constructing.type, uuid: unit.uuid });
@@ -166,7 +167,6 @@ export default class constructionAI implements UnitAI {
 				logger.info(ctx, `${unit.details.type} waiting on resources`)
 			}
 		} else { // else if we need to move closer to the nearest ghost
-			logger.info(ctx, `${unit.details.type} heading to ${nearestGhost.details.type}`);
 
 			const center = await planetDB.planet.getLoc(ctx, nearestGhost.location.x, nearestGhost.location.y);
 			const tile = await planetDB.planet.getNearestFreeTile(ctx, center, unit, true);
@@ -190,8 +190,11 @@ export default class constructionAI implements UnitAI {
 				iron_available += nearbyUnit2.storage.iron;
 			});
 			if (iron_available > nearestGhost.details.cost) {
+				logger.info(ctx, `${unit.details.type} heading to ${nearestGhost.details.type}`);
 				setUnitDestination(ctx, unit, tile.x, tile.y);
 				return;
+			} else {
+
 			}
 		}
 	}
