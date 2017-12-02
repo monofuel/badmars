@@ -131,7 +131,8 @@
 			"types": [
 				"tank",
 				"builder",
-				"transport"
+				"transport",
+				"scout"
 			]
 		},
 		"stationary": {
@@ -191,13 +192,13 @@
 		"details": {
 			"size": 2,
 			"maxHealth": 30,
-			"vision": 40
+			"vision": 20
 		},
 		"stationary": {
 			"layer": "ground"
 		},
 		"storage": {
-			"transferRange": 40,
+			"transferRange": 20,
 			"maxIron": 100,
 			"maxFuel": 100
 		},
@@ -209,7 +210,8 @@
 	},
 	"iron": {
 		"details": {
-			"size": 1
+			"size": 1,
+			"ironRate": 1
 		},
 		"stationary": {
 			"layer": "ground"
@@ -221,7 +223,8 @@
 	},
 	"oil": {
 		"details": {
-			"size": 1
+			"size": 1,
+			"fuelRate": 5
 		},
 		"stationary": {
 			"layer": "ground"

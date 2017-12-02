@@ -45,9 +45,9 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 			});
 		}
 		if (resource.details.type === 'iron') {
-			planetDB.planet.produceResource(ctx, 'iron', unit, 1);
+			planetDB.planet.produceResource(ctx, 'iron', unit, resource.details.ironRate);
 		} else if (resource.details.type === 'oil') {
-			planetDB.planet.produceResource(ctx, 'fuel', unit, 1);
+			planetDB.planet.produceResource(ctx, 'fuel', unit, resource.details.fuelRate);
 		}
 
 	}

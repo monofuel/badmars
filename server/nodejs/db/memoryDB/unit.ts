@@ -70,7 +70,7 @@ export default class DBUnit implements DB.DBUnit {
     }
     async watchPathing(ctx: Context, fn: DB.Handler<Unit>): Promise<void> {
         DB.AttachChangeHandler(ctx, this.unitChange, async (ctx, { next: unit }) => {
-            if (unit.movable &&
+            if (unit && unit.movable &&
                 unit.movable.destination &&
                 unit.movable.isPathing == false &&
                 unit.movable.path.length === 0) {

@@ -21,11 +21,20 @@ export default class FactoryQueue implements DB.FactoryQueue {
 		}
 		return this.orders[factory];
 	}
+
 	async pop(ctx: Context, factory: string): Promise<FactoryOrder | null> {
 		if (!this.orders[factory]) {
 			return null;
 		}
+
 		return this.orders[factory].pop();
+	}
+	async peek(ctx: Context, factory: string): Promise<FactoryOrder | null> {
+		if (!this.orders[factory]) {
+			return null;
+		}
+
+		return this.orders[factory][0];
 	}
 	async delete(ctx: Context, uuid: string): Promise<void> {
 		// HACK slow implementation, but this shouldn't be called that often.

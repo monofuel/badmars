@@ -153,6 +153,12 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 		return;
 	}
 
+	if (unit.details.health <= 0 && unit.details.maxHealth) {
+		logger.info(ctx, 'unit destroyed', { uuid: unit.uuid });
+		await planetDB.unit.delete(ctx, unit.uuid);
+		return;
+	}
+
 	if (unit.details.fuelBurnLength && !await burnFuel(ctx, unit)) {
 		logger.info(ctx, 'unit out of fuel', { uuid: unit.uuid });
 		await patchUnit(ctx, unit, {
@@ -417,6 +423,17 @@ export async function setConstructing(ctx: Context, unit: Unit, constructing: { 
 	await patchUnit(ctx, unit, { construct: { constructing } });
 }
 
+export async function tickConstruction(ctx: Context, unit: Unit): Promise<void> {
+	await patchUnit(ctx, unit, {
+		construct: {
+			constructing: {
+				type: unit.construct.constructing.type,
+				remaining: unit.construct.constructing.remaining - 1,
+			}
+		}
+	});
+}
+
 
 export async function setBuilt(ctx: Context, unit: Unit): Promise<void> {
 	await patchUnit(ctx, unit, { awake: true, details: { ghosting: false } });
@@ -612,16 +629,21 @@ export async function burnFuel(ctx: Context, unit: Unit): Promise<boolean> {
 	let fuelBurn = unit.details.fuelBurnLength;
 	if (!unit.details.fuelBurn) {
 		const burned = await planetDB.unit.pullResource(ctx, 'fuel', 1, unit.uuid);
-		if (burned <= 0 || unit.storage.fuel < unit.storage.maxFuel / 2) {
+		if (burned <= 0) {
 			// pull fuel from nearby
 			if (await planetDB.planet.pullResource(ctx, 'fuel', unit, unit.storage.maxFuel)) {
 				await planetDB.unit.putResource(ctx, 'fuel', unit.storage.maxFuel - 1, unit.uuid);
 			} else if (burned <= 0) {
+				await patchUnit(ctx, unit, { details: { unfueled: true } });
 				return false;
 			}
 		}
 	} else {
 		fuelBurn = unit.details.fuelBurn - 1;
+		if (unit.storage.fuel < unit.storage.maxFuel / 2
+			&& await planetDB.planet.pullResource(ctx, 'fuel', unit, unit.storage.maxFuel)) {
+			await planetDB.unit.putResource(ctx, 'fuel', unit.storage.maxFuel - 1, unit.uuid);
+		}
 	}
 	await patchUnit(ctx, unit, { details: { fuelBurn } });
 	return true;

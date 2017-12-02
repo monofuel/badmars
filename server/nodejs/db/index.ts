@@ -80,6 +80,7 @@ export interface FactoryQueue {
     create(ctx: Context, order: FactoryOrder): Promise<void>;
     list(ctx: Context, factory: UUID): Promise<FactoryOrder[]>;
     pop(ctx: Context, factory: UUID): Promise<FactoryOrder | null>;
+    peek(ctx: Context, factory: UUID): Promise<FactoryOrder | null>;
     delete(ctx: Context, uuid: UUID): Promise<void>;
 
 }

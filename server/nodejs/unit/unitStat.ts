@@ -10,7 +10,7 @@ import env from '../config/env';
 
 const ALL_COMPONENTS = ['details', 'movable', 'attack', 'storage', 'graphical', 'stationary', 'construct'];
 
-const DETAIL_FIELDS = ['size', 'buildTime', 'cost', 'maxHealth', 'vision', "fuelBurnLength"];
+const DETAIL_FIELDS = ['size', 'buildTime', 'cost', 'maxHealth', 'vision', "fuelBurnLength", 'ironRate', 'fuelRate'];
 const MOVABLE_FIELDS = ['layer', 'speed'];
 const ATTACK_FIELDS = ['layers', 'range', 'damage', 'fireRate'];
 const STORAGE_FIELDS = ['maxIron', 'maxFuel', 'transferRange'];

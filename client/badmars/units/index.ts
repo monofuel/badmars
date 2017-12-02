@@ -306,15 +306,15 @@ function markPath(state: State, entity: UnitEntity, start: PlanetLoc) {
 
         pathGeom.computeLineDistances();
 
-        var selectedMaterial = new THREE.LineDashedMaterial({
+        var lineMaterial = new THREE.LineDashedMaterial({
             color: '#7b44bf',
-            linewidth: 1,
+            linewidth: 3,
             scale: 1,
-            dashSize: 1,
-            gapSize: 0.5,
+            dashSize: 0.5,
+            gapSize: 0.1,
         });
 
-        const pathMesh = new THREE.Line(pathGeom);
+        const pathMesh = new THREE.Line(pathGeom, lineMaterial);
         pathMesh.position.copy(start.getVec());
         pathMesh.position.y += verticalOffset;
         state.display.addMesh(pathMesh);

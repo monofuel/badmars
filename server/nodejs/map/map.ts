@@ -407,12 +407,10 @@ export default class Map {
 						unit.storage.fuel = 1000;
 						unit.storage.iron = 1000;
 						break;
-					case 'tank':
-					case 'builder':
-						if (!unit.storage) {
-							throw new Error('builder unit missing storage');
+					default:
+						if (unit.storage && unit.storage.maxFuel) {
+							unit.storage.fuel = unit.storage.maxFuel;
 						}
-						unit.storage.fuel = 50;
 						break;
 				}
 				try {
@@ -581,7 +579,7 @@ export default class Map {
 	// TODO should have 2 methods
 	// one for pulling 'as much as possible' (for pulling fuel)
 	// and another for only pulling exact amounts (for construction)
-	async pullResource(ctx: Context, type: string, taker: Unit, amount: number): Promise<boolean> {
+	async pullResource(ctx: Context, type: Resource, taker: Unit, amount: number): Promise<boolean> {
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 
 		//TODO should calculate based on transfer range
@@ -611,7 +609,7 @@ export default class Map {
 				continue;
 			}
 
-			amountCanPull += unit.storage.iron;
+			amountCanPull += unit.storage[type];
 			if (amountCanPull > amount) {
 				break;
 			}
@@ -621,7 +619,7 @@ export default class Map {
 		}
 
 		const pulledMap: any = {};
-		//actually pull iron
+		//actually pull Resource
 		for (const unit of units) {
 			if (unit.details.ghosting) {
 				continue;

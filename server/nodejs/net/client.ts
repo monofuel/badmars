@@ -158,6 +158,9 @@ export default class Client {
 	async handleUnitUpdate(ctx: Context, unit: Unit, oldUnit?: Unit): Promise<void> {
 
 		// TODO unit death should be handled by the event system
+		if (!unit) {
+			return;
+		}
 
 		// check if unit is on a chunk the player sees
 		if (_.intersection(unit.location.chunkHash, this.loadedChunks).length === 0) {

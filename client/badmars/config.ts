@@ -103,12 +103,12 @@ const ConfigType = t.object({
 
 const defaultConfig: Config = {
 	debug: true,
-	version: 13,
+	version: 14,
 	logLevel: 'debug',
 	cameraSpeed: 30,
 	orthographic: false,
 	palette: defaultPalette,
-	loadDistance: 3,
+	loadDistance: 4,
 }
 
 // TODO save config separately

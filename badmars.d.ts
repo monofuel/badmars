@@ -80,6 +80,9 @@ interface UnitDetails {
 	lastTick: number,
 	ghosting: boolean,
 	owner: string,
+	unfueled: boolean,
+	ironRate: number,
+	fuelRate: number,
 	fuelBurn: number,
 	fuelBurnLength: number, // ticks to use 1 unit of fuel
 }

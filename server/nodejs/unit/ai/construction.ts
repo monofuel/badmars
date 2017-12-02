@@ -7,7 +7,7 @@
 import db from '../../db';
 import Context from '../../context';
 import logger, { DetailedError } from '../../logger';
-import { unitDistance, popFactoryOrder, setConstructing, setUnitDestination, setBuilt } from '../unit';
+import { unitDistance, popFactoryOrder, setConstructing, setUnitDestination, setBuilt, tickConstruction } from '../unit';
 
 import UnitAI from './';
 
@@ -102,15 +102,25 @@ export default class constructionAI implements UnitAI {
 			return;
 		}
 		if (!unit.construct.constructing) {
-			// pull a new unit off the queue if we are not already constructing
-			// logger.info(ctx, 'constructing', { type: newUnitType });
+			const peek = await planetDB.factoryQueue.peek(ctx, unit.uuid);
+			const unitInfo = await planetDB.unitStat.get(ctx, peek.type);
+			if (!await planetDB.planet.pullResource(ctx, 'iron', unit, unitInfo.details.cost)) {
+				return;
+			}
+			// HACK
+			// there's an issue if the queue changes between the peek and now
+			// this shouldn't ever happen (the unit should only be processed once per tick)
+			// but this would create an odd situation
 			const next = await planetDB.factoryQueue.pop(ctx, unit.uuid);
 			if (!next) {
 				logger.info(ctx, 'nothing left in factory queue', { uuid: unit.uuid });
 				return;
 			}
+			if (next !== peek) {
+				logger.info(ctx, 'construction foobar', { next: next.type, peek: peek.type });
+			}
 			logger.info(ctx, 'popped unit off factory queue', { uuid: unit.uuid, next });
-			const unitInfo = await planetDB.unitStat.get(ctx, next.type);
+
 			const constructing = {
 				type: next.type,
 				remaining: unitInfo.details.buildTime,
@@ -120,44 +130,22 @@ export default class constructionAI implements UnitAI {
 
 		const constructing = unit.construct.constructing;
 		logger.info(ctx, 'constructing unit', { uuid: unit.uuid, constructing });
-		/*
-		// TODO
-				if (unit.construct.constructing.remaining > 0) {
-					if (await planetDB.planet.pullResource(ctx, 'iron', unit, unit.construct.constructing.remaining)) {
-						await 
-		
-						//TODO this should not be called from outside unit
-						await unit.update(ctx, {
-							construct: {
-								factoryQueue: queue
-							}
-						});
-					}
-				}
-				if (queue[0].cost === 0) {
-					if (queue[0].remaining > 0) {
-						queue[0].remaining--;
-						await unit.update(ctx, {
-							construct: {
-								factoryQueue: queue
-							}
-						});
-					} else {
-						await popFactoryOrder(ctx, unit);
-						const tile = await map.getLoc(ctx, unit.location.x, unit.location.y);
-						const newTile = await map.getNearestFreeTile(ctx, tile);
-						if (!newTile) {
-							throw new DetailedError('failed to find open tile', { uuid: unit.uuid });
-						}
-		
-						//if spawn fails, should re-try with a new location
-						const result = await map.factoryMakeUnit(ctx, newUnitType, unit.details.owner, newTile.x, newTile.y);
-						if (!result) {
-							throw new DetailedError('factory failed to create unit', { newUnitType, uuid: unit.uuid });
-						}
-					}
-				}
-		*/
+		await tickConstruction(ctx, unit);
+		if (unit.construct.constructing.remaining === 0) {
+
+		}
+
+		const tile = await planetDB.planet.getLoc(ctx, unit.location.x, unit.location.y);
+		const newTile = await planetDB.planet.getNearestFreeTile(ctx, tile);
+		if (!newTile) {
+			throw new DetailedError('failed to find open tile', { uuid: unit.uuid });
+		}
+
+		//if spawn fails, should re-try with a new location
+		const result = await planetDB.planet.factoryMakeUnit(ctx, constructing.type, unit.details.owner, newTile.x, newTile.y);
+		if (!result) {
+			throw new DetailedError('factory failed to create unit', { type: constructing.type, uuid: unit.uuid });
+		}
 		return;
 	}
 

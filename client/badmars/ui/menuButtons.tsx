@@ -117,6 +117,7 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 				<div style={{ display: 'flex' }}>
 					{queuePane}
 					<div>
+						<RaisedButton style={buttonStyle} secondary onTouchTap={() => this.factoryConstructClicked('scout')}>Scout</RaisedButton>
 						<RaisedButton style={buttonStyle} secondary onTouchTap={() => this.factoryConstructClicked('tank')}>Tank</RaisedButton>
 						<RaisedButton style={buttonStyle} secondary onTouchTap={() => this.factoryConstructClicked('builder')}>Builder</RaisedButton>
 						<RaisedButton style={buttonStyle} secondary onTouchTap={() => this.factoryConstructClicked('transport')}>Transport</RaisedButton>
