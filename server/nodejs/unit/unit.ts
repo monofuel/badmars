@@ -531,7 +531,7 @@ export async function moveUnit(ctx: Context, unit: Unit, tile: PlanetLoc): Promi
 	if (unit.details.size !== 1) {
 		throw new DetailedError('moving is not supported for large units', { uuid: unit.uuid, type: unit.details.type });
 	}
-	logger.info(ctx, 'moving unit', { prev: unit.location.hash, next: tile.hash });
+	// logger.info(ctx, 'moving unit', { prev: unit.location.hash, next: tile.hash });
 	const tileType = tile.chunk.navGrid[tile.localX][tile.localY];
 
 	// TODO should probalby use 'checkvalidforunit' on map

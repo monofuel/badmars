@@ -519,6 +519,9 @@ export default class Map {
 				RequestChange.post({ type: 'getChunk', x: x, y: y });
 			}
 		}
+		// HACK
+		// sometimes chunks don't have the correct fog of war after generation when units are already present?
+		this.chunkFogToUpdate = true;
 	}
 
 	getUnitsOnChunk(chunkHash: string): UnitEntity[] {

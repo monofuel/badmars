@@ -153,9 +153,15 @@ function applyToMaterials(mesh: THREE.Group, fn: (mat: THREE.MeshLambertMaterial
                 return;
             }
             if (Array.isArray(objMesh.material)) {
-                objMesh.material.map((mat: THREE.MeshLambertMaterial) => fn(mat))
+                objMesh.material = objMesh.material.map((mat: THREE.MeshLambertMaterial) => {
+                    mat = mat.clone();
+                    fn(mat as any);
+                    return mat;
+                })
             } else {
-                fn(objMesh.material as any);
+                const mat = objMesh.material.clone();
+                fn(mat as any);
+                objMesh.material = mat;
             }
         })
     })

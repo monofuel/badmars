@@ -314,6 +314,7 @@ export async function newState(): Promise<State> {
 			state.unitEntities[updated.uuid] = entity;
 			state.units[updated.uuid] = updated;
 		}
+		state.map.chunkFogToUpdate = true;
 	};
 	UnitChange.attach(updateUnitsListener);
 
