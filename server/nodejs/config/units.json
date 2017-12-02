@@ -23,8 +23,8 @@
 			"maxFuel": 50
 		},
 		"graphical": {
-			"model": "builder.dae",
-			"scale": 1
+			"model": "scout.dae",
+			"scale": 0.5
 		}
 	},
 	"builder": {
@@ -64,7 +64,7 @@
 		},
 		"movable": {
 			"layer": "ground",
-			"speed": 1
+			"speed": 2
 		},
 		"attack": {
 			"layers": [

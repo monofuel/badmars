@@ -21,9 +21,14 @@ export default class Display {
 	private HUDPanel: HTMLCanvasElement;
 	private HUDContext: CanvasRenderingContext2D;
 
+	private T: any;
+
 	constructor(state: State) {
 		this.state = state;
 		this.scene = new THREE.Scene();
+
+		// for debugging
+		this.T = THREE;
 
 		const aspectRatio = window.innerWidth / window.innerHeight;
 		this.lightAngle = 0.0;
@@ -72,6 +77,9 @@ export default class Display {
 		this.camera.updateProjectionMatrix();
 
 		window.onresize = this.resize;
+
+
+
 	}
 
 	viewTile(tile: PlanetLoc) {

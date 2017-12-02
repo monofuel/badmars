@@ -356,7 +356,7 @@ export default class Map {
 
 		//spawn units for them on the chunk
 		const unitsToSpawn: string[] = [
-			'storage', 'builder', 'builder', 'tank', 'tank', 'iron', 'oil', 'transfer_tower', 'factory', 'transport'
+			'storage', 'builder', 'builder', 'tank', 'tank', 'iron', 'oil', 'transfer_tower', 'factory', 'transport', 'scout'
 		];
 
 		const usedTiles: TileHash[] = [];
