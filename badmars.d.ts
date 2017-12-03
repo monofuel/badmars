@@ -6,7 +6,7 @@ type Tick = number;
 type UnitType = string;
 type TileCode = 0 | 1 | 2 | 3;
 type TileType = 'land' | 'cliff' | 'water' | 'coast' | 'unknown';
-type Dir = Symbol;
+type Dir = 'N' | 'S' | 'W' | 'E' | 'C';
 type ProfileKey = string;
 type MovementLayer = 'ground' | 'air' | 'water';
 type Resource = 'iron' | 'fuel';
@@ -101,7 +101,7 @@ interface UnitMovable {
 	layer: MovementLayer,
 	speed: number,
 	movementCooldown: number,
-	path: Array<TileHash>,
+	path: Array<Dir>,
 	pathAttempts: number,
 	pathAttemptAttempts: number,
 	isPathing: boolean,

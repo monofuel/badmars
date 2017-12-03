@@ -9,7 +9,6 @@ import Map from '../map/map';
 import PlanetLoc from '../map/planetloc';
 import Context from '../context';
 import logger, { DetailedError } from '../logger';
-import DIRECTION from '../map/directions';
 import sleep from '../util/sleep';
 
 export default class AStarPath {
@@ -156,10 +155,10 @@ export default class AStarPath {
 		return 'continue';
 	}
 
-	async getNext(ctx: Context, tile: PlanetLoc): Promise<Symbol> {
+	async getNext(ctx: Context, tile: PlanetLoc): Promise<Dir> {
 
 		if (tile === null) {
-			return DIRECTION.C;
+			return 'C';
 		}
 		let nextTile = null;
 		for (let i = 0; i < this.path.length; i++) {
@@ -170,20 +169,20 @@ export default class AStarPath {
 		}
 
 		if (nextTile === null) {
-			return DIRECTION.C;
+			return 'C';
 		}
 
 		if ((await tile.E(ctx)).equals(nextTile))
-			return DIRECTION.E;
+			return 'E';
 		if ((await tile.W(ctx)).equals(nextTile))
-			return DIRECTION.W;
+			return 'W';
 		if ((await tile.N(ctx)).equals(nextTile))
-			return DIRECTION.N;
+			return 'N';
 		if ((await tile.S(ctx)).equals(nextTile))
-			return DIRECTION.S;
+			return 'S';
 
 		//console.log('invalid next tile');
-		return DIRECTION.C;
+		return 'C';
 	}
 }
 

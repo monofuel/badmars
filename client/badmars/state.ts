@@ -11,10 +11,11 @@ import Config from './config';
 import { QueuedEvent, EventQueue } from 'ts-events';
 import { Planet, User, UnitStats } from './';
 import * as jsonpatch from 'fast-json-patch';
-import UnitEntity, { newUnitEntity, updateGraphicalEntity, tileSquareMesh } from './units';
+import UnitEntity, { newUnitEntity, updateGraphicalEntity, tileSquareMesh, destroyUnitEntity } from './units';
 export type GameStageType = 'login' | 'planet';
 export type Focused = 'chat' | 'hud' | 'game';
 import * as qs from 'query-string';
+import * as dat from 'dat-gui';
 import * as THREE from 'three';
 // ------------------------------------------
 // Game State should not be modified directly
@@ -131,6 +132,8 @@ export default interface State {
 	playerInfo: User;
 	token: string;
 	spawned: boolean;
+
+	datgui?: dat.GUI;
 
 	map?: Map;
 	net?: Net;
@@ -309,6 +312,9 @@ export async function newState(): Promise<State> {
 
 	const updateUnitsListener = (data: UnitEvent) => {
 		for (let updated of data.list) {
+			if (state.unitEntities[updated.uuid]) {
+				destroyUnitEntity(state, state.unitEntities[updated.uuid]);
+			}
 			const entity = newUnitEntity(state, updated);
 			state.unitEntities[updated.uuid] = entity;
 			state.units[updated.uuid] = updated;

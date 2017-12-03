@@ -10,7 +10,6 @@ import PlanetLoc from '../map/planetloc';
 import Context from '../context';
 
 import { LAND } from '../map/tiletypes';
-import DIRECTION from '../map/directions';
 
 export default class SimplePath {
 	start: PlanetLoc;
@@ -19,7 +18,7 @@ export default class SimplePath {
 	constructor(start: PlanetLoc, end: PlanetLoc) {
 		this.start = start;
 		this.end = end;
-		if(!this.start || !this.end || this.start.map !== this.end.map) {
+		if (!this.start || !this.end || this.start.map !== this.end.map) {
 			throw new DetailedError('invalid start and end points', {
 				start: start.toString(),
 				end: end.toString(),
@@ -29,32 +28,32 @@ export default class SimplePath {
 	}
 
 	//given a tile, find the next one
-	async getNext(ctx: Context, tile: PlanetLoc): Promise<Symbol> {
-		if(tile.x < this.end.x) {
-			const nextTile = await this.map.getLoc(ctx,tile.x + 1, tile.y);
-			if(nextTile.tileType === LAND) {
-				return DIRECTION.E;
+	async getNext(ctx: Context, tile: PlanetLoc): Promise<Dir> {
+		if (tile.x < this.end.x) {
+			const nextTile = await this.map.getLoc(ctx, tile.x + 1, tile.y);
+			if (nextTile.tileType === LAND) {
+				return 'E';
 			}
 		}
-		if(tile.x > this.end.x) {
-			const nextTile = await this.map.getLoc(ctx,tile.x - 1, tile.y);
-			if(nextTile.tileType === LAND) {
-				return DIRECTION.W;
+		if (tile.x > this.end.x) {
+			const nextTile = await this.map.getLoc(ctx, tile.x - 1, tile.y);
+			if (nextTile.tileType === LAND) {
+				return 'W';
 			}
 		}
-		if(tile.y < this.end.y) {
-			const nextTile = await this.map.getLoc(ctx,tile.x, tile.y + 1);
-			if(nextTile.tileType === LAND) {
-				return DIRECTION.N;
+		if (tile.y < this.end.y) {
+			const nextTile = await this.map.getLoc(ctx, tile.x, tile.y + 1);
+			if (nextTile.tileType === LAND) {
+				return 'N';
 			}
 		}
-		if(tile.y > this.end.y) {
-			const nextTile = await this.map.getLoc(ctx,tile.x, tile.y - 1);
-			if(nextTile.tileType === LAND) {
-				return DIRECTION.S;
+		if (tile.y > this.end.y) {
+			const nextTile = await this.map.getLoc(ctx, tile.x, tile.y - 1);
+			if (nextTile.tileType === LAND) {
+				return 'S';
 			}
 		}
-		return DIRECTION.C;
+		return 'C';
 	}
 }
 

@@ -207,6 +207,9 @@ export default class Map {
 
 		var gridMesh = new THREE.Mesh(gridGeom, planetMaterials);
 		var waterMesh = new THREE.Mesh(waterGeom, [waterMaterial, waterFogMaterial]);
+		const hash = `${chunkX}:${chunkY}`;
+		gridMesh.name = `${hash} land`;
+		waterMesh.name = `${hash} water`;
 
 		var centerMatrix = new THREE.Matrix4()
 			.makeTranslation(chunkX * this.worldSettings.chunkSize, chunkY * this.worldSettings.chunkSize, 0);
@@ -254,6 +257,7 @@ export default class Map {
 		});
 
 		const cloud = new THREE.Points(snowGeom, snowMat);
+		cloud.name = `${hash} snow`;
 		cloud.geometry.applyMatrix(centerMatrix);
 		cloud.position.copy(gridMesh.position);
 		cloud.rotation.copy(gridMesh.rotation);

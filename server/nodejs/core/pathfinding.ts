@@ -6,7 +6,6 @@
 
 import AStarPath from '../nav/astarpath';
 import SimplePath from '../nav/simplepath';
-import DIRECTION from '../map/directions';
 import Context from '../context';
 import { WrappedError } from '../logger';
 import { clearDestination, setPath, setUnitDestination } from '../unit/unit';
@@ -85,7 +84,7 @@ export default class PathfindService implements Service {
 			return;
 		}
 
-		// HACK should probably use a token bucket or something
+		// HACK should have a better way to limit in progress pathfinding
 		while (inProcess) {
 			await sleep(1000);
 		}
@@ -100,15 +99,15 @@ export default class PathfindService implements Service {
 				throw new WrappedError(err, 'generating path');
 			}
 		}
-		const path = [];
+		const path: Dir[] = [];
 
 		let nextTile = start;
 		do {
-			const dir = await pathfinder.getNext(ctx, nextTile);
+			const dir: Dir = await pathfinder.getNext(ctx, nextTile);
 			//console.log('dir:' + DIRECTION.getTypeName(dir));
 			nextTile = await nextTile.getDirTile(ctx, dir);
-			path.push(DIRECTION.getTypeName(dir));
-			if (dir === DIRECTION.C || nextTile.equals(end)) {
+			path.push(dir);
+			if (dir === 'C' || nextTile.equals(end)) {
 				break;
 			}
 		} while (true);

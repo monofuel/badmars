@@ -4,7 +4,6 @@ import db from '../../db';
 import logger, { WrappedError, DetailedError } from '../../logger';
 
 import PlanetLoc from '../../map/planetloc';
-import DIRECTION from '../../map/directions';
 import Map from '../../map/map';
 
 import { sendResource, tickMovement, setUnitDestination, clearTransferGoal, moveUnit, addPathAttempt, setPath } from '../unit';
@@ -82,12 +81,12 @@ async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	if (!unit.movable) {
 		return;
 	}
-	const path = [...unit.movable.path];
+	const path: Dir[] = [...unit.movable.path];
 
 	const profile = logger.startProfile('moving unit');
 
 	const start = await map.getLoc(ctx, unit.location.x, unit.location.y);
-	const dir = DIRECTION.getTypeFromName(path.shift());
+	const dir = path.shift();
 	const nextTile = await start.getDirTile(ctx, dir);
 	try {
 		try {

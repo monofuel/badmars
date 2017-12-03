@@ -10,16 +10,11 @@ import * as _ from 'lodash';
 import { DetailedError } from '../logger';
 import env from '../config/env';
 import { getTypeName } from './tiletypes';
-import Direction from '../map/directions';
 
 import db from '../db';
 import Context from '../context';
 import Map from './map';
 import ChunkLayer from './chunkLayer';
-
-type TileHash = string;
-type TileCode = 0 | 1 | 2 | 3;
-type Dir = Symbol;
 
 /**
  * Representation of a point on a planet
@@ -112,15 +107,15 @@ export default class PlanetLoc {
 
 	async getDirTile(ctx: Context, dir: Dir): Promise<PlanetLoc> {
 		switch (dir) {
-			case Direction.N:
+			case 'N':
 				return await this.N(ctx);
-			case Direction.S:
+			case 'S':
 				return await this.S(ctx);
-			case Direction.E:
+			case 'E':
 				return await this.E(ctx);
-			case Direction.W:
+			case 'W':
 				return await this.W(ctx);
-			case Direction.C:
+			case 'C':
 			default:
 				return this;
 		}

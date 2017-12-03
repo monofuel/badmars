@@ -80,6 +80,7 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
             mat.transparent = false;
         }
     });
+    mesh.name = `unit ${entity.unit.uuid}`;
     state.display.addMesh(mesh);
     entity.graphical = {
         movementDelta: 0,
@@ -258,6 +259,7 @@ export function tileSquareMesh(loc: PlanetLoc, color: THREE.Color): THREE.Mesh {
     });
 
     const selectedMesh = new THREE.Mesh(selectedGeom, selectedMaterial);
+    selectedMesh.name = 'selected';
     selectedMesh.position.copy(loc.getVec());
     selectedMesh.position.y += 0.05;
     return selectedMesh;
@@ -328,6 +330,7 @@ function markPath(state: State, entity: UnitEntity, start: PlanetLoc) {
         });
 
         const pathMesh = new THREE.Line(pathGeom, lineMaterial);
+        pathMesh.name = 'path';
         pathMesh.position.copy(start.getVec());
         pathMesh.position.y += verticalOffset;
         state.display.addMesh(pathMesh);

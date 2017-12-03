@@ -115,7 +115,9 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 		UnitChange.attach(({ list }) => this.updateUnitsHandler(list));
 		TransferChange.attach(this.unitTransferHandler);
 		GameStageChange.attach(this._gameStateChange);
-		BMDatGui();
+		if (config.debug) {
+			this.props.state.datgui = BMDatGui();
+		}
 	}
 
 	public render() {

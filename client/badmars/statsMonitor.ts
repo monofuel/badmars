@@ -1,3 +1,4 @@
+import config from './config';
 declare interface StatsType {
 	setMode(num: number): void;
 	domElement: any;
@@ -13,6 +14,9 @@ export default class StatsMonitor {
 	mbStats: StatsType;
 
 	constructor() {
+		if (!config.debug) {
+			return;
+		}
 		this.fpsStats = new Stats();
 		this.msStats = new Stats();
 		this.mbStats = new Stats();
@@ -44,12 +48,18 @@ export default class StatsMonitor {
 	}
 
 	begin() {
+		if (!config.debug) {
+			return;
+		}
 		this.fpsStats.begin();
 		this.msStats.begin();
 		this.mbStats.begin();
 	}
 
 	end() {
+		if (!config.debug) {
+			return;
+		}
 		this.fpsStats.end();
 		this.msStats.end();
 		this.mbStats.end();

@@ -113,7 +113,11 @@ export default class Display {
 			this.resize();
 		} else {
 			this.camera.position.y += config.cameraSpeed * delta;
+			if (this.camera.position.y > 75) {
+				this.camera.position.y = 75;
+			}
 		}
+		this.setChunkRange();
 	}
 
 	cameraDown(delta: number) {
@@ -122,6 +126,22 @@ export default class Display {
 			this.resize();
 		} else {
 			this.camera.position.y -= config.cameraSpeed * delta;
+			const loc = this.state.map.getLoc(this.camera.position.x, -this.camera.position.z);
+			if (this.camera.position.y < 20) {
+				this.camera.position.y = 20;
+			}
+		}
+		this.setChunkRange();
+	}
+
+	setChunkRange() {
+		const height = this.camera.position.y;
+		if (height < 30) {
+			config.loadDistance = 4;
+		} else if (height < 50) {
+			config.loadDistance = 5;
+		} else if (height < 75) {
+			config.loadDistance = 7;
 		}
 	}
 
