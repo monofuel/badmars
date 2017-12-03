@@ -7,6 +7,7 @@ import db, * as DB from '../db';
 import logger from '../logger';
 import User, { newUser } from '../user';
 import { simulate } from '../unit/unit';
+import sleep from '../util/sleep';
 
 export default class StandaloneService implements Service {
     private parentCtx: Context;
@@ -62,8 +63,14 @@ export default class StandaloneService implements Service {
         }
 
         // force all units awake to update
-        testPlanet.unit.each(ctx, async (ctx: Context, unit: Unit) => {
+        await testPlanet.unit.each(ctx, async (ctx: Context, unit: Unit) => {
             await testPlanet.unit.patch(ctx, unit.uuid, { awake: true });
+        });
+
+        // apply any unit stat changes
+        await testPlanet.unit.each(ctx, async (ctx: Context, unit: Unit) => {
+            const stats = await testPlanet.unitStat.get(ctx, unit.details.type);
+            await testPlanet.unit.patch(ctx, unit.uuid, stats);
         });
 
         logger.info(ctx, 'standalone init done');
@@ -143,6 +150,7 @@ class SimulateService implements Service {
             const unit = await planetDB.unit.claimUnitTick(ctx, uuid, tick);
             if (unit) {
                 try {
+                    await sleep(0);
                     await simulate(ctx, unit);
                 } catch (err) {
                     if (ctx.env.debug) {

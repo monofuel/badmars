@@ -15,9 +15,12 @@ import logger from '../logger';
 import db from '../db';
 import PlanetLoc from '../map/planetloc';
 import { Service } from './';
+import sleep from '../util/sleep';
 
 type TileHash = string;
 const registeredMaps: any = [];
+
+let inProcess = false;
 
 export default class PathfindService implements Service {
 	private parentCtx: Context;
@@ -51,6 +54,7 @@ export default class PathfindService implements Service {
 	private async pathfind(ctx: Context, unit: Unit, oldUnit?: Unit): Promise<void> {
 		logger.info(ctx, 'processing path', { uuid: unit.uuid });
 
+
 		if (!unit.movable || !unit.movable.destination) {
 			return;
 		}
@@ -81,12 +85,18 @@ export default class PathfindService implements Service {
 			return;
 		}
 
+		// HACK should probably use a token bucket or something
+		while (inProcess) {
+			await sleep(1000);
+		}
+		inProcess = true;
 		const pathfinder = new AStarPath(start, end, unit);
 		//const pathfinder = new SimplePath(start, end, unit);
 		if (pathfinder.generate) {
 			try {
 				await pathfinder.generate(ctx);
 			} catch (err) {
+				inProcess = false;
 				throw new WrappedError(err, 'generating path');
 			}
 		}
@@ -104,6 +114,7 @@ export default class PathfindService implements Service {
 		} while (true);
 
 		await setPath(ctx, unit, path);
+		inProcess = false;
 		// await setUnitDestination(ctx, unit, end.x, end.y);
 	}
 

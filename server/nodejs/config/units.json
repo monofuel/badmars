@@ -24,8 +24,8 @@
 			"maxFuel": 50
 		},
 		"graphical": {
-			"model": "scout.dae",
-			"scale": 0.5
+			"model": "scout-2.dae",
+			"scale": 0.2
 		}
 	},
 	"builder": {

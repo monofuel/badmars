@@ -10,6 +10,7 @@ import PlanetLoc from '../map/planetloc';
 import Context from '../context';
 import logger, { DetailedError } from '../logger';
 import DIRECTION from '../map/directions';
+import sleep from '../util/sleep';
 
 export default class AStarPath {
 	start: PlanetLoc;
@@ -42,18 +43,23 @@ export default class AStarPath {
 		this.path = [];
 	}
 	async generate(ctx: Context): Promise<void> {
-		this.open = [
+		const startOpen = [
 			await this.map.getLoc(ctx, this.start.x + 1, this.start.y),
 			await this.map.getLoc(ctx, this.start.x - 1, this.start.y),
 			await this.map.getLoc(ctx, this.start.x, this.start.y + 1),
 			await this.map.getLoc(ctx, this.start.x, this.start.y - 1)
 		];
+		this.open = [];
 
 		this.closed = [this.start];
-		for (const tile of this.open) {
-			tile.cost = 1 + tile.distance(this.end);
-			tile.realCost = 1;
-			tile.prev = this.start;
+		for (const tile of startOpen) {
+			const invalidReason = await this.map.checkValidForUnit(ctx, [tile], this.unit, true);
+			if (!invalidReason) {
+				tile.cost = 1 + tile.distance(this.end);
+				tile.realCost = 1;
+				tile.prev = this.start;
+				this.open.push(tile);
+			}
 		}
 
 		let result;
@@ -64,6 +70,7 @@ export default class AStarPath {
 	}
 
 	async searchNext(ctx: Context): Promise<string> {
+		await sleep(1);
 
 		this.cost++;
 

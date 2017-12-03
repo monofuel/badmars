@@ -80,10 +80,9 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
             mat.transparent = false;
         }
     });
-
-    // HACK
-    // extra meshes were being left around for some reason
-    // should investigate why (addMesh is only called here?)
+    if (entity.graphical && entity.graphical.mesh) {
+        state.display.removeMesh(entity.graphical.mesh);
+    }
     state.display.removeMesh(mesh);
     state.display.addMesh(mesh);
     entity.graphical = {

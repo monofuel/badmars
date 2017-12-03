@@ -4,6 +4,7 @@
 //	website: japura.net/badmars
 //	Licensed under included modified BSD license
 
+import * as _ from 'lodash';
 import Context from '../context';
 import db from '../db';
 import logger, { DetailedError, WrappedError } from '../logger';
@@ -137,8 +138,6 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 		constructionAI: false,
 		attackAI: false
 	};
-
-	// TODO handle when unitStat changes
 
 	// ------------------
 	// iron and oil should always be off
@@ -541,7 +540,7 @@ export async function moveUnit(ctx: Context, unit: Unit, tile: PlanetLoc): Promi
 	}
 	if (tile.chunkLayer.ground[tile.hash]) {
 		logger.info(ctx, 'unit movement blocked by another unit', { hash: tile.hash, uuid: unit.uuid });
-		await clearPath(ctx, unit);
+		// TODO should handle this case nicely
 		return;
 	}
 
