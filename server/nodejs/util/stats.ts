@@ -30,7 +30,7 @@ let profileCount: {
 } = {};
 
 export function init(ctx: Context) {
-	setInterval((): void => reportStats(ctx), ctx.env.statReportRate * 60 * 1000);
+	// setInterval((): void => reportStats(ctx), ctx.env.statReportRate * 60 * 1000);
 };
 
 export function startProfile(name: string): ProfileKey {
@@ -64,17 +64,21 @@ export function endProfile(key: ProfileKey, visible?: boolean) {
 };
 
 export function addAverageStat(key: string, value: number) {
+	/*
 	if (!avgStats[key]) {
 		avgStats[key] = [];
 	}
 	avgStats[key].push(value);
+	*/
 }
 
 export function addSumStat(key: string, value: number) {
+	/*
 	if (!sumStats[key]) {
 		sumStats[key] = [];
 	}
 	sumStats[key].push(value);
+	*/
 };
 
 
