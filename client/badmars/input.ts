@@ -134,9 +134,9 @@ export default class Input {
 
 	@autobind
 	private contextMenuHandler(event: PointerEvent): void {
-		if (this.state.focused !== 'game') {
+		/*if (this.state.focused !== 'game') {
 			return;
-		}
+		}*/
 		event.preventDefault();
 	}
 
