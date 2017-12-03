@@ -379,6 +379,9 @@ export function setFocus(state: State, focus: Focused) {
 }
 
 export function clearSelection(state: State) {
+	if (!state.mouseHilight) {
+		return;
+	}
 	state.display.removeMesh(state.mouseHilight.mesh);
 	delete state.mouseHilight;
 }

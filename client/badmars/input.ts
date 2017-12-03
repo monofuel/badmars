@@ -273,10 +273,10 @@ export default class Input {
 		let lastMousePos: MouseMoveEvent
 		// mouse move and camera move should get refactored
 		// should also check if the tile is valid for the unit to build
-		const mouseMoveHandler = (e: MouseMoveEvent) => {
+		const selectionMoveHandler = (e: MouseMoveEvent) => {
 			if (this.mouseMode !== 'focus') {
 				clearSelection(state);
-				MouseMoveChanged.detach(mouseMoveHandler);
+				MouseMoveChanged.detach(selectionMoveHandler);
 				MoveCameraChange.detach(cameraMoveHandler);
 				return;
 			}
@@ -284,12 +284,12 @@ export default class Input {
 			const tile = this.getTileUnderCursor(e.event);
 			setSelection(state, tile, color);
 		}
-		MouseMoveChanged.attach(mouseMoveHandler);
+		MouseMoveChanged.attach(selectionMoveHandler);
 
 		const cameraMoveHandler = (e: MoveCameraEvent) => {
 			if (this.mouseMode !== 'focus') {
 				clearSelection(state);
-				MouseMoveChanged.detach(mouseMoveHandler);
+				MouseMoveChanged.detach(selectionMoveHandler);
 				MoveCameraChange.detach(cameraMoveHandler)
 				return;
 			}
@@ -305,7 +305,7 @@ export default class Input {
 		this.mouseAction = (event: MouseReleaseEvent) => {
 
 			clearSelection(state);
-			MouseMoveChanged.detach(mouseMoveHandler);
+			MouseMoveChanged.detach(selectionMoveHandler);
 			MoveCameraChange.detach(cameraMoveHandler)
 			if (this.mouseMode !== 'focus') {
 				return
