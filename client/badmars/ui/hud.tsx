@@ -129,13 +129,14 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 					? <LoginModal />
 					: <div
 						id='primaryHUD'
+						onMouseLeave={(e) => this.mouseLeaveHandler(e)}
 						onMouseDown={(e) => {
 							this.setGameFocus(e);
 							this.props.state.input.mouseDownHandler(e.nativeEvent);
 						}}
 						onMouseUp={(e) => this.props.state.input.mouseUpHandler(e.nativeEvent)}
 						style={hudStyle as any}>
-						<div style={{flex: 1}}>
+						<div style={{ flex: 1 }}>
 							{errorMessage
 								? <ErrorAlert
 									errorMessage={errorMessage}
@@ -251,5 +252,11 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 
 	_openAboutClicked() {
 		this.setState({ aboutOpen: true });
+	}
+
+	private mouseLeaveHandler(e: React.MouseEvent<HTMLDivElement>) {
+		console.log('mouse left window');
+		const { state } = this.props;
+		state.input.keysDown = [];
 	}
 }

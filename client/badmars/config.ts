@@ -110,7 +110,7 @@ const defaultConfig: Config = {
 	orthographic: false,
 	palette: defaultPalette,
 	loadDistance: 2,
-	frameLimit: 144,
+	frameLimit: 'auto',
 }
 
 // TODO save config separately
