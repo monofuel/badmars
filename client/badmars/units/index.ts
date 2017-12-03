@@ -54,7 +54,7 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
     const scale = entity.unit.graphical.scale;
 
     const geom = getMesh(entity.unit.details.type);
-    const mesh = new THREE.Group();
+    const mesh = entity.graphical && entity.graphical.mesh || new THREE.Group();
     mesh.copy(geom, true);
     mesh.scale.set(scale, scale, scale);
     mesh.rotation.x = -Math.PI / 2;
@@ -80,20 +80,16 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
             mat.transparent = false;
         }
     });
-    if (entity.graphical && entity.graphical.mesh) {
-        state.display.removeMesh(entity.graphical.mesh);
-    }
-    state.display.removeMesh(mesh);
     state.display.addMesh(mesh);
     entity.graphical = {
-        ...(entity.graphical || {}),
-        mesh,
         movementDelta: 0,
         selectedLoc: null,
         selectionMesh: null,
         pathMesh: null,
         pathLoc: null,
         prevPath: [],
+        ...(entity.graphical || {}),
+        mesh,
         ghosting: entity.unit.details.ghosting,
     }
     setToLocation(entity, entity.loc);

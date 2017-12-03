@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import * as THREE from 'three';
 import { log } from '../logger';
 const ColladaLoader = require('three-collada-loader');
-import State,{ UnitStatsChange, UnitStatsEvent } from '../state';
+import State, { UnitStatsChange, UnitStatsEvent } from '../state';
 import { updateGraphicalEntity } from '../units';
 
 const modelMap: { [key: string]: THREE.Group } = {}

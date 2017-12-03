@@ -266,7 +266,6 @@ export default class Map {
 		if (!this.chunkFogToUpdate) {
 			return;
 		}
-		console.log('updating fog of war');
 		this.chunkFogToUpdate = false;
 		// this should probably be a queue
 		for (const key of Object.keys(this.state.chunks)) {
