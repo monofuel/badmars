@@ -88,6 +88,7 @@ interface Config {
 	orthographic: boolean;
 	palette: Palette;
 	loadDistance: number;
+	frameLimit: number | 'auto';
 }
 
 
@@ -108,7 +109,8 @@ const defaultConfig: Config = {
 	cameraSpeed: 30,
 	orthographic: false,
 	palette: defaultPalette,
-	loadDistance: 4,
+	loadDistance: 2,
+	frameLimit: 144,
 }
 
 // TODO save config separately

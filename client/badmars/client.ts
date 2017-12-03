@@ -4,7 +4,7 @@ import Display from './display';
 import Map from './map/map';
 import Input from './input';
 import PlanetLoc from './map/planetLoc';
-import MainLoop from './mainLoop';
+import startGameLoops from './mainLoop';
 import Net from './net';
 import ui from './ui/index';
 import * as THREE from 'three';
@@ -33,7 +33,8 @@ async function gameInit(): Promise<State> {
 	state.display = new Display(state);
 	state.net = new Net(state);
 	state.input = new Input(state);
-	state.mainLoop = new MainLoop(state);
+
+	startGameLoops(state);
 
 	console.log('setting up UI', new Date());
 	ui(state);
@@ -42,8 +43,6 @@ async function gameInit(): Promise<State> {
 
 	handleBalanceChanges(state);
 	handleModelChanges(state);
-	console.log('requesting animation frame', new Date());
-	window.requestAnimationFrame(state.mainLoop.logicLoop);
 	return state;
 }
 console.log('mounting onload', new Date());

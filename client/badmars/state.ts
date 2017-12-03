@@ -3,7 +3,6 @@ import * as _ from 'lodash';
 import Map from './map/map';
 import Display from './display';
 import Input, { MouseMoveChanged } from './input';
-import MainLoop from './mainLoop';
 import PlanetLoc from './map/planetLoc';
 import Net, { RequestChange } from './net';
 import { log } from './logger';
@@ -137,7 +136,6 @@ export default interface State {
 	net?: Net;
 	display?: Display;
 	input?: Input;
-	mainLoop?: MainLoop;
 
 	// TODO should be a hash : Unit map
 	selectedUnits: UnitEntity[];
@@ -278,10 +276,11 @@ export async function newState(): Promise<State> {
 		if (units.length == 0) {
 			return;
 		}
-		for (let uuid in state.unitEntities) {
-			const entity = state.unitEntities[uuid];
-			if (entity.unit.details.owner === state.playerInfo.uuid) {
-				state.display.viewTile(entity.loc);
+		for (let uuid in state.units) {
+			const unit = state.units[uuid];
+			const loc = state.map.getLoc(unit.location.x, unit.location.y);
+			if (unit.details.owner === state.playerInfo.uuid) {
+				state.display.viewTile(loc);
 				UnitChange.detach(cameraHandler);
 				return;
 			}
@@ -314,7 +313,6 @@ export async function newState(): Promise<State> {
 			state.unitEntities[updated.uuid] = entity;
 			state.units[updated.uuid] = updated;
 		}
-		state.map.chunkFogToUpdate = true;
 	};
 	UnitChange.attach(updateUnitsListener);
 

@@ -40,7 +40,7 @@ export default class Map {
 
 	chunkInterval: any;
 
-	chunkFogToUpdate: boolean;
+	fogChunksToUpdate: string[] = []
 
 	constructor(state: State, planet: Planet) {
 		this.state = state;
@@ -51,7 +51,6 @@ export default class Map {
 		this.chunkCache = {};
 		this.requestedChunks = {};
 		this.tps = planet.tps;
-		this.chunkFogToUpdate = false;
 
 		this.worldSettings = planet.settings;
 
@@ -133,8 +132,10 @@ export default class Map {
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x + 1,
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x);
 
-				const loc = new PlanetLoc(this, x, y, true);
-				const visible = isTileVisible(this.state, loc);
+
+				const visible = isTileVisible(this.state,
+					x + (this.worldSettings.chunkSize * chunkX),
+					y + (this.worldSettings.chunkSize * chunkY));
 				if (visible) {
 					waterFace1.materialIndex = 0;
 					waterFace2.materialIndex = 0;
@@ -262,16 +263,26 @@ export default class Map {
 
 	}
 
-	async updateFogOfWar() {
-		if (!this.chunkFogToUpdate) {
-			return;
+	updateFogOfWar(tile: PlanetLoc, vision: number) {
+		const chunkRadius = Math.ceil(vision / this.worldSettings.chunkSize);
+		for (let i = tile.chunkX - chunkRadius; i < tile.chunkX + chunkRadius; i++) {
+			for (let k = tile.chunkY - chunkRadius; k < tile.chunkY + chunkRadius; k++) {
+				const hash = `${i}:${k}`
+				if (!this.state.chunks[hash]) {
+					continue;
+				}
+				this.fogChunksToUpdate.push(hash);
+			}
 		}
-		this.chunkFogToUpdate = false;
-		// this should probably be a queue
-		for (const key of Object.keys(this.state.chunks)) {
-			// async in case if we have to render a frame between updating chunks
-			await this.updateFog(key);
+	}
+
+	processFogUpdate() {
+		const chunks = this.fogChunksToUpdate;
+		this.fogChunksToUpdate = [];
+		if (chunks.length > 0) {
+			console.log('updating fog on chunks', chunks.length);
 		}
+		chunks.forEach((hash) => this.updateFog(hash));
 	}
 
 	async updateFog(hash: string) {
@@ -290,8 +301,7 @@ export default class Map {
 				const landFace2 = landFaces.shift();
 				const waterFace1 = waterFaces.shift();
 				const waterFace2 = waterFaces.shift();
-				const loc = new PlanetLoc(this, x, y, true);
-				const visible = isTileVisible(this.state, loc);
+				const visible = isTileVisible(this.state, x, y);
 				if (visible) {
 					waterFace1.materialIndex = 0;
 					waterFace2.materialIndex = 0;
@@ -373,6 +383,10 @@ export default class Map {
 		for (const unit of units) {
 			destroyUnitEntity(this.state, unit);
 		}
+	}
+
+	getLoc(x: number, y: number) {
+		return new PlanetLoc(this, x, y);
 	}
 
 	getSelectedUnit(mouse: THREE.Vector2): UnitEntity | null {
@@ -518,9 +532,6 @@ export default class Map {
 				RequestChange.post({ type: 'getChunk', x: x, y: y });
 			}
 		}
-		// HACK
-		// sometimes chunks don't have the correct fog of war after generation when units are already present?
-		this.chunkFogToUpdate = true;
 	}
 
 	getUnitsOnChunk(chunkHash: string): UnitEntity[] {

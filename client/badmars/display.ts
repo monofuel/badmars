@@ -83,12 +83,11 @@ export default class Display {
 	}
 
 	viewTile(tile: PlanetLoc) {
-		log('debug', '')
+		log('debug', 'viewing tile', { x: tile.x, y: tile.y });
 		if (config.orthographic) {
 			this.camera.position.x = tile.real_x - 45.5;
 			this.camera.position.z = tile.real_y + 50;
 		} else {
-			console.log(tile.getLoc());
 			this.camera.position.copy(tile.getLoc());
 			this.camera.position.x -= 13;
 			this.camera.position.y += 27;
@@ -220,8 +219,7 @@ export default class Display {
 		this.HUDContext.strokeRect(minX, minY, maxX - minX, maxY - minY);
 	}
 
-	public render(delta: number) {
-		this.updateSunPosition(delta);
+	public render() {
 		this.HUDContext.clearRect(0, 0, this.HUDPanel.width, this.HUDPanel.height);
 		this.renderer.render(this.scene, this.camera);
 		this.drawSelectionBox();

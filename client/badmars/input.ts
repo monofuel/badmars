@@ -189,69 +189,65 @@ export default class Input {
 
 	@autobind
 	public mouseUpHandler(event: MouseEvent): void {
-		// event.preventDefault();
-		// TODO anything that overrides this should use mouseUpCapture
-		setTimeout(() => { // hacky fix to make sure this always runs after hud onmouseup
 
-			const mouse = new THREE.Vector2();
-			mouse.x = (event.clientX / this.state.display.renderer.domElement.clientWidth) * 2 - 1;
-			mouse.y = -(event.clientY / this.state.display.renderer.domElement.clientHeight) * 2 + 1;
+		const mouse = new THREE.Vector2();
+		mouse.x = (event.clientX / this.state.display.renderer.domElement.clientWidth) * 2 - 1;
+		mouse.y = -(event.clientY / this.state.display.renderer.domElement.clientHeight) * 2 + 1;
 
-			if (this.isMouseDown) { // for dragging actions
-				this.isMouseDown = false;
-				switch (event.button) {
-					case LEFT_MOUSE:
-						if (Math.abs(mouse.x - this.dragStart.x) > 1 / 100 && Math.abs(mouse.y - this.dragStart.y) > 1 / 100) {
-							this.setMoveHandler(this.state.map.getSelectedUnits(mouse, this.dragStart));
-							return;
-						}
-						break;
-				}
-			}
-			if (this.state.focused === 'hud') {
-				return;
-			}
-
+		if (this.isMouseDown) { // for dragging actions
+			this.isMouseDown = false;
 			switch (event.button) {
 				case LEFT_MOUSE:
-					if (this.mouseMode === 'focus') {
-						MouseReleaseChanged.post({ type: 'mouseRelease', event: event })
-						break;
-					}
-
-					const unit = this.state.map.getSelectedUnit(mouse);
-					if (unit) {
-						this.setMoveHandler([unit]);
-					} else {
-						if (this.state.selectedUnits.length == 0) {
-							break;
-						}
-						this.state.selectedUnits = [];
-						this.mouseMode = 'select';
-						SelectedUnitsChange.post({ units: [] });
-
-						// TODO clear buttons highlighted
-						// TODO clear hilight on map
-					}
-					break;
-				case RIGHT_MOUSE:
-					if (this.mouseMode === 'move') {
-						const selectedTile = this.state.map.getTileAtRay(mouse);
-						const entity = this.state.map.getSelectedUnit(mouse);
-						const selected = this.state.selectedUnits.length > 0 ? this.state.selectedUnits[0] : null
-						if (entity && selected && this.state.playerInfo && entity.unit.details.owner === this.state.playerInfo.uuid && entity.unit.uuid !== selected.unit.uuid) {
-							console.log('right clicked players own unit');
-							TransferChange.post({ dest: entity.unit, source: selected.unit });
-						}
-						if (selectedTile) {
-							MouseReleaseChanged.post({ type: 'mouseRelease', event: event })
-						}
-					} else if (this.mouseMode = 'focus') {
-						this.mouseMode = 'move';
+					if (Math.abs(mouse.x - this.dragStart.x) > 1 / 100 && Math.abs(mouse.y - this.dragStart.y) > 1 / 100) {
+						this.setMoveHandler(this.state.map.getSelectedUnits(mouse, this.dragStart));
+						return;
 					}
 					break;
 			}
-		}, 0);
+		}
+		if (this.state.focused === 'hud') {
+			return;
+		}
+
+		switch (event.button) {
+			case LEFT_MOUSE:
+				if (this.mouseMode === 'focus') {
+					MouseReleaseChanged.post({ type: 'mouseRelease', event: event })
+					break;
+				}
+
+				const unit = this.state.map.getSelectedUnit(mouse);
+				if (unit) {
+					this.setMoveHandler([unit]);
+				} else {
+					if (this.state.selectedUnits.length == 0) {
+						break;
+					}
+					this.state.selectedUnits = [];
+					this.mouseMode = 'select';
+					SelectedUnitsChange.post({ units: [] });
+
+					// TODO clear buttons highlighted
+					// TODO clear hilight on map
+				}
+				break;
+			case RIGHT_MOUSE:
+				if (this.mouseMode === 'move') {
+					const selectedTile = this.state.map.getTileAtRay(mouse);
+					const entity = this.state.map.getSelectedUnit(mouse);
+					const selected = this.state.selectedUnits.length > 0 ? this.state.selectedUnits[0] : null
+					if (entity && selected && this.state.playerInfo && entity.unit.details.owner === this.state.playerInfo.uuid && entity.unit.uuid !== selected.unit.uuid) {
+						console.log('right clicked players own unit');
+						TransferChange.post({ dest: entity.unit, source: selected.unit });
+					}
+					if (selectedTile) {
+						MouseReleaseChanged.post({ type: 'mouseRelease', event: event })
+					}
+				} else if (this.mouseMode = 'focus') {
+					this.mouseMode = 'move';
+				}
+				break;
+		}
 	}
 
 	@autobind

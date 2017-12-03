@@ -25,6 +25,8 @@ export class PlanetLoc {
 	chunk: any;
 	chunkX: number;
 	chunkY: number;
+	localX: number; // local is 0 through 16 (chunk size)
+	localY: number;
 
 	/**
 	 * @param  {Map}     The map this location is on
@@ -53,6 +55,9 @@ export class PlanetLoc {
 			this.y = this.y + this.planet.worldSettings.chunkSize;
 			this.chunkY--;
 		}
+
+		this.localX = x - (this.chunkX * this.planet.worldSettings.chunkSize);
+		this.localY = y - (this.chunkY * this.planet.worldSettings.chunkSize);
 
 		this.chunk = planet.state.chunks[this.chunkX + ':' + this.chunkY];
 

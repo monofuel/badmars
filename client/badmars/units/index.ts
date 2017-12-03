@@ -36,7 +36,7 @@ export function newUnitEntity(state: State, unit: Unit): UnitEntity {
     }
     if (unit.graphical) {
         updateGraphicalEntity(state, entity);
-        state.map.chunkFogToUpdate = true;
+        state.map.updateFogOfWar(loc, entity.unit.details.vision);
     }
     return entity
 }
@@ -184,26 +184,33 @@ function animateToLocation(state: State, entity: UnitEntity, loc: PlanetLoc, del
         const lerp = prev.getVec().lerp(loc.getVec(), dv);
         lerp.y += 0.25;
         entity.graphical.mesh.position.set(lerp.x, lerp.y, lerp.z);
+
+        // I wish i knew what i was doing
+        const angle = loc.getEuler().toVector3().add(
+            new THREE.Vector3(-Math.PI / 2, 0, 0)
+        );
+
+        const x = (prev.x - loc.x) * (Math.PI / 2);
+        const y = ((prev.y - loc.y) * Math.PI);
+        angle.z = x + y;
+        entity.graphical.mesh.setRotationFromEuler((new THREE.Euler()).setFromVector3(angle));
     } else {
         entity.graphical.movementDelta = 0;
         setToLocation(entity, loc);
-        state.map.chunkFogToUpdate = true;
+        state.map.updateFogOfWar(loc, entity.unit.details.vision);
     }
 }
 
 function markSelected(state: State, entity: UnitEntity, loc: PlanetLoc) {
+    if (!loc.equals(entity.graphical.selectedLoc)) {
+        clearSelected(state, entity);
+    }
     if (!entity.graphical.selectionMesh) {
         const selectedMesh = tileSquareMesh(loc, new THREE.Color('#7b44bf'));
         state.display.addMesh(selectedMesh);
         entity.graphical.selectionMesh = selectedMesh;
 
-    } else {
-        if (!loc.equals(entity.graphical.selectedLoc)) {
-            entity.graphical.selectionMesh.position.copy(loc.getVec());
-            entity.graphical.selectionMesh.position.y += 0.05;
-        }
     }
-
 }
 
 export function tileSquareMesh(loc: PlanetLoc, color: THREE.Color): THREE.Mesh {
@@ -327,8 +334,6 @@ function markPath(state: State, entity: UnitEntity, start: PlanetLoc) {
         entity.graphical.pathMesh = pathMesh;
         entity.graphical.pathLoc = start;
         entity.graphical.prevPath = path;
-
-        console.log('rendering path');
     }
 }
 
@@ -339,10 +344,14 @@ function clearPath(state: State, entity: UnitEntity) {
     entity.graphical.prevPath = [];
 }
 
-export function isTileVisible(state: State, loc: PlanetLoc): boolean {
+export function isTileVisible(state: State, x: number, y: number): boolean {
     const units = _.filter(state.unitEntities, (unit) => {
-        const distance = loc.distance(unit.loc);
-        return distance < unit.unit.details.vision && unit.unit.details.owner === state.playerInfo.uuid && !unit.unit.details.ghosting;
+        var deltaX = Math.abs(x - unit.unit.location.x);
+        var deltaY = Math.abs(y - unit.unit.location.y);
+        const distance = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+        return distance < unit.unit.details.vision
+            && unit.unit.details.owner === state.playerInfo.uuid
+            && !unit.unit.details.ghosting;
     });
     return units.length > 0;
 }

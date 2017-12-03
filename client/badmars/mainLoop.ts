@@ -10,67 +10,95 @@ import config from './config';
 import { updateUnitEntity } from './units';
 import { clearTimeout } from 'timers';
 
-export default class MainLoop {
-	clock: THREE.Clock;
-	statsMonitor: StatsMonitor;
-	state: State;
+export default function startGameLoops(state: State) {
+	renderLoop(state);
+	animationLoop(state);
+	gameLogicLoop(state);
+	snowLoop(state);
 
-	frame: number;
-	constructor(state: State) {
-		this.clock = new THREE.Clock();
-		this.statsMonitor = new StatsMonitor();
-		this.state = state;
-		this.frame = 0;
-	}
+}
 
-	@autobind
-	public logicLoop() {
-		this.frame = (this.frame + 1) % 2
-		this.statsMonitor.begin();
-		if (this.frame === 0) {
-			try {
-				UnitStatsQueue.flush();
-				MapQueue.flush();
-				UnitQueue.flush();
-				tsevents.flushOnce();
-			} catch (err) {
-				logError(err);
-				debugger;
-			}
+function renderLoop(state: State) {
+	const clock = new THREE.Clock();
+	const statsMonitor = new StatsMonitor();
+	const render = () => {
+		statsMonitor.begin();
+		// render the current frame
+		state.display.render();
+
+		statsMonitor.end();
+		// kick off the next frame
+		if (config.frameLimit === 'auto') {
+			window.requestAnimationFrame(render);
+		} else {
+			// just for debugging
+			setTimeout(render, 1000 / config.frameLimit);
 		}
+	}
+	// kick off the render loop
+	render();
+}
+
+function animationLoop(state: State) {
+	const clock = new THREE.Clock();
+	const loop = () => {
+		const delta = clock.getDelta();
+
+		Object.values(state.unitEntities)
+			.map((unit) => updateUnitEntity(state, unit, delta));
+
+		state.display.updateSunPosition(delta);
+
+		setTimeout(loop, 30);
+	}
+	loop();
+}
+
+function gameLogicLoop(state: State) {
+	const clock = new THREE.Clock();
+	const loop = () => {
+
+		const delta = clock.getDelta();
+
 		try {
-
-			const delta = this.clock.getDelta();
-			this.state.input.update(delta);
-			if (this.frame === 1) {
-				Object.values(this.state.unitEntities)
-					.map((unit) => updateUnitEntity(this.state, unit, delta));
-				Object.values(this.state.snow)
-					.map((snow) => {
-						(snow.geometry as THREE.Geometry).vertices.forEach((vert: THREE.Vertex) => {
-							const v = 0.003;
-							const dX = (Math.random() * (v * 2)) - v;
-							const dY = (Math.random() * (v * 2)) - v;
-							const dZ = - v * 10;
-
-							vert.add(new THREE.Vector3(dX, dY, dZ));
-							if (vert.z < 0) {
-								vert.z += 20;
-							}
-						});
-						(snow.geometry as THREE.Geometry).verticesNeedUpdate = true;
-					});
-			} else {
-				if (this.state.map) {
-					this.state.map.updateFogOfWar();
-				}
-			}
-			this.state.display.render(delta);
+			UnitStatsQueue.flush();
+			MapQueue.flush();
+			UnitQueue.flush();
+			tsevents.flushOnce();
 		} catch (err) {
 			logError(err);
 			debugger;
 		}
-		this.statsMonitor.end();
-		window.requestAnimationFrame(this.logicLoop);
+
+		state.input.update(delta);
+		if (state.map) {
+			state.map.processFogUpdate();
+		}
+
+		setTimeout(loop, 30);
 	}
+	loop();
+}
+
+function snowLoop(state: State) {
+	const clock = new THREE.Clock();
+	const loop = () => {
+		const delta = clock.getDelta();
+
+		Object.values(state.snow)
+			.map((snow) => {
+				(snow.geometry as THREE.Geometry).vertices.forEach((vert: THREE.Vertex) => {
+					const dZ = - 0.03;
+
+					vert.add(new THREE.Vector3(0, 0, dZ));
+					if (vert.z < 0) {
+						vert.z += 20;
+					}
+				});
+				(snow.geometry as THREE.Geometry).verticesNeedUpdate = true;
+			});
+
+		setTimeout(loop, 10);
+	}
+	loop();
 }
