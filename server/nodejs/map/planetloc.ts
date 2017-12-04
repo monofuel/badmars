@@ -31,6 +31,12 @@ export default class PlanetLoc {
 	localY: number;
 	tileType: TileCode;
 
+	// temp storage used by getNearestFreeTile
+	//TODO these should not be here
+	prev: null | PlanetLoc;
+	realCost: number;
+	cost: number;
+
 	constructor(map: Map, chunk: Chunk, chunkLayer: ChunkLayer, { x, y, localX, localY }: LocationDetailsType) {
 
 		if (!map) {

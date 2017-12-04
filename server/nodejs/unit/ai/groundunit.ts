@@ -92,7 +92,10 @@ async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		try {
 			await moveUnit(ctx, unit, nextTile);
 		} catch (err) {
-			throw new WrappedError(err, 'error moving to tile');
+			logger.info(ctx, 'failed to move to tile', { reason: err.message });
+			logger.endProfile(profile);
+			addMovementAttempt(ctx, unit);
+			return;
 		}
 		try {
 			await setPath(ctx, unit, path);
@@ -102,7 +105,6 @@ async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 	} catch (err) {
 		logger.trackError(ctx, new WrappedError(err, 'error moving'));
 		addMovementAttempt(ctx, unit);
-		//console.log('move halted');
 	} finally {
 		logger.endProfile(profile);
 	}

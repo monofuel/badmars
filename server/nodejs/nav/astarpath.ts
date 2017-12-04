@@ -19,11 +19,11 @@ export default async function aStarPath(ctx: Context, unit: Unit, start: PlanetL
 	const planetDB = await db.getPlanetDB(ctx, start.map.name);
 	const map = planetDB.planet;
 
-	let cost = 0;
 	const prevMap: {
 		[key: string]: {
 			prev: PlanetLoc,
 			cost: number,
+			pathLength: number,
 		}
 	} = {};
 
@@ -42,7 +42,8 @@ export default async function aStarPath(ctx: Context, unit: Unit, start: PlanetL
 		}
 		prevMap[loc.hash] = {
 			prev: start,
-			cost: 0
+			cost: loc.distance(dest),
+			pathLength: 1
 		}
 		open.push(loc);
 	}
@@ -50,9 +51,9 @@ export default async function aStarPath(ctx: Context, unit: Unit, start: PlanetL
 	let tile = open[0];
 
 	while (!tile.equals(dest) &&
-		prevMap[tile.hash].cost < ctx.env.pathComplexityLimit &&
+		prevMap[tile.hash].pathLength < ctx.env.pathComplexityLimit &&
 		open.length > 0) {
-		await sleep(1);
+		await sleep(0);
 
 		open.sort((a: PlanetLoc, b: PlanetLoc): number => {
 			return prevMap[a.hash].cost - prevMap[b.hash].cost;
@@ -78,7 +79,8 @@ export default async function aStarPath(ctx: Context, unit: Unit, start: PlanetL
 			}
 			prevMap[neighbor.hash] = {
 				prev: tile,
-				cost: prevMap[tile.hash].cost + 1,
+				cost: prevMap[tile.hash].pathLength + neighbor.distance(dest),
+				pathLength: prevMap[tile.hash].pathLength + 1,
 			};
 			open.push(neighbor);
 		}
