@@ -31,12 +31,6 @@ export default class PlanetLoc {
 	localY: number;
 	tileType: TileCode;
 
-	// temp storage used by pathfinder
-	//TODO these should not be here
-	prev: null | PlanetLoc;
-	realCost: number;
-	cost: number;
-
 	constructor(map: Map, chunk: Chunk, chunkLayer: ChunkLayer, { x, y, localX, localY }: LocationDetailsType) {
 
 		if (!map) {
@@ -120,6 +114,20 @@ export default class PlanetLoc {
 				return this;
 		}
 
+	}
+
+	// Only works for adjacent tiles
+	async getDirToTile(ctx: Context, other: PlanetLoc): Promise<Dir> {
+		if ((await this.E(ctx)).equals(other))
+			return 'E';
+		if ((await this.W(ctx)).equals(other))
+			return 'W';
+		if ((await this.N(ctx)).equals(other))
+			return 'N';
+		if ((await this.S(ctx)).equals(other))
+			return 'S';
+
+		return 'C';
 	}
 
 	validate() {

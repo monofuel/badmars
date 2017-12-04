@@ -8,18 +8,17 @@ import AStarPath from '../nav/astarpath';
 import SimplePath from '../nav/simplepath';
 import Context from '../context';
 import { WrappedError } from '../logger';
-import { clearDestination, setPath, setUnitDestination } from '../unit/unit';
+import { clearDestination, setPath, setUnitDestination, addPathAttempt } from '../unit/unit';
 
 import logger from '../logger';
 import db from '../db';
 import PlanetLoc from '../map/planetloc';
 import { Service } from './';
 import sleep from '../util/sleep';
+import aStarPath from '../nav/astarpath';
 
 type TileHash = string;
 const registeredMaps: any = [];
-
-let inProcess = false;
 
 export default class PathfindService implements Service {
 	private parentCtx: Context;
@@ -52,26 +51,24 @@ export default class PathfindService implements Service {
 
 	private async pathfind(ctx: Context, unit: Unit, oldUnit?: Unit): Promise<void> {
 		logger.info(ctx, 'processing path', { uuid: unit.uuid });
-
+		const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+		const map = planetDB.planet;
+		await planetDB.unit.patch(ctx, unit.uuid, { movable: { isPathing: true } });
 
 		if (!unit.movable || !unit.movable.destination) {
 			return;
 		}
-
 		if (unit.movable.layer !== 'ground') {
 			return;
 		}
-		const planetDB = await db.getPlanetDB(ctx, unit.location.map);
-		const map = planetDB.planet;
-		const start = await map.getLoc(ctx, unit.location.x, unit.location.y);
 
-		if (!unit.movable || !unit.movable.destination) {
+		const start = await map.getLoc(ctx, unit.location.x, unit.location.y);
+		if (!await checkCanMove(ctx, unit)) {
+			await addPathAttempt(ctx, unit);
 			return;
 		}
-		const destination: TileHash = unit.movable.destination;
-		const destinationX = parseInt(destination.split(':')[0]);
-		const destinationY = parseInt(destination.split(':')[1]);
-		const dest: PlanetLoc = await map.getLoc(ctx, destinationX, destinationY);
+
+		const dest: PlanetLoc = await map.getLocFromHash(ctx, unit.movable.destination);
 
 		//if the destination is covered, get the nearest valid point.
 		const end: PlanetLoc = await map.getNearestFreeTile(ctx, dest, unit, false);
@@ -79,47 +76,38 @@ export default class PathfindService implements Service {
 			throw new Error('no nearby free tile?');
 		}
 		if (start.equals(end)) {
-
+			// done pathing, end
 			await clearDestination(ctx, unit);
 			return;
 		}
-
-		// HACK should have a better way to limit in progress pathfinding
-		while (inProcess) {
-			await sleep(1000);
+		try {
+			const path = await aStarPath(ctx, unit, start, end);
+			await setPath(ctx, unit, path);
+		} catch (err) {
+			await clearDestination(ctx, unit);
+			logger.trackError(ctx, err);
 		}
-		inProcess = true;
-		const pathfinder = new AStarPath(start, end, unit);
-		//const pathfinder = new SimplePath(start, end, unit);
-		if (pathfinder.generate) {
-			try {
-				await pathfinder.generate(ctx);
-			} catch (err) {
-				inProcess = false;
-				throw new WrappedError(err, 'generating path');
-			}
-		}
-		const path: Dir[] = [];
-
-		let nextTile = start;
-		do {
-			const dir: Dir = await pathfinder.getNext(ctx, nextTile);
-			//console.log('dir:' + DIRECTION.getTypeName(dir));
-			nextTile = await nextTile.getDirTile(ctx, dir);
-			path.push(dir);
-			if (dir === 'C' || nextTile.equals(end)) {
-				break;
-			}
-		} while (true);
-
-		await setPath(ctx, unit, path);
-		inProcess = false;
-		// await setUnitDestination(ctx, unit, end.x, end.y);
 	}
 
 	async stop(): Promise<void> {
 		this.parentCtx.info('stopping standalone');
 		// TODO stop watching for paths
 	}
+}
 
+async function checkCanMove(ctx: Context, unit: Unit): Promise<boolean> {
+	const planetDB = await db.getPlanetDB(ctx, unit.location.map);
+	const start = await planetDB.planet.getLoc(ctx, unit.location.x, unit.location.y);
+	const neighbors = [
+		await start.N(ctx),
+		await start.E(ctx),
+		await start.S(ctx),
+		await start.W(ctx),
+	];
+	for (const tile of neighbors) {
+		if (planetDB.planet.checkValidForUnit(ctx, [tile], unit, false)) {
+			return true;
+		}
+	}
+	return false;
 }

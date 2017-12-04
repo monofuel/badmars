@@ -6,7 +6,7 @@ import logger, { WrappedError, DetailedError } from '../../logger';
 import PlanetLoc from '../../map/planetloc';
 import Map from '../../map/map';
 
-import { sendResource, tickMovement, setUnitDestination, clearTransferGoal, moveUnit, addPathAttempt, setPath } from '../unit';
+import { sendResource, tickMovement, setUnitDestination, clearTransferGoal, moveUnit, addMovementAttempt, setPath } from '../unit';
 import { areUnitsAdjacent, getNearestAdjacentTile } from '../../map/tiles';
 
 
@@ -101,7 +101,7 @@ async function advancePath(ctx: Context, unit: Unit, map: Map): Promise<void> {
 		}
 	} catch (err) {
 		logger.trackError(ctx, new WrappedError(err, 'error moving'));
-		addPathAttempt(ctx, unit);
+		addMovementAttempt(ctx, unit);
 		//console.log('move halted');
 	} finally {
 		logger.endProfile(profile);

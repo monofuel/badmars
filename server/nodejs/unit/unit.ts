@@ -52,8 +52,8 @@ export async function newUnit(ctx: Context, type: string, loc: PlanetLoc | null,
 			...unitStats.movable,
 			movementCooldown: 0,
 			path: [],
-			pathAttempts: 0,
-			pathAttemptAttempts: 0,
+			movementAttempt: 0,
+			pathAttempt: 0,
 			isPathing: false,
 			pathUpdate: 0,
 			transferGoal: null,
@@ -281,30 +281,34 @@ export async function popFactoryOrder(ctx: Context, unit: Unit): Promise<any> {
 	return await planetDB.factoryQueue.pop(ctx, unit.uuid);
 }
 
+export async function addMovementAttempt(ctx: Context, unit: Unit): Promise<void> {
+	if (!unit.movable) {
+		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
+	}
+
+	await patchUnit(ctx, unit, { movable: { movementAttempt: unit.movable.movementAttempt + 1 } })
+
+	if (unit.movable.movementAttempt > ctx.env.movementAttemptLimit) {
+		// re-path
+		logger.info(ctx, 'unit re-pathing');
+		clearPath(ctx, unit);
+	}
+}
+
 export async function addPathAttempt(ctx: Context, unit: Unit): Promise<void> {
 	if (!unit.movable) {
 		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
-	unit.movable.pathAttempts++;
 
-	if (unit.movable.pathAttempts > env.movementAttemptLimit) {
-		const movable = { pathAttempts: unit.movable.pathAttempts };
-		await patchUnit(ctx, unit, { movable });
-	} else if (unit.movable.pathAttemptAttempts > 2) {
-		//totally give up on pathing
-		await clearDestination(ctx, unit);
-	} else {
-		//blank out the path but leave the destination so that we will re-path
-		const movable: Partial<UnitMovable> = {
-			pathAttempts: 0,
-			isPathing: false,
-			path: [],
-			pathAttemptAttempts: unit.movable.pathAttemptAttempts++
-		};
-		patchUnit(ctx, unit, { movable });
+	await patchUnit(ctx, unit, { movable: { pathAttempt: unit.movable.pathAttempt + 1 } })
+
+	if (unit.movable.pathAttempt > 20) {
+		logger.info(ctx, 'unit giving up on pathing');
+		clearDestination(ctx, unit);
 	}
-
 }
+
+
 export async function setTransferGoal(ctx: Context, unit: Unit, uuid: UUID, iron: number, fuel: number): Promise<void> {
 	if (!unit.movable) {
 		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
@@ -338,11 +342,16 @@ export async function setUnitDestination(ctx: Context, unit: Unit, x: number, y:
 	return await patchUnit(ctx, unit, { movable });
 }
 
-export async function setPath(ctx: Context, unit: Unit, path: Array<any>): Promise<void> {
+// pass dest to update for a new destination (eg: if the previous destination was occupied)
+export async function setPath(ctx: Context, unit: Unit, path: Array<any>, dest?: TileHash): Promise<void> {
 	if (!unit.movable) {
 		throw new DetailedError('unit is not movable', { uuid: unit.uuid, type: unit.details.type });
 	}
-	const movable = { path: path, isPathing: false };
+
+	const movable: Partial<UnitMovable> = { path: path, isPathing: false };
+	if (dest) {
+		movable.destination = dest;
+	}
 	return await patchUnit(ctx, unit, { awake: true, movable });
 }
 
@@ -354,7 +363,7 @@ export async function clearDestination(ctx: Context, unit: Unit): Promise<void> 
 		destination: null,
 		isPathing: false,
 		path: [],
-		pathAttemptAttempts: 0
+		movementAttempt: 0
 	};
 	return patchUnit(ctx, unit, { movable });
 }
@@ -367,7 +376,7 @@ export async function clearPath(ctx: Context, unit: Unit): Promise<void> {
 	const movable: Partial<UnitMovable> = {
 		isPathing: false,
 		path: [],
-		pathAttemptAttempts: 0
+		movementAttempt: 0
 	};
 	await planetDB.unit.patch(ctx, unit.uuid, { movable });
 }
@@ -536,12 +545,11 @@ export async function moveUnit(ctx: Context, unit: Unit, tile: PlanetLoc): Promi
 	// TODO should probalby use 'checkvalidforunit' on map
 	if (tileType !== TileType.LAND) {
 		logger.info(ctx, 'ground unit tried to move to tile that was not land', { hash: tile.hash, uuid: unit.uuid, tileType });
+		await clearPath(ctx, unit);
 		return;
 	}
 	if (tile.chunkLayer.ground[tile.hash]) {
-		logger.info(ctx, 'unit movement blocked by another unit', { hash: tile.hash, uuid: unit.uuid });
-		// TODO should handle this case nicely
-		return;
+		throw new DetailedError('unit movement blocked by another unit', { hash: tile.hash, uuid: unit.uuid });
 	}
 
 	const oldTile = (await getUnitLocs(ctx, unit))[0];

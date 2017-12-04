@@ -74,7 +74,7 @@ export default class DBUnit implements DB.DBUnit {
                 unit.movable.destination &&
                 unit.movable.isPathing == false &&
                 unit.movable.path.length === 0) {
-                await fn(ctx, unit)
+                await fn(ctx, unit);
             }
         });
     }
