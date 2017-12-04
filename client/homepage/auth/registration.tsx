@@ -130,8 +130,8 @@ export default class Registration extends React.Component<{}, RegistrationState>
 			(window as any).location = '/badmars';
 
 		} catch (err) {
-			if (err.response.data && err.response.data.message) {
-				const submitError = err.response.data.message;
+			if (err.response.data && err.response.data.msg) {
+				const submitError = err.response.data.msg;
 				this.setState({ submitting: false, usernameError: submitError });
 			} else {
 				this.setState({ submitting: false, usernameError: 'unknown error' });
