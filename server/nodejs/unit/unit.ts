@@ -159,7 +159,7 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 	}
 
 	if (unit.details.fuelBurnLength && !await burnFuel(ctx, unit)) {
-		logger.info(ctx, 'unit out of fuel', { uuid: unit.uuid });
+		// logger.info(ctx, 'unit out of fuel', { uuid: unit.uuid });
 		await patchUnit(ctx, unit, {
 			details: {
 				// health: unit.details.health - 5,
