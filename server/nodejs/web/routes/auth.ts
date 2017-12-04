@@ -1,6 +1,6 @@
 import * as express from 'express';
 import Context from '../../context';
-import User, { newUser, loginUser } from '../../user';
+import User, { newUser, loginUser, InvalidAuthError } from '../../user';
 import logger, { WrappedError } from '../../logger';
 import db from '../../db';
 const t = require('flow-runtime');
@@ -41,7 +41,7 @@ export default function route(ctx: Context, app: express.Application) {
         ctx = ctx.create({ name: '/auth/register' });
         const registration: RegisterRequest = req.body;
         if (!isRegisterRequest(registration)) {
-            res.status(400).send();
+            res.status(400).send({ msg: 'invalid request' });
             return;
         }
         let user;
@@ -73,11 +73,16 @@ export default function route(ctx: Context, app: express.Application) {
         try {
             user = await loginUser(ctx, login.username, login.password);
         } catch (err) {
-            // TODO handle 400 error cases
-            logger.trackError(ctx,
-                new WrappedError(err, 'failed to login', { name: login.username }));
-            res.status(500).send();
-            return;
+            if (err instanceof InvalidAuthError) {
+                res.status(400).send({ msg: err.message });
+                return;
+            } else {
+                // TODO handle 400 error cases
+                logger.trackError(ctx,
+                    new WrappedError(err, 'failed to login', { name: login.username }));
+                res.status(500).send();
+                return;
+            }
         }
         await grantSession(ctx, req, res, user);
     });

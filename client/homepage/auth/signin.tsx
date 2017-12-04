@@ -12,7 +12,6 @@ interface SigninState {
 	password?: string,
 	passwordError?: string
 	submitting: boolean
-	submitError?: string
 }
 
 export default class Signin extends React.Component<{}, SigninState> {
@@ -85,11 +84,6 @@ export default class Signin extends React.Component<{}, SigninState> {
 
 		this.setState({
 			submitting: true,
-			submitError: null,
-		});
-
-		const resp = await axios.post('/auth/login', {
-			username, password
 		});
 
 		try {
@@ -106,11 +100,11 @@ export default class Signin extends React.Component<{}, SigninState> {
 			(window as any).location = '/badmars';
 
 		} catch (err) {
-			if (err.resp.data && err.resp.data.message) {
-				const submitError = err.resp.data.message;
-				this.setState({ submitting: false, submitError });
+			if (err.response.data && err.response.data.msg) {
+				const submitError = err.response.data.msg;
+				this.setState({ submitting: false, usernameError: submitError });
 			} else {
-				this.setState({ submitting: false, submitError: 'unknown error' });
+				this.setState({ submitting: false, usernameError: 'unknown error' });
 			}
 		}
 	}

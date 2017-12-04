@@ -15,11 +15,10 @@ interface RegistrationState {
 	verifiedPassword?: string,
 	passwordError?: string
 	submitting: boolean
-	submitError?: string
 }
 
 export default class Registration extends React.Component<{}, RegistrationState> {
-    state: RegistrationState = {
+	state: RegistrationState = {
 		submitting: false,
 		username: '',
 		email: '',
@@ -30,63 +29,63 @@ export default class Registration extends React.Component<{}, RegistrationState>
 	render() {
 		const { username, usernameError, email, emailError, password, verifiedPassword, passwordError, submitting } = this.state;
 		return (
-		<Paper className='login-paper' zDepth={5}>
-			{/* https://www.youtube.com/watch?v=gzU_4NNfmi4 */}
-			<Card>
-				<CardHeader title='Register'/>
-				<CardText>
-					<form
-						onSubmit={(e) => {
-							e.preventDefault();
-							this.submit();
-						}}>
-						<TextField
-							hintText="Racha"
-							hintStyle={{ color: '#666' }}
-							floatingLabelText="username"
-							floatingLabelStyle={{ color: '#666' }}
-							value={username}
-							errorText={usernameError}
-							onChange={(e, username) => this.setState({ username, usernameError: undefined })}/>
-						<br/>
-						<TextField
-							hintText='racha@japura.net'
-							hintStyle={{ color: '#666' }}
-							floatingLabelText="email"
-							floatingLabelStyle={{ color: '#666' }}
-							value={email}
-							errorText={emailError}
-							onChange={(e, email) => this.setState({ email, emailError: undefined })}/>
-						<br/>
-						<TextField
-							hintText="**********"
-							hintStyle={{ color: '#666' }}
-							floatingLabelText="password"
-							floatingLabelStyle={{ color: '#666' }}
-							type="password"
-							value={password}
-							errorText={passwordError}
-							onChange={(e, password) => this.setState({ password, passwordError: undefined })}/>
-						<br/>
-						<TextField
-							hintText="**********"
-							hintStyle={{ color: '#666' }}
-							floatingLabelText="verify password"
-							floatingLabelStyle={{ color: '#666' }}
-							type="password"
-							value={verifiedPassword}
-							onChange={(e, verifiedPassword) => this.setState({ verifiedPassword })}/>
-						<br/>
-						<RaisedButton
-							label={submitting ? <CircularProgress size={30}/> : 'Submit' }
-							primary
-							type='submit'
-							disabled={submitting}
-							disabledBackgroundColor='rgb(101, 150, 43)'/>
-					</form>
-				</CardText>
-			</Card>
-		</Paper>
+			<Paper className='login-paper' zDepth={5}>
+				{/* https://www.youtube.com/watch?v=gzU_4NNfmi4 */}
+				<Card>
+					<CardHeader title='Register' />
+					<CardText>
+						<form
+							onSubmit={(e) => {
+								e.preventDefault();
+								this.submit();
+							}}>
+							<TextField
+								hintText="Racha"
+								hintStyle={{ color: '#666' }}
+								floatingLabelText="username"
+								floatingLabelStyle={{ color: '#666' }}
+								value={username}
+								errorText={usernameError}
+								onChange={(e, username) => this.setState({ username, usernameError: undefined })} />
+							<br />
+							<TextField
+								hintText='racha@japura.net'
+								hintStyle={{ color: '#666' }}
+								floatingLabelText="email"
+								floatingLabelStyle={{ color: '#666' }}
+								value={email}
+								errorText={emailError}
+								onChange={(e, email) => this.setState({ email, emailError: undefined })} />
+							<br />
+							<TextField
+								hintText="**********"
+								hintStyle={{ color: '#666' }}
+								floatingLabelText="password"
+								floatingLabelStyle={{ color: '#666' }}
+								type="password"
+								value={password}
+								errorText={passwordError}
+								onChange={(e, password) => this.setState({ password, passwordError: undefined })} />
+							<br />
+							<TextField
+								hintText="**********"
+								hintStyle={{ color: '#666' }}
+								floatingLabelText="verify password"
+								floatingLabelStyle={{ color: '#666' }}
+								type="password"
+								value={verifiedPassword}
+								onChange={(e, verifiedPassword) => this.setState({ verifiedPassword })} />
+							<br />
+							<RaisedButton
+								label={submitting ? <CircularProgress size={30} /> : 'Submit'}
+								primary
+								type='submit'
+								disabled={submitting}
+								disabledBackgroundColor='rgb(101, 150, 43)' />
+						</form>
+					</CardText>
+				</Card>
+			</Paper>
 		);
 	}
 
@@ -96,13 +95,13 @@ export default class Registration extends React.Component<{}, RegistrationState>
 		const { username, email, password, verifiedPassword } = this.state;
 
 		if (!username) {
-			this.setState({ usernameError: 'Missing username'});
+			this.setState({ usernameError: 'Missing username' });
 			return false;
 		}
 		// Yes, email regexes aren't perfect
 		// no, i do not care
 		if (!email || !email.match(/\S+@\S+\.\S+/)) {
-			this.setState({ emailError: 'Invalid Email'});
+			this.setState({ emailError: 'Invalid Email' });
 			return false;
 		}
 		if (password != verifiedPassword) {
@@ -110,13 +109,12 @@ export default class Registration extends React.Component<{}, RegistrationState>
 			return false;
 		}
 		if (!password) {
-			this.setState({ passwordError: 'Missing Password'});
+			this.setState({ passwordError: 'Missing Password' });
 			return false;
 		}
 
 		this.setState({
 			submitting: true,
-			submitError: null,
 		});
 		try {
 			const resp = await axios.post('/auth/register', {
@@ -125,18 +123,18 @@ export default class Registration extends React.Component<{}, RegistrationState>
 			const {
 				sessionToken
 			}: {
-				sessionToken: string
-			} = resp.data;
+					sessionToken: string
+				} = resp.data;
 			window.sessionStorage.setItem('session-token', sessionToken);
 			this.setState({ submitting: false });
 			(window as any).location = '/badmars';
 
 		} catch (err) {
-			if (err.resp.data && err.resp.data.message) {
-				const submitError = err.resp.data.message;
-				this.setState({ submitting: false, submitError });
+			if (err.response.data && err.response.data.message) {
+				const submitError = err.response.data.message;
+				this.setState({ submitting: false, usernameError: submitError });
 			} else {
-				this.setState({ submitting: false, submitError: 'unknown error' });
+				this.setState({ submitting: false, usernameError: 'unknown error' });
 			}
 		}
 	}

@@ -33,11 +33,11 @@ export async function newUser(ctx: Context, username: string, email: string, pas
 export async function loginUser(ctx: Context, name: string, password: string): Promise<User> {
 	const user = await db.user.getByName(ctx, name);
 	if (!user) {
-		throw new InvalidAuthError('missing user');
+		throw new InvalidAuthError('no such user');
 	}
 	const salt = new Buffer(user.passwordHash).slice(0, 16);
 	const hash = [...await hashPassword(password, salt)];
-	if (_.isEqual(hash, user.passwordHash)) {
+	if (!_.isEqual(hash, user.passwordHash)) {
 		throw new InvalidAuthError('bad credentials');
 	}
 
