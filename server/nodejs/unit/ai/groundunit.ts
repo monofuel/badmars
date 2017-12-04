@@ -55,7 +55,6 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 		return;
 	}
 
-
 	// check if we are waiting for a path
 	if (unit.movable.destination && unit.movable.path.length === 0) {
 		logger.info(ctx, 'unit waiting for path', { uuid: unit.uuid });

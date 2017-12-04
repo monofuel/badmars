@@ -81,8 +81,15 @@ export default class DBUnit implements DB.DBUnit {
     getAtChunk(ctx: Context, hash: string): Promise<Unit[]> {
         throw new Error("Method not implemented.");
     }
-    getUnprocessedPath(ctx: Context): Promise<Unit> {
-        throw new Error("Method not implemented.");
+    async getUnprocessedPath(ctx: Context): Promise<Unit> {
+        for (const unit of Object.values(this.units)) {
+            if (unit && unit.movable &&
+                unit.movable.destination &&
+                unit.movable.isPathing == false &&
+                unit.movable.path.length === 0) {
+                return unit;
+            }
+        }
     }
     async getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]> {
         const uuids: string[] = [];

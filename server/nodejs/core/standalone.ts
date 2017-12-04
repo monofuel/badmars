@@ -28,9 +28,6 @@ export default class StandaloneService implements Service {
         this.sim = new SimulateService();
         await this.sim.init(ctx.create({ name: 'simulate' }));
 
-        this.pathfind = new Pathfind();
-        await this.pathfind.init(ctx.create({ name: 'pathfind' }));
-
         // generate the initial test planet
         const planets = await db.listPlanetNames(ctx);
         let testPlanet: DB.Planet;
@@ -72,6 +69,15 @@ export default class StandaloneService implements Service {
             const stats = await testPlanet.unitStat.get(ctx, unit.details.type);
             await testPlanet.unit.patch(ctx, unit.uuid, stats);
         });
+        // reset pathfinding
+        await testPlanet.unit.each(ctx, async (ctx: Context, unit: Unit) => {
+            if (unit.movable) {
+                await testPlanet.unit.patch(ctx, unit.uuid, { movable: { isPathing: false } });
+            }
+        });
+
+        this.pathfind = new Pathfind();
+        await this.pathfind.init(ctx.create({ name: 'pathfind' }));
 
         logger.info(ctx, 'standalone init done');
 

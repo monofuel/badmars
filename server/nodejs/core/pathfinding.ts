@@ -33,8 +33,13 @@ export default class PathfindService implements Service {
 		await this.registerListeners(ctx);
 
 		const maps: Array<string> = await db.listPlanetNames(ctx);
-
-		// TODO check for units that need to be processed
+		for (const mapName of maps) {
+			const planetDB = await db.getPlanetDB(ctx, mapName);
+			let unit: Unit;
+			while (unit = await planetDB.unit.getUnprocessedPath(ctx)) {
+				await this.pathfind(ctx, unit);
+			}
+		}
 	}
 
 	async registerListeners(ctx: Context): Promise<void> {
