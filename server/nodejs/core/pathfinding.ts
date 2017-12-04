@@ -71,6 +71,7 @@ export default class PathfindService implements Service {
 		if (!await checkCanMove(ctx, unit)) {
 			// don't retry immediately
 			await sleep(1000);
+			await planetDB.unit.patch(ctx, unit.uuid, { movable: { isPathing: false } });
 			await addPathAttempt(ctx, unit);
 			return;
 		}
