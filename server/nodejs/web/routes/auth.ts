@@ -46,7 +46,7 @@ export default function route(ctx: Context, app: express.Application) {
         }
         let user;
         try {
-            if (await db.user.getByName(ctx, name)) {
+            if (await db.user.getByName(ctx, registration.username)) {
                 res.status(400).send({ msg: 'username already in use' });
                 return;
             }
