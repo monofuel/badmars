@@ -46,6 +46,10 @@ export default function route(ctx: Context, app: express.Application) {
         }
         let user;
         try {
+            if (await db.user.getByName(ctx, name)) {
+                res.status(400).send({ msg: 'username already in use' });
+                return;
+            }
             user = await newUser(ctx, registration.username, registration.email, registration.password);
             await db.user.create(ctx, user);
         } catch (err) {
