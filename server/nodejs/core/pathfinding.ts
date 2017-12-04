@@ -82,7 +82,7 @@ export default class PathfindService implements Service {
 		}
 		try {
 			const path = await aStarPath(ctx, unit, start, end);
-			await setPath(ctx, unit, path);
+			await setPath(ctx, unit, path, dest.hash);
 		} catch (err) {
 			await clearDestination(ctx, unit);
 			logger.trackError(ctx, err);

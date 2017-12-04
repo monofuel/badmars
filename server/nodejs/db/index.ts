@@ -6,6 +6,7 @@ import GameSession from '../user/session';
 import UnitStat from '../unit/unitStat';
 import { SyncEvent } from 'ts-events';
 import { WrappedError } from '../logger';
+import sleep from '../util/sleep';
 
 export type Handler<T> = (ctx: Context, t: T) => Promise<void>;
 export interface ChangeEvent<T> {
@@ -17,6 +18,7 @@ export function AttachChangeHandler<T>(ctx: Context, sync: SyncEvent<T>, fn: Han
     const wrapper = async (e: T) => {
         try {
             ctx.check('sync event');
+            await sleep(0); //force this to be asyncronous
             await fn(ctx, e);
         } catch (err) {
             if (err instanceof StopWatchingError) {

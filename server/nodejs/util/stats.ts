@@ -34,6 +34,7 @@ export function init(ctx: Context) {
 };
 
 export function startProfile(name: string): ProfileKey {
+	/*
 	const key: ProfileKey = name + Math.random();
 	runningProfiles[key] = {
 		name: name,
@@ -42,9 +43,11 @@ export function startProfile(name: string): ProfileKey {
 	};
 
 	return key;
+	*/
+	return '';
 };
 export function endProfile(key: ProfileKey, visible?: boolean) {
-
+	/*
 	const profileRun: ProfileType = runningProfiles[key];
 	delete runningProfiles[key];
 	const name: string = profileRun.name;
@@ -61,6 +64,7 @@ export function endProfile(key: ProfileKey, visible?: boolean) {
 	} else {
 		profileCount[name]++;
 	}
+	*/
 };
 
 export function addAverageStat(key: string, value: number) {

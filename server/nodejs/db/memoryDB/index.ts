@@ -42,7 +42,7 @@ class MemoryDB implements DB.DB {
         this.session.init(ctx.create());
 
         if (!ctx.env.ephemeral) {
-            setInterval(() => this.saveDB(ctx.create({ name: 'db_updater' })), 10000);
+            setInterval(() => this.saveDB(ctx.create({ name: 'db_updater' })), 60 * 1000);
         }
     }
 
