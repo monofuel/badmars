@@ -69,6 +69,8 @@ export default class PathfindService implements Service {
 
 		const start = await map.getLoc(ctx, unit.location.x, unit.location.y);
 		if (!await checkCanMove(ctx, unit)) {
+			// don't retry immediately
+			await sleep(1000);
 			await addPathAttempt(ctx, unit);
 			return;
 		}
