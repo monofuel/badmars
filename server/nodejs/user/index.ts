@@ -59,8 +59,5 @@ async function hashPassword(password: string, salt: Buffer): Promise<Buffer> {
 		})
 	});
 
-	const saltyHash = new Buffer(hash.length + salt.length);
-	salt.copy(saltyHash);
-	hash.copy(saltyHash);
-	return saltyHash;
+	return Buffer.concat([salt, hash]);
 }

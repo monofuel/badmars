@@ -10,7 +10,6 @@ import db from '../../db';
 import Context from '../../context';
 
 import getPlayers from './getPlayers';
-import getUnits from './getUnits';
 import getMap from './getMap';
 import getChunk from './getChunk';
 import createGhost from './createGhost';
@@ -23,7 +22,6 @@ import sendChat from './sendChat';
 
 async function mountUserHandlers(client: Client): Promise<void> {
 	client.handlers['getPlayers'] = getPlayers;
-	client.handlers['getUnits'] = getUnits;
 	client.handlers['getMap'] = getMap;
 	client.handlers['getChunk'] = getChunk;
 	client.handlers['createGhost'] = createGhost;
