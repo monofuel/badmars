@@ -8,5 +8,6 @@ export default function BMDatGui() {
 
 	const gui = new dat.GUI();
 	gui.add(config, 'loadDistance', 1, 20).step(1).listen();
+	gui.add(config, 'showLinks').listen();
 	return gui;
 }

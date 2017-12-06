@@ -13,6 +13,9 @@ export interface GraphicalEntity {
     pathLoc: PlanetLoc | null;
     prevPath: string[];
     ghosting: boolean;
+    links: {
+        [key: string]: THREE.Line;
+    }
 }
 
 export interface AudioEntity {
@@ -89,11 +92,13 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
         pathMesh: null,
         pathLoc: null,
         prevPath: [],
+        links: {},
         ...(entity.graphical || {}),
         mesh,
         ghosting: entity.unit.details.ghosting,
     }
     setToLocation(entity, entity.loc);
+    checkForLinks(state, entity);
 
 }
 
@@ -196,6 +201,9 @@ function animateToLocation(state: State, entity: UnitEntity, loc: PlanetLoc, del
         angle.z = x + y;
         entity.graphical.mesh.setRotationFromEuler((new THREE.Euler()).setFromVector3(angle));
     } else {
+        // HACK
+        // for some reason jsonpatch has a bug where it duplicates the last element
+        entity.unit.movable.path.pop();
         entity.graphical.movementDelta = 0;
         setToLocation(entity, loc);
         state.map.updateFogOfWar(loc, entity.unit.details.vision);
@@ -357,4 +365,34 @@ export function isTileVisible(state: State, x: number, y: number): boolean {
             && !unit.unit.details.ghosting;
     });
     return units.length > 0;
+}
+
+export function checkForLinks(state: State, unit: UnitEntity) {
+    if (unit.unit.details.owner !== state.playerInfo.uuid) {
+        return;
+    }
+    // priority:  towers > storage > mobile transports
+    const resourceUnits = ['transfer_tower', 'storage', 'transport', 'mine']
+
+    const storageUnits = _.filter(state.unitEntities, (unit2) => {
+        return resourceUnits.includes(unit2.unit.details.type)
+            && unit2.unit.details.owner === state.playerInfo.uuid
+            && isResourceRange(unit.unit, unit2.unit);
+    });
+    updateLinks(unit, storageUnits);
+}
+function isResourceRange(unit1: Unit, unit2: Unit): boolean {
+    var deltaX = Math.abs(unit1.location.x - unit2.location.x);
+    var deltaY = Math.abs(unit1.location.y - unit2.location.y);
+    const distance = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+    return distance < unit2.storage.transferRange
+        && !unit2.details.ghosting;
+}
+
+function updateLinks(unit: UnitEntity, units: UnitEntity[]) {
+    for (const other of units) {
+        if (unit.graphical.links[other.unit.uuid]) {
+            // check if the location updated
+        }
+    }
 }

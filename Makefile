@@ -39,7 +39,7 @@ run:
 	bash -c 'cd ./bin/server/nodejs && node standalone.js'
 
 nodeSetup:
-	yarn install
+	npm install
 
 
 # go deps are listed in here to streamline docker image rebuilding

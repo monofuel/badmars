@@ -19,3 +19,4 @@ ftp-sync.json
 version.txt
 bin
 yarn-error.log
+.vagrant

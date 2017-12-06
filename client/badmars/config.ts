@@ -89,6 +89,7 @@ interface Config {
 	palette: Palette;
 	loadDistance: number;
 	frameLimit: number | 'auto';
+	showLinks: boolean;
 }
 
 
@@ -100,6 +101,7 @@ const ConfigType = t.object({
 	orthographic: t.boolean(),
 	palette: paletteType,
 	loadDistance: t.number(),
+	showLinks: t.boolean(),
 });
 
 const defaultConfig: Config = {
@@ -111,6 +113,7 @@ const defaultConfig: Config = {
 	palette: defaultPalette,
 	loadDistance: 4,
 	frameLimit: 'auto',
+	showLinks: true,
 }
 
 // TODO save config separately
