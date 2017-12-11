@@ -30,7 +30,7 @@ export default class DBUnit implements DB.DBUnit {
         }
     }
     async get(ctx: Context, uuid: string): Promise<Unit> {
-        return this.units[uuid];
+        return _.cloneDeep(this.units[uuid]);
     }
     async create(ctx: Context, unit: Unit): Promise<Unit> {
         const call = startDBCall(ctx, 'unit.create');

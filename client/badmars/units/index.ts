@@ -382,6 +382,7 @@ export function checkForLinks(state: State, unit: UnitEntity) {
     updateLinks(unit, storageUnits);
 }
 function isResourceRange(unit1: Unit, unit2: Unit): boolean {
+    // not using planetLoc.distance for performance reasons
     var deltaX = Math.abs(unit1.location.x - unit2.location.x);
     var deltaY = Math.abs(unit1.location.y - unit2.location.y);
     const distance = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));

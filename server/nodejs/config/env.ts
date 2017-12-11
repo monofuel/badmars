@@ -23,6 +23,9 @@ export default {
 	attackMoveRange: parseInt(process.env.ATTACK_MOVE_RANGE) || 25,
 	chunkSize: parseInt(process.env.CHUNK_SIZE) || 16,
 
+	// maximum vision for units in units.json, allows for optimization
+	maxVision: parseInt(process.env.MAX_VISION) || 20,
+
 	movementAttemptLimit: parseInt(process.env.MOVEMENT_ATTEMPT_LIMIT) || 10,
 	pathComplexityLimit: parseInt(process.env.PATH_COMPLEXITY_LIMIT) || 500,
 	chunkCacheLimit: parseInt(process.env.CHUNK_CACHE_LIMIT) || 5000,

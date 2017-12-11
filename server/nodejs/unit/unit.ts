@@ -7,6 +7,7 @@
 import * as _ from 'lodash';
 import Context from '../context';
 import db from '../db';
+import User from '../user';
 import logger, { DetailedError, WrappedError } from '../logger';
 import env from '../config/env';
 import * as groundUnitAI from './ai/groundunit';
@@ -113,6 +114,7 @@ export async function newUnit(ctx: Context, type: string, loc: PlanetLoc | null,
 		...unitStats,
 		uuid: uuidv4(),
 		awake: true,
+		visible: false,
 		details: {
 			...unitStats.details,
 			type,
@@ -654,4 +656,20 @@ export async function burnFuel(ctx: Context, unit: Unit): Promise<boolean> {
 	}
 	await patchUnit(ctx, unit, { details: { fuelBurn } });
 	return true;
+}
+
+export async function isUnitVisible(ctx: Context, unit: Unit, user: User): Promise<boolean> {
+	if (unit.details.owner === user.uuid) {
+		return true;
+	}
+
+	// The unit is visible if any tiles the unit is on are visible
+	const locs = await getUnitLocs(ctx, unit);
+
+	for (const loc of locs) {
+		if (await loc.isVisible(ctx, user)) {
+			return true;
+		}
+	}
+	return false;
 }

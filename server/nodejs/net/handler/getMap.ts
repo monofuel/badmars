@@ -11,6 +11,7 @@ import Client from '../client';
 import sleep from '../../util/sleep';
 import { listChunkUnits } from '../../map/chunk';
 import { sanitizeChunk, sanitizeUnit, sanitizePlanet, sanitizeUser } from '../../util/socketFilter';
+import { isUnitVisible } from '../../unit/unit';
 
 type ChunkHash = string;
 
@@ -46,15 +47,19 @@ export default async function getMap(ctx: Context, client: Client): Promise<void
 		const chunkUnits = await listChunkUnits(ctx, chunk);
 		await client.send('chunk', { chunk: sanitizeChunk(chunk) });
 		await client.send('units', {
-			units: await Promise.all(chunkUnits.map(async (unit: Unit) => {
+			units: _.compact(await Promise.all(chunkUnits.map(async (unit: Unit) => {
 				// HACK for factory queues
-				// TODO should do this for other unit endpoints
 				unit = _.clone(unit);
 				if (unit.details.type === 'factory') {
 					unit.construct.queue = await planetDB.factoryQueue.list(ctx, unit.uuid);
 				}
+				unit.visible = await isUnitVisible(ctx, unit, client.user);
+				if (!unit.visible) {
+					return;
+				}
+				client.visibleUnits[unit.uuid] = unit;
 				return sanitizeUnit(unit, client.user.uuid);
-			}))
+			})))
 		});
 	}));
 }

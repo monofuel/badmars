@@ -1,5 +1,9 @@
 
-build: buildServer buildClient buildHomepage
+build:
+	make -j 3 buildServer buildClient buildHomepage
+
+watch:
+	make -j 3 watchServer watchHomepage watchClient
 
 grpc:
 	protoc -I server/protos server/protos/* --go_out=plugins=grpc:server/go/services

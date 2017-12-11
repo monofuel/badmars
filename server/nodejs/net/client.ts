@@ -18,6 +18,7 @@ import { GameEvent, ChatEvent } from '../db';
 import * as jsonpatch from 'fast-json-patch';
 
 import auth from './handler/auth';
+import { getUnitLocs, isUnitVisible } from '../unit/unit';
 
 const KEEP_ALIVE = 5000;
 
@@ -38,6 +39,7 @@ export default class Client {
 	user: User;
 	ctx: Context;
 	loadedChunks: ChunkHash[];
+	visibleUnits: { [key: string]: Unit }
 
 	constructor(ctx: Context, ws: WebSocket, req: http.IncomingMessage) {
 		this.ws = ws;
@@ -46,6 +48,7 @@ export default class Client {
 		this.ctx = ctx;
 		this.user = (req as any).user;
 		this.loadedChunks = [];
+		this.visibleUnits = {};
 		this.handlers['login'] = auth;
 
 		logger.info(ctx, 'client connected');
@@ -157,7 +160,11 @@ export default class Client {
 
 	async handleUnitUpdate(ctx: Context, unit: Unit, oldUnit?: Unit): Promise<void> {
 
-		// TODO unit death should be handled by the event system
+		if (!unit || unit.location.hash !== oldUnit.location.hash && unit.details.owner === this.user.uuid) {
+			this.updateUnitVisiblity(ctx, unit);
+		}
+
+		// unit death
 		if (!unit) {
 			return;
 		}
@@ -167,17 +174,42 @@ export default class Client {
 			return;
 		}
 
-		// TODO fog of war
+		unit.visible = true;
+		let prevVisible: boolean;
+		let nextVisible: boolean;
+		if (oldUnit) {
+			// this does not work when another unit is moving.
+			prevVisible = await isUnitVisible(ctx, oldUnit, this.user);
+			nextVisible = await isUnitVisible(ctx, unit, this.user);
+			if (prevVisible && !nextVisible) {
+				// tell the client that the unit is moving, and will no longer be visible
+				unit.visible = false;
+			} else if (!nextVisible) { // else if the unit is not going to be visible
+				return;
+			}
+		} else {
+			// if the unit is new, don't send it if it is not visible
+			if (!await isUnitVisible(ctx, unit, this.user)) {
+				return;
+			}
 
+		}
+
+		// prepare the unit to be sent to the client
 		const sanitizedNewUnit = sanitizeUnit(unit, this.user.uuid);
 
 		if (oldUnit) {
-			//console.log('unit change');
-			const sanitizedOldUnit = sanitizeUnit(oldUnit, this.user.uuid);
-			if (!_.isEqual(sanitizedNewUnit, sanitizedOldUnit)) {
-				await this.send('unitDelta', {
-					uuid: sanitizedNewUnit.uuid,
-					delta: jsonpatch.compare(sanitizedOldUnit, sanitizedNewUnit)
+			if (prevVisible) {
+				const sanitizedOldUnit = sanitizeUnit(oldUnit, this.user.uuid);
+				if (!_.isEqual(sanitizedNewUnit, sanitizedOldUnit)) {
+					await this.send('unitDelta', {
+						uuid: sanitizedNewUnit.uuid,
+						delta: jsonpatch.compare(sanitizedOldUnit, sanitizedNewUnit)
+					});
+				}
+			} else { // send a full update if the unit is becoming visible
+				await this.send('units', {
+					units: [sanitizedNewUnit]
 				});
 			}
 		} else {
@@ -185,6 +217,48 @@ export default class Client {
 				units: [sanitizedNewUnit]
 			});
 		}
+	}
+
+	// find units in visibleUnits that need to be updated for the user
+	async updateUnitVisiblity(ctx: Context, movedUnit: Unit) {
+		for (const unit of Object.values(this.visibleUnits)) {
+			if (!await isUnitVisible(ctx, unit, this.user)) {
+				delete this.visibleUnits[unit.uuid];
+				const next = {
+					...unit,
+					visible: false
+				}
+
+				await this.send('unitDelta', {
+					uuid: unit.uuid,
+					delta: jsonpatch.compare(
+						sanitizeUnit(unit, this.user.uuid),
+						sanitizeUnit(next, this.user.uuid)
+					)
+				});
+			}
+		}
+		const nearby = await this.map.getNearbyUnitsFromChunk(ctx,
+			`${movedUnit.location.chunkX}:${movedUnit.location.chunkY}`,
+			ctx.env.maxVision / this.map.settings.chunkSize);
+
+		// find nearby units that are not visible
+		const filtered = _.filter(nearby, (nearbyUnit) => !this.visibleUnits[nearbyUnit.uuid]);
+
+		// make sure that they are still not visible
+		const nowVisible: Unit[] = [];
+		for (const unit of filtered) {
+			var deltaX = Math.abs(movedUnit.location.x - unit.location.x);
+			var deltaY = Math.abs(movedUnit.location.y - unit.location.y);
+			const distance = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+			if (distance < movedUnit.details.vision) {
+				nowVisible.push(unit);
+				this.visibleUnits[unit.uuid] = unit;
+			}
+		}
+		await this.send('units', {
+			units: nowVisible.map((unit) => sanitizeUnit(unit, this.user.uuid))
+		});
 	}
 
 	async handleUserUpdate(ctx: Context, user: User) {

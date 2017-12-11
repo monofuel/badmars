@@ -15,6 +15,7 @@ export function sanitizeUnit(unit: Unit, owner: UUID) {
 		uuid,
 		awake,
 		details,
+		visible
 	} = unit;
 	const owned: boolean = details.owner === owner;
 	const optional: any = {};
@@ -40,6 +41,7 @@ export function sanitizeUnit(unit: Unit, owner: UUID) {
 	return {
 		uuid,
 		awake,
+		visible,
 		details: owned ? sanitizeOwnedUnitDetails(unit.details) :
 			sanitizeUnitDetails(unit.details),
 		location: owned ? sanitizeOwnedUnitLocation(unit.location) :

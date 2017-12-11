@@ -47,6 +47,7 @@ interface Chunk {
 interface Unit {
 	uuid: UUID;
 	awake: boolean;
+	visible: boolean; // this is set depending on the player
 	details: UnitDetails;
 	location: UnitLocation;
 	movable: null | UnitMovable;

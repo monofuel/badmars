@@ -15,6 +15,7 @@ import db from '../db';
 import Context from '../context';
 import Map from './map';
 import ChunkLayer from './chunkLayer';
+import User from '../user/index';
 
 /**
  * Representation of a point on a planet
@@ -197,6 +198,28 @@ export default class PlanetLoc {
 		return (otherLoc.x === this.x &&
 			otherLoc.y === this.y &&
 			otherLoc.map.name === this.map.name);
+	}
+
+	public async isVisible(ctx: Context, user: User): Promise<boolean> {
+		ctx.check('PlanetLoc.isVisible()')
+		// get units in the area
+		const units = await this.map.getNearbyUnitsFromChunk(ctx, this.chunk.hash, ctx.env.maxVision / this.chunk.chunkSize)
+
+		// check if they are within vision range of an owned vehicle
+		const ownedUnits = _.filter(units, (unit: Unit) => unit.details.owner === user.uuid);
+
+		for (const unit of ownedUnits) {
+			// not using planetLoc.distance for performance reasons
+			// should probably rethink how planetLoc.distance works
+			var deltaX = Math.abs(this.x - unit.location.x);
+			var deltaY = Math.abs(this.y - unit.location.y);
+			const distance = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+			if (distance < unit.details.vision) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
 
