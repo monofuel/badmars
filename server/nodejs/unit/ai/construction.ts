@@ -141,7 +141,7 @@ export default class constructionAI implements UnitAI {
 			throw new DetailedError('failed to find open tile', { uuid: unit.uuid });
 		}
 
-		//if spawn fails, should re-try with a new location
+		// TODO if spawn fails, should re-try with a new location
 		await setConstructing(ctx, unit, null);
 		const result = await planetDB.planet.factoryMakeUnit(ctx, constructing.type, unit.details.owner, newTile.x, newTile.y);
 		if (!result) {

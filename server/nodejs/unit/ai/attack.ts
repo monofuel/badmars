@@ -16,12 +16,12 @@ export default class AttackAI implements UnitAI {
 		if (!unit.attack) {
 			return false;
 		}
-		this.enemy = await getNearestEnemy(ctx, unit);
+		/*this.enemy = await getNearestEnemy(ctx, unit);
 		if (!this.enemy) {
 			return false;
-		}
-
-		return true;
+		}*/
+		return false;
+		//return true;
 	}
 
 	async simulate(ctx: Context, unit: Unit): Promise<void> {

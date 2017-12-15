@@ -589,10 +589,9 @@ export default class Map {
 	}
 
 	loadChunksNearCamera() {
-		var tile = this.getTileAtRay(new THREE.Vector2(0, 0.25));
-		if (!tile) {
-			return;
-		}
+		const tile = this.getLoc(this.state.display.camera.position.x + 13,
+			- this.state.display.camera.position.z - 13);
+
 		this.loadChunksNearTile(tile);
 		this.unloadChunksNearTile(tile);
 	}

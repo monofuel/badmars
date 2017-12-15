@@ -160,10 +160,6 @@ export default class Client {
 
 	async handleUnitUpdate(ctx: Context, unit: Unit, oldUnit?: Unit): Promise<void> {
 
-		if (!unit || unit.location.hash !== oldUnit.location.hash && unit.details.owner === this.user.uuid) {
-			this.updateUnitVisiblity(ctx, unit);
-		}
-
 		// unit death
 		if (!unit) {
 			return;
@@ -172,6 +168,10 @@ export default class Client {
 		// check if unit is on a chunk the player sees
 		if (_.intersection(unit.location.chunkHash, this.loadedChunks).length === 0) {
 			return;
+		}
+
+		if (!unit || !oldUnit || unit.location.hash !== oldUnit.location.hash && unit.details.owner === this.user.uuid) {
+			this.updateUnitVisiblity(ctx, unit);
 		}
 
 		unit.visible = true;

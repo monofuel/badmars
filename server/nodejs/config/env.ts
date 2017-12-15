@@ -28,7 +28,6 @@ export default {
 
 	movementAttemptLimit: parseInt(process.env.MOVEMENT_ATTEMPT_LIMIT) || 10,
 	pathComplexityLimit: parseInt(process.env.PATH_COMPLEXITY_LIMIT) || 500,
-	chunkCacheLimit: parseInt(process.env.CHUNK_CACHE_LIMIT) || 5000,
 	resourceTicks: parseInt(process.env.RESOURCE_TICKS) || 2,
 
 	dbHost: process.env.BADMARS_DB || 'localhost',

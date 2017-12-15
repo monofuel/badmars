@@ -49,11 +49,12 @@ export default async function aStarPath(ctx: Context, unit: Unit, start: PlanetL
 	}
 
 	let tile = open[0];
+	let touchedTiles = 0;
 
 	while (!tile.equals(dest) &&
-		prevMap[tile.hash].pathLength < ctx.env.pathComplexityLimit &&
+		++touchedTiles < ctx.env.pathComplexityLimit &&
 		open.length > 0) {
-		await sleep(0);
+		await sleep(1);
 
 		open.sort((a: PlanetLoc, b: PlanetLoc): number => {
 			return prevMap[a.hash].cost - prevMap[b.hash].cost;

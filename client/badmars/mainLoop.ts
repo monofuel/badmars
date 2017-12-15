@@ -21,42 +21,32 @@ export default function startGameLoops(state: State) {
 function renderLoop(state: State) {
 	const clock = new THREE.Clock();
 	const statsMonitor = new StatsMonitor();
-	const render = () => {
+	const startTime = Date.now();
+	loop(() => {
 		statsMonitor.begin();
 		// render the current frame
 		state.display.render();
-
 		statsMonitor.end();
-		// kick off the next frame
-		if (config.frameLimit === 'auto') {
-			window.requestAnimationFrame(render);
-		} else {
-			// just for debugging
-			setTimeout(render, 1000 / config.frameLimit);
-		}
-	}
-	// kick off the render loop
-	render();
+	}, config.frameLimit)
 }
 
 function animationLoop(state: State) {
 	const clock = new THREE.Clock();
-	const loop = () => {
+	const startTime = Date.now();
+	loop(() => {
 		const delta = clock.getDelta();
 
 		Object.values(state.unitEntities)
 			.map((unit) => updateUnitEntity(state, unit, delta));
 
 		state.display.updateSunPosition(delta);
-
-		setTimeout(loop, 30);
-	}
-	loop();
+	}, 30);
 }
 
 function gameLogicLoop(state: State) {
 	const clock = new THREE.Clock();
-	const loop = () => {
+	const startTime = Date.now();
+	loop(() => {
 
 		const delta = clock.getDelta();
 
@@ -74,15 +64,12 @@ function gameLogicLoop(state: State) {
 		if (state.map) {
 			state.map.processFogUpdate();
 		}
-
-		setTimeout(loop, 30);
-	}
-	loop();
+	}, 40);
 }
 
 function snowLoop(state: State) {
 	const clock = new THREE.Clock();
-	const loop = () => {
+	loop(() => {
 		const delta = clock.getDelta();
 
 		Object.values(state.snow)
@@ -97,8 +84,18 @@ function snowLoop(state: State) {
 				});
 				(snow.geometry as THREE.Geometry).verticesNeedUpdate = true;
 			});
+	}, 40);
+}
 
-		setTimeout(loop, 10);
+function loop(fn: () => void, freq: number | 'auto') {
+	const loopFn = () => {
+		const startTime = Date.now();
+		fn();
+		if (freq === 'auto') {
+			window.requestAnimationFrame(loopFn);
+		} else {
+			setTimeout(loopFn, (1000 / freq) - (Date.now() - startTime));
+		}
 	}
-	loop();
+	loopFn();
 }

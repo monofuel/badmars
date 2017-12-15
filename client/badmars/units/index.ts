@@ -103,12 +103,16 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
 }
 
 export function updateUnitEntity(state: State, entity: UnitEntity, delta: number) {
+
     const next = state.units[entity.unit.uuid];
     // Check for state changes, and update accordingly
     // entity.loc isn't updated until it has fully animated
     const loc = new PlanetLoc(state.map, entity.unit.location.x, entity.unit.location.y);
     if (!entity.loc.equals(loc) && entity.unit.movable) {
         animateToLocation(state, entity, loc, delta);
+    } else if (!entity.unit.visible && entity.unit.movable) {
+        // If the unit is movable and not visible, hide it
+        destroyUnitEntity(state, entity);
     }
     if (!_.isEqual(next.graphical.model, entity.unit.graphical.model)) {
         // TODO
