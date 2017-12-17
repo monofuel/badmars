@@ -265,6 +265,7 @@ export default class Map {
 		this.state.display.addMesh(cloud);
 		this.state.snow[chunk.hash] = cloud;
 
+
 	}
 
 	updateFogOfWar(tile: PlanetLoc, vision: number) {

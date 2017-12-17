@@ -20,7 +20,7 @@ which should give the response:
 
 When logging into the website, you can find your session token in session storage.
 ```
-sessionStorage.getItem('session-token')
+localStorage.getItem('session-token')
 ```
 
 session tokens currently live forever, so be careful with them.

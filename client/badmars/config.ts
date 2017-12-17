@@ -2,6 +2,9 @@
 
 const t = require('flow-runtime');
 import { LogLevelType } from './logger';
+import * as _ from 'lodash';
+import * as qs from 'qs';
+import { PreloadHash } from './preload';
 
 interface Palette {
 	uiBackground: string
@@ -80,7 +83,7 @@ const defaultPalette = {
 	cliff: '#142329',
 }
 
-interface Config {
+export interface Config {
 	debug: boolean;
 	version: number;
 	logLevel: LogLevelType;
@@ -90,6 +93,7 @@ interface Config {
 	loadDistance: number;
 	frameLimit: number | 'auto';
 	showLinks: boolean;
+	pixelRatio: number;
 }
 
 
@@ -114,6 +118,7 @@ const defaultConfig: Config = {
 	loadDistance: 4,
 	frameLimit: 'auto',
 	showLinks: true,
+	pixelRatio: 1,
 }
 
 // TODO save config separately
@@ -122,6 +127,27 @@ const config: Config = {
 };
 
 ConfigType.assert(config);
+
+function loadFromHash() {
+
+
+	// type is not enforced, but this is a dangerous dev feature anyway
+	const hashObj: Partial<PreloadHash> = qs.parse(window.location.hash.replace('#', ''));
+	console.log('hashObj', hashObj);
+	if (!hashObj.config) {
+		return;
+	}
+	console.log('loading config', hashObj.config);
+	if (hashObj.config.pixelRatio) {
+		// HACK
+		hashObj.config.pixelRatio = parseFloat(hashObj.config.pixelRatio as any);
+		console.log(hashObj.config);
+	}
+	_.merge(config, hashObj.config);
+}
+
+
+loadFromHash();
 
 (window as any).config = config;
 export default config;

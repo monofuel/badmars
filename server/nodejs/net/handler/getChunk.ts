@@ -8,6 +8,7 @@ import { sanitizeChunk, sanitizeUnit } from '../../util/socketFilter';
 import Context from '../../context';
 import Client from '../client';
 import db from '../../db';
+import { listChunkUnits } from '../../map/chunk';
 
 export default async function getChunk(ctx: Context, client: Client, data: any): Promise<void> {
 	const planetDB = await db.getPlanetDB(ctx, client.map.name);
@@ -22,8 +23,8 @@ export default async function getChunk(ctx: Context, client: Client, data: any):
 		// ctx.logger.info(ctx, 'client getChunk', { x, y });
 		client.send('chunk', { chunk: sanitizeChunk(chunk) });
 	}
-	const layer = await planetDB.chunkLayer.get(ctx, chunk.hash);
-	const units = Object.values(await planetDB.unit.getBulk(ctx, Object.values(layer.ground)));
+
+	const units = await listChunkUnits(ctx, chunk);
 	if (units.length > 0) {
 		const sanitized = [];
 		for (const unit of units) {

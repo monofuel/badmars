@@ -77,7 +77,7 @@ export default class Registration extends React.Component<{}, RegistrationState>
 								onChange={(e, verifiedPassword) => this.setState({ verifiedPassword })} />
 							<br />
 							<RaisedButton
-								label={submitting ? <CircularProgress size={30} /> : 'Submit'}
+								label={submitting ? <CircularProgress size={30} /> : 'Play Now'}
 								primary
 								type='submit'
 								disabled={submitting}
@@ -125,7 +125,7 @@ export default class Registration extends React.Component<{}, RegistrationState>
 			}: {
 					sessionToken: string
 				} = resp.data;
-			window.sessionStorage.setItem('session-token', sessionToken);
+			window.localStorage.setItem('session-token', sessionToken);
 			this.setState({ submitting: false });
 			(window as any).location = '/badmars';
 

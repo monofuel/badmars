@@ -55,14 +55,15 @@ export default class PathfindService implements Service {
 	}
 
 	private async pathfind(ctx: Context, unit: Unit, oldUnit?: Unit): Promise<void> {
-		logger.info(ctx, 'processing path', { uuid: unit.uuid });
+		if (!unit.movable || !unit.movable.destination) {
+			return;
+		}
+
+		logger.info(ctx, 'processing path', { uuid: unit.uuid, attempt: unit.movable.pathAttempt });
 		const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 		const map = planetDB.planet;
 		await planetDB.unit.patch(ctx, unit.uuid, { movable: { isPathing: true } });
 
-		if (!unit.movable || !unit.movable.destination) {
-			return;
-		}
 		if (unit.movable.layer !== 'ground') {
 			return;
 		}

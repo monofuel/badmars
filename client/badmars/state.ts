@@ -17,6 +17,7 @@ export type Focused = 'chat' | 'hud' | 'game';
 import * as qs from 'query-string';
 import * as dat from 'dat-gui';
 import * as THREE from 'three';
+import { PreloadHash } from './preload';
 // ------------------------------------------
 // Game State should not be modified directly
 // Fire an event to trigger the change to happen on the next frame
@@ -166,7 +167,7 @@ export default interface State {
 }
 
 export async function newState(): Promise<State> {
-	const token: string | null = window.sessionStorage.getItem('session-token');
+	const token: string | null = window.localStorage.getItem('session-token');
 	if (!token) {
 		console.error('missing session token');
 		(window as any).location = '/login';
@@ -354,14 +355,18 @@ export async function newState(): Promise<State> {
 
 function loadFromHash(state: State) {
 	// disabling this in production mode for #security
+	// this could be used to log in a user as another user by overriding self
 	if (!Config.debug) {
 		throw new Error('only supported in debug mode');
 	}
 
 	// type is not enforced, but this is a dangerous dev feature anyway
-	const hashObj: Partial<State> = qs.parse(window.location.hash);
-	console.log(hashObj);
-	_.merge(state, hashObj);
+	const hashObj: Partial<PreloadHash> = qs.parse(window.location.hash.replace('#', ''));
+	if (!hashObj.state) {
+		return;
+	}
+	console.log('loading state', hashObj.state);
+	_.merge(state, hashObj.state);
 }
 
 // ------------------------------

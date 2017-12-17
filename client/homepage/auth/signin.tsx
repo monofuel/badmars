@@ -95,7 +95,7 @@ export default class Signin extends React.Component<{}, SigninState> {
 			}: {
 					sessionToken: string
 				} = resp.data;
-			window.sessionStorage.setItem('session-token', sessionToken);
+			window.localStorage.setItem('session-token', sessionToken);
 			this.setState({ submitting: false });
 			(window as any).location = '/badmars';
 

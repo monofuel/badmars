@@ -240,6 +240,10 @@ export default class Display {
 	}
 
 	public render() {
+		if (this.renderer.getPixelRatio() !== config.pixelRatio) {
+			this.renderer.setPixelRatio(config.pixelRatio);
+		}
+
 		this.HUDContext.clearRect(0, 0, this.HUDPanel.width, this.HUDPanel.height);
 		this.renderer.render(this.scene, this.camera);
 		this.drawSelectionBox();

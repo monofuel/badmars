@@ -35,9 +35,9 @@ const muiTheme = getMuiTheme({
 	}
 })
 console.log('adding onload');
-window.onload = async ()  => {
+window.onload = async () => {
 	injectTapEventPlugin();
-	ReactDOM.render(<Homepage/>, document.getElementById('content'));
+	ReactDOM.render(<Homepage />, document.getElementById('content'));
 	console.log("DOM Rendered");
 }
 
@@ -52,7 +52,7 @@ type HomepageState = {
 	self: null | Self;
 }
 
-class Homepage extends React.Component<{},{}> {
+class Homepage extends React.Component<{}, {}> {
 	state: HomepageState = {
 		self: null,
 	}
@@ -64,39 +64,39 @@ class Homepage extends React.Component<{},{}> {
 		const { self } = this.state;
 		return (
 			<BrowserRouter>
-			<MuiThemeProvider muiTheme={muiTheme}>
-				<div>
-					<AppBar showMenuIconButton={false} title='Bad Mars'>
-						<div className='nav-bar'>
-							<Link className='nav-link' to='/'><FlatButton>Home</FlatButton></Link>
-							{
-								!self && <Link className='nav-link' to='/login'><FlatButton>Sign in</FlatButton></Link>
-							}
-							{
-								self && <a href='/badmars'><FlatButton>Play</FlatButton></a>
-							}
-							{
-								self && <FlatButton onClick={() => this.logout()}>Sign Out</FlatButton>
-							}
-						</div>
-					</AppBar>
-					<Route exact path='/' render={() => <Frontpage self={self}/>} />
-					<Route path='/login' component={Login}/>
-				</div>
-			</MuiThemeProvider>
-		</BrowserRouter>
+				<MuiThemeProvider muiTheme={muiTheme}>
+					<div>
+						<AppBar showMenuIconButton={false} title='Bad Mars'>
+							<div className='nav-bar'>
+								<Link className='nav-link' to='/'><FlatButton>Home</FlatButton></Link>
+								{
+									!self && <Link className='nav-link' to='/login'><FlatButton>Sign in</FlatButton></Link>
+								}
+								{
+									self && <a href='/badmars'><FlatButton>Play</FlatButton></a>
+								}
+								{
+									self && <FlatButton onClick={() => this.logout()}>Sign Out</FlatButton>
+								}
+							</div>
+						</AppBar>
+						<Route exact path='/' render={() => <Frontpage self={self} />} />
+						<Route path='/login' component={Login} />
+					</div>
+				</MuiThemeProvider>
+			</BrowserRouter>
 		);
 	}
 
 	private async logout() {
-		window.sessionStorage.setItem('session-token', null);
+		window.localStorage.setItem('session-token', null);
 		this.setState({ self: null });
 	}
 
 	private async loadSelf(): Promise<void> {
-		const token: string = window.sessionStorage.getItem('session-token');
+		const token: string = window.localStorage.getItem('session-token');
 		if (!token) {
-			return 
+			return
 		}
 		try {
 			const resp = await axios.get('/auth/self', {
@@ -112,10 +112,10 @@ class Homepage extends React.Component<{},{}> {
 					username: resp.data.username,
 				}
 			})
-			
+
 		} catch (err) {
 			// assume not logged in
-			return 
+			return
 		}
 	}
 }

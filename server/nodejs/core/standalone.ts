@@ -81,7 +81,7 @@ export default class StandaloneService implements Service {
 
         logger.info(ctx, 'standalone init done');
 
-        logger.info(ctx, 'to login as the test user, visit localhost:3002 and run this in the console: sessionStorage.setItem(\'session-token\', \'TEST_SESSION_ID\')')
+        logger.info(ctx, 'to login as the test user, visit localhost:3002 and run this in the console: localStorage.setItem(\'session-token\', \'TEST_SESSION_ID\')')
     }
 
     async start(): Promise<void> {
