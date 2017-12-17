@@ -9,6 +9,7 @@ import Context from '../../context';
 import Client from '../client';
 import db from '../../db';
 import { listChunkUnits } from '../../map/chunk';
+import { isUnitVisible } from '../../unit/unit';
 
 export default async function getChunk(ctx: Context, client: Client, data: any): Promise<void> {
 	const planetDB = await db.getPlanetDB(ctx, client.map.name);
@@ -31,6 +32,12 @@ export default async function getChunk(ctx: Context, client: Client, data: any):
 			if (!unit) {
 				continue;
 			}
+			unit.visible = await isUnitVisible(ctx, unit, client.user);
+			if (!unit.visible) {
+				return;
+			}
+			client.visibleUnits[unit.uuid] = unit;
+
 			sanitized.push(sanitizeUnit(unit, client.user.uuid));
 		}
 		//TODO sanitize unit data
