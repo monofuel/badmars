@@ -10,13 +10,7 @@ type Props = {
 	onClose: () => void;
 }
 
-export default class ErrorAlert extends React.Component<Props,{}> {
-	public static contextTypes = {
-		state: PropTypes.any.isRequired
-	};
-	context: {
-		state: State,
-	};
+export default class ErrorAlert extends React.Component<Props, {}> {
 
 	props: Props;
 	constructor(props: Props) {
@@ -24,12 +18,12 @@ export default class ErrorAlert extends React.Component<Props,{}> {
 	}
 
 	render() {
-		const {errorMessage,onClose} = this.props;
+		const { errorMessage, onClose } = this.props;
 		let message = errorMessage ? errorMessage :
 			'Looks like there\'s been an unknown error! Monkeys have been dispatched to fix the issue, but you might want to reload.';
 
 		return (
-			<Snackbar open={true} message={message} onRequestClose={onClose}/>
+			<Snackbar open={true} message={message} onRequestClose={onClose} />
 		);
 	}
 };

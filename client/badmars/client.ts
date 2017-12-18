@@ -26,29 +26,26 @@ import config from './config';
 import { handleBalanceChanges } from './units/unitBalance';
 import { handleModelChanges } from './units/unitModels';
 
-declare const $: any;
+async function gameInit(): Promise<void> {
+	window.state = await newState();
+	state.display = new Display();
+	state.net = new Net();
+	state.input = new Input();
 
-async function gameInit(): Promise<State> {
-	const state: State = await newState();
-	state.display = new Display(state);
-	state.net = new Net(state);
-	state.input = new Input(state);
-
-	startGameLoops(state);
+	startGameLoops();
 
 	console.log('setting up UI', new Date());
-	ui(state);
+	ui();
 
 	state.net.connect();
 
-	handleBalanceChanges(state);
-	handleModelChanges(state);
-	return state;
+	handleBalanceChanges();
+	handleModelChanges();
 }
 console.log('mounting onload', new Date());
 window.onload = async (): Promise<void> => {
 	console.log('onload started', new Date());
-	const state = await gameInit();
+	await gameInit();
 	console.log('requesting map', new Date());
 	RequestChange.post({
 		type: 'login',

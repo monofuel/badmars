@@ -398,3 +398,8 @@ function updateLinks(unit: UnitEntity, units: UnitEntity[]) {
         }
     }
 }
+
+function getUnitColor(unit: UnitEntity): THREE.Color {
+
+    throw new Error();
+}

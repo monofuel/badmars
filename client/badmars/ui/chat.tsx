@@ -47,12 +47,6 @@ interface ChatStateType {
 };
 
 export default class Chat extends React.Component<ChatPropsType, ChatStateType> {
-	public static contextTypes = {
-		state: PropTypes.any.isRequired
-	};
-	context: {
-		state: State,
-	};
 
 	props: ChatPropsType;
 	state: ChatStateType = {
@@ -128,12 +122,12 @@ export default class Chat extends React.Component<ChatPropsType, ChatStateType> 
 
 	@autobind
 	private setGameFocus() {
-		GameFocusChange.post({ focus: 'game', prev: this.context.state.focused });
+		GameFocusChange.post({ focus: 'game', prev: state.focused });
 	}
 
 	@autobind
 	private setChatFocus(e: React.MouseEvent<HTMLDivElement>) {
-		GameFocusChange.post({ focus: 'chat', prev: this.context.state.focused });
+		GameFocusChange.post({ focus: 'chat', prev: state.focused });
 		e.stopPropagation();
 	}
 

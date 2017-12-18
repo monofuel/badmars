@@ -36,7 +36,6 @@ export const MouseReleaseChanged = new SyncEvent<MouseReleaseEvent>();
 export const MoveCameraChange = new SyncEvent<MoveCameraEvent>();
 
 export default class Input {
-	state: State;
 	keysDown: number[];
 	ctrlKey: boolean;
 	isMouseDown: boolean;
@@ -45,8 +44,7 @@ export default class Input {
 	public mouseMode: MouseMode;
 	public mouseAction: Function;
 
-	constructor(state: State) {
-		this.state = state;
+	constructor() {
 		this.keysDown = [];
 		this.isMouseDown = false;
 		this.mouseMode = 'focus';
@@ -68,37 +66,38 @@ export default class Input {
 	}
 
 	public update(delta: number) {
-		if (this.state.focused === 'chat') {
+
+		if (state.focused === 'chat') {
 			return;
 		}
 
 		for (const key of this.keysDown) {
 			switch (key) {
 				case 87: // w
-					this.state.display.cameraForward(delta);
+					state.display.cameraForward(delta);
 					MoveCameraChange.post({ dir: 'w' });
 					break;
 				case 65: // a
 					if (this.ctrlKey) {
-						this.setMoveHandler(this.state.map.getSelectedUnitsInView());
+						this.setMoveHandler(state.map.getSelectedUnitsInView());
 					} else {
-						this.state.display.cameraLeft(delta);
+						state.display.cameraLeft(delta);
 						MoveCameraChange.post({ dir: 'a' });
 					}
 					break;
 				case 83: // s
-					this.state.display.cameraBackward(delta);
+					state.display.cameraBackward(delta);
 					MoveCameraChange.post({ dir: 's' });
 					break;
 				case 68: // d
-					this.state.display.cameraRight(delta);
+					state.display.cameraRight(delta);
 					MoveCameraChange.post({ dir: 'd' });
 					break;
 				case 82: // r
-					this.state.display.cameraUp(delta);
+					state.display.cameraUp(delta);
 					break;
 				case 70: // f
-					this.state.display.cameraDown(delta);
+					state.display.cameraDown(delta);
 					break;
 				default:
 				// console.log("key press: " + key);
@@ -108,7 +107,8 @@ export default class Input {
 
 	@autobind
 	private keyDownHandler(key: KeyboardEvent): void {
-		if (this.state.focused === 'chat') {
+
+		if (state.focused === 'chat') {
 			return;
 		}
 		// ignore alt because alt tab can get funky
@@ -134,7 +134,7 @@ export default class Input {
 
 	@autobind
 	private contextMenuHandler(event: PointerEvent): void {
-		/*if (this.state.focused !== 'game') {
+		/*if (state.focused !== 'game') {
 			return;
 		}*/
 		event.preventDefault();
@@ -142,9 +142,10 @@ export default class Input {
 
 	@autobind
 	private mouseMoveHandler(event: MouseEvent): void {
+
 		this.dragCurrent = new THREE.Vector2();
-		this.dragCurrent.x = (event.clientX / this.state.display.renderer.domElement.clientWidth) * 2 - 1;
-		this.dragCurrent.y = -(event.clientY / this.state.display.renderer.domElement.clientHeight) * 2 + 1;
+		this.dragCurrent.x = (event.clientX / state.display.renderer.domElement.clientWidth) * 2 - 1;
+		this.dragCurrent.y = -(event.clientY / state.display.renderer.domElement.clientHeight) * 2 + 1;
 		MouseMoveChanged.post({ type: 'mouseMove', event });
 	}
 
@@ -153,14 +154,14 @@ export default class Input {
 
 		switch (event.button) {
 			case LEFT_MOUSE:
-				console.log('mouse click: ', this.state.focused);
-				if (this.state.focused !== 'game') {
+				console.log('mouse click: ', state.focused);
+				if (state.focused !== 'game') {
 					break;
 				}
 				this.isMouseDown = true;
 				this.dragStart = new THREE.Vector2();
-				this.dragStart.x = (event.clientX / this.state.display.renderer.domElement.clientWidth) * 2 - 1;
-				this.dragStart.y = -(event.clientY / this.state.display.renderer.domElement.clientHeight) * 2 + 1;
+				this.dragStart.x = (event.clientX / state.display.renderer.domElement.clientWidth) * 2 - 1;
+				this.dragStart.y = -(event.clientY / state.display.renderer.domElement.clientHeight) * 2 + 1;
 				this.dragCurrent = this.dragStart;
 				event.preventDefault();
 				break;
@@ -169,15 +170,16 @@ export default class Input {
 
 	@autobind
 	private setMoveHandler(selectedUnits: UnitEntity[]): void {
-		this.state.selectedUnits = selectedUnits;
-		SelectedUnitsChange.post({ units: this.state.selectedUnits });
+
+		state.selectedUnits = selectedUnits;
+		SelectedUnitsChange.post({ units: state.selectedUnits });
 		this.mouseMode = 'move';
 		this.mouseAction = (event: MouseReleaseEvent) => {
-			if (!this.state.selectedUnits) {
+			if (!state.selectedUnits) {
 				return;
 			}
 			const tile = this.getTileUnderCursor(event.event);
-			for (const unit of this.state.selectedUnits) {
+			for (const unit of state.selectedUnits) {
 				RequestChange.post({
 					type: 'setDestination',
 					unitId: unit.unit.uuid,
@@ -190,22 +192,23 @@ export default class Input {
 	@autobind
 	public mouseUpHandler(event: MouseEvent): void {
 
+
 		const mouse = new THREE.Vector2();
-		mouse.x = (event.clientX / this.state.display.renderer.domElement.clientWidth) * 2 - 1;
-		mouse.y = -(event.clientY / this.state.display.renderer.domElement.clientHeight) * 2 + 1;
+		mouse.x = (event.clientX / state.display.renderer.domElement.clientWidth) * 2 - 1;
+		mouse.y = -(event.clientY / state.display.renderer.domElement.clientHeight) * 2 + 1;
 
 		if (this.isMouseDown) { // for dragging actions
 			this.isMouseDown = false;
 			switch (event.button) {
 				case LEFT_MOUSE:
 					if (Math.abs(mouse.x - this.dragStart.x) > 1 / 100 && Math.abs(mouse.y - this.dragStart.y) > 1 / 100) {
-						this.setMoveHandler(this.state.map.getSelectedUnits(mouse, this.dragStart));
+						this.setMoveHandler(state.map.getSelectedUnits(mouse, this.dragStart));
 						return;
 					}
 					break;
 			}
 		}
-		if (this.state.focused === 'hud') {
+		if (state.focused === 'hud') {
 			return;
 		}
 
@@ -216,14 +219,14 @@ export default class Input {
 					break;
 				}
 
-				const unit = this.state.map.getSelectedUnit(mouse);
+				const unit = state.map.getSelectedUnit(mouse);
 				if (unit) {
 					this.setMoveHandler([unit]);
 				} else {
-					if (this.state.selectedUnits.length == 0) {
+					if (state.selectedUnits.length == 0) {
 						break;
 					}
-					this.state.selectedUnits = [];
+					state.selectedUnits = [];
 					this.mouseMode = 'select';
 					SelectedUnitsChange.post({ units: [] });
 
@@ -233,10 +236,10 @@ export default class Input {
 				break;
 			case RIGHT_MOUSE:
 				if (this.mouseMode === 'move') {
-					const selectedTile = this.state.map.getTileAtRay(mouse);
-					const entity = this.state.map.getSelectedUnit(mouse);
-					const selected = this.state.selectedUnits.length > 0 ? this.state.selectedUnits[0] : null
-					if (entity && selected && this.state.playerInfo && entity.unit.details.owner === this.state.playerInfo.uuid && entity.unit.uuid !== selected.unit.uuid) {
+					const selectedTile = state.map.getTileAtRay(mouse);
+					const entity = state.map.getSelectedUnit(mouse);
+					const selected = state.selectedUnits.length > 0 ? state.selectedUnits[0] : null
+					if (entity && selected && state.playerInfo && entity.unit.details.owner === state.playerInfo.uuid && entity.unit.uuid !== selected.unit.uuid) {
 						console.log('right clicked players own unit');
 						TransferChange.post({ dest: entity.unit, source: selected.unit });
 					}
@@ -252,15 +255,16 @@ export default class Input {
 
 	@autobind
 	private getTileUnderCursor(event: MouseEvent): PlanetLoc {
+
 		const mouse = new THREE.Vector2();
-		mouse.x = (event.clientX / this.state.display.renderer.domElement.clientWidth) * 2 - 1;
-		mouse.y = -(event.clientY / this.state.display.renderer.domElement.clientHeight) * 2 + 1;
-		return this.state.map.getTileAtRay(mouse);
+		mouse.x = (event.clientX / state.display.renderer.domElement.clientWidth) * 2 - 1;
+		mouse.y = -(event.clientY / state.display.renderer.domElement.clientHeight) * 2 + 1;
+		return state.map.getTileAtRay(mouse);
 	}
 
 	@autobind
 	public construct(unitType: string) {
-		const state = this.state;
+
 		this.mouseMode = 'focus';
 		console.log('adding mouse click function for ' + unitType);
 		let color: THREE.Color;

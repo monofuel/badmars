@@ -16,15 +16,14 @@ export default class Display {
 	private hemLight: THREE.HemisphereLight;
 	private scene: THREE.Scene;
 	public renderer: THREE.WebGLRenderer;
-	private state: State;
 	private panel: HTMLCanvasElement;
 	private HUDPanel: HTMLCanvasElement;
 	private HUDContext: CanvasRenderingContext2D;
 
 	private T: any;
 
-	constructor(state: State) {
-		this.state = state;
+	constructor() {
+
 		this.scene = new THREE.Scene();
 
 		// for debugging
@@ -55,9 +54,9 @@ export default class Display {
 
 		this.hemLight = new THREE.HemisphereLight(0xffffff, 0xFFBF00, 0.3);
 		this.scene.add(this.hemLight);
-		this.moonLight = new THREE.DirectionalLight(this.state.moonColor, 0.2);
+		this.moonLight = new THREE.DirectionalLight(state.moonColor, 0.2);
 		this.scene.add(this.moonLight);
-		this.light = new THREE.DirectionalLight(this.state.sunColor, 1);
+		this.light = new THREE.DirectionalLight(state.sunColor, 1);
 		this.updateSunPosition(0);
 		this.scene.add(this.light);
 		// this.scene.fog = new THREE.Fog( 0x111111, 40, 130 );
@@ -97,7 +96,8 @@ export default class Display {
 	}
 
 	updateSunPosition(delta: number) {
-		this.lightAngle += Math.PI * delta * this.state.sunSpeed;
+
+		this.lightAngle += Math.PI * delta * state.sunSpeed;
 		if (this.lightAngle > 2 * Math.PI) {
 			this.lightAngle -= 2 * Math.PI;
 		}
@@ -121,12 +121,13 @@ export default class Display {
 	}
 
 	cameraDown(delta: number) {
+
 		if (config.orthographic) {
 			this.d *= 1 + (1 * delta);
 			this.resize();
 		} else {
 			this.camera.position.y -= config.cameraSpeed * delta;
-			const loc = this.state.map.getLoc(this.camera.position.x, -this.camera.position.z);
+			const loc = state.map.getLoc(this.camera.position.x, -this.camera.position.z);
 			if (this.camera.position.y < 20) {
 				this.camera.position.y = 20;
 			}
@@ -209,7 +210,7 @@ export default class Display {
 	}
 
 	private drawSelectionBox() {
-		const { isMouseDown, mouseMode, dragStart, dragCurrent } = this.state.input;
+		const { isMouseDown, mouseMode, dragStart, dragCurrent } = state.input;
 		if (!isMouseDown) {
 			return;
 		}

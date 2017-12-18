@@ -18,7 +18,8 @@ export function getUnitInfo(type: string) {
 	return units[type];
 }
 
-export function handleBalanceChanges(state: State) {
+export function handleBalanceChanges() {
+
 	function updateUnitsListener(data: UnitStatsEvent) {
 		console.log('new units data', data.stats);
 		units = data.stats;

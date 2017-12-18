@@ -11,6 +11,6 @@ import State from '../state';
 // http://stackoverflow.com/a/34015469/988941
 injectTapEventPlugin();
 
-export default function ui(state: State) {
-	ReactDOM.render(<HUD state={state}/>, document.getElementById('content'));
+export default function ui() {
+	ReactDOM.render(<HUD />, document.getElementById('content'));
 }

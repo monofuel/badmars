@@ -23,12 +23,6 @@ interface SelectedUnitProps {
 }
 
 export default class SelectedUnitWell extends React.Component<SelectedUnitProps, {}> {
-	public static contextTypes = {
-		state: PropTypes.any.isRequired
-	};
-	context: {
-		state: State,
-	};
 
 	props: SelectedUnitProps;
 
@@ -58,7 +52,7 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 		const fuelStorage = (selectedUnit.storage ? selectedUnit.storage.maxFuel : 0);
 
 		let health = (selectedUnit.details.health ? selectedUnit.details.health : 0);;
-		let player = getPlayerByUUID(state, selectedUnit.details.owner);
+		let player = getPlayerByUUID(selectedUnit.details.owner);
 		let playerName = (player ? player.username : '');
 
 		if (selectedUnit.details.type === 'iron' || selectedUnit.details.type === 'oil') {

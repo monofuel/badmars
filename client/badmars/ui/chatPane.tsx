@@ -24,12 +24,6 @@ interface ChatPaneState {
 }
 
 export default class ChatPane extends React.Component<ChatPaneProps, ChatPaneState> {
-    public static contextTypes = {
-        state: PropTypes.any.isRequired
-    };
-    context: {
-        state: State,
-    };
     props: ChatPaneProps;
     state: ChatPaneState = {
         sendText: ''
@@ -47,26 +41,26 @@ export default class ChatPane extends React.Component<ChatPaneProps, ChatPaneSta
     }
 
     render() {
-        const { chatHistory } = this.context.state;
+        const { chatHistory } = state;
         const { sendText } = this.state;
         return (
             <Paper
-             style={{ display: 'flex', flexDirection: 'column', minWidth: '300px', width: '20%', zIndex: 10 }}
-             onMouseDown={this.setChatFocus}>
+                style={{ display: 'flex', flexDirection: 'column', minWidth: '300px', width: '20%', zIndex: 10 }}
+                onMouseDown={this.setChatFocus}>
                 {/* TODO hide the scroll bar, but still let it be scrollable? */}
-                <List style={{flex: 1, display: 'flex', overflowY: 'scroll', flexDirection:'column', justifyContent: 'flex-end'}}>
+                <List style={{ flex: 1, display: 'flex', overflowY: 'scroll', flexDirection: 'column', justifyContent: 'flex-end' }}>
                     {_.flatten(chatHistory.map((chat) => {
                         return [
-                            <p 
-                            style={{margin: '10px'}}
-                            key={chat.uuid + '|text'}
+                            <p
+                                style={{ margin: '10px' }}
+                                key={chat.uuid + '|text'}
                             >{chat.text}</p>,
-                            <p 
-                            style={{margin: '5px', alignSelf: 'flex-end'}}
-                            key={chat.uuid + '|name'}>
-                            {'- ' + getPlayerByUUID(this.context.state, chat.user).username}
+                            <p
+                                style={{ margin: '5px', alignSelf: 'flex-end' }}
+                                key={chat.uuid + '|name'}>
+                                {'- ' + getPlayerByUUID(chat.user).username}
                             </p>,
-                            <Divider key={chat.uuid + '|div'} inset style={{margin: 0}} />,
+                            <Divider key={chat.uuid + '|div'} inset style={{ margin: 0 }} />,
                         ]
                     }))}
                 </List>
@@ -89,11 +83,11 @@ export default class ChatPane extends React.Component<ChatPaneProps, ChatPaneSta
     }
     @autobind
     private setGameFocus() {
-        GameFocusChange.post({ focus: 'game', prev: this.context.state.focused });
+        GameFocusChange.post({ focus: 'game', prev: state.focused });
     }
     @autobind
     private setChatFocus(e: React.MouseEvent<HTMLDivElement>) {
-        GameFocusChange.post({ focus: 'chat', prev: this.context.state.focused });
+        GameFocusChange.post({ focus: 'chat', prev: state.focused });
         e.stopPropagation();
     }
     @autobind

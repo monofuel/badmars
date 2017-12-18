@@ -18,10 +18,15 @@ import * as qs from 'query-string';
 import * as dat from 'dat-gui';
 import * as THREE from 'three';
 import { PreloadHash } from './preload';
+
+declare global {
+	interface Window { state: State }
+	const state: State
+}
+
 // ------------------------------------------
-// Game State should not be modified directly
-// Fire an event to trigger the change to happen on the next frame
-// and propagate the update to all listeners
+// Game State will always be up to date with the current state of the game world
+// Anything interested in changes to the state will need to mount listeners
 
 // ------------------------------------------
 // game event types
@@ -234,7 +239,7 @@ export async function newState(): Promise<State> {
 
 	MapChange.attach(async (event) => {
 		if (!state.map) {
-			state.map = new Map(state, event.map);
+			state.map = new Map(event.map);
 		} else {
 			// TODO apply map changes to the map
 		}
@@ -374,14 +379,15 @@ function loadFromHash(state: State) {
 // ------------------------------
 // handy state functions
 
-export function getPlayerByName(state: State, username: string): User | undefined {
+export function getPlayerByName(username: string): User | undefined {
 	return _.find(state.players, (p: User) => p.username === username);
 }
 
-export function getPlayerByUUID(state: State, uuid: UUID): User | undefined {
+export function getPlayerByUUID(uuid: UUID): User | undefined {
 	return _.find(state.players, (p: User) => p.uuid === uuid);
 }
-export function setFocus(state: State, focus: Focused) {
+export function setFocus(focus: Focused) {
+
 	if (focus === state.focused) {
 		return;
 	}

@@ -18,13 +18,6 @@ interface TransferState {
 }
 
 export default class Transfer extends React.Component<TransferProps, TransferState> {
-	public static contextTypes = {
-		state: PropTypes.any.isRequired
-	};
-	context: {
-		state: State,
-	};
-
 	props: TransferProps;
 	state: TransferState = {
 		iron: 0,
@@ -32,11 +25,11 @@ export default class Transfer extends React.Component<TransferProps, TransferSta
 	};
 
 	componentDidMount() {
-		GameFocusChange.post({ focus: 'hud', prev: this.context.state.focused })
+		GameFocusChange.post({ focus: 'hud', prev: state.focused })
 	}
 
 	componentWillUnmount() {
-		GameFocusChange.post({ focus: 'game', prev: this.context.state.focused })
+		GameFocusChange.post({ focus: 'game', prev: state.focused })
 	}
 
 	render() {

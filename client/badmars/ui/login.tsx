@@ -6,20 +6,13 @@ import { RequestChange } from '../net';
 import State from '../state';
 
 export default class LoginModal extends React.Component<{}, {}> {
-	public static contextTypes = {
-		state: PropTypes.any.isRequired
-	};
-	context: {
-		state: State,
-	};
-
 	usernameField: HTMLInputElement;
 	colorField: HTMLInputElement;
 
 	_onLoginClick() {
 		// let username = this.usernameField.value;
 		//let color = this.colorField.value;
-		// this.context.state.username = username;
+		// state.username = username;
 
 		RequestChange.post({
 			type: 'login',
@@ -30,7 +23,7 @@ export default class LoginModal extends React.Component<{}, {}> {
 	render() {
 
 		// TODO
-		return <div/>
+		return <div />
 		//let randomColor = (Math.round(Math.random() * 0xffffff)).toString(16);
 
 		/*

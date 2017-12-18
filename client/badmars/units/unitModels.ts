@@ -17,7 +17,8 @@ export function getMesh(name: string): THREE.Group {
 	return model;
 }
 
-export function handleModelChanges(state: State) {
+export function handleModelChanges() {
+
 	async function updateUnitsListener(data: UnitStatsEvent) {
 		log('debug', 'loading models');
 		await Promise.all(Object.keys(data.stats).map(async (unitType) => {

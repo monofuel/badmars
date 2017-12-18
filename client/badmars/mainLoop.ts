@@ -10,15 +10,16 @@ import config from './config';
 import { updateUnitEntity } from './units';
 import { clearTimeout } from 'timers';
 
-export default function startGameLoops(state: State) {
-	renderLoop(state);
-	animationLoop(state);
-	gameLogicLoop(state);
-	snowLoop(state);
-	chunkLoadLoop(state);
+export default function startGameLoops() {
+	renderLoop();
+	animationLoop();
+	gameLogicLoop();
+	snowLoop();
+	chunkLoadLoop();
 }
 
-function renderLoop(state: State) {
+function renderLoop() {
+
 	const clock = new THREE.Clock();
 	const statsMonitor = new StatsMonitor();
 	const startTime = Date.now();
@@ -30,7 +31,8 @@ function renderLoop(state: State) {
 	}, config.frameLimit)
 }
 
-function animationLoop(state: State) {
+function animationLoop() {
+
 	const clock = new THREE.Clock();
 	const startTime = Date.now();
 	loop(() => {
@@ -43,7 +45,8 @@ function animationLoop(state: State) {
 	}, 30);
 }
 
-function chunkLoadLoop(state: State) {
+function chunkLoadLoop() {
+
 	loop(() => {
 		// Do gross stuff to limit queue speed
 		const queue: (() => void)[] = (ChunkQueue as any)._queue;
@@ -53,7 +56,8 @@ function chunkLoadLoop(state: State) {
 	}, 40);
 }
 
-function gameLogicLoop(state: State) {
+function gameLogicLoop() {
+
 	const clock = new THREE.Clock();
 	const startTime = Date.now();
 	loop(() => {
@@ -77,7 +81,8 @@ function gameLogicLoop(state: State) {
 	}, 40);
 }
 
-function snowLoop(state: State) {
+function snowLoop() {
+
 	const clock = new THREE.Clock();
 	loop(() => {
 		const delta = clock.getDelta();

@@ -41,12 +41,6 @@ const buildPanelStyle = {
 };
 
 export default class MenuButtons extends React.Component<Props, MenuButtonsState> {
-	public static contextTypes = {
-		state: PropTypes.any.isRequired
-	};
-	context: {
-		state: State,
-	};
 
 	public state: MenuButtonsState = {
 		menuMode: 'builder'
@@ -139,20 +133,20 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 
 	@autobind
 	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
-		GameFocusChange.post({ focus: 'hud', prev: this.context.state.focused });
+		GameFocusChange.post({ focus: 'hud', prev: state.focused });
 		e.stopPropagation();
 	}
 
 	@autobind
 	private constructClicked(unitType: string) {
-		const { input } = this.context.state;
+		const { input } = state;
 		log('debug', `construct ${unitType} clicked`);
 		input.construct(unitType);
 	}
 
 	@autobind
 	private factoryConstructClicked(unitType: string) {
-		const { selectedUnits } = this.context.state;
+		const { selectedUnits } = state;
 		if (selectedUnits.length != 1) {
 			throw new Error('multiple unit selected not supported yet');
 		}

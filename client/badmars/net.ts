@@ -274,11 +274,9 @@ if (config.debug) {
 export default class Net {
 	ws: WebSocket;
 	listeners: Object;
-	state: State;
 
-	constructor(state: State) {
+	constructor() {
 		this.listeners = {};
-		this.state = state;
 
 		setInterval(async () => {
 			if (this.ws && this.getState() > 1) {
@@ -299,17 +297,19 @@ export default class Net {
 	}
 
 	private async connectionError(err: Error) {
+
 		logError(err);
-		if (this.state.connected) {
+		if (state.connected) {
 			DisplayErrorChange.post({ errMsg: 'The connection to the server was lost. You should reload' });
 		}
-		this.state.connected = false;
+		state.connected = false;
 	}
 
 	public async connect(): Promise<void> {
+
 		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
 		const hostname = window.location.hostname === 'localhost' ? 'localhost:7005' : window.location.hostname
-		const ws_url = `${protocol}//${hostname}/net?token=${this.state.token}`;
+		const ws_url = `${protocol}//${hostname}/net?token=${state.token}`;
 		log('debug', `connecting to: ${ws_url}`);
 		this.ws = new WebSocket(ws_url);
 

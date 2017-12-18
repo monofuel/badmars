@@ -11,12 +11,6 @@ type Props = {
 	onClose: () => void
 }
 export default class AboutModal extends React.Component<Props, {}> {
-	public static contextTypes = {
-		state: PropTypes.any.isRequired
-	};
-	context: {
-		state: State,
-	};
 
 	render() {
 		const { onClose } = this.props;
@@ -35,10 +29,10 @@ export default class AboutModal extends React.Component<Props, {}> {
 			</div>
 		);
 	}
-	
+
 	@autobind
 	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
-		GameFocusChange.post({ focus: 'hud', prev: this.context.state.focused });
+		GameFocusChange.post({ focus: 'hud', prev: state.focused });
 		e.stopPropagation();
 	}
 }

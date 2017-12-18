@@ -32,9 +32,6 @@ import UnitEntity from '../units';
 
 const { palette } = config;
 
-interface HUDProps {
-	state: State;
-}
 interface HUDState {
 	login: boolean;
 	selectedUnits: UnitEntity[];
@@ -79,19 +76,14 @@ const muiTheme = getMuiTheme({
 /*
 	on default, all clicks go to the 'game' behind the hud.
 	to prevent this, all hud components must call
-	this.context.state.setFocus('hud');
+	state.setFocus('hud');
 	and stop propogation in onClick
 */
 
-export default class HUD extends React.Component<HUDProps, HUDState> {
+export default class HUD extends React.Component<{}, HUDState> {
 	public static childContextTypes = {
 		state: PropTypes.any.isRequired
 	};
-
-	public static PropTypes = {
-		state: PropTypes.any.isRequired
-	};
-	public props: HUDProps;
 
 	// TODO error messsages are not wired up
 	public state: HUDState = {
@@ -104,26 +96,20 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 		transfering: false,
 	};
 
-	// passing globals, Deal with it (⌐■_■)
-	public getChildContext() {
-		const { state } = this.props;
-		return { state };
-	}
-
 	public componentDidMount() {
 		SelectedUnitsChange.attach(({ units }) => this.selectedUnitsHandler(units));
 		UnitChange.attach(({ list }) => this.updateUnitsHandler(list));
 		TransferChange.attach(this.unitTransferHandler);
 		GameStageChange.attach(this._gameStateChange);
 		if (config.debug) {
-			this.props.state.datgui = BMDatGui();
+			state.datgui = BMDatGui();
 		}
 	}
 
 	public render() {
-		const { state } = this.props;
+
 		const { login, transferDestUnit, transferUnit, errorMessage, aboutOpen, transfering } = this.state;
-		const { selectedUnits, chatOpen } = this.props.state;
+		const { selectedUnits, chatOpen } = state;
 
 		return (
 			<MuiThemeProvider muiTheme={muiTheme}>
@@ -134,9 +120,9 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 						onMouseLeave={(e) => this.mouseLeaveHandler(e)}
 						onMouseDown={(e) => {
 							this.setGameFocus(e);
-							this.props.state.input.mouseDownHandler(e.nativeEvent);
+							state.input.mouseDownHandler(e.nativeEvent);
 						}}
-						onMouseUp={(e) => this.props.state.input.mouseUpHandler(e.nativeEvent)}
+						onMouseUp={(e) => state.input.mouseUpHandler(e.nativeEvent)}
 						style={hudStyle as any}>
 						<div style={{ flex: 1 }}>
 							{errorMessage
@@ -192,12 +178,12 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 
 	@autobind
 	private setGameFocus(e: React.MouseEvent<HTMLDivElement>) {
-		GameFocusChange.post({ focus: 'game', prev: this.props.state.focused });
+		GameFocusChange.post({ focus: 'game', prev: state.focused });
 	}
 
 	@autobind
 	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
-		GameFocusChange.post({ focus: 'hud', prev: this.props.state.focused });
+		GameFocusChange.post({ focus: 'hud', prev: state.focused });
 		e.stopPropagation();
 	}
 
@@ -258,7 +244,7 @@ export default class HUD extends React.Component<HUDProps, HUDState> {
 
 	private mouseLeaveHandler(e: React.MouseEvent<HTMLDivElement>) {
 		console.log('mouse left window');
-		const { state } = this.props;
+
 		state.input.keysDown = [];
 	}
 }

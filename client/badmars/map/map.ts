@@ -25,7 +25,6 @@ import { Planet } from '../';
 // TODO chunk should be a type
 
 export default class Map {
-	state: State;
 	settings: Settings;
 	tps: number;
 	landMeshes: Array<THREE.Object3D>;
@@ -42,8 +41,7 @@ export default class Map {
 
 	fogChunksToUpdate: string[] = []
 
-	constructor(state: State, planet: Planet) {
-		this.state = state;
+	constructor(planet: Planet) {
 		this.planetData = planet;
 		this.landMeshes = [];
 		this.waterMeshes = [];
@@ -57,7 +55,7 @@ export default class Map {
 		this.chunkInterval = setInterval(async () => {
 			await Promise.resolve(this.loadChunksNearCamera());
 			await Promise.resolve(() => {
-				this.state.playerLocation = this.getTileAtRay(new THREE.Vector2(0, 0));
+				state.playerLocation = this.getTileAtRay(new THREE.Vector2(0, 0));
 			})
 		}, 750);
 
@@ -66,7 +64,7 @@ export default class Map {
 	}
 
 	destroy() {
-		const { display } = this.state;
+		const { display } = state;
 		clearInterval(this.chunkInterval);
 		for (const mesh of this.landMeshes) {
 			display.removeMesh(mesh);
@@ -77,7 +75,7 @@ export default class Map {
 	}
 
 	generateChunk(chunkX: number, chunkY: number, chunk: any) {
-		const { display } = this.state;
+		const { display } = state;
 		var chunkArray = chunk.grid;
 		var navGrid = chunk.navGrid;
 		var gridGeom = new THREE.Geometry();
@@ -133,7 +131,7 @@ export default class Map {
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x);
 
 
-				const visible = isTileVisible(this.state,
+				const visible = isTileVisible(state,
 					x + (this.worldSettings.chunkSize * chunkX),
 					y + (this.worldSettings.chunkSize * chunkY));
 				if (visible) {
@@ -232,8 +230,8 @@ export default class Map {
 		this.waterMeshes.push(waterMesh);
 
 		// TODO this is gross
-		this.state.chunks[chunk.hash].landMesh = gridMesh;
-		this.state.chunks[chunk.hash].waterMesh = waterMesh;
+		state.chunks[chunk.hash].landMesh = gridMesh;
+		state.chunks[chunk.hash].waterMesh = waterMesh;
 
 		display.addMesh(gridMesh);
 		display.addMesh(waterMesh);
@@ -262,8 +260,8 @@ export default class Map {
 		cloud.position.copy(gridMesh.position);
 		cloud.rotation.copy(gridMesh.rotation);
 
-		this.state.display.addMesh(cloud);
-		this.state.snow[chunk.hash] = cloud;
+		state.display.addMesh(cloud);
+		state.snow[chunk.hash] = cloud;
 
 
 	}
@@ -273,7 +271,7 @@ export default class Map {
 		for (let i = tile.chunkX - chunkRadius; i < tile.chunkX + chunkRadius; i++) {
 			for (let k = tile.chunkY - chunkRadius; k < tile.chunkY + chunkRadius; k++) {
 				const hash = `${i}:${k}`
-				if (!this.state.chunks[hash]) {
+				if (!state.chunks[hash]) {
 					continue;
 				}
 				this.fogChunksToUpdate.push(hash);
@@ -291,9 +289,9 @@ export default class Map {
 	}
 
 	async updateFog(hash: string) {
-		const chunk = this.state.chunks[hash];
-		const landMesh: THREE.Mesh = this.state.chunks[hash].landMesh;
-		const waterMesh: THREE.Mesh = this.state.chunks[hash].waterMesh;
+		const chunk = state.chunks[hash];
+		const landMesh: THREE.Mesh = state.chunks[hash].landMesh;
+		const waterMesh: THREE.Mesh = state.chunks[hash].waterMesh;
 
 		// I'm sure someone more clever than i could iterate over this
 		const landFaces = [...(landMesh.geometry as THREE.Geometry).faces];
@@ -306,7 +304,7 @@ export default class Map {
 				const landFace2 = landFaces.shift();
 				const waterFace1 = waterFaces.shift();
 				const waterFace2 = waterFaces.shift();
-				const visible = isTileVisible(this.state, x, y);
+				const visible = isTileVisible(state, x, y);
 				if (visible) {
 					waterFace1.materialIndex = 0;
 					waterFace2.materialIndex = 0;
@@ -340,12 +338,12 @@ export default class Map {
 	}
 
 	nearestStorage(tile: PlanetLoc): UnitEntity | null {
-		const { playerInfo } = this.state;
+		const { playerInfo } = state;
 		var storages: UnitEntity[] = [];
 		if (!playerInfo || !tile) {
 			return;
 		}
-		for (var entity of Object.values(this.state.unitEntities)) {
+		for (var entity of Object.values(state.unitEntities)) {
 			if (entity.unit.details.type === 'storage' && entity.unit.details.owner === playerInfo.uuid) {
 				storages.push(entity);
 			}
@@ -361,7 +359,7 @@ export default class Map {
 
 	/*
 	updateUnitDestination(unitId: string, newLocation: Array<number>, time: number) {
-		const unit = this.state.units[unitId];
+		const unit = state.units[unitId];
 		const x = newLocation[0];
 		const y = newLocation[1];
 		if (unit && unit instanceof GroundUnit) {
@@ -374,7 +372,7 @@ export default class Map {
 
 	removeUnit(unit: Entity) {
 		// TODO why is this function here
-		delete this.state.units[unit.uuid];
+		delete state.units[unit.uuid];
 	}
 
 	destroyUnits(units: Array<Entity>) {
@@ -386,7 +384,7 @@ export default class Map {
 
 	destroyUnits(units: Array<UnitEntity>) {
 		for (const unit of units) {
-			destroyUnitEntity(this.state, unit);
+			destroyUnitEntity(state, unit);
 		}
 	}
 
@@ -395,12 +393,12 @@ export default class Map {
 	}
 
 	getSelectedUnit(mouse: THREE.Vector2): UnitEntity | null {
-		const { display } = this.state;
+		const { display } = state;
 		var raycaster = new THREE.Raycaster();
 
 		raycaster.setFromCamera(mouse, display.camera);
 		var meshList = [];
-		for (var entity of Object.values(this.state.unitEntities)) {
+		for (var entity of Object.values(state.unitEntities)) {
 			meshList.push(entity.graphical.mesh);
 		}
 		var intersects = raycaster.intersectObjects(meshList, true);
@@ -411,14 +409,14 @@ export default class Map {
 	}
 
 	getSelectedUnits(mouseStart: THREE.Vector2, mouseEnd: THREE.Vector2): UnitEntity[] {
-		const { display } = this.state;
+		const { display } = state;
 		var maxX = Math.max(mouseStart.x, mouseEnd.x);
 		var minX = Math.min(mouseStart.x, mouseEnd.x);
 		var maxY = Math.max(mouseStart.y, mouseEnd.y);
 		var minY = Math.min(mouseStart.y, mouseEnd.y);
 
 		var unitList = [];
-		for (var entity of Object.values(this.state.unitEntities)) {
+		for (var entity of Object.values(state.unitEntities)) {
 			var vector = this.toScreenPosition(entity.graphical.mesh);
 			if (vector.x < maxX && vector.x > minX && vector.y > minY && vector.y < maxY) {
 				unitList.push(entity);
@@ -428,7 +426,7 @@ export default class Map {
 	}
 
 	toScreenPosition(obj: THREE.Object3D): THREE.Vector3 {
-		const { display } = this.state;
+		const { display } = state;
 		var vector = new THREE.Vector3();
 
 		obj.updateMatrixWorld(false);
@@ -462,7 +460,7 @@ export default class Map {
 	*/
 
 	getSelectedUnitsInView(): UnitEntity[] {
-		const { display, playerInfo } = this.state;
+		const { display, playerInfo } = state;
 		display.camera.updateMatrix(); // make sure camera's local matrix is updated
 		display.camera.updateMatrixWorld(false); // make sure camera's world matrix is updated
 		display.camera.matrixWorldInverse.getInverse(display.camera.matrixWorld);
@@ -474,7 +472,7 @@ export default class Map {
 		frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(display.camera.projectionMatrix, display.camera.matrixWorldInverse));
 
 		var unitList: UnitEntity[] = [];
-		for (var entity of Object.values(this.state.unitEntities)) {
+		for (var entity of Object.values(state.unitEntities)) {
 			if (frustum.containsPoint(entity.loc.getVec()) && entity.unit.details.owner === playerInfo.uuid) {
 				unitList.push(entity);
 			}
@@ -516,7 +514,7 @@ export default class Map {
 	getUnloadedChunks(chunks: Array<string>) {
 		var notLoaded: Array<string> = [];
 		for (var chunk of chunks) {
-			if (!this.state.chunks[chunk]) {
+			if (!state.chunks[chunk]) {
 				notLoaded.push(chunk);
 			}
 		}
@@ -530,7 +528,7 @@ export default class Map {
 			let y = parseInt(chunk.split(":")[1]);
 			let cacheChunk = this.chunkCache[chunk];
 			if (cacheChunk) {
-				this.state.chunks[chunk] = cacheChunk;
+				state.chunks[chunk] = cacheChunk;
 				this.generateChunk(x, y, cacheChunk);
 				RequestChange.post({ type: 'getChunk', x: x, y: y, unitsOnly: true });
 			} else {
@@ -541,7 +539,7 @@ export default class Map {
 
 	getUnitsOnChunk(chunkHash: string): UnitEntity[] {
 		let unitsOnChunk: UnitEntity[] = [];
-		for (let entity of Object.values(this.state.unitEntities)) {
+		for (let entity of Object.values(state.unitEntities)) {
 			let unitChunkHash = entity.unit.location.chunkX + ":" + entity.unit.location.chunkY;
 			if (chunkHash === unitChunkHash) {
 				unitsOnChunk.push(entity);
@@ -551,8 +549,8 @@ export default class Map {
 	}
 
 	unloadChunksNearTile(tile: PlanetLoc): void {
-		const { display } = this.state;
-		for (let hash in this.state.chunks) {
+		const { display } = state;
+		for (let hash in state.chunks) {
 			let x = parseInt(hash.split(":")[0]);
 			let y = parseInt(hash.split(":")[1]);
 			var xdist = Math.abs(tile.chunkX - x);
@@ -563,7 +561,7 @@ export default class Map {
 				this.destroyUnits(this.getUnitsOnChunk(hash));
 
 
-				var chunk = this.state.chunks[hash];
+				var chunk = state.chunks[hash];
 				if (!chunk) {
 					continue;
 				}
@@ -578,27 +576,27 @@ export default class Map {
 				if (display) {
 					display.removeMesh(chunk.landMesh);
 					display.removeMesh(chunk.waterMesh);
-					display.removeMesh(this.state.snow[chunk.hash]);
-					delete this.state.snow[chunk.hash];
+					display.removeMesh(state.snow[chunk.hash]);
+					delete state.snow[chunk.hash];
 				}
 				chunk.landMesh = null;
 				chunk.waterMesh = null;
-				delete this.state.chunks[hash];
+				delete state.chunks[hash];
 				this.chunkCache[hash] = chunk;
 			}
 		}
 	}
 
 	loadChunksNearCamera() {
-		const tile = this.getLoc(this.state.display.camera.position.x + 13,
-			- this.state.display.camera.position.z - 13);
+		const tile = this.getLoc(state.display.camera.position.x + 13,
+			- state.display.camera.position.z - 13);
 
 		this.loadChunksNearTile(tile);
 		this.unloadChunksNearTile(tile);
 	}
 
 	getTileAtRay(mouse: THREE.Vector2): PlanetLoc {
-		const { display } = this.state;
+		const { display } = state;
 
 		var raycaster = new THREE.Raycaster();
 		raycaster.setFromCamera(mouse, display.camera);
