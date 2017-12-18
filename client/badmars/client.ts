@@ -13,7 +13,7 @@ import {
 	RequestChange,
 } from './net';
 import { log } from './logger';
-import State, {
+import GameState, {
 	newState,
 	DisplayErrorChange,
 	SelectedUnitsChange,
@@ -27,17 +27,17 @@ import { handleBalanceChanges } from './units/unitBalance';
 import { handleModelChanges } from './units/unitModels';
 
 async function gameInit(): Promise<void> {
-	window.state = await newState();
-	state.display = new Display();
-	state.net = new Net();
-	state.input = new Input();
+	window.gameState = await newState();
+	gameState.display = new Display();
+	gameState.net = new Net();
+	gameState.input = new Input();
 
 	startGameLoops();
 
 	console.log('setting up UI', new Date());
 	ui();
 
-	state.net.connect();
+	gameState.net.connect();
 
 	handleBalanceChanges();
 	handleModelChanges();

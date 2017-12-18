@@ -2,7 +2,7 @@ import { autobind } from 'core-decorators';
 import * as _ from 'lodash';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import State, {
+import GameState, {
     ChatEvent,
     ChatChange,
     getPlayerByUUID,
@@ -41,7 +41,7 @@ export default class ChatPane extends React.Component<ChatPaneProps, ChatPaneSta
     }
 
     render() {
-        const { chatHistory } = state;
+        const { chatHistory } = gameState;
         const { sendText } = this.state;
         return (
             <Paper
@@ -83,11 +83,11 @@ export default class ChatPane extends React.Component<ChatPaneProps, ChatPaneSta
     }
     @autobind
     private setGameFocus() {
-        GameFocusChange.post({ focus: 'game', prev: state.focused });
+        GameFocusChange.post({ focus: 'game', prev: gameState.focused });
     }
     @autobind
     private setChatFocus(e: React.MouseEvent<HTMLDivElement>) {
-        GameFocusChange.post({ focus: 'chat', prev: state.focused });
+        GameFocusChange.post({ focus: 'chat', prev: gameState.focused });
         e.stopPropagation();
     }
     @autobind

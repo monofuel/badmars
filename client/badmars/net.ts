@@ -1,7 +1,7 @@
 // monofuel
 
 import { autobind } from 'core-decorators';
-import State, {
+import GameState, {
 	DisplayErrorChange,
 	MapChange,
 	ConnectedChange,
@@ -299,17 +299,17 @@ export default class Net {
 	private async connectionError(err: Error) {
 
 		logError(err);
-		if (state.connected) {
+		if (gameState.connected) {
 			DisplayErrorChange.post({ errMsg: 'The connection to the server was lost. You should reload' });
 		}
-		state.connected = false;
+		gameState.connected = false;
 	}
 
 	public async connect(): Promise<void> {
 
 		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
 		const hostname = window.location.hostname === 'localhost' ? 'localhost:7005' : window.location.hostname
-		const ws_url = `${protocol}//${hostname}/net?token=${state.token}`;
+		const ws_url = `${protocol}//${hostname}/net?token=${gameState.token}`;
 		log('debug', `connecting to: ${ws_url}`);
 		this.ws = new WebSocket(ws_url);
 

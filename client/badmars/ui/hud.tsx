@@ -18,7 +18,7 @@ import ChatPane from './chatPane';
 import AboutModal from './about';
 import SelectedUnitWell from './selectedUnit';
 import Transfer from './transfer';
-import State, {
+import GameState, {
 	SelectedUnitsChange,
 	UnitChange,
 	TransferChange,
@@ -102,14 +102,14 @@ export default class HUD extends React.Component<{}, HUDState> {
 		TransferChange.attach(this.unitTransferHandler);
 		GameStageChange.attach(this._gameStateChange);
 		if (config.debug) {
-			state.datgui = BMDatGui();
+			gameState.datgui = BMDatGui();
 		}
 	}
 
 	public render() {
 
 		const { login, transferDestUnit, transferUnit, errorMessage, aboutOpen, transfering } = this.state;
-		const { selectedUnits, chatOpen } = state;
+		const { selectedUnits, chatOpen } = gameState;
 
 		return (
 			<MuiThemeProvider muiTheme={muiTheme}>
@@ -120,9 +120,9 @@ export default class HUD extends React.Component<{}, HUDState> {
 						onMouseLeave={(e) => this.mouseLeaveHandler(e)}
 						onMouseDown={(e) => {
 							this.setGameFocus(e);
-							state.input.mouseDownHandler(e.nativeEvent);
+							gameState.input.mouseDownHandler(e.nativeEvent);
 						}}
-						onMouseUp={(e) => state.input.mouseUpHandler(e.nativeEvent)}
+						onMouseUp={(e) => gameState.input.mouseUpHandler(e.nativeEvent)}
 						style={hudStyle as any}>
 						<div style={{ flex: 1 }}>
 							{errorMessage
@@ -137,7 +137,7 @@ export default class HUD extends React.Component<{}, HUDState> {
 							{aboutOpen
 								? <AboutModal
 									onClose={() => {
-										GameFocusChange.post({ focus: 'game', prev: state.focused });
+										GameFocusChange.post({ focus: 'game', prev: gameState.focused });
 										this.setState({ aboutOpen: false });
 									}} />
 								: null
@@ -178,12 +178,12 @@ export default class HUD extends React.Component<{}, HUDState> {
 
 	@autobind
 	private setGameFocus(e: React.MouseEvent<HTMLDivElement>) {
-		GameFocusChange.post({ focus: 'game', prev: state.focused });
+		GameFocusChange.post({ focus: 'game', prev: gameState.focused });
 	}
 
 	@autobind
 	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
-		GameFocusChange.post({ focus: 'hud', prev: state.focused });
+		GameFocusChange.post({ focus: 'hud', prev: gameState.focused });
 		e.stopPropagation();
 	}
 
@@ -245,6 +245,6 @@ export default class HUD extends React.Component<{}, HUDState> {
 	private mouseLeaveHandler(e: React.MouseEvent<HTMLDivElement>) {
 		console.log('mouse left window');
 
-		state.input.keysDown = [];
+		gameState.input.keysDown = [];
 	}
 }

@@ -20,8 +20,8 @@ import * as THREE from 'three';
 import { PreloadHash } from './preload';
 
 declare global {
-	interface Window { state: State }
-	const state: State
+	interface Window { gameState: GameState }
+	const gameState: GameState
 }
 
 // ------------------------------------------
@@ -125,7 +125,7 @@ export const UnitDeltaChange = new QueuedEvent<UnitDeltaEvent>();
 // ------------------------------
 // main game state
 
-export default interface State {
+export default interface GameState {
 	// TODO should be a hash : Player map
 	players: User[];
 	playerLocation?: PlanetLoc;
@@ -172,7 +172,7 @@ export default interface State {
 	}
 }
 
-export async function newState(): Promise<State> {
+export async function newState(): Promise<GameState> {
 	const token: string | null = window.localStorage.getItem('session-token');
 	if (!token) {
 		console.error('missing session token');
@@ -196,7 +196,7 @@ export async function newState(): Promise<State> {
 		moonColor: 0x9AA09A,
 		*/
 
-	const state: State = {
+	const state: GameState = {
 		token,
 		playerInfo,
 		players: [],
@@ -360,7 +360,7 @@ export async function newState(): Promise<State> {
 	return state;
 }
 
-function loadFromHash(state: State) {
+function loadFromHash(state: GameState) {
 	// disabling this in production mode for #security
 	// this could be used to log in a user as another user by overriding self
 	if (!Config.debug) {
@@ -380,31 +380,31 @@ function loadFromHash(state: State) {
 // handy state functions
 
 export function getPlayerByName(username: string): User | undefined {
-	return _.find(state.players, (p: User) => p.username === username);
+	return _.find(gameState.players, (p: User) => p.username === username);
 }
 
 export function getPlayerByUUID(uuid: UUID): User | undefined {
-	return _.find(state.players, (p: User) => p.uuid === uuid);
+	return _.find(gameState.players, (p: User) => p.uuid === uuid);
 }
 export function setFocus(focus: Focused) {
 
-	if (focus === state.focused) {
+	if (focus === gameState.focused) {
 		return;
 	}
 
-	log('debug', 'changed focus', { prev: state.focused, focus });
-	const prev = state.focused;
+	log('debug', 'changed focus', { prev: gameState.focused, focus });
+	const prev = gameState.focused;
 	GameFocusChange.post({ focus, prev });
 }
 
-export function clearSelection(state: State) {
+export function clearSelection(state: GameState) {
 	if (!state.mouseHilight) {
 		return;
 	}
 	state.display.removeMesh(state.mouseHilight.mesh);
 	delete state.mouseHilight;
 }
-export function setSelection(state: State, loc: PlanetLoc, color: THREE.Color) {
+export function setSelection(state: GameState, loc: PlanetLoc, color: THREE.Color) {
 	if (state.mouseHilight) {
 		if (state.mouseHilight.loc.equals(loc)) {
 			return;

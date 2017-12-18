@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import RaisedButton from 'material-ui/RaisedButton';
 import { Paper } from 'material-ui';
 
-import State, { GameFocusChange, SelectedUnitsChange, SelectedUnitsEvent } from '../state';
+import GameState, { GameFocusChange, SelectedUnitsChange, SelectedUnitsEvent } from '../state';
 import { RequestChange } from '../net';
 import { log } from '../logger';
 
@@ -133,20 +133,20 @@ export default class MenuButtons extends React.Component<Props, MenuButtonsState
 
 	@autobind
 	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
-		GameFocusChange.post({ focus: 'hud', prev: state.focused });
+		GameFocusChange.post({ focus: 'hud', prev: gameState.focused });
 		e.stopPropagation();
 	}
 
 	@autobind
 	private constructClicked(unitType: string) {
-		const { input } = state;
+		const { input } = gameState;
 		log('debug', `construct ${unitType} clicked`);
 		input.construct(unitType);
 	}
 
 	@autobind
 	private factoryConstructClicked(unitType: string) {
-		const { selectedUnits } = state;
+		const { selectedUnits } = gameState;
 		if (selectedUnits.length != 1) {
 			throw new Error('multiple unit selected not supported yet');
 		}

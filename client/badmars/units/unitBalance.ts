@@ -1,4 +1,4 @@
-import State, { UnitStatsChange, UnitStatsEvent } from '../state';
+import GameState, { UnitStatsChange, UnitStatsEvent } from '../state';
 import * as _ from 'lodash';
 
 let units: any = {};
@@ -24,8 +24,8 @@ export function handleBalanceChanges() {
 		console.log('new units data', data.stats);
 		units = data.stats;
 
-		if (state.map) {
-			Object.values(state.units).forEach(updateUnit);
+		if (gameState.map) {
+			Object.values(gameState.units).forEach(updateUnit);
 		}
 	}
 

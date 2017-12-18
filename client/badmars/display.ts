@@ -2,7 +2,7 @@
 
 import { autobind } from 'core-decorators';
 import PlanetLoc from './map/planetLoc';
-import State from './state';
+import GameState from './state';
 import config from './config';
 import { log } from './logger';
 import * as THREE from 'three';
@@ -54,9 +54,9 @@ export default class Display {
 
 		this.hemLight = new THREE.HemisphereLight(0xffffff, 0xFFBF00, 0.3);
 		this.scene.add(this.hemLight);
-		this.moonLight = new THREE.DirectionalLight(state.moonColor, 0.2);
+		this.moonLight = new THREE.DirectionalLight(gameState.moonColor, 0.2);
 		this.scene.add(this.moonLight);
-		this.light = new THREE.DirectionalLight(state.sunColor, 1);
+		this.light = new THREE.DirectionalLight(gameState.sunColor, 1);
 		this.updateSunPosition(0);
 		this.scene.add(this.light);
 		// this.scene.fog = new THREE.Fog( 0x111111, 40, 130 );
@@ -97,7 +97,7 @@ export default class Display {
 
 	updateSunPosition(delta: number) {
 
-		this.lightAngle += Math.PI * delta * state.sunSpeed;
+		this.lightAngle += Math.PI * delta * gameState.sunSpeed;
 		if (this.lightAngle > 2 * Math.PI) {
 			this.lightAngle -= 2 * Math.PI;
 		}
@@ -127,7 +127,7 @@ export default class Display {
 			this.resize();
 		} else {
 			this.camera.position.y -= config.cameraSpeed * delta;
-			const loc = state.map.getLoc(this.camera.position.x, -this.camera.position.z);
+			const loc = gameState.map.getLoc(this.camera.position.x, -this.camera.position.z);
 			if (this.camera.position.y < 20) {
 				this.camera.position.y = 20;
 			}
@@ -210,7 +210,7 @@ export default class Display {
 	}
 
 	private drawSelectionBox() {
-		const { isMouseDown, mouseMode, dragStart, dragCurrent } = state.input;
+		const { isMouseDown, mouseMode, dragStart, dragCurrent } = gameState.input;
 		if (!isMouseDown) {
 			return;
 		}

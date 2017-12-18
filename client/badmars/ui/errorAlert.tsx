@@ -3,7 +3,7 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import Snackbar from 'material-ui/Snackbar';
-import State from '../state';
+import GameState from '../state';
 
 type Props = {
 	errorMessage: string;

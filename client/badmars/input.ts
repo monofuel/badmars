@@ -4,7 +4,7 @@ import { autobind } from 'core-decorators';
 import * as _ from 'lodash';
 import { SyncEvent } from 'ts-events';
 
-import State, { SelectedUnitsChange, TransferChange, clearSelection, setSelection } from './state';
+import GameState, { SelectedUnitsChange, TransferChange, clearSelection, setSelection } from './state';
 import PlanetLoc from './map/planetLoc';
 import { RequestChange } from './net';
 import UnitEntity from './units';
@@ -67,37 +67,37 @@ export default class Input {
 
 	public update(delta: number) {
 
-		if (state.focused === 'chat') {
+		if (gameState.focused === 'chat') {
 			return;
 		}
 
 		for (const key of this.keysDown) {
 			switch (key) {
 				case 87: // w
-					state.display.cameraForward(delta);
+					gameState.display.cameraForward(delta);
 					MoveCameraChange.post({ dir: 'w' });
 					break;
 				case 65: // a
 					if (this.ctrlKey) {
-						this.setMoveHandler(state.map.getSelectedUnitsInView());
+						this.setMoveHandler(gameState.map.getSelectedUnitsInView());
 					} else {
-						state.display.cameraLeft(delta);
+						gameState.display.cameraLeft(delta);
 						MoveCameraChange.post({ dir: 'a' });
 					}
 					break;
 				case 83: // s
-					state.display.cameraBackward(delta);
+					gameState.display.cameraBackward(delta);
 					MoveCameraChange.post({ dir: 's' });
 					break;
 				case 68: // d
-					state.display.cameraRight(delta);
+					gameState.display.cameraRight(delta);
 					MoveCameraChange.post({ dir: 'd' });
 					break;
 				case 82: // r
-					state.display.cameraUp(delta);
+					gameState.display.cameraUp(delta);
 					break;
 				case 70: // f
-					state.display.cameraDown(delta);
+					gameState.display.cameraDown(delta);
 					break;
 				default:
 				// console.log("key press: " + key);
@@ -108,7 +108,7 @@ export default class Input {
 	@autobind
 	private keyDownHandler(key: KeyboardEvent): void {
 
-		if (state.focused === 'chat') {
+		if (gameState.focused === 'chat') {
 			return;
 		}
 		// ignore alt because alt tab can get funky
@@ -144,8 +144,8 @@ export default class Input {
 	private mouseMoveHandler(event: MouseEvent): void {
 
 		this.dragCurrent = new THREE.Vector2();
-		this.dragCurrent.x = (event.clientX / state.display.renderer.domElement.clientWidth) * 2 - 1;
-		this.dragCurrent.y = -(event.clientY / state.display.renderer.domElement.clientHeight) * 2 + 1;
+		this.dragCurrent.x = (event.clientX / gameState.display.renderer.domElement.clientWidth) * 2 - 1;
+		this.dragCurrent.y = -(event.clientY / gameState.display.renderer.domElement.clientHeight) * 2 + 1;
 		MouseMoveChanged.post({ type: 'mouseMove', event });
 	}
 
@@ -154,14 +154,14 @@ export default class Input {
 
 		switch (event.button) {
 			case LEFT_MOUSE:
-				console.log('mouse click: ', state.focused);
-				if (state.focused !== 'game') {
+				console.log('mouse click: ', gameState.focused);
+				if (gameState.focused !== 'game') {
 					break;
 				}
 				this.isMouseDown = true;
 				this.dragStart = new THREE.Vector2();
-				this.dragStart.x = (event.clientX / state.display.renderer.domElement.clientWidth) * 2 - 1;
-				this.dragStart.y = -(event.clientY / state.display.renderer.domElement.clientHeight) * 2 + 1;
+				this.dragStart.x = (event.clientX / gameState.display.renderer.domElement.clientWidth) * 2 - 1;
+				this.dragStart.y = -(event.clientY / gameState.display.renderer.domElement.clientHeight) * 2 + 1;
 				this.dragCurrent = this.dragStart;
 				event.preventDefault();
 				break;
@@ -171,15 +171,15 @@ export default class Input {
 	@autobind
 	private setMoveHandler(selectedUnits: UnitEntity[]): void {
 
-		state.selectedUnits = selectedUnits;
-		SelectedUnitsChange.post({ units: state.selectedUnits });
+		gameState.selectedUnits = selectedUnits;
+		SelectedUnitsChange.post({ units: gameState.selectedUnits });
 		this.mouseMode = 'move';
 		this.mouseAction = (event: MouseReleaseEvent) => {
-			if (!state.selectedUnits) {
+			if (!gameState.selectedUnits) {
 				return;
 			}
 			const tile = this.getTileUnderCursor(event.event);
-			for (const unit of state.selectedUnits) {
+			for (const unit of gameState.selectedUnits) {
 				RequestChange.post({
 					type: 'setDestination',
 					unitId: unit.unit.uuid,
@@ -194,21 +194,21 @@ export default class Input {
 
 
 		const mouse = new THREE.Vector2();
-		mouse.x = (event.clientX / state.display.renderer.domElement.clientWidth) * 2 - 1;
-		mouse.y = -(event.clientY / state.display.renderer.domElement.clientHeight) * 2 + 1;
+		mouse.x = (event.clientX / gameState.display.renderer.domElement.clientWidth) * 2 - 1;
+		mouse.y = -(event.clientY / gameState.display.renderer.domElement.clientHeight) * 2 + 1;
 
 		if (this.isMouseDown) { // for dragging actions
 			this.isMouseDown = false;
 			switch (event.button) {
 				case LEFT_MOUSE:
 					if (Math.abs(mouse.x - this.dragStart.x) > 1 / 100 && Math.abs(mouse.y - this.dragStart.y) > 1 / 100) {
-						this.setMoveHandler(state.map.getSelectedUnits(mouse, this.dragStart));
+						this.setMoveHandler(gameState.map.getSelectedUnits(mouse, this.dragStart));
 						return;
 					}
 					break;
 			}
 		}
-		if (state.focused === 'hud') {
+		if (gameState.focused === 'hud') {
 			return;
 		}
 
@@ -219,14 +219,14 @@ export default class Input {
 					break;
 				}
 
-				const unit = state.map.getSelectedUnit(mouse);
+				const unit = gameState.map.getSelectedUnit(mouse);
 				if (unit) {
 					this.setMoveHandler([unit]);
 				} else {
-					if (state.selectedUnits.length == 0) {
+					if (gameState.selectedUnits.length == 0) {
 						break;
 					}
-					state.selectedUnits = [];
+					gameState.selectedUnits = [];
 					this.mouseMode = 'select';
 					SelectedUnitsChange.post({ units: [] });
 
@@ -236,10 +236,10 @@ export default class Input {
 				break;
 			case RIGHT_MOUSE:
 				if (this.mouseMode === 'move') {
-					const selectedTile = state.map.getTileAtRay(mouse);
-					const entity = state.map.getSelectedUnit(mouse);
-					const selected = state.selectedUnits.length > 0 ? state.selectedUnits[0] : null
-					if (entity && selected && state.playerInfo && entity.unit.details.owner === state.playerInfo.uuid && entity.unit.uuid !== selected.unit.uuid) {
+					const selectedTile = gameState.map.getTileAtRay(mouse);
+					const entity = gameState.map.getSelectedUnit(mouse);
+					const selected = gameState.selectedUnits.length > 0 ? gameState.selectedUnits[0] : null
+					if (entity && selected && gameState.playerInfo && entity.unit.details.owner === gameState.playerInfo.uuid && entity.unit.uuid !== selected.unit.uuid) {
 						console.log('right clicked players own unit');
 						TransferChange.post({ dest: entity.unit, source: selected.unit });
 					}
@@ -257,9 +257,9 @@ export default class Input {
 	private getTileUnderCursor(event: MouseEvent): PlanetLoc {
 
 		const mouse = new THREE.Vector2();
-		mouse.x = (event.clientX / state.display.renderer.domElement.clientWidth) * 2 - 1;
-		mouse.y = -(event.clientY / state.display.renderer.domElement.clientHeight) * 2 + 1;
-		return state.map.getTileAtRay(mouse);
+		mouse.x = (event.clientX / gameState.display.renderer.domElement.clientWidth) * 2 - 1;
+		mouse.y = -(event.clientY / gameState.display.renderer.domElement.clientHeight) * 2 + 1;
+		return gameState.map.getTileAtRay(mouse);
 	}
 
 	@autobind
@@ -279,20 +279,20 @@ export default class Input {
 		// should also check if the tile is valid for the unit to build
 		const selectionMoveHandler = (e: MouseMoveEvent) => {
 			if (this.mouseMode !== 'focus') {
-				clearSelection(state);
+				clearSelection(gameState);
 				MouseMoveChanged.detach(selectionMoveHandler);
 				MoveCameraChange.detach(cameraMoveHandler);
 				return;
 			}
 			lastMousePos = e;
 			const tile = this.getTileUnderCursor(e.event);
-			setSelection(state, tile, color);
+			setSelection(gameState, tile, color);
 		}
 		MouseMoveChanged.attach(selectionMoveHandler);
 
 		const cameraMoveHandler = (e: MoveCameraEvent) => {
 			if (this.mouseMode !== 'focus') {
-				clearSelection(state);
+				clearSelection(gameState);
 				MouseMoveChanged.detach(selectionMoveHandler);
 				MoveCameraChange.detach(cameraMoveHandler)
 				return;
@@ -301,14 +301,14 @@ export default class Input {
 				return;
 			}
 			const tile = this.getTileUnderCursor(lastMousePos.event);
-			setSelection(state, tile, color);
+			setSelection(gameState, tile, color);
 		}
 
 		MoveCameraChange.attach(cameraMoveHandler);
 
 		this.mouseAction = (event: MouseReleaseEvent) => {
 
-			clearSelection(state);
+			clearSelection(gameState);
 			MouseMoveChanged.detach(selectionMoveHandler);
 			MoveCameraChange.detach(cameraMoveHandler)
 			if (this.mouseMode !== 'focus') {

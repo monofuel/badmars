@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import * as THREE from 'three';
 import { log } from '../logger';
 const ColladaLoader = require('three-collada-loader');
-import State, { UnitStatsChange, UnitStatsEvent } from '../state';
+import GameState, { UnitStatsChange, UnitStatsEvent } from '../state';
 import { updateGraphicalEntity } from '../units';
 
 const modelMap: { [key: string]: THREE.Group } = {}
@@ -23,9 +23,9 @@ export function handleModelChanges() {
 		log('debug', 'loading models');
 		await Promise.all(Object.keys(data.stats).map(async (unitType) => {
 			await updateModel(unitType, data.stats[unitType].graphical);
-			for (let entity of Object.values(state.unitEntities)) {
+			for (let entity of Object.values(gameState.unitEntities)) {
 				if (entity.unit.details.type === unitType) {
-					updateGraphicalEntity(state, entity);
+					updateGraphicalEntity(gameState, entity);
 				}
 			}
 		}));

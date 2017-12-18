@@ -59,9 +59,9 @@ export class PlanetLoc {
 		this.localX = x - (this.chunkX * this.planet.worldSettings.chunkSize);
 		this.localY = y - (this.chunkY * this.planet.worldSettings.chunkSize);
 
-		this.chunk = state.chunks[this.chunkX + ':' + this.chunkY];
+		this.chunk = gameState.chunks[this.chunkX + ':' + this.chunkY];
 
-		if (!planet || !state.chunks) {
+		if (!planet || !gameState.chunks) {
 			console.log('invalid call to PlanetLoc');
 			console.log(new Error()
 				.stack);

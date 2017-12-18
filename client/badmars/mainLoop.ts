@@ -4,7 +4,7 @@ import { autobind } from 'core-decorators';
 import StatsMonitor from './statsMonitor';
 import { log, logError } from './logger';
 import * as THREE from 'three';
-import State, { MapQueue, UnitQueue, UnitStatsQueue, ChunkQueue } from './state';
+import GameState, { MapQueue, UnitQueue, UnitStatsQueue, ChunkQueue } from './state';
 import * as tsevents from 'ts-events';
 import config from './config';
 import { updateUnitEntity } from './units';
@@ -26,7 +26,7 @@ function renderLoop() {
 	loop(() => {
 		statsMonitor.begin();
 		// render the current frame
-		state.display.render();
+		gameState.display.render();
 		statsMonitor.end();
 	}, config.frameLimit)
 }
@@ -38,10 +38,10 @@ function animationLoop() {
 	loop(() => {
 		const delta = clock.getDelta();
 
-		Object.values(state.unitEntities)
-			.map((unit) => updateUnitEntity(state, unit, delta));
+		Object.values(gameState.unitEntities)
+			.map((unit) => updateUnitEntity(gameState, unit, delta));
 
-		state.display.updateSunPosition(delta);
+		gameState.display.updateSunPosition(delta);
 	}, 30);
 }
 
@@ -74,9 +74,9 @@ function gameLogicLoop() {
 			debugger;
 		}
 
-		state.input.update(delta);
-		if (state.map) {
-			state.map.processFogUpdate();
+		gameState.input.update(delta);
+		if (gameState.map) {
+			gameState.map.processFogUpdate();
 		}
 	}, 40);
 }
@@ -87,7 +87,7 @@ function snowLoop() {
 	loop(() => {
 		const delta = clock.getDelta();
 
-		Object.values(state.snow)
+		Object.values(gameState.snow)
 			.map((snow) => {
 				(snow.geometry as THREE.Geometry).vertices.forEach((vert: THREE.Vertex) => {
 					const dZ = - 0.03;

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import { RequestChange } from '../net';
-import State from '../state';
+import GameState from '../state';
 
 export default class LoginModal extends React.Component<{}, {}> {
 	usernameField: HTMLInputElement;

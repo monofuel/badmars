@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import State, { GameFocusChange } from '../state';
+import GameState, { GameFocusChange } from '../state';
 import { RequestChange } from '../net';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
@@ -25,11 +25,11 @@ export default class Transfer extends React.Component<TransferProps, TransferSta
 	};
 
 	componentDidMount() {
-		GameFocusChange.post({ focus: 'hud', prev: state.focused })
+		GameFocusChange.post({ focus: 'hud', prev: gameState.focused })
 	}
 
 	componentWillUnmount() {
-		GameFocusChange.post({ focus: 'game', prev: state.focused })
+		GameFocusChange.post({ focus: 'game', prev: gameState.focused })
 	}
 
 	render() {

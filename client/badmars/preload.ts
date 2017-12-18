@@ -1,7 +1,7 @@
 import { Config } from "./config";
-import State from "./state";
+import GameState from "./state";
 
 export interface PreloadHash {
-    state: Partial<State>
+    state: Partial<GameState>
     config: Partial<Config>
 }

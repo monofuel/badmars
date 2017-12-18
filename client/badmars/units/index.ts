@@ -1,5 +1,5 @@
 import PlanetLoc from '../map/planetLoc'
-import State from '../state';
+import GameState from '../state';
 import { getMesh } from './unitModels';
 import * as THREE from 'three';
 import * as _ from 'lodash';
@@ -30,7 +30,7 @@ export default interface UnitEntity {
 
 }
 
-export function newUnitEntity(state: State, unit: Unit): UnitEntity {
+export function newUnitEntity(state: GameState, unit: Unit): UnitEntity {
 
     const loc = new PlanetLoc(state.map, unit.location.x, unit.location.y);
     const entity = {
@@ -44,7 +44,7 @@ export function newUnitEntity(state: State, unit: Unit): UnitEntity {
     return entity
 }
 
-export function updateGraphicalEntity(state: State, entity: UnitEntity) {
+export function updateGraphicalEntity(state: GameState, entity: UnitEntity) {
 
     if (!entity.unit.graphical) {
         throw new Error('cannot update graphics on unit without graphics');
@@ -102,7 +102,7 @@ export function updateGraphicalEntity(state: State, entity: UnitEntity) {
 
 }
 
-export function updateUnitEntity(state: State, entity: UnitEntity, delta: number) {
+export function updateUnitEntity(state: GameState, entity: UnitEntity, delta: number) {
 
     const next = state.units[entity.unit.uuid];
     // Check for state changes, and update accordingly
@@ -141,7 +141,7 @@ export function updateUnitEntity(state: State, entity: UnitEntity, delta: number
     }
 }
 
-export function destroyUnitEntity(state: State, entity: UnitEntity) {
+export function destroyUnitEntity(state: GameState, entity: UnitEntity) {
     if (entity.graphical) {
         state.display.removeMesh(entity.graphical.mesh);
         clearPath(state, entity);
@@ -184,7 +184,7 @@ function setToLocation(entity: UnitEntity, loc: PlanetLoc) {
     entity.graphical.mesh.position.z = - loc.real_y;
 }
 
-function animateToLocation(state: State, entity: UnitEntity, loc: PlanetLoc, delta: number) {
+function animateToLocation(state: GameState, entity: UnitEntity, loc: PlanetLoc, delta: number) {
     const tps = state.map.tps;
     // speed / tps gets the number of seconds to reach the destination
     const frameDistance = (delta / (entity.unit.movable.speed / tps));
@@ -211,7 +211,7 @@ function animateToLocation(state: State, entity: UnitEntity, loc: PlanetLoc, del
     }
 }
 
-function markSelected(state: State, entity: UnitEntity, loc: PlanetLoc) {
+function markSelected(state: GameState, entity: UnitEntity, loc: PlanetLoc) {
     if (!loc.equals(entity.graphical.selectedLoc)) {
         clearSelected(state, entity);
     }
@@ -274,13 +274,13 @@ export function tileSquareMesh(loc: PlanetLoc, color: THREE.Color): THREE.Mesh {
     return selectedMesh;
 }
 
-function clearSelected(state: State, entity: UnitEntity) {
+function clearSelected(state: GameState, entity: UnitEntity) {
     state.display.removeMesh(entity.graphical.selectionMesh);
     delete entity.graphical.selectionMesh;
     delete entity.graphical.selectedLoc;
 }
 
-function markPath(state: State, entity: UnitEntity, start: PlanetLoc) {
+function markPath(state: GameState, entity: UnitEntity, start: PlanetLoc) {
     const path = entity.unit.movable.path || [];
     if (!start.equals(entity.graphical.pathLoc) || path.length === 0 || !_.isEqual(path, entity.graphical.prevPath)) {
         clearPath(state, entity);
@@ -349,14 +349,14 @@ function markPath(state: State, entity: UnitEntity, start: PlanetLoc) {
     }
 }
 
-function clearPath(state: State, entity: UnitEntity) {
+function clearPath(state: GameState, entity: UnitEntity) {
     state.display.removeMesh(entity.graphical.pathMesh);
     delete entity.graphical.pathMesh;
     delete entity.graphical.pathLoc;
     entity.graphical.prevPath = [];
 }
 
-export function isTileVisible(state: State, x: number, y: number): boolean {
+export function isTileVisible(state: GameState, x: number, y: number): boolean {
     const units = _.filter(state.unitEntities, (unit) => {
         var deltaX = Math.abs(x - unit.unit.location.x);
         var deltaY = Math.abs(y - unit.unit.location.y);
@@ -368,7 +368,7 @@ export function isTileVisible(state: State, x: number, y: number): boolean {
     return units.length > 0;
 }
 
-export function checkForLinks(state: State, unit: UnitEntity) {
+export function checkForLinks(state: GameState, unit: UnitEntity) {
     if (unit.unit.details.owner !== state.playerInfo.uuid) {
         return;
     }

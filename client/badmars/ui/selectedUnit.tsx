@@ -3,7 +3,7 @@
 import { autobind } from 'core-decorators';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import State, { getPlayerByUUID, UnitDeltaChange } from '../state';
+import GameState, { getPlayerByUUID, UnitDeltaChange } from '../state';
 import { Paper } from 'material-ui';
 import LinearProgress from 'material-ui/LinearProgress';
 import UnitEntity from '../units';

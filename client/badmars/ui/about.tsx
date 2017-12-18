@@ -4,7 +4,7 @@ import { autobind } from 'core-decorators';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import config from '../config';
-import State, { GameFocusChange } from '../state';
+import GameState, { GameFocusChange } from '../state';
 import Dialog from 'material-ui/Dialog';
 
 type Props = {
@@ -32,7 +32,7 @@ export default class AboutModal extends React.Component<Props, {}> {
 
 	@autobind
 	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
-		GameFocusChange.post({ focus: 'hud', prev: state.focused });
+		GameFocusChange.post({ focus: 'hud', prev: gameState.focused });
 		e.stopPropagation();
 	}
 }
