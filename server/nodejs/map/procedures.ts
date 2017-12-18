@@ -31,9 +31,11 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
             height = height + medNoiseGenerator.noise2D(x * map.settings.medNoise, y * map.settings.medNoise) * map.settings.medNoiseScale;
             height = height + smallNoiseGenerator.noise2D(x * map.settings.smallNoise, y * map.settings.smallNoise) * map.settings.smallNoiseScale;
 
+            // fudge land near the water height to look butter
             if (height - map.settings.waterHeight > -waterFudge && height - map.settings.waterHeight < waterFudge) {
                 height = map.settings.waterHeight + waterFudge;
             }
+
             //@grid[x][y] = Math.round(point * smoothness) / smoothness
             chunk.grid[i].push(Math.round(height * smoothness) / smoothness);
         }
@@ -79,7 +81,6 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
         chunkLayer: layer,
     }
 }
-
 
 export async function generateResources(ctx: Context, map: Map, chunk: Chunk, layer: ChunkLayer): Promise<void> {
 

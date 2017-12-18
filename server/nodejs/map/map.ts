@@ -6,6 +6,7 @@
 
 import * as _ from 'lodash';
 // const grpc = require('grpc');
+const Alea = require('alea');
 
 import logger, { WrappedError } from '../logger';
 import Context from '../context';
@@ -35,13 +36,13 @@ const mapClient = new services.Map(env.mapHost + ':' + env.mapPort, grpc.credent
 const defaultSettings = {
 	chunkSize: 16,
 	waterHeight: 0,
-	cliffDelta: 0.4,
+	cliffDelta: 0.7,
 	water: true,
 	bigNoise: 0.005,
-	medNoise: 0.04,
+	medNoise: 0.03,
 	smallNoise: 0.1,
-	bigNoiseScale: 15,
-	medNoiseScale: 3,
+	bigNoiseScale: 20,
+	medNoiseScale: 5,
 	smallNoiseScale: 1,
 	ironChance: 0.002,
 	oilChance: 0.0015
@@ -349,10 +350,10 @@ export default class Map {
 
 	async spawnUser(ctx: Context, user: User): Promise<void> {
 		const planetDB = await db.getPlanetDB(ctx, this.name);
-
 		//find a spawn location
 		logger.info(ctx, 'finding spawn location');
 		const chunk: Chunk = await this.findSpawnLocation(ctx);
+		const random = new Alea(this.seed + chunk.x + chunk.y);
 
 		//spawn units for them on the chunk
 		const unitsToSpawn: string[] = [
@@ -364,8 +365,8 @@ export default class Map {
 
 		for (const unitType of unitsToSpawn) {
 			while (true) {
-				let x: number = this.settings.chunkSize * Math.random();
-				let y: number = this.settings.chunkSize * Math.random();
+				let x: number = this.settings.chunkSize * random();
+				let y: number = this.settings.chunkSize * random();
 
 				x += this.settings.chunkSize * chunk.x;
 				y += this.settings.chunkSize * chunk.y;
@@ -470,10 +471,12 @@ export default class Map {
 	async findSpawnLocation(ctx: Context, attempts: number = 0): Promise<Chunk> {
 		attempts = attempts || 0;
 
+		const random = new Alea(this.seed * 10 + this.users.length);
+
 		ctx.check('finding spawn location');
 
-		const direction = Math.random() * attempts * 50; //1magic number
-		const rotation = Math.random() * Math.PI * 2; //random value between 0 and 2PI
+		const direction = random() * attempts * 123; //1magic number
+		const rotation = random() * Math.PI * 2; //random value between 0 and 2PI
 
 		const x = direction * Math.cos(rotation);
 		const y = direction * Math.sin(rotation);

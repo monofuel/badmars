@@ -18,14 +18,14 @@ export default class DBUnit implements DB.DBUnit {
         const userUnits: Unit[] = [];
         for (const unit of Object.values(this.units)) {
             if (unit.details.owner === uuid) {
-                userUnits.push(unit);
+                userUnits.push(_.cloneDeep(unit));
             }
         }
         return userUnits;
     }
     async each(ctx: Context, fn: DB.Handler<Unit>): Promise<void> {
         for (let uuid in this.units) {
-            const unit = this.units[uuid];
+            const unit = _.cloneDeep(this.units[uuid]);
             await fn(ctx, unit);
         }
     }
@@ -42,7 +42,7 @@ export default class DBUnit implements DB.DBUnit {
     async getBulk(ctx: Context, uuids: UUID[]): Promise<{ [key: string]: Unit }> {
         const res: { [key: string]: Unit } = {};
         for (const uuid of uuids) {
-            res[uuid] = this.units[uuid];
+            res[uuid] = _.cloneDeep(this.units[uuid]);
         }
         return res;
     }

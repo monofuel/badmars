@@ -303,7 +303,7 @@ export async function newState(): Promise<State> {
 			return;
 		}
 		const updated = _.cloneDeep(unit);
-		jsonpatch.applyPatch(updated, data.delta);
+		const result = jsonpatch.applyPatch(updated, data.delta, Config.debug);
 		state.units[unit.uuid] = updated;
 		if (state.unitEntities[unit.uuid]) {
 			state.unitEntities[unit.uuid].unit = updated;

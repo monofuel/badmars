@@ -170,6 +170,7 @@ export default class Client {
 			return;
 		}
 
+		// if our unit has moved, we should update the visibility of units around it
 		if (!unit || !oldUnit || unit.location.hash !== oldUnit.location.hash && unit.details.owner === this.user.uuid) {
 			this.updateUnitVisiblity(ctx, unit);
 		}
