@@ -159,7 +159,6 @@ export default class Client {
 	}
 
 	async handleUnitUpdate(ctx: Context, unit: Unit, oldUnit?: Unit): Promise<void> {
-
 		// unit death
 		if (!unit) {
 			return;
@@ -170,10 +169,14 @@ export default class Client {
 			return;
 		}
 
+		oldUnit = this.visibleUnits[unit.uuid] || oldUnit;
+
 		// if our unit has moved, we should update the visibility of units around it
 		if (!unit || !oldUnit || unit.location.hash !== oldUnit.location.hash && unit.details.owner === this.user.uuid) {
 			this.updateUnitVisiblity(ctx, unit);
 		}
+
+		this.visibleUnits[unit.uuid] = unit;
 
 		unit.visible = true;
 		let prevVisible: boolean;
@@ -193,7 +196,6 @@ export default class Client {
 			if (!await isUnitVisible(ctx, unit, this.user)) {
 				return;
 			}
-
 		}
 
 		// prepare the unit to be sent to the client
@@ -203,10 +205,13 @@ export default class Client {
 			if (prevVisible) {
 				const sanitizedOldUnit = sanitizeUnit(oldUnit, this.user.uuid);
 				if (!_.isEqual(sanitizedNewUnit, sanitizedOldUnit)) {
-					await this.send('unitDelta', {
-						uuid: sanitizedNewUnit.uuid,
-						delta: jsonpatch.compare(sanitizedOldUnit, sanitizedNewUnit)
-					});
+					const delta = jsonpatch.compare(sanitizedOldUnit, sanitizedNewUnit);
+					if (delta.length > 0) {
+						await this.send('unitDelta', {
+							uuid: sanitizedNewUnit.uuid,
+							delta
+						});
+					}
 				}
 			} else { // send a full update if the unit is becoming visible
 				await this.send('units', {
@@ -218,6 +223,8 @@ export default class Client {
 				units: [sanitizedNewUnit]
 			});
 		}
+
+
 	}
 
 	// find units in visibleUnits that need to be updated for the user
@@ -230,13 +237,16 @@ export default class Client {
 					visible: false
 				}
 
-				await this.send('unitDelta', {
-					uuid: unit.uuid,
-					delta: jsonpatch.compare(
-						sanitizeUnit(unit, this.user.uuid),
-						sanitizeUnit(next, this.user.uuid)
-					)
-				});
+				const delta = jsonpatch.compare(
+					sanitizeUnit(unit, this.user.uuid),
+					sanitizeUnit(next, this.user.uuid)
+				);
+				if (delta.length > 0) {
+					await this.send('unitDelta', {
+						uuid: unit.uuid,
+						delta
+					});
+				}
 			}
 		}
 		const nearby = await this.map.getNearbyUnitsFromChunk(ctx,
@@ -254,7 +264,7 @@ export default class Client {
 			const distance = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 			if (distance < movedUnit.details.vision) {
 				nowVisible.push(unit);
-				this.visibleUnits[unit.uuid] = unit;
+				this.visibleUnits[unit.uuid] = _.cloneDeep(unit);
 			}
 		}
 		await this.send('units', {

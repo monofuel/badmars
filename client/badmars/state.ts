@@ -303,11 +303,12 @@ export async function newState(): Promise<State> {
 		if (!unit) {
 			return;
 		}
-		const updated = _.cloneDeep(unit);
-		const result = jsonpatch.applyPatch(updated, data.delta, Config.debug);
-		state.units[unit.uuid] = updated;
-		if (state.unitEntities[unit.uuid]) {
-			state.unitEntities[unit.uuid].unit = updated;
+		try {
+			jsonpatch.applyPatch(unit, data.delta, Config.debug);
+		} catch (err) {
+			// force chunk refresh
+			RequestChange.post({ type: 'getChunk', x: unit.location.chunkX, y: unit.location.chunkY, unitsOnly: true })
+			console.error(err);
 		}
 	};
 	UnitDeltaChange.attach(updateUnitDeltaListener);

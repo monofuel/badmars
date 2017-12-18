@@ -113,7 +113,6 @@ export async function newUnit(ctx: Context, type: string, loc: PlanetLoc | null,
 	return {
 		...unitStats,
 		uuid: uuidv4(),
-		awake: true,
 		visible: false,
 		details: {
 			...unitStats.details,
@@ -142,15 +141,13 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 	};
 
 	// ------------------
-	// iron and oil should always be off
+	// iron and oil resources do not need to do work
 	if (unit.details.type === 'oil' || unit.details.type === 'iron') {
-		await patchUnit(ctx, unit, { awake: false });
 		return;
 	}
 
-	// ghosting units don't need to be awake
+	// ghosting units don't need to do work
 	if (unit.details.ghosting) {
-		await patchUnit(ctx, unit, { awake: false });
 		return;
 	}
 
@@ -240,9 +237,6 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 		} else if (actionable.constructionAI) {
 			logger.info(ctx, 'processing construction', {}, { silent: true });
 			await constructionAI.simulate(ctx, unit);
-		} else if (!unit.details.fuelBurnLength) { // if no action is performed
-			logger.info(ctx, 'sleeping unit');
-			await planetDB.unit.patch(ctx, unit.uuid, { awake: false });
 		}
 	} catch (err) {
 		throw new WrappedError(err, 'failed to perform action', actionable);
@@ -272,7 +266,6 @@ export async function addFactoryOrder(ctx: Context, unit: Unit, unitType: UnitTy
 	};
 
 	planetDB.factoryQueue.create(ctx, order);
-	planetDB.unit.patch(ctx, unit.uuid, { awake: true });
 }
 
 export async function popFactoryOrder(ctx: Context, unit: Unit): Promise<any> {
@@ -354,7 +347,7 @@ export async function setPath(ctx: Context, unit: Unit, path: Array<any>, dest?:
 	if (dest) {
 		movable.destination = dest;
 	}
-	return await patchUnit(ctx, unit, { awake: true, movable });
+	return await patchUnit(ctx, unit, { movable });
 }
 
 export async function clearDestination(ctx: Context, unit: Unit): Promise<void> {
@@ -423,7 +416,7 @@ export async function takeDamage(ctx: Context, unit: Unit, dmg: number): Promise
 	if (details.health < 0) {
 		details.health = 0;
 	}
-	await patchUnit(ctx, unit, { details, awake: true });
+	await patchUnit(ctx, unit, { details });
 }
 
 export async function setConstructing(ctx: Context, unit: Unit, constructing: { type: string, remaining: number }): Promise<void> {
@@ -446,7 +439,7 @@ export async function tickConstruction(ctx: Context, unit: Unit): Promise<void> 
 
 
 export async function setBuilt(ctx: Context, unit: Unit): Promise<void> {
-	await patchUnit(ctx, unit, { awake: true, details: { ghosting: false } });
+	await patchUnit(ctx, unit, { details: { ghosting: false } });
 }
 
 export async function tickResourceCooldown(ctx: Context, unit: Unit): Promise<void> {

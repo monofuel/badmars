@@ -13,7 +13,6 @@ export function sanitizeUnit(unit: Unit, owner: UUID) {
 
 	const {
 		uuid,
-		awake,
 		details,
 		visible
 	} = unit;
@@ -40,7 +39,6 @@ export function sanitizeUnit(unit: Unit, owner: UUID) {
 
 	return {
 		uuid,
-		awake,
 		visible,
 		details: owned ? sanitizeOwnedUnitDetails(unit.details) :
 			sanitizeUnitDetails(unit.details),

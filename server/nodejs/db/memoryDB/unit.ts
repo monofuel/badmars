@@ -53,8 +53,8 @@ export default class DBUnit implements DB.DBUnit {
     }
     async patch(ctx: Context, uuid: string, unit: Partial<UnitPatch>): Promise<Unit> {
         const call = startDBCall(ctx, 'unit.patch');
-        const prev = this.units[uuid];
-        const next = _.merge({}, prev, unit);
+        const prev = _.cloneDeep(this.units[uuid]);
+        const next = _.merge(this.units[uuid], unit);
         // HACK don't merge arrays
         if (unit.movable && unit.movable.path) {
             next.movable.path = unit.movable.path
@@ -96,7 +96,7 @@ export default class DBUnit implements DB.DBUnit {
 
         for (let uuid in this.units) {
             const unit = this.units[uuid];
-            if (unit.awake && unit.details.lastTick < tick) {
+            if (unit.details.lastTick < tick) {
                 uuids.push(uuid);
             }
         }

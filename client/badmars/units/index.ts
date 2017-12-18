@@ -205,9 +205,6 @@ function animateToLocation(state: State, entity: UnitEntity, loc: PlanetLoc, del
         angle.z = x + y;
         entity.graphical.mesh.setRotationFromEuler((new THREE.Euler()).setFromVector3(angle));
     } else {
-        // HACK
-        // for some reason jsonpatch has a bug where it duplicates the last element
-        entity.unit.movable.path.pop();
         entity.graphical.movementDelta = 0;
         setToLocation(entity, loc);
         state.map.updateFogOfWar(loc, entity.unit.details.vision);

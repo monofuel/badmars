@@ -59,11 +59,6 @@ export default class StandaloneService implements Service {
             await testPlanet.planet.spawnUser(ctx, user);
         }
 
-        // force all units awake to update
-        await testPlanet.unit.each(ctx, async (ctx: Context, unit: Unit) => {
-            await testPlanet.unit.patch(ctx, unit.uuid, { awake: true });
-        });
-
         // apply any unit stat changes
         await testPlanet.unit.each(ctx, async (ctx: Context, unit: Unit) => {
             const stats = await testPlanet.unitStat.get(ctx, unit.details.type);

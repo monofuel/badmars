@@ -46,7 +46,6 @@ interface Chunk {
 
 interface Unit {
 	uuid: UUID;
-	awake: boolean;
 	visible: boolean; // this is set depending on the player
 	details: UnitDetails;
 	location: UnitLocation;
@@ -60,7 +59,6 @@ interface Unit {
 
 interface UnitPatch {
 	uuid: UUID;
-	awake: boolean;
 	details: Partial<UnitDetails>;
 	location: Partial<UnitLocation>;
 	movable: null | Partial<UnitMovable>;

@@ -279,7 +279,7 @@ export default class Map {
 		return unit;
 	}
 
-	async checkValidForUnit(ctx: Context, tiles: PlanetLoc[], unit: Unit, ignoreAwake: boolean = false): Promise<null | string> {
+	async checkValidForUnit(ctx: Context, tiles: PlanetLoc[], unit: Unit, ignoreMoving: boolean = false): Promise<null | string> {
 		//TODO handle air and water units
 		for (const tile of tiles) {
 			if (tile.tileType !== LAND) {
@@ -316,15 +316,14 @@ export default class Map {
 			return;
 		}
 
-		if (ignoreAwake) {
-			let foundSleeping = false;
+		if (ignoreMoving) {
+			let foundMoving = false;
 			for (const unit of units) {
-				// movable or stationary? this is smelly...
-				if (!unit.awake && (unit.movable || unit.stationary).layer === 'ground') {
-					foundSleeping = true;
+				if (unit.movable.destination) {
+					foundMoving = true;
 				}
 			}
-			if (!foundSleeping) {
+			if (!foundMoving) {
 				return;
 			}
 		}

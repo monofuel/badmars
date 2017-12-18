@@ -1,0 +1,3 @@
+[submodule "mono-scripts"]
+	path = mono-scripts
+	url = git@github.com:monofuel/mono-scripts.git

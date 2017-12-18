@@ -10,6 +10,7 @@ import Client from '../client';
 import db from '../../db';
 import { listChunkUnits } from '../../map/chunk';
 import { isUnitVisible } from '../../unit/unit';
+import * as _ from 'lodash';
 
 export default async function getChunk(ctx: Context, client: Client, data: any): Promise<void> {
 	const planetDB = await db.getPlanetDB(ctx, client.map.name);
@@ -36,7 +37,7 @@ export default async function getChunk(ctx: Context, client: Client, data: any):
 			if (!unit.visible) {
 				return;
 			}
-			client.visibleUnits[unit.uuid] = unit;
+			client.visibleUnits[unit.uuid] = _.cloneDeep(unit);
 
 			sanitized.push(sanitizeUnit(unit, client.user.uuid));
 		}
