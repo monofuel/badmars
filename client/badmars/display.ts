@@ -89,9 +89,9 @@ export default class Display {
 			this.camera.position.z = tile.real_y + 50;
 		} else {
 			this.camera.position.copy(tile.getLoc());
-			this.camera.position.x -= 13;
-			this.camera.position.y += 27;
-			this.camera.position.z -= 13;
+			this.camera.position.x -= 23;
+			this.camera.position.y += 36;
+			this.camera.position.z -= 23;
 			this.camera.rotation.set(-1, -2.3708363267948984, 0);
 		}
 	}

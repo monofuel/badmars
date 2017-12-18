@@ -113,7 +113,8 @@ export const ChatChange = new QueuedEvent<ChatEvent>();
 
 export const UnitStatsQueue = new EventQueue();
 export const UnitStatsChange = new QueuedEvent<UnitStatsEvent>({ queue: UnitStatsQueue });
-export const ChunkChange = new QueuedEvent<ChunkEvent>();
+export const ChunkQueue = new EventQueue();
+export const ChunkChange = new QueuedEvent<ChunkEvent>({ queue: ChunkQueue });
 export const UnitDeltaChange = new QueuedEvent<UnitDeltaEvent>();
 
 // ------------------------------

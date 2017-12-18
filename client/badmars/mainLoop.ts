@@ -4,7 +4,7 @@ import { autobind } from 'core-decorators';
 import StatsMonitor from './statsMonitor';
 import { log, logError } from './logger';
 import * as THREE from 'three';
-import State, { MapQueue, UnitQueue, UnitStatsQueue } from './state';
+import State, { MapQueue, UnitQueue, UnitStatsQueue, ChunkQueue } from './state';
 import * as tsevents from 'ts-events';
 import config from './config';
 import { updateUnitEntity } from './units';
@@ -15,7 +15,7 @@ export default function startGameLoops(state: State) {
 	animationLoop(state);
 	gameLogicLoop(state);
 	snowLoop(state);
-
+	chunkLoadLoop(state);
 }
 
 function renderLoop(state: State) {
@@ -41,6 +41,16 @@ function animationLoop(state: State) {
 
 		state.display.updateSunPosition(delta);
 	}, 30);
+}
+
+function chunkLoadLoop(state: State) {
+	loop(() => {
+		// Do gross stuff to limit queue speed
+		const queue: (() => void)[] = (ChunkQueue as any)._queue;
+		if (queue.length > 0) {
+			queue.pop()();
+		}
+	}, 40);
 }
 
 function gameLogicLoop(state: State) {

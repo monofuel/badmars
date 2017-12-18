@@ -39,10 +39,10 @@ const defaultSettings = {
 	cliffDelta: 0.7,
 	water: true,
 	bigNoise: 0.005,
-	medNoise: 0.03,
+	medNoise: 0.037,
 	smallNoise: 0.1,
 	bigNoiseScale: 20,
-	medNoiseScale: 5,
+	medNoiseScale: 6,
 	smallNoiseScale: 1,
 	ironChance: 0.002,
 	oilChance: 0.0015
