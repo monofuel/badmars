@@ -25,12 +25,12 @@ export default class DBUnit implements DB.DBUnit {
     }
     async each(ctx: Context, fn: DB.Handler<Unit>): Promise<void> {
         for (let uuid in this.units) {
-            const unit = _.cloneDeep(this.units[uuid]);
+            const unit = this.units[uuid];
             await fn(ctx, unit);
         }
     }
     async get(ctx: Context, uuid: string): Promise<Unit> {
-        return _.cloneDeep(this.units[uuid]);
+        return this.units[uuid];
     }
     async create(ctx: Context, unit: Unit): Promise<Unit> {
         const call = startDBCall(ctx, 'unit.create');
@@ -42,7 +42,7 @@ export default class DBUnit implements DB.DBUnit {
     async getBulk(ctx: Context, uuids: UUID[]): Promise<{ [key: string]: Unit }> {
         const res: { [key: string]: Unit } = {};
         for (const uuid of uuids) {
-            res[uuid] = _.cloneDeep(this.units[uuid]);
+            res[uuid] = this.units[uuid];
         }
         return res;
     }
