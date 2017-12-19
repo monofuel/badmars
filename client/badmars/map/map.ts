@@ -233,6 +233,10 @@ export default class Map {
 		gameState.chunks[chunk.hash].landMesh = gridMesh;
 		gameState.chunks[chunk.hash].waterMesh = waterMesh;
 
+		gridMesh.castShadow = true;
+		gridMesh.receiveShadow = true;
+		waterMesh.receiveShadow = true;
+
 		display.addMesh(gridMesh);
 		display.addMesh(waterMesh);
 

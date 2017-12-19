@@ -202,7 +202,7 @@ export async function newState(): Promise<GameState> {
 		players: [],
 		connected: false,
 
-		sunSpeed: 0.025,
+		sunSpeed: 0.015,
 		sunColor: 0xcccccc,
 		moonColor: 0x5e647a,
 

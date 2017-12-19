@@ -30,7 +30,7 @@ export default class Display {
 		this.T = THREE;
 
 		const aspectRatio = window.innerWidth / window.innerHeight;
-		this.lightAngle = 0.0;
+		this.lightAngle = 1.5 * Math.PI;
 		this.d = 15;
 
 		if (config.orthographic) {
@@ -46,9 +46,12 @@ export default class Display {
 		this.HUDPanel.height = window.innerHeight;
 
 		this.renderer = new THREE.WebGLRenderer({
-			antialias: false,
+			antialias: config.antiAlias,
 			canvas: this.panel
 		});
+
+		this.renderer.shadowMap.enabled = config.shadows;
+		this.renderer.shadowMap.type = config.smoothShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
 
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -57,8 +60,20 @@ export default class Display {
 		this.moonLight = new THREE.DirectionalLight(gameState.moonColor, 0.2);
 		this.scene.add(this.moonLight);
 		this.light = new THREE.DirectionalLight(gameState.sunColor, 1);
+		this.light.castShadow = true;
+		this.light.shadow.mapSize.width = 2048;
+		this.light.shadow.mapSize.height = 2048;
+		this.light.shadow.camera.top = 50;
+		this.light.shadow.camera.bottom = -50;
+		this.light.shadow.camera.left = 50;
+		this.light.shadow.camera.right = -50;
+		this.light.shadow.camera.far = 500;
+		this.light.target = this.camera;
+		this.light.shadow.camera.updateProjectionMatrix();
+
 		this.updateSunPosition(0);
 		this.scene.add(this.light);
+		// this.scene.add(new THREE.CameraHelper(this.light.shadow.camera));
 		// this.scene.fog = new THREE.Fog( 0x111111, 40, 130 );
 
 		if (config.orthographic) {
@@ -76,9 +91,6 @@ export default class Display {
 		this.camera.updateProjectionMatrix();
 
 		window.onresize = this.resize;
-
-
-
 	}
 
 	viewTile(tile: PlanetLoc) {
@@ -99,10 +111,18 @@ export default class Display {
 
 		this.lightAngle += Math.PI * delta * gameState.sunSpeed;
 		if (this.lightAngle > 2 * Math.PI) {
-			this.lightAngle -= 2 * Math.PI;
+			// this.lightAngle -= 2 * Math.PI;
 		}
-		this.light.position.y = Math.cos(this.lightAngle) * 50;
-		this.light.position.z = Math.sin(this.lightAngle) * 50;
+		if (this.lightAngle > 1.6 * Math.PI || this.lightAngle < 0.4 * Math.PI) {
+			// during day
+			this.light.castShadow = true;
+		} else {
+			this.light.castShadow = false;
+		}
+		// keeping the light near the camera for shadows
+		this.light.position.copy(this.camera.position);
+		this.light.position.y += Math.cos(this.lightAngle) * 50;
+		this.light.position.z += Math.sin(this.lightAngle) * 50;
 		this.moonLight.position.y = -(Math.cos(this.lightAngle) * 50);
 		this.moonLight.position.z = -(Math.sin(this.lightAngle) * 50);
 	}
@@ -113,9 +133,9 @@ export default class Display {
 			this.resize();
 		} else {
 			this.camera.position.y += config.cameraSpeed * delta;
-			if (this.camera.position.y > 75) {
+			/*if (this.camera.position.y > 75) {
 				this.camera.position.y = 75;
-			}
+			}*/
 		}
 		this.setChunkRange();
 	}
@@ -244,6 +264,8 @@ export default class Display {
 		if (this.renderer.getPixelRatio() !== config.pixelRatio) {
 			this.renderer.setPixelRatio(config.pixelRatio);
 		}
+		this.renderer.shadowMap.enabled = config.shadows;
+		this.renderer.shadowMap.type = config.smoothShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
 
 		this.HUDContext.clearRect(0, 0, this.HUDPanel.width, this.HUDPanel.height);
 		this.renderer.render(this.scene, this.camera);

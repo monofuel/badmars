@@ -94,6 +94,9 @@ export interface Config {
 	frameLimit: number | 'auto';
 	showLinks: boolean;
 	pixelRatio: number;
+	antiAlias: boolean;
+	smoothShadows: boolean;
+	shadows: boolean;
 }
 
 
@@ -119,6 +122,9 @@ const defaultConfig: Config = {
 	frameLimit: 'auto',
 	showLinks: true,
 	pixelRatio: 1,
+	antiAlias: false,
+	smoothShadows: true,
+	shadows: false
 }
 
 // TODO save config separately

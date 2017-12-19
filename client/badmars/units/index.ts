@@ -3,6 +3,7 @@ import GameState from '../state';
 import { getMesh } from './unitModels';
 import * as THREE from 'three';
 import * as _ from 'lodash';
+import config from '../config';
 
 export interface GraphicalEntity {
     mesh: THREE.Group
@@ -14,7 +15,10 @@ export interface GraphicalEntity {
     prevPath: string[];
     ghosting: boolean;
     links: {
-        [key: string]: THREE.Line;
+        [key: string]: {
+            line: THREE.Line;
+            loc: PlanetLoc;
+        }
     }
 }
 
@@ -63,6 +67,8 @@ export function updateGraphicalEntity(state: GameState, entity: UnitEntity) {
     mesh.rotation.x = -Math.PI / 2;
     mesh.children.map((obj: THREE.Object3D) => {
         obj.children.map((objMesh: THREE.Mesh) => {
+            objMesh.castShadow = true;
+            objMesh.receiveShadow = true;
             objMesh.userData = entity;
         });
     });
@@ -136,6 +142,9 @@ export function updateUnitEntity(state: GameState, entity: UnitEntity, delta: nu
             clearPath(state, entity);
         }
     }
+
+    // always update links in case if other units moved
+    checkForLinks(state, entity);
 
     // Since the entity has handled all the changes, update it for the next frame.
     entity.unit = next;
@@ -376,6 +385,17 @@ export function checkForLinks(state: GameState, unit: UnitEntity) {
     if (unit.unit.details.owner !== state.playerInfo.uuid) {
         return;
     }
+    if (!config.showLinks) {
+        const links = Object.values(unit.graphical.links);
+        if (links.length > 0) {
+            links.map((link) => {
+                gameState.display.removeMesh(link.line);
+            })
+            unit.graphical.links = {};
+        }
+        return;
+    }
+
     // priority:  towers > storage > mobile transports
     const resourceUnits = ['transfer_tower', 'storage', 'transport', 'mine']
 
@@ -397,9 +417,31 @@ function isResourceRange(unit1: Unit, unit2: Unit): boolean {
 
 function updateLinks(unit: UnitEntity, units: UnitEntity[]) {
     for (const other of units) {
+        let link = unit.graphical.links[other.unit.uuid];
         if (unit.graphical.links[other.unit.uuid]) {
             // check if the location updated
+            if (link.loc.equals(other.loc)) {
+                continue;
+            }
+            gameState.display.removeMesh(link.line);
         }
+        const loc = other.loc.clone();
+        const geom = new THREE.Geometry();
+        geom.vertices.push(loc.getVec());
+        geom.vertices.push(unit.loc.getVec());
+
+
+        const lineMaterial = new THREE.LineBasicMaterial({
+            color: '#481caf',
+            linewidth: 4,
+        });
+        const line = new THREE.Line(geom, lineMaterial);
+        gameState.display.addMesh(line);
+        link = {
+            line,
+            loc
+        };
+        unit.graphical.links[other.unit.uuid] = link;
     }
 }
 
