@@ -73,8 +73,12 @@ export function updateGraphicalEntity(state: GameState, entity: UnitEntity) {
             throw new Error("mesh missing material");
         }
 
-        if (mat.name.includes('flag')) {
+        // TODO
+        /*if (mat.name.includes('flag')) {
             mat.color = new THREE.Color();
+        }*/
+        if (entity.unit.details.owner) {
+            mat.color = getUnitColor(entity);
         }
         if (entity.unit.details.ghosting) {
             mat.transparent = true;
@@ -399,7 +403,12 @@ function updateLinks(unit: UnitEntity, units: UnitEntity[]) {
     }
 }
 
-function getUnitColor(unit: UnitEntity): THREE.Color {
-
-    throw new Error();
+// get the unit color based on friend or foe (or self)
+function getUnitColor(entity: UnitEntity): THREE.Color {
+    // wars and alliances aren't implemented yet, so just doing self vs other for now
+    if (entity.unit.details.owner === gameState.playerInfo.uuid) {
+        return new THREE.Color(0x5194ff);
+    } else {
+        return new THREE.Color(0xf9ff68);
+    }
 }
