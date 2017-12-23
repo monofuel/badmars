@@ -61,6 +61,7 @@ export default class Display {
 		this.scene.add(this.moonLight);
 		this.light = new THREE.DirectionalLight(gameState.sunColor, 1);
 		this.light.castShadow = true;
+		this.light.shadow.bias = -0.0003;
 		this.light.shadow.mapSize.width = 2048;
 		this.light.shadow.mapSize.height = 2048;
 		this.light.shadow.camera.top = 50;
@@ -121,8 +122,8 @@ export default class Display {
 		}
 		// keeping the light near the camera for shadows
 		this.light.position.copy(this.camera.position);
-		this.light.position.y += Math.cos(this.lightAngle) * 50;
-		this.light.position.z += Math.sin(this.lightAngle) * 50;
+		this.light.position.y += Math.cos(this.lightAngle) * 100;
+		this.light.position.z += Math.sin(this.lightAngle) * 100;
 		this.moonLight.position.y = -(Math.cos(this.lightAngle) * 50);
 		this.moonLight.position.z = -(Math.sin(this.lightAngle) * 50);
 	}

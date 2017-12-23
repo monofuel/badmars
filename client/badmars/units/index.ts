@@ -108,7 +108,7 @@ export function updateGraphicalEntity(state: GameState, entity: UnitEntity) {
         ghosting: entity.unit.details.ghosting,
     }
     setToLocation(entity, entity.loc);
-    checkForLinks(state, entity);
+    // checkForLinks(state, entity);
 
 }
 
@@ -144,7 +144,7 @@ export function updateUnitEntity(state: GameState, entity: UnitEntity, delta: nu
     }
 
     // always update links in case if other units moved
-    checkForLinks(state, entity);
+    // checkForLinks(state, entity);
 
     // Since the entity has handled all the changes, update it for the next frame.
     entity.unit = next;

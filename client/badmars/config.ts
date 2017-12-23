@@ -149,6 +149,9 @@ function loadFromHash() {
 		hashObj.config.pixelRatio = parseFloat(hashObj.config.pixelRatio as any);
 		console.log(hashObj.config);
 	}
+	if (hashObj.config.debug as any === 'false') {
+		hashObj.config.debug = false;
+	}
 	_.merge(config, hashObj.config);
 }
 
