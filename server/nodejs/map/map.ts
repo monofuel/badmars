@@ -491,7 +491,7 @@ export default class Map {
 	}
 
 	async getNearbyUnitsFromChunkWithTileRange(ctx: Context, chunkHash: ChunkHash, tileRange: number): Promise<Array<Unit>> {
-		const chunkRange = tileRange / this.settings.chunkSize;
+		const chunkRange = Math.ceil(tileRange / this.settings.chunkSize);
 		return await this.getNearbyUnitsFromChunk(ctx, chunkHash, chunkRange);
 	}
 

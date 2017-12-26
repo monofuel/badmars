@@ -20,7 +20,7 @@ export default class TransferTowerAI implements UnitAI {
         const planetDB = await db.getPlanetDB(ctx, self.location.map);
 
         const units: Unit[] = await planetDB.planet.getNearbyUnitsFromChunkWithTileRange(ctx, self.location.chunkHash[0], self.storage.transferRange);
-        const nearby = _.filter(units, (unit) => unitDistance(self, unit) < self.storage.transferRange);
+        const nearby = _.filter(units, (unit) => !unit.details.ghosting && unitDistance(self, unit) < self.storage.transferRange && unit.uuid !== self.uuid);
 
         // push resources to receivers
         await this.handleReceivers(ctx, self, 'iron', nearby);
@@ -55,12 +55,16 @@ export default class TransferTowerAI implements UnitAI {
         // find nearby not-receiver storages
         const storages: Unit[] = _.filter(nearby,
             (unit) => unit.details.type === 'storage' &&
-                !unit.storage.receive &&
-                unit.storage[resourceType] < unit.storage[max]);
+                !unit.storage.receive);
         for (const storage of storages) {
             const storagePercentage = storage.storage[resourceType] / storage.storage[max];
             const selfPercentage = self.storage[resourceType] / self.storage[max];
-            const delta = Math.round((selfPercentage - storagePercentage) * self.storage[max]);
+            let delta = Math.round(((selfPercentage - storagePercentage) * self.storage[max]) / 2);
+            if (delta > 5) {
+                delta = 5;
+            } else if (delta < -5) {
+                delta = -5;
+            }
             // prevent jittering back and forth
             if (delta <= 1 && delta >= -1) {
                 continue;
@@ -75,17 +79,28 @@ export default class TransferTowerAI implements UnitAI {
     }
 
     private async pushTowers(ctx: Context, self: Unit, resourceType: Resource, nearby: Unit[]): Promise<void> {
+        const max = resourceType === 'iron' ? 'maxIron' : 'maxFuel';
         // look for not full transfer towers
         const towers: Unit[] = _.filter(nearby,
             (unit) => unit.details.type === 'transfer_tower' &&
-                unit.storage[resourceType] < unit.storage[resourceType === 'iron' ? 'maxIron' : 'maxFuel']);
-        let balanceResource = self.storage[resourceType] / towers.length;
-        if (balanceResource > transferLimit) balanceResource = 5;
-        if (balanceResource < 1) {
-            return;
-        }
+                unit.storage[resourceType] < unit.storage[max]);
         for (const tower of towers) {
-            await sendResource(ctx, resourceType, balanceResource, self, tower);
+            const storagePercentage = tower.storage[resourceType] / tower.storage[max];
+            const selfPercentage = self.storage[resourceType] / self.storage[max];
+            let delta = Math.round(((selfPercentage - storagePercentage) * self.storage[max]) / 2);
+            if (delta > 5) {
+                delta = 5;
+            } else if (delta < -5) {
+                delta = -5;
+            }
+            // prevent jittering back and forth
+            if (delta <= 1 && delta >= -1) {
+                continue;
+            }
+            // only push resources
+            if (delta > 0) {
+                await sendResource(ctx, resourceType, delta, self, tower);
+            }
         }
     }
 }

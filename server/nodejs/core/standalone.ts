@@ -132,6 +132,9 @@ class SimulateService implements Service {
 
             const tickEndTime = Date.now();
             const tickLength = tickEndTime - tickStartTime;
+            if (tickLength > desiredLength) {
+                logger.info(ctx, 'long tick', { tickLength, desiredLength });
+            }
             const delay = desiredLength - tickLength;
             // logger.info(ctx, 'tick proccessed', { delay });
             this.tickTimeout = setTimeout(() => this.tick(), delay > 0 ? delay : 0);
@@ -146,13 +149,15 @@ class SimulateService implements Service {
         const tick = planetDB.planet.lastTick + 1;
         const unitUUIDs = await planetDB.unit.getUnprocessedUnitUUIDs(ctx, tick);
         // logger.info(ctx, 'processing units', { planetName, count: unitUUIDs.length });
-
+        const promises: Promise<void>[] = [];
         for (let uuid of unitUUIDs) {
             const unit = await planetDB.unit.claimUnitTick(ctx, uuid, tick);
             if (unit) {
                 try {
+
                     await sleep(0);
-                    await simulate(ctx, unit);
+                    await simulate(ctx, unit); // for serial processing
+                    // promises.push(simulate(ctx, unit)); // for parallel processing
                 } catch (err) {
                     if (ctx.env.debug) {
                         throw err;
@@ -162,6 +167,7 @@ class SimulateService implements Service {
                 }
             }
         }
+        await Promise.all(promises);
 
         await planetDB.planet.advanceTick(ctx);
     }
