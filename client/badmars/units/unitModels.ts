@@ -25,7 +25,7 @@ export function handleModelChanges() {
 			await updateModel(unitType, data.stats[unitType].graphical);
 			for (let entity of Object.values(gameState.unitEntities)) {
 				if (entity.unit.details.type === unitType) {
-					updateGraphicalEntity(gameState, entity);
+					updateGraphicalEntity(entity);
 				}
 			}
 		}));

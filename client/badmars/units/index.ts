@@ -34,28 +34,28 @@ export default interface UnitEntity {
 
 }
 
-export function newUnitEntity(state: GameState, unit: Unit): UnitEntity {
+export function newUnitEntity(unit: Unit): UnitEntity {
 
-    const loc = new PlanetLoc(state.map, unit.location.x, unit.location.y);
+    const loc = new PlanetLoc(gameState.map, unit.location.x, unit.location.y);
     const entity = {
         loc,
         unit
     }
     if (unit.graphical) {
-        updateGraphicalEntity(state, entity);
-        state.map.updateFogOfWar(loc, entity.unit.details.vision);
+        updateGraphicalEntity(entity);
+        gameState.map.updateFogOfWar(loc, entity.unit.details.vision);
     }
     return entity
 }
 
-export function updateGraphicalEntity(state: GameState, entity: UnitEntity) {
+export function updateGraphicalEntity(entity: UnitEntity) {
 
     if (!entity.unit.graphical) {
         throw new Error('cannot update graphics on unit without graphics');
     }
 
     if (entity.graphical && entity.graphical.mesh) {
-        state.display.removeMesh(entity.graphical.mesh);
+        gameState.display.removeMesh(entity.graphical.mesh);
     }
 
     const scale = entity.unit.graphical.scale;
@@ -94,7 +94,7 @@ export function updateGraphicalEntity(state: GameState, entity: UnitEntity) {
         }
     });
     mesh.name = `unit ${entity.unit.uuid}`;
-    state.display.addMesh(mesh);
+    gameState.display.addMesh(mesh);
     entity.graphical = {
         movementDelta: 0,
         selectedLoc: null,
@@ -108,7 +108,6 @@ export function updateGraphicalEntity(state: GameState, entity: UnitEntity) {
         ghosting: entity.unit.details.ghosting,
     }
     setToLocation(entity, entity.loc);
-    // checkForLinks(state, entity);
 
 }
 
@@ -119,10 +118,10 @@ export function updateUnitEntity(state: GameState, entity: UnitEntity, delta: nu
     // entity.loc isn't updated until it has fully animated
     const loc = new PlanetLoc(state.map, entity.unit.location.x, entity.unit.location.y);
     if (!entity.loc.equals(loc) && entity.unit.movable) {
-        animateToLocation(state, entity, loc, delta);
+        animateToLocation(entity, loc, delta);
     } else if (!entity.unit.visible && entity.unit.movable) {
         // If the unit is movable and not visible, hide it
-        destroyUnitEntity(state, entity);
+        destroyUnitEntity(entity);
     }
     if (!_.isEqual(next.graphical.model, entity.unit.graphical.model)) {
         // TODO
@@ -130,37 +129,37 @@ export function updateUnitEntity(state: GameState, entity: UnitEntity, delta: nu
     }
 
     if (state.selectedUnits.includes(entity)) {
-        markSelected(state, entity, loc);
+        markSelected(entity, loc);
         if (entity.unit.movable) {
-            markPath(state, entity, loc);
+            markPath(entity, loc);
         }
     } else {
         if (entity.graphical.selectionMesh) {
-            clearSelected(state, entity);
+            clearSelected(entity);
         }
         if (entity.graphical.pathMesh) {
-            clearPath(state, entity);
+            clearPath(entity);
         }
     }
 
     // always update links in case if other units moved
-    // checkForLinks(state, entity);
+    checkForLinks(entity);
 
     // Since the entity has handled all the changes, update it for the next frame.
     entity.unit = next;
     if (entity.graphical.ghosting !== next.details.ghosting) {
         console.log('no longer ghosting');
-        updateGraphicalEntity(state, entity);
+        updateGraphicalEntity(entity);
     }
 }
 
-export function destroyUnitEntity(state: GameState, entity: UnitEntity) {
+export function destroyUnitEntity(entity: UnitEntity) {
     if (entity.graphical) {
-        state.display.removeMesh(entity.graphical.mesh);
-        clearPath(state, entity);
-        clearSelected(state, entity);
+        gameState.display.removeMesh(entity.graphical.mesh);
+        clearPath(entity);
+        clearSelected(entity);
     }
-    delete state.unitEntities[entity.unit.uuid];
+    delete gameState.unitEntities[entity.unit.uuid];
 }
 
 function applyToMaterials(mesh: THREE.Group, fn: (mat: THREE.MeshLambertMaterial) => void) {
@@ -197,8 +196,8 @@ function setToLocation(entity: UnitEntity, loc: PlanetLoc) {
     entity.graphical.mesh.position.z = - loc.real_y;
 }
 
-function animateToLocation(state: GameState, entity: UnitEntity, loc: PlanetLoc, delta: number) {
-    const tps = state.map.tps;
+function animateToLocation(entity: UnitEntity, loc: PlanetLoc, delta: number) {
+    const tps = gameState.map.tps;
     // speed / tps gets the number of seconds to reach the destination
     const frameDistance = (delta / (entity.unit.movable.speed / tps));
     const dv = entity.graphical.movementDelta += frameDistance;
@@ -220,17 +219,18 @@ function animateToLocation(state: GameState, entity: UnitEntity, loc: PlanetLoc,
     } else {
         entity.graphical.movementDelta = 0;
         setToLocation(entity, loc);
-        state.map.updateFogOfWar(loc, entity.unit.details.vision);
+        clearLinks(entity);
+        gameState.map.updateFogOfWar(loc, entity.unit.details.vision);
     }
 }
 
-function markSelected(state: GameState, entity: UnitEntity, loc: PlanetLoc) {
+function markSelected(entity: UnitEntity, loc: PlanetLoc) {
     if (!loc.equals(entity.graphical.selectedLoc)) {
-        clearSelected(state, entity);
+        clearSelected(entity);
     }
     if (!entity.graphical.selectionMesh) {
         const selectedMesh = tileSquareMesh(loc, new THREE.Color('#7b44bf'));
-        state.display.addMesh(selectedMesh);
+        gameState.display.addMesh(selectedMesh);
         entity.graphical.selectionMesh = selectedMesh;
 
     }
@@ -287,16 +287,16 @@ export function tileSquareMesh(loc: PlanetLoc, color: THREE.Color): THREE.Mesh {
     return selectedMesh;
 }
 
-function clearSelected(state: GameState, entity: UnitEntity) {
-    state.display.removeMesh(entity.graphical.selectionMesh);
+function clearSelected(entity: UnitEntity) {
+    gameState.display.removeMesh(entity.graphical.selectionMesh);
     delete entity.graphical.selectionMesh;
     delete entity.graphical.selectedLoc;
 }
 
-function markPath(state: GameState, entity: UnitEntity, start: PlanetLoc) {
+function markPath(entity: UnitEntity, start: PlanetLoc) {
     const path = entity.unit.movable.path || [];
     if (!start.equals(entity.graphical.pathLoc) || path.length === 0 || !_.isEqual(path, entity.graphical.prevPath)) {
-        clearPath(state, entity);
+        clearPath(entity);
     }
 
     if (!entity.graphical.pathMesh && path.length > 1) {
@@ -355,64 +355,71 @@ function markPath(state: GameState, entity: UnitEntity, start: PlanetLoc) {
         pathMesh.name = 'path';
         pathMesh.position.copy(start.getVec());
         pathMesh.position.y += verticalOffset;
-        state.display.addMesh(pathMesh);
+        gameState.display.addMesh(pathMesh);
         entity.graphical.pathMesh = pathMesh;
         entity.graphical.pathLoc = start;
         entity.graphical.prevPath = path;
     }
 }
 
-function clearPath(state: GameState, entity: UnitEntity) {
-    state.display.removeMesh(entity.graphical.pathMesh);
+function clearPath(entity: UnitEntity) {
+    gameState.display.removeMesh(entity.graphical.pathMesh);
     delete entity.graphical.pathMesh;
     delete entity.graphical.pathLoc;
     entity.graphical.prevPath = [];
 }
 
-export function isTileVisible(state: GameState, x: number, y: number): boolean {
-    const units = _.filter(state.unitEntities, (unit) => {
-        var deltaX = Math.abs(x - unit.unit.location.x);
-        var deltaY = Math.abs(y - unit.unit.location.y);
+export function isTileVisible(x: number, y: number): boolean {
+    const units = _.filter(gameState.unitEntities, (entity) => {
+        var deltaX = Math.abs(x - entity.unit.location.x);
+        var deltaY = Math.abs(y - entity.unit.location.y);
         const distance = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
-        return distance < unit.unit.details.vision
-            && unit.unit.details.owner === state.playerInfo.uuid
-            && !unit.unit.details.ghosting;
+        return distance < entity.unit.details.vision
+            && entity.unit.details.owner === gameState.playerInfo.uuid
+            && !entity.unit.details.ghosting;
     });
     return units.length > 0;
 }
 
-export function checkForLinks(state: GameState, unit: UnitEntity) {
-    if (unit.unit.details.owner !== state.playerInfo.uuid) {
+function clearLinks(entity: UnitEntity) {
+    const links = Object.values(entity.graphical.links);
+    if (links.length > 0) {
+        links.map((link) => {
+            gameState.display.removeMesh(link.line);
+        })
+        entity.graphical.links = {};
+    }
+}
+
+export function checkForLinks(entity: UnitEntity) {
+    if (entity.unit.details.owner !== gameState.playerInfo.uuid) {
+        return;
+    }
+    if (!gameState.selectedUnits.includes(entity)) {
+        clearLinks(entity);
         return;
     }
     if (!config.showLinks) {
-        const links = Object.values(unit.graphical.links);
-        if (links.length > 0) {
-            links.map((link) => {
-                gameState.display.removeMesh(link.line);
-            })
-            unit.graphical.links = {};
-        }
+        clearLinks(entity);
         return;
     }
 
     // priority:  towers > storage > mobile transports
     const resourceUnits = ['transfer_tower', 'storage', 'transport', 'mine']
 
-    const storageUnits = _.filter(state.unitEntities, (unit2) => {
-        return resourceUnits.includes(unit2.unit.details.type)
-            && unit2.unit.details.owner === state.playerInfo.uuid
-            && isResourceRange(unit.unit, unit2.unit);
+    const storageUnits = _.filter(gameState.unitEntities, (entity2) => {
+        return resourceUnits.includes(entity2.unit.details.type)
+            && entity2.unit.details.owner === gameState.playerInfo.uuid
+            && isResourceRange(entity.unit, entity2.unit);
     });
-    updateLinks(unit, storageUnits);
+    updateLinks(entity, storageUnits);
 }
 function isResourceRange(unit1: Unit, unit2: Unit): boolean {
     // not using planetLoc.distance for performance reasons
     var deltaX = Math.abs(unit1.location.x - unit2.location.x);
     var deltaY = Math.abs(unit1.location.y - unit2.location.y);
     const distance = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
-    return distance < unit2.storage.transferRange
-        && !unit2.details.ghosting;
+    return distance < unit2.storage.transferRange;
 }
 
 function updateLinks(unit: UnitEntity, units: UnitEntity[]) {
@@ -435,6 +442,7 @@ function updateLinks(unit: UnitEntity, units: UnitEntity[]) {
             color: '#481caf',
             linewidth: 4,
         });
+        lineMaterial.depthTest = false;
         const line = new THREE.Line(geom, lineMaterial);
         gameState.display.addMesh(line);
         link = {

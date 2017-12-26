@@ -136,7 +136,7 @@ export default class Map {
 					(y + 1) * (this.worldSettings.chunkSize + 1) + x);
 
 
-				const visible = isTileVisible(gameState,
+				const visible = isTileVisible(
 					x + (this.worldSettings.chunkSize * chunkX),
 					y + (this.worldSettings.chunkSize * chunkY));
 				if (visible) {
@@ -315,7 +315,7 @@ export default class Map {
 				const landFace2 = landFaces.shift();
 				const waterFace1 = waterFaces.shift();
 				const waterFace2 = waterFaces.shift();
-				const visible = isTileVisible(gameState, x, y);
+				const visible = isTileVisible(x, y);
 				if (visible) {
 					waterFace1.materialIndex = 0;
 					waterFace2.materialIndex = 0;
@@ -395,7 +395,7 @@ export default class Map {
 
 	destroyUnits(units: Array<UnitEntity>) {
 		for (const unit of units) {
-			destroyUnitEntity(gameState, unit);
+			destroyUnitEntity(unit);
 		}
 	}
 

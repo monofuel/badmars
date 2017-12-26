@@ -39,7 +39,7 @@
 		},
 		"movable": {
 			"layer": "ground",
-			"speed": 6
+			"speed": 4
 		},
 		"construct": {
 			"types": [

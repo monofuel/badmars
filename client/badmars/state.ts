@@ -319,9 +319,9 @@ export async function newState(): Promise<GameState> {
 	const updateUnitsListener = (data: UnitEvent) => {
 		for (let updated of data.list) {
 			if (state.unitEntities[updated.uuid]) {
-				destroyUnitEntity(state, state.unitEntities[updated.uuid]);
+				destroyUnitEntity(state.unitEntities[updated.uuid]);
 			}
-			const entity = newUnitEntity(state, updated);
+			const entity = newUnitEntity(updated);
 			state.unitEntities[updated.uuid] = entity;
 			state.units[updated.uuid] = updated;
 		}
@@ -344,7 +344,7 @@ export async function newState(): Promise<GameState> {
 		for (let entity of Object.values(state.unitEntities)) {
 			if (entity.loc.chunkX === data.chunk.x && entity.loc.chunkY === data.chunk.y) {
 				entity.loc = new PlanetLoc(state.map, entity.unit.location.x, entity.unit.location.y);
-				updateGraphicalEntity(state, entity);
+				updateGraphicalEntity(entity);
 			}
 		}
 	}
