@@ -13,6 +13,7 @@ import env from '../config/env';
 import * as groundUnitAI from './ai/groundunit';
 import AttackAI from './ai/attack';
 import ConstructionAI from './ai/construction';
+import TransferTowerAI from './ai/transferTower';
 import * as mineAI from './ai/mine';
 import PlanetLoc, { getLocationDetails } from '../map/planetloc';
 import * as uuidv4 from 'uuid/v4';
@@ -137,7 +138,8 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 		mineAI: false,
 		groundUnitAI: false,
 		constructionAI: false,
-		attackAI: false
+		attackAI: false,
+		transferTowerAI: false,
 	};
 
 	// ------------------
@@ -175,6 +177,7 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 
 	const attackAI = new AttackAI();
 	const constructionAI = new ConstructionAI();
+	const transferTowerAI = new TransferTowerAI();
 
 	if (unit.details.type === 'mine') {
 		actionPromises.push(mineAI.actionable(ctx, unit)
@@ -213,6 +216,12 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 				throw new WrappedError(err, 'constructionAI actionable');
 			}));
 	}
+	actionPromises.push(transferTowerAI.actionable(ctx, unit)
+		.then((result: boolean) => {
+			actionable.transferTowerAI = result;
+		}).catch((err: Error) => {
+			throw new WrappedError(err, 'transferTower actionable');
+		}));
 	ctx.check('pre actionable');
 	try {
 		await Promise.all(actionPromises);
@@ -228,6 +237,8 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 		if (actionable.mineAI) {
 			logger.info(ctx, 'processing mine', {}, { silent: true });
 			await mineAI.simulate(ctx, unit);
+		} else if (actionable.transferTowerAI) {
+			await transferTowerAI.simulate(ctx, unit);
 		} else if (actionable.attackAI) {
 			logger.info(ctx, 'processing attack');
 			await attackAI.simulate(ctx, unit);

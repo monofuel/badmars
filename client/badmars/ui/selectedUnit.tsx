@@ -7,6 +7,7 @@ import GameState, { getPlayerByUUID, UnitDeltaChange } from '../state';
 import { Paper } from 'material-ui';
 import LinearProgress from 'material-ui/LinearProgress';
 import UnitEntity from '../units';
+import * as _ from 'lodash';
 
 const infoStyle = {
 	position: 'absolute',
@@ -42,6 +43,7 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 		const { state } = this.context;
 		const { selectedUnits } = this.props;
 		const selectedUnit = selectedUnits[0].unit;
+		const storages = _.filter(selectedUnits, (entity) => entity.unit.details.type === 'storage');
 		const iron = (selectedUnit.storage ? selectedUnit.storage.iron : 0) || 0;
 		const fuel = (selectedUnit.storage ? selectedUnit.storage.fuel : 0) || 0;
 		const rate = 1;
@@ -54,6 +56,8 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 		let health = (selectedUnit.details.health ? selectedUnit.details.health : 0);;
 		let player = getPlayerByUUID(selectedUnit.details.owner);
 		let playerName = (player ? player.username : '');
+
+		const receiving = !!_.find(storages, (storage) => storage.unit.storage.receive)
 
 		if (selectedUnit.details.type === 'iron' || selectedUnit.details.type === 'oil') {
 			return (
@@ -82,6 +86,11 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 							}
 							<li>Health: {health}<LinearProgress mode="determinate" value={health} max={maxHealth} /></li>
 							<li>FuelCountdown: {selectedUnit.details.fuelBurn}/{selectedUnit.details.fuelBurnLength}</li>
+							{storages.length > 0 &&
+								<li>
+									Receive: <input type='checkbox' value={receiving} />
+								</li>
+							}
 						</ul>
 					</Paper>
 				</div>

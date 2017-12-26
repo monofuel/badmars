@@ -129,6 +129,7 @@ interface UnitStorage {
 	maxFuel: number,
 	transferRange: number,
 	resourceCooldown: number,
+	receive?: boolean,
 	desired?: {
 		iron: number,
 		fuel: number
