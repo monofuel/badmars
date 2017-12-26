@@ -136,7 +136,7 @@ export default class constructionAI implements UnitAI {
 		}
 
 		const tile = await planetDB.planet.getLoc(ctx, unit.location.x, unit.location.y);
-		const newTile = await planetDB.planet.getNearestFreeTile(ctx, tile, unit, true);
+		const newTile = await planetDB.planet.getNearestFreeTile(ctx, tile, null, true);
 		if (!newTile) {
 			throw new DetailedError('failed to find open tile', { uuid: unit.uuid });
 		}
