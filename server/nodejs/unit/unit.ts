@@ -677,3 +677,6 @@ export async function isUnitVisible(ctx: Context, unit: Unit, user: User): Promi
 	}
 	return false;
 }
+export async function setReceiver(ctx: Context, unit: Unit, receive: boolean): Promise<void> {
+	await patchUnit(ctx, unit, { storage: { receive } });
+}

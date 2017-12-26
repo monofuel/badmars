@@ -19,6 +19,7 @@ import unitStats from './unitStats';
 import factoryOrder from './factoryOrder';
 import transferResource from './transferResource';
 import sendChat from './sendChat';
+import storageReceiver from './storageReceiver';
 
 async function mountUserHandlers(client: Client): Promise<void> {
 	client.handlers['getPlayers'] = getPlayers;
@@ -31,6 +32,7 @@ async function mountUserHandlers(client: Client): Promise<void> {
 	client.handlers['factoryOrder'] = factoryOrder;
 	client.handlers['transferResource'] = transferResource;
 	client.handlers['sendChat'] = sendChat;
+	client.handlers['storageReceiver'] = storageReceiver;
 
 	await client.registerUnitListener();
 	await client.registerUserListener();

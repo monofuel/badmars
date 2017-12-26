@@ -172,7 +172,14 @@ type RequestType = UnitStatsEvent |
 	GhostRequest |
 	FactoryOrderRequest |
 	TransferRequest |
+	StorageReceiverRequest |
 	GetMapRequest;
+
+interface StorageReceiverRequest {
+	type: 'storageReceiver';
+	uuids: string[];
+	receive: boolean;
+}
 
 interface UnitStatsRequest {
 	type: 'unitStats';

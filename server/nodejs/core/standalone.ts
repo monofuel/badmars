@@ -154,7 +154,6 @@ class SimulateService implements Service {
             const unit = await planetDB.unit.claimUnitTick(ctx, uuid, tick);
             if (unit) {
                 try {
-
                     await sleep(0);
                     await simulate(ctx, unit); // for serial processing
                     // promises.push(simulate(ctx, unit)); // for parallel processing

@@ -3,11 +3,12 @@
 import { autobind } from 'core-decorators';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import GameState, { getPlayerByUUID, UnitDeltaChange } from '../state';
+import GameState, { getPlayerByUUID, UnitDeltaChange, GameFocusChange } from '../state';
 import { Paper } from 'material-ui';
 import LinearProgress from 'material-ui/LinearProgress';
 import UnitEntity from '../units';
 import * as _ from 'lodash';
+import { RequestChange } from '../net';
 
 const infoStyle = {
 	position: 'absolute',
@@ -39,6 +40,12 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 		this.forceUpdate();
 	}
 
+	@autobind
+	private setHUDFocus(e: React.MouseEvent<HTMLDivElement>) {
+		GameFocusChange.post({ focus: 'hud', prev: gameState.focused });
+		e.stopPropagation();
+	}
+
 	render() {
 		const { state } = this.context;
 		const { selectedUnits } = this.props;
@@ -57,11 +64,12 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 		let player = getPlayerByUUID(selectedUnit.details.owner);
 		let playerName = (player ? player.username : '');
 
-		const receiving = !!_.find(storages, (storage) => storage.unit.storage.receive)
+		// checked only if all selected storages are checked
+		const receiving = !_.find(storages, (storage) => !storage.unit.storage.receive)
 
 		if (selectedUnit.details.type === 'iron' || selectedUnit.details.type === 'oil') {
 			return (
-				<div id='SelectedUnitWell'>
+				<div onMouseDown={this.setHUDFocus} id='SelectedUnitWell'>
 					<Paper zDepth={3} style={infoStyle as any}>
 						<div>Rate: {rate}</div>
 					</Paper>
@@ -69,7 +77,7 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 			);
 		} else {
 			return (
-				<div id='SelectedUnitWell'>
+				<div onMouseDown={this.setHUDFocus} id='SelectedUnitWell'>
 					<Paper zDepth={3} style={infoStyle as any}>
 						<ul style={{ listStyle: 'none' }}>
 							<li>Unit: {type}</li>
@@ -88,7 +96,16 @@ export default class SelectedUnitWell extends React.Component<SelectedUnitProps,
 							<li>FuelCountdown: {selectedUnit.details.fuelBurn}/{selectedUnit.details.fuelBurnLength}</li>
 							{storages.length > 0 &&
 								<li>
-									Receive: <input type='checkbox' value={receiving} />
+									Receive: <input
+										type='checkbox'
+										checked={receiving}
+										onChange={(e) => {
+											RequestChange.post({
+												type: 'storageReceiver',
+												uuids: storages.map((storage) => storage.unit.uuid),
+												receive: !receiving
+											})
+										}} />
 								</li>
 							}
 						</ul>
