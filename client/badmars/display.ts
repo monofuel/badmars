@@ -19,6 +19,7 @@ export default class Display {
 	private panel: HTMLCanvasElement;
 	private HUDPanel: HTMLCanvasElement;
 	private HUDContext: CanvasRenderingContext2D;
+	private clippingPlane: THREE.Plane;
 
 	private T: any;
 
@@ -51,7 +52,7 @@ export default class Display {
 		});
 
 		this.renderer.shadowMap.enabled = config.shadows;
-		this.renderer.shadowMap.type = config.smoothShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -60,7 +61,8 @@ export default class Display {
 		this.moonLight = new THREE.DirectionalLight(gameState.moonColor, 0.2);
 		this.scene.add(this.moonLight);
 		this.light = new THREE.DirectionalLight(gameState.sunColor, 1);
-		this.light.castShadow = true;
+		this.light.target = this.camera;
+		this.light.castShadow = config.shadows;
 		this.light.shadow.bias = -0.0003;
 		this.light.shadow.mapSize.width = 2048;
 		this.light.shadow.mapSize.height = 2048;
@@ -69,8 +71,11 @@ export default class Display {
 		this.light.shadow.camera.left = 50;
 		this.light.shadow.camera.right = -50;
 		this.light.shadow.camera.far = 500;
-		this.light.target = this.camera;
 		this.light.shadow.camera.updateProjectionMatrix();
+
+		this.clippingPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 40);
+		this.renderer.clippingPlanes = [this.clippingPlane];
+
 
 		this.updateSunPosition(0);
 		this.scene.add(this.light);
@@ -116,7 +121,7 @@ export default class Display {
 		}
 		if (this.lightAngle > 1.6 * Math.PI || this.lightAngle < 0.4 * Math.PI) {
 			// during day
-			this.light.castShadow = true;
+			this.light.castShadow = config.shadows;
 		} else {
 			this.light.castShadow = false;
 		}
@@ -266,7 +271,6 @@ export default class Display {
 			this.renderer.setPixelRatio(config.pixelRatio);
 		}
 		this.renderer.shadowMap.enabled = config.shadows;
-		this.renderer.shadowMap.type = config.smoothShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
 
 		this.HUDContext.clearRect(0, 0, this.HUDPanel.width, this.HUDPanel.height);
 		this.renderer.render(this.scene, this.camera);

@@ -89,15 +89,10 @@ function snowLoop() {
 
 		Object.values(gameState.snow)
 			.map((snow) => {
-				(snow.geometry as THREE.Geometry).vertices.forEach((vert: THREE.Vertex) => {
-					const dZ = - 0.03;
-
-					vert.add(new THREE.Vector3(0, 0, dZ));
-					if (vert.z < 0) {
-						vert.z += 20;
-					}
-				});
-				(snow.geometry as THREE.Geometry).verticesNeedUpdate = true;
+				snow.position.y -= 0.03;
+				if (snow.position.y < 0) {
+					snow.position.y += 40;
+				}
 			});
 	}, 40);
 }

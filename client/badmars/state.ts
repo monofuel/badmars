@@ -165,7 +165,6 @@ export default interface GameState {
 	snow: {
 		[key: string]: THREE.Points
 	}
-
 	mouseHilight?: {
 		loc: PlanetLoc,
 		mesh: THREE.Mesh,
@@ -217,7 +216,6 @@ export async function newState(): Promise<GameState> {
 		unitEntities: {},
 		chatOpen: false,
 		chatHistory: [],
-
 		snow: {}
 	};
 
@@ -312,7 +310,7 @@ export async function newState(): Promise<GameState> {
 			jsonpatch.applyPatch(unit, data.delta, Config.debug);
 		} catch (err) {
 			// force chunk refresh
-			RequestChange.post({ type: 'getChunk', x: unit.location.chunkX, y: unit.location.chunkY, unitsOnly: true })
+			// RequestChange.post({ type: 'getChunk', x: unit.location.chunkX, y: unit.location.chunkY, unitsOnly: true })
 			console.error(err);
 		}
 	};

@@ -67,7 +67,7 @@
     "simplex-noise": "^2.2.0",
     "source-map-support": "^0.4.15",
     "stats.js": "^0.17.0",
-    "three": "^0.87.1",
+    "three": "^0.89.0",
     "three-addons": "^1.1.0",
     "three-collada-loader": "^0.0.1",
     "ts-events": "^3.2.0",

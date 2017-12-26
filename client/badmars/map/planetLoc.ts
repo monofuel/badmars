@@ -33,7 +33,7 @@ export class PlanetLoc {
 	 * @param  {Number}  The X coordinate
 	 * @param  {Number}  The Y coordinate
 	 */
-	constructor(planet: Map, x: number, y: number, skipChunk?: boolean) {
+	constructor(planet: Map, x: number, y: number, skipChunk: boolean = true) {
 		this.planet = planet;
 
 		// TODO should refer to the local x as local_x and real_x as just regular x

@@ -72,6 +72,7 @@ const defaultPalette = {
 }
 */
 
+// snow
 const defaultPalette = {
 	uiBackground: 'rgba(0, 26, 5, 0.67)',
 	uiPrimary: '#1b3006',
@@ -95,7 +96,6 @@ export interface Config {
 	showLinks: boolean;
 	pixelRatio: number;
 	antiAlias: boolean;
-	smoothShadows: boolean;
 	shadows: boolean;
 }
 
@@ -123,7 +123,6 @@ const defaultConfig: Config = {
 	showLinks: true,
 	pixelRatio: 1,
 	antiAlias: false,
-	smoothShadows: true,
 	shadows: false
 }
 

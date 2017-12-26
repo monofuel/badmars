@@ -10,7 +10,6 @@ export default function BMDatGui() {
 	gui.add(config, 'loadDistance', 1, 20).step(1).listen();
 	gui.add(config, 'showLinks').listen();
 	gui.add(config, 'shadows').listen();
-	gui.add(config, 'smoothShadows').listen();
 	gui.add(config, 'pixelRatio', 0.4, 1).listen();
 	return gui;
 }

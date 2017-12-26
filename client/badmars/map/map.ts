@@ -22,7 +22,33 @@ import { RequestChange } from '../net';
 import UnitEntity, { destroyUnitEntity, isTileVisible } from '../units/index';
 import { Planet } from '../';
 
-// TODO chunk should be a type
+const landMaterial = new THREE.MeshPhongMaterial({
+	color: config.palette.land,
+	shininess: 0
+});
+const cliffMaterial = new THREE.MeshPhongMaterial({
+	color: config.palette.cliff,
+	shininess: 0
+});
+const waterMaterial = new THREE.MeshLambertMaterial({
+	color: config.palette.water
+});
+
+waterMaterial.transparent = true;
+waterMaterial.opacity = 0.9;
+
+const tint = new THREE.Color('#888888');
+const landFogMaterial = landMaterial.clone()
+landFogMaterial.color.sub(tint);
+const cliffFogMaterial = cliffMaterial.clone()
+cliffFogMaterial.color.sub(tint);
+const waterFogMaterial = waterMaterial.clone()
+waterFogMaterial.color.sub(tint);
+
+const snowMat = new THREE.PointsMaterial({
+	color: 0x9b9b9b,
+	size: 0.25
+});
 
 export default class Map {
 	settings: Settings;
@@ -80,27 +106,6 @@ export default class Map {
 		var navGrid = chunk.navGrid;
 		var gridGeom = new THREE.Geometry();
 		var waterGeom = new THREE.Geometry();
-
-		var landMaterial = new THREE.MeshPhongMaterial({
-			color: config.palette.land
-		});
-		var cliffMaterial = new THREE.MeshPhongMaterial({
-			color: config.palette.cliff
-		});
-		var waterMaterial = new THREE.MeshLambertMaterial({
-			color: config.palette.water
-		});
-
-		waterMaterial.transparent = true;
-		waterMaterial.opacity = 0.9;
-
-		const tint = new THREE.Color('#888888');
-		var landFogMaterial = landMaterial.clone()
-		landFogMaterial.color.sub(tint);
-		var cliffFogMaterial = cliffMaterial.clone()
-		cliffFogMaterial.color.sub(tint);
-		var waterFogMaterial = waterMaterial.clone()
-		waterFogMaterial.color.sub(tint);
 
 		for (var x = 0; x <= this.worldSettings.chunkSize; x++) {
 			for (var y = 0; y <= this.worldSettings.chunkSize; y++) {
@@ -243,19 +248,21 @@ export default class Map {
 		// console.log("Generated Geometry");
 
 		// add snow
-		const snowMat = new THREE.PointsMaterial({
-			color: 0x9b9b9b,
-			size: 0.25
-		});
 
 		const snowGeom = new THREE.Geometry();
 
-		_.times(50, (n) => {
+		// The entire mesh is 80 units tall
+		// particles are placed randomly inside 2 duplicate 40 unit tall sections
+		// there is a clipping plane at z=40, so the user doesn't notice the mesh
+		// jump back up to y=40 once it falls below z=0
+		_.times(100, (n) => {
 			const x = (Math.random() * this.worldSettings.chunkSize);
-			const y = (Math.random() * 20);
-			const z = (Math.random() * this.worldSettings.chunkSize);
+			const z = (Math.random() * 40);
+			const y = (Math.random() * this.worldSettings.chunkSize);
 
 			snowGeom.vertices.push(new THREE.Vector3(x, y, z));
+
+			snowGeom.vertices.push(new THREE.Vector3(x, y, z - 40));
 		});
 
 		const cloud = new THREE.Points(snowGeom, snowMat);
