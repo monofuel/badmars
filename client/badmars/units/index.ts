@@ -14,6 +14,7 @@ export interface GraphicalEntity {
     pathLoc: PlanetLoc | null;
     prevPath: string[];
     ghosting: boolean;
+    transferRangeMesh: THREE.Line | null;
     links: {
         [key: string]: {
             line: THREE.Line;
@@ -100,6 +101,7 @@ export function updateGraphicalEntity(entity: UnitEntity) {
         selectedLoc: null,
         selectionMesh: [],
         pathMesh: null,
+        transferRangeMesh: null,
         pathLoc: null,
         prevPath: [],
         links: {},
@@ -225,6 +227,7 @@ function animateToLocation(entity: UnitEntity, loc: PlanetLoc, delta: number) {
         entity.graphical.movementDelta = 0;
         setToLocation(entity, loc);
         clearLinks(entity);
+        clearTransferRange(entity);
         gameState.map.updateFogOfWar(loc, entity.unit.details.vision);
     }
 }
@@ -410,12 +413,71 @@ function clearLinks(entity: UnitEntity) {
     }
 }
 
+function updateTransferRange(entity: UnitEntity) {
+    // HACK is cleared when setting to location
+    if (entity.graphical.transferRangeMesh) {
+        return;
+    }
+    if (!entity.unit.storage.transferRange) {
+        return;
+    }
+
+    const verticalOffset = 1;
+
+    const curve = new THREE.EllipseCurve(0, 0,
+        entity.unit.storage.transferRange,
+        entity.unit.storage.transferRange,
+        0, 2 * Math.PI,
+        false, 0);
+    const points2D = curve.getPoints(50);
+    const points3D: THREE.Vector3[] = [];
+    for (const point of points2D) {
+        const loc = gameState.map.getLoc(Math.round(entity.loc.real_x + point.x), Math.round(entity.loc.real_y + point.y));
+        const height = loc.getVec().y - entity.loc.y;
+        points3D.push(new THREE.Vector3(point.x, point.y, height));
+    }
+
+    const pathCurve = new THREE.CatmullRomCurve3(points3D);
+
+    const subdivisions = 6;
+    const geometry = new THREE.Geometry();
+    for (var i = 0; i < points3D.length * subdivisions; i++) {
+
+        var t = i / (points3D.length * subdivisions);
+        geometry.vertices[i] = pathCurve.getPoint(t);
+
+    }
+    geometry.computeLineDistances();
+    const material = new THREE.LineDashedMaterial({
+        color: 0x1fc157,
+        depthTest: false,
+        linewidth: 3,
+        dashSize: 1,
+        gapSize: 0.5,
+    });
+
+    const ellipse = new THREE.Line(geometry, material);
+    ellipse.position.copy(entity.loc.getVec());
+    ellipse.position.y += verticalOffset;
+    ellipse.rotation.x = -Math.PI / 2;
+    gameState.display.addMesh(ellipse);
+    entity.graphical.transferRangeMesh = ellipse;
+}
+
+function clearTransferRange(entity: UnitEntity) {
+    if (entity.graphical.transferRangeMesh) {
+        gameState.display.removeMesh(entity.graphical.transferRangeMesh);
+        delete entity.graphical.transferRangeMesh;
+    }
+}
+
 export function checkForLinks(entity: UnitEntity) {
     if (entity.unit.details.owner !== gameState.playerInfo.uuid) {
         return;
     }
     if (!gameState.selectedUnits.includes(entity)) {
         clearLinks(entity);
+        clearTransferRange(entity);
         return;
     }
     if (!config.showLinks) {
@@ -437,8 +499,12 @@ export function checkForLinks(entity: UnitEntity) {
             && entity2.unit.details.owner === gameState.playerInfo.uuid
             && isResourceRange(entity.unit, entity2.unit);
     });
+
+    // HACk links get cleared while setting to the new location
     updateLinks(entity, storageUnits);
+    updateTransferRange(entity);
 }
+
 function isResourceRange(unit1: Unit, unit2: Unit): boolean {
     // not using planetLoc.distance for performance reasons
     var deltaX = Math.abs(unit1.location.x - unit2.location.x);
