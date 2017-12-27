@@ -423,6 +423,12 @@ export function checkForLinks(entity: UnitEntity) {
         return;
     }
 
+    // make 'select all' not a garbled mess of lines
+    const linkVisibleUnits = ['transfer_tower', 'storage', 'transport', 'mine', 'builder'];
+    if (!linkVisibleUnits.includes(entity.unit.details.type)) {
+        return;
+    }
+
     // priority:  towers > storage > mobile transports
     const resourceUnits = ['transfer_tower', 'storage', 'transport', 'mine']
 
@@ -458,8 +464,8 @@ function updateLinks(unit: UnitEntity, units: UnitEntity[]) {
 
 
         const lineMaterial = new THREE.LineBasicMaterial({
-            color: '#481caf',
-            linewidth: 4,
+            color: '#1fc157',
+            linewidth: 2,
         });
         lineMaterial.depthTest = false;
         const line = new THREE.Line(geom, lineMaterial);
