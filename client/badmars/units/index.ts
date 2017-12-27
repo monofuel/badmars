@@ -9,7 +9,7 @@ export interface GraphicalEntity {
     mesh: THREE.Group
     movementDelta: number
     selectedLoc: PlanetLoc | null;
-    selectionMesh: THREE.Mesh | null;
+    selectionMesh: THREE.Mesh[];
     pathMesh: THREE.Line | null;
     pathLoc: PlanetLoc | null;
     prevPath: string[];
@@ -98,7 +98,7 @@ export function updateGraphicalEntity(entity: UnitEntity) {
     entity.graphical = {
         movementDelta: 0,
         selectedLoc: null,
-        selectionMesh: null,
+        selectionMesh: [],
         pathMesh: null,
         pathLoc: null,
         prevPath: [],
@@ -194,6 +194,11 @@ function setToLocation(entity: UnitEntity, loc: PlanetLoc) {
     entity.graphical.mesh.position.y = loc.real_z + 0.25;
     entity.graphical.mesh.position.x = loc.real_x;
     entity.graphical.mesh.position.z = - loc.real_y;
+    if (entity.unit.details.size === 2) {
+        //2x2 units have no 'center' and need to be offset
+        entity.graphical.mesh.position.x += 0.5;
+        entity.graphical.mesh.position.z -= 0.8;
+    }
 }
 
 function animateToLocation(entity: UnitEntity, loc: PlanetLoc, delta: number) {
@@ -229,10 +234,24 @@ function markSelected(entity: UnitEntity, loc: PlanetLoc) {
         clearSelected(entity);
     }
     if (!entity.graphical.selectionMesh) {
-        const selectedMesh = tileSquareMesh(loc, new THREE.Color('#7b44bf'));
-        gameState.display.addMesh(selectedMesh);
-        entity.graphical.selectionMesh = selectedMesh;
-
+        const selection: THREE.Mesh[] = [];
+        selection.push(tileSquareMesh(loc, new THREE.Color('#7b44bf')));
+        if (entity.unit.details.size === 2) {
+            selection.push(tileSquareMesh(loc.N(), new THREE.Color('#7b44bf')));
+            selection.push(tileSquareMesh(loc.E(), new THREE.Color('#7b44bf')));
+            selection.push(tileSquareMesh(loc.E().N(), new THREE.Color('#7b44bf')));
+        } else if (entity.unit.details.size === 3) {
+            selection.push(tileSquareMesh(loc.N(), new THREE.Color('#7b44bf')));
+            selection.push(tileSquareMesh(loc.N().E(), new THREE.Color('#7b44bf')));
+            selection.push(tileSquareMesh(loc.N().W(), new THREE.Color('#7b44bf')));
+            selection.push(tileSquareMesh(loc.E(), new THREE.Color('#7b44bf')));
+            selection.push(tileSquareMesh(loc.W(), new THREE.Color('#7b44bf')));
+            selection.push(tileSquareMesh(loc.S(), new THREE.Color('#7b44bf')));
+            selection.push(tileSquareMesh(loc.S().W(), new THREE.Color('#7b44bf')));
+            selection.push(tileSquareMesh(loc.S().E(), new THREE.Color('#7b44bf')));
+        }
+        gameState.display.addMesh(selection);
+        entity.graphical.selectionMesh = selection;
     }
 }
 

@@ -227,12 +227,20 @@ export default class Display {
 	}
 
 
-	addMesh(mesh: THREE.Object3D) {
-		this.scene.add(mesh);
+	addMesh(mesh: THREE.Object3D | THREE.Object3D[]) {
+		if (Array.isArray(mesh)) {
+			mesh.forEach((m) => this.scene.add(m));
+		} else {
+			this.scene.add(mesh);
+		}
 	}
 
-	removeMesh(mesh: THREE.Object3D) {
-		this.scene.remove(mesh);
+	removeMesh(mesh: THREE.Object3D | THREE.Object3D[]) {
+		if (Array.isArray(mesh)) {
+			mesh.forEach((m) => this.scene.remove(m));
+		} else {
+			this.scene.remove(mesh);
+		}
 	}
 
 	private drawSelectionBox() {

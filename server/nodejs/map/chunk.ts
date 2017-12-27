@@ -42,11 +42,11 @@ export async function planetLocsForChunk(ctx: Context, chunk: Chunk): Promise<Pl
 export async function listChunkUnits(ctx: Context, chunk: Chunk): Promise<Unit[]> {
 	const planetDB = await db.getPlanetDB(ctx, chunk.map);
 	const chunkLayer = await planetDB.chunkLayer.get(ctx, chunk.hash);
-	const ground = Object.values(await planetDB.unit.getBulk(ctx, Object.values(chunkLayer.ground)));
-	const resource = Object.values(await planetDB.unit.getBulk(ctx, Object.values(chunkLayer.resources)));
+	const ground = await planetDB.unit.getBulk(ctx, Object.values(chunkLayer.ground));
+	const resource = await planetDB.unit.getBulk(ctx, Object.values(chunkLayer.resources));
 
 
-	return [...ground, ...resource];
+	return Object.values(ground).concat(Object.values(resource));
 }
 
 /*
