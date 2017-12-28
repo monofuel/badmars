@@ -12,6 +12,7 @@ import Map from './map';
 import ChunkLayer from './chunkLayer';
 
 export async function newChunk(ctx: Context, map: string, x: number, y: number): Promise<Chunk> {
+	const planetDB = await db.getPlanetDB(ctx, map);
 	return {
 		x,
 		y,
@@ -19,7 +20,7 @@ export async function newChunk(ctx: Context, map: string, x: number, y: number):
 		map,
 		grid: [],
 		navGrid: [],
-		chunkSize: ctx.env.chunkSize,
+		chunkSize: planetDB.planet.settings.chunkSize,
 	}
 }
 

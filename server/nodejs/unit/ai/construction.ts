@@ -10,6 +10,7 @@ import logger, { DetailedError } from '../../logger';
 import { unitDistance, popFactoryOrder, setConstructing, setUnitDestination, setBuilt, tickConstruction } from '../unit';
 
 import UnitAI from './';
+import { startProfile, endProfile } from '../../util/stats';
 
 type UnitType = string;
 
@@ -36,8 +37,10 @@ export default class constructionAI implements UnitAI {
 	}
 
 	async checkGroundActionable(ctx: Context, unit: Unit): Promise<boolean> {
+		const profile = startProfile('checkGroundActionable');
 		const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 		if (!unit.construct || !unit.storage) {
+			endProfile(profile);
 			return false;
 		}
 
@@ -52,8 +55,10 @@ export default class constructionAI implements UnitAI {
 				continue;
 			}
 			this.nearestGhost = nearbyUnit;
+			endProfile(profile);
 			return true;
 		}
+		endProfile(profile);
 
 		return false;
 	}

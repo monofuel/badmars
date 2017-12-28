@@ -94,7 +94,7 @@ export async function newUnit(ctx: Context, type: string, loc: PlanetLoc | null,
 	hash.forEach((tileHash: string) => {
 		const x = parseInt(tileHash.split(':')[0]);
 		const y = parseInt(tileHash.split(':')[1]);
-		const locDetails = getLocationDetails(x, y, ctx.env.chunkSize);
+		const locDetails = getLocationDetails(x, y, planetDB.planet.settings.chunkSize);
 		chunkX = locDetails.chunkX;
 		chunkY = locDetails.chunkY;
 
@@ -252,8 +252,10 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
 	} catch (err) {
 		throw new WrappedError(err, 'failed to perform action', actionable);
 	}
+
 	ctx.check('post action');
 	logger.endProfile(profile);
+
 }
 
 export async function addFactoryOrder(ctx: Context, unit: Unit, unitType: UnitType): Promise<void> {
@@ -507,7 +509,7 @@ export async function addToChunks(ctx: Context, unit: Unit): Promise<void> {
 		const hashSplit = loc.split(':')
 		const x = parseInt(hashSplit[0]);
 		const y = parseInt(hashSplit[1]);
-		const details = getLocationDetails(x, y, ctx.env.chunkSize);
+		const details = getLocationDetails(x, y, planetDB.planet.settings.chunkSize);
 		const chunkHash = `${details.chunkX}:${details.chunkY}`
 		if (unit.details.type === 'iron' || unit.details.type === 'oil') {
 			await planetDB.chunkLayer.setEntity(ctx, chunkHash, 'resource', unit.uuid, loc);
@@ -524,7 +526,7 @@ export async function clearFromChunks(ctx: Context, unit: Unit): Promise<void> {
 		const hashSplit = loc.split(':')
 		const x = parseInt(hashSplit[0]);
 		const y = parseInt(hashSplit[1]);
-		const details = getLocationDetails(x, y, ctx.env.chunkSize);
+		const details = getLocationDetails(x, y, planetDB.planet.settings.chunkSize);
 		const chunkHash = `${details.chunkX}:${details.chunkY}`
 		if (unit.details.type === 'iron' || unit.details.type === 'oil') {
 			await planetDB.chunkLayer.clearEntity(ctx, chunkHash, 'resource', unit.uuid, loc);

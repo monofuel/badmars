@@ -58,6 +58,9 @@ export function endProfile(key: ProfileKey, visible?: boolean) {
 	}
 
 	const profileRun: ProfileType = runningProfiles[key];
+	if (!profileRun) { // gets cleared when reporting
+		return;
+	}
 	delete runningProfiles[key];
 	const name: string = profileRun.name;
 	profileRun.endTime = (new Date()).getTime();
@@ -73,6 +76,7 @@ export function endProfile(key: ProfileKey, visible?: boolean) {
 	} else {
 		profileCount[name]++;
 	}
+	return profileRun;
 }
 
 export function addAverageStat(key: string, value: number) {

@@ -9,6 +9,7 @@ import User, { newUser } from '../user';
 import { simulate } from '../unit/unit';
 import sleep from '../util/sleep';
 import stats from '../util/stats';
+import * as _ from 'lodash';
 
 export default class StandaloneService implements Service {
     private parentCtx: Context;
@@ -141,7 +142,7 @@ class SimulateService implements Service {
             }
             const delay = desiredLength - tickLength;
             logger.info(ctx, 'tick proccessed', { delay }, { silent: true });
-            this.tickTimeout = setTimeout(() => this.tick(), delay > 0 ? delay : 0);
+            this.tickTimeout = setTimeout(() => this.tick(), delay > 0 ? delay : 1);
         } catch (err) {
             logger.info(this.parentCtx, 'tick failed');
             logger.trackError(this.parentCtx, err);
@@ -154,17 +155,14 @@ class SimulateService implements Service {
         const unitUUIDs = await planetDB.unit.getUnprocessedUnitUUIDs(ctx, tick);
         // logger.info(ctx, 'processing units', { planetName, count: unitUUIDs.length });
         const promises: Promise<void>[] = [];
+
         for (let uuid of unitUUIDs) {
             const unit = await planetDB.unit.claimUnitTick(ctx, uuid, tick);
+
             if (unit) {
                 try {
-                    ctx.check('simulate');
-                    const startTime = Date.now();
                     await simulate(ctx, unit); // for serial processing
                     // promises.push(simulate(ctx, unit)); // for parallel processing
-                    const endTime = Date.now();
-                    const processTime = endTime - startTime;
-                    logger.info(ctx, 'processed unit', { uuid, processTime }, { silent: true });
                 } catch (err) {
                     if (ctx.env.debug) {
                         throw err;
@@ -174,6 +172,7 @@ class SimulateService implements Service {
                 }
             }
         }
+
         await Promise.all(promises);
 
         await planetDB.planet.advanceTick(ctx);

@@ -19,9 +19,8 @@ export default {
 	statReportRate: parseInt(process.env.STAT_REPORT_RATE) || 1, //in minutes
 	unitProcessChunks: parseInt(process.env.UNIT_PROCESS_CHUNKS) || 20,
 	pathChunks: parseInt(process.env.PATH_CHUNKS) || 3,
-	chunkExamineRange: parseInt(process.env.EXAMINE_RANGE) || 4,
+	chunkExamineRange: parseInt(process.env.EXAMINE_RANGE) || 2,
 	attackMoveRange: parseInt(process.env.ATTACK_MOVE_RANGE) || 25,
-	chunkSize: parseInt(process.env.CHUNK_SIZE) || 16,
 
 	// maximum vision for units in units.json, allows for optimization
 	maxVision: parseInt(process.env.MAX_VISION) || 20,

@@ -34,7 +34,7 @@ const mapClient = new services.Map(env.mapHost + ':' + env.mapPort, grpc.credent
 */
 
 const defaultSettings = {
-	chunkSize: 16,
+	chunkSize: parseInt(process.env.CHUNK_SIZE) || 16,
 	waterHeight: 0,
 	cliffDelta: 0.7,
 	water: true,
