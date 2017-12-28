@@ -89,7 +89,23 @@ export default class Map {
 		this.paused = false;
 	}
 
-	async getChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
+	async getChunk(ctx: Context, hash: ChunkHash): Promise<Chunk> {
+		const planetDB = await db.getPlanetDB(ctx, this.name);
+		const chunk = await planetDB.chunk.get(ctx, hash);
+		if (chunk) {
+			return chunk;
+		}
+		const x = parseInt(hash.split(':')[0]);
+		const y = parseInt(hash.split(':')[1]);
+		const res = await generateChunk(ctx, this, x, y);
+		await planetDB.chunk.create(ctx, res.chunk);
+		await planetDB.chunkLayer.create(ctx, res.chunkLayer);
+		await generateResources(ctx, this, res.chunk, res.chunkLayer);
+		return res.chunk;
+
+	}
+
+	async getChunkOld(ctx: Context, x: number, y: number): Promise<Chunk> {
 		const planetDB = await db.getPlanetDB(ctx, this.name);
 		const chunk = await planetDB.chunk.get(ctx, `${x}:${y}`);
 		if (chunk) {
@@ -103,109 +119,6 @@ export default class Map {
 
 	}
 
-	/*
-
-	// TODO this is garbage
-	async getChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
-		ctx.check('getChunk');
-		x = parseInt(x as any);
-		y = parseInt(y as any);
-		const self = this;
-		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
-		const cacheChunk: CacheChunkType = this.getChunkFromCache(x + ':' + y);
-		if (cacheChunk) {
-			logger.addSumStat('cacheChunkHit', 1);
-			return cacheChunk.chunk;
-		} else {
-			logger.addSumStat('cacheChunkMiss', 1);
-		}
-
-		return await new Promise<Chunk>((resolve: Function, reject: Function): Promise<Chunk> => {
-			const profile = logger.startProfile('getChunk');
-			ctx.check('getChunkGrpc');
-			return mapClient.getChunk({ mapName: this.name, x, y }, (err: Error, response: any): any => {
-				logger.endProfile(profile);
-				ctx.check('getChunkGrpcReturn');
-				if (err) {
-					logger.trackError(ctx, new WrappedError(err, 'getChunk grpc', { mapName: this.name, x, y }));
-					return reject(err);
-				}
-				for (let i = 0; i < response.navGrid.length; i++) {
-					response.navGrid[i] = response.navGrid[i].items;
-				}
-				for (let i = 0; i < response.grid.length; i++) {
-					response.grid[i] = response.grid[i].items;
-				}
-				const chunk = newChunk(ctx, this.name, x, y);
-				chunk.clone(response);
-
-				this.addChunkToCache(ctx, chunk);
-				resolve(chunk);
-			});
-		}).catch((err: Error): Promise<Chunk> => {
-			logger.info(ctx, 'failed to get chunk, retrying', { x, y, err });
-			sleep(50);
-			return self.getChunk(ctx, x, y);
-		});
-	}
-
-	async fetchOrGenChunk(ctx: Context, x: number, y: number): Promise<Chunk> {
-		ctx.check('fetchOrGenChunk');
-		const planetDB = await db.getPlanetDB(ctx, this.name);
-
-		logger.addAverageStat('chunkCacheSize', this.chunkCache.length);
-		const cacheChunk: CacheChunkType = this.getChunkFromCache(x + ':' + y);
-		if (cacheChunk) {
-			logger.addSumStat('cacheChunkHit', 1);
-			return cacheChunk.chunk;
-		} else {
-			logger.addSumStat('cacheChunkMiss', 1);
-		}
-		let chunk: null | Chunk;
-		try {
-			chunk = await planetDB.chunk.get(ctx, `${x}:${y}`);
-		} catch (err) {
-			throw new WrappedError(err, 'fetching chunk from db');
-		}
-
-		if (!chunk) {
-			logger.addSumStat('generatingChunk', 1);
-			const { chunk, chunkLayer } = await generateChunk(ctx, this, x, y);
-			await planetDB.chunk.create(ctx, chunk);
-			await planetDB.chunkLayer.create(ctx, chunkLayer);
-		}
-		this.addChunkToCache(ctx, chunk);
-		return chunk;
-	}
-
-	addChunkToCache(ctx: Context, chunk: Chunk) {
-		checkContext(ctx, 'addChunkToCache');
-		const profile = logger.startProfile('addChunkToCache');
-		const entry = {
-			chunk,
-			timestamp: Date.now()
-		};
-
-		//clear old entries from cache
-		while (this.chunkCache.length > env.chunkCacheLimit) {
-			const oldChunk = this.chunkCache.shift();
-			delete this.chunkCacheMap[oldChunk.chunk.hash];
-		}
-		this.chunkCache.push(entry);
-		this.chunkCacheMap[chunk.hash] = entry;
-
-		//sort latest to oldest
-		this.chunkCache.sort((a: CacheChunkType, b: CacheChunkType): number => {
-			return b.timestamp - a.timestamp;
-		});
-		logger.endProfile(profile);
-	}
-
-	getChunkFromCache(hash: ChunkHash): CacheChunkType {
-		return this.chunkCacheMap[hash];
-	}
-	*/
-
 	async getLocFromHash(ctx: Context, hash: TileHash): Promise<PlanetLoc> {
 		const x = parseInt(hash.split(':')[0]);
 		const y = parseInt(hash.split(':')[1]);
@@ -217,7 +130,7 @@ export default class Map {
 		ctx.check('getLoc');
 		const details = getLocationDetails(x, y, this.settings.chunkSize);
 
-		const chunk: Chunk = await this.getChunk(ctx, details.chunkX, details.chunkY);
+		const chunk: Chunk = await this.getChunkOld(ctx, details.chunkX, details.chunkY);
 		const layer = await planetDB.chunkLayer.get(ctx, chunk.hash);
 		ctx.check('getLoc end');
 		try {
@@ -510,7 +423,7 @@ export default class Map {
 		for (const chunkHash of chunkHashes) {
 			const x: number = parseInt(chunkHash.split(':')[0]);
 			const y: number = parseInt(chunkHash.split(':')[1]);
-			const chunk: Chunk = await this.getChunk(ctx, x, y);
+			const chunk: Chunk = await this.getChunkOld(ctx, x, y);
 			try {
 				const chunkUnits: Array<Unit> = await listChunkUnits(ctx, chunk);
 

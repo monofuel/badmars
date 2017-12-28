@@ -88,10 +88,10 @@ interface UnitDetails {
 }
 
 interface UnitLocation {
-	hash: Array<string>,
+	hash: TileHash[],
 	x: number,
 	y: number,
-	chunkHash: Array<string>,
+	chunkHash: ChunkHash[],
 	chunkX: number,
 	chunkY: number,
 	map: string,

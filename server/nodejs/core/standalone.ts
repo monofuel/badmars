@@ -8,6 +8,7 @@ import logger from '../logger';
 import User, { newUser } from '../user';
 import { simulate } from '../unit/unit';
 import sleep from '../util/sleep';
+import stats from '../util/stats';
 
 export default class StandaloneService implements Service {
     private parentCtx: Context;
@@ -18,7 +19,10 @@ export default class StandaloneService implements Service {
     private pathfind: Pathfind;
 
     async init(ctx: Context): Promise<void> {
+
         this.parentCtx = ctx;
+        stats(ctx.create({ name: 'stats' }));
+
         this.web = new Web();
         await this.web.init(ctx.create({ name: 'web' }));
 
@@ -43,7 +47,7 @@ export default class StandaloneService implements Service {
         const genCtx = ctx.create({ timeout: 5000 });
         for (let i = -10; i < 10; i++) {
             for (let k = -10; k < 10; k++) {
-                await testPlanet.planet.getChunk(genCtx, i, k);
+                await testPlanet.planet.getChunkOld(genCtx, i, k);
             }
         }
 
@@ -125,9 +129,9 @@ class SimulateService implements Service {
             const tickStartTime = Date.now();
 
             const planets = await db.listPlanetNames(ctx);
-
+            const simCtx = ctx.create({ name: 'simulate',/* timeout: desiredLength */ });
             for (let planet of planets) {
-                await this.simulate(ctx, planet);
+                await this.simulate(simCtx, planet);
             }
 
             const tickEndTime = Date.now();
@@ -136,7 +140,7 @@ class SimulateService implements Service {
                 logger.info(ctx, 'long tick', { tickLength, desiredLength });
             }
             const delay = desiredLength - tickLength;
-            // logger.info(ctx, 'tick proccessed', { delay });
+            logger.info(ctx, 'tick proccessed', { delay }, { silent: true });
             this.tickTimeout = setTimeout(() => this.tick(), delay > 0 ? delay : 0);
         } catch (err) {
             logger.info(this.parentCtx, 'tick failed');
@@ -154,9 +158,13 @@ class SimulateService implements Service {
             const unit = await planetDB.unit.claimUnitTick(ctx, uuid, tick);
             if (unit) {
                 try {
-                    // wait sleep(0);
-                    // await simulate(ctx, unit); // for serial processing
-                    promises.push(simulate(ctx, unit)); // for parallel processing
+                    ctx.check('simulate');
+                    const startTime = Date.now();
+                    await simulate(ctx, unit); // for serial processing
+                    // promises.push(simulate(ctx, unit)); // for parallel processing
+                    const endTime = Date.now();
+                    const processTime = endTime - startTime;
+                    logger.info(ctx, 'processed unit', { uuid, processTime }, { silent: true });
                 } catch (err) {
                     if (ctx.env.debug) {
                         throw err;

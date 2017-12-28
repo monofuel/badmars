@@ -37,7 +37,7 @@ export default async function handleSpawn(ctx: Context, client: Client): Promise
 		client.loadedChunks.push(hash);
 		const x = parseInt(hash.split(':')[0]);
 		const y = parseInt(hash.split(':')[1]);
-		const chunk = await client.planet.getChunk(ctx, x, y);
+		const chunk = await client.planet.getChunkOld(ctx, x, y);
 		client.send('chunk', { chunk: sanitizeChunk(chunk) });
 	}));
 	client.send('units', { units: units.map((unit) => sanitizeUnit(unit, client.user.uuid)) });

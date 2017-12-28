@@ -5,6 +5,9 @@
 
 import Context from '../context';
 import logger from '../logger';
+
+let initialized = false;
+
 type StatMapType = {
 	[key: string]: Array<number>
 };
@@ -29,12 +32,16 @@ let profileCount: {
 	[key: string]: number
 } = {};
 
-export function init(ctx: Context) {
-	// setInterval((): void => reportStats(ctx), ctx.env.statReportRate * 60 * 1000);
-};
+export default function init(ctx: Context) {
+	initialized = true;
+	setInterval((): void => reportStats(ctx), ctx.env.statReportRate * 60 * 1000);
+}
 
 export function startProfile(name: string): ProfileKey {
-	/*
+	if (!initialized) {
+		return;
+	}
+
 	const key: ProfileKey = name + Math.random();
 	runningProfiles[key] = {
 		name: name,
@@ -43,11 +50,13 @@ export function startProfile(name: string): ProfileKey {
 	};
 
 	return key;
-	*/
-	return '';
-};
+}
+
 export function endProfile(key: ProfileKey, visible?: boolean) {
-	/*
+	if (!initialized) {
+		return;
+	}
+
 	const profileRun: ProfileType = runningProfiles[key];
 	delete runningProfiles[key];
 	const name: string = profileRun.name;
@@ -64,26 +73,29 @@ export function endProfile(key: ProfileKey, visible?: boolean) {
 	} else {
 		profileCount[name]++;
 	}
-	*/
-};
+}
 
 export function addAverageStat(key: string, value: number) {
-	/*
+	if (!initialized) {
+		return;
+	}
+
 	if (!avgStats[key]) {
 		avgStats[key] = [];
 	}
 	avgStats[key].push(value);
-	*/
 }
 
 export function addSumStat(key: string, value: number) {
-	/*
+	if (!initialized) {
+		return;
+	}
+
 	if (!sumStats[key]) {
 		sumStats[key] = [];
 	}
 	sumStats[key].push(value);
-	*/
-};
+}
 
 
 function reportStats(ctx: Context) {

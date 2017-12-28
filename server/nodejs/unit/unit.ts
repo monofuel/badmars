@@ -495,7 +495,7 @@ export async function getChunks(ctx: Context, unit: Unit): Promise<Array<Chunk>>
 	unit.location.chunkHash.forEach((hash: TileHash) => {
 		const x = Number(hash.split(':')[0]);
 		const y = Number(hash.split(':')[1]);
-		promises.push(planetDB.planet.getChunk(ctx, x, y));
+		promises.push(planetDB.planet.getChunkOld(ctx, x, y));
 	});
 	return Promise.all(promises);
 }

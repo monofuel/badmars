@@ -77,7 +77,8 @@ export default class Context {
 	}
 
 	public check(msg: string) {
-		if (this.deadlineExceeded) {
+		// in standalone mode, the timeout may not have fired yet
+		if (this.deadlineExceeded || Date.now() > this.start + this.timeout) {
 			throw new Error('context deadline exceeded: ' + msg);
 		}
 		if (this.canceled) {
