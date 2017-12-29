@@ -22,34 +22,6 @@ import { RequestChange } from '../net';
 import UnitEntity, { destroyUnitEntity, isTileVisible } from '../units/index';
 import { Planet } from '../';
 
-const landMaterial = new THREE.MeshPhongMaterial({
-	color: config.palette.land,
-	shininess: 0
-});
-const cliffMaterial = new THREE.MeshPhongMaterial({
-	color: config.palette.cliff,
-	shininess: 0
-});
-const waterMaterial = new THREE.MeshLambertMaterial({
-	color: config.palette.water
-});
-
-waterMaterial.transparent = true;
-waterMaterial.opacity = 0.9;
-
-const tint = new THREE.Color('#888888');
-const landFogMaterial = landMaterial.clone()
-landFogMaterial.color.sub(tint);
-const cliffFogMaterial = cliffMaterial.clone()
-cliffFogMaterial.color.sub(tint);
-const waterFogMaterial = waterMaterial.clone()
-waterFogMaterial.color.sub(tint);
-
-const snowMat = new THREE.PointsMaterial({
-	color: 0x9b9b9b,
-	size: 0.25
-});
-
 export default class Map {
 	settings: Settings;
 	tps: number;
@@ -57,6 +29,15 @@ export default class Map {
 	waterMeshes: Array<THREE.Object3D>;
 	planetData: any;
 	worldSettings: any;
+
+	landMaterial: THREE.MeshPhongMaterial;
+	waterMaterial: THREE.MeshLambertMaterial;
+	cliffMaterial: THREE.MeshPhongMaterial;
+	landFogMaterial: THREE.MeshPhongMaterial;
+	waterFogMaterial: THREE.MeshLambertMaterial;
+	cliffFogMaterial: THREE.MeshPhongMaterial;
+	snowMat: THREE.PointsMaterial;
+
 	// TODO
 	// attackListener: (data: AttackEvent) => void;
 	// killListener: (data: KillEvent) => void;
@@ -75,20 +56,42 @@ export default class Map {
 		this.chunkCache = {};
 		this.requestedChunks = {};
 		this.tps = planet.tps;
-
 		this.worldSettings = planet.settings;
 
-		this.chunkInterval = setInterval(async () => {
-			await Promise.resolve(this.loadChunksNearCamera());
-			await Promise.resolve(() => {
-				gameState.playerLocation = this.getTileAtRay(new THREE.Vector2(0, 0));
-			})
+		this.landMaterial = new THREE.MeshPhongMaterial({
+			color: config.palette.land,
+			shininess: 1,
+			map: gameState.tileTex
+		});
+		this.cliffMaterial = new THREE.MeshPhongMaterial({
+			color: config.palette.cliff,
+			shininess: 0
+		});
+		this.waterMaterial = new THREE.MeshLambertMaterial({
+			color: config.palette.water
+		});
+
+		this.waterMaterial.transparent = true;
+		this.waterMaterial.opacity = 0.9;
+
+		const tint = new THREE.Color('#888888');
+		this.landFogMaterial = this.landMaterial.clone()
+		this.landFogMaterial.color.sub(tint);
+		this.cliffFogMaterial = this.cliffMaterial.clone()
+		this.cliffFogMaterial.color.sub(tint);
+		this.waterFogMaterial = this.waterMaterial.clone()
+		this.waterFogMaterial.color.sub(tint);
+
+		this.snowMat = new THREE.PointsMaterial({
+			color: 0x9b9b9b,
+			size: 0.25
+		});
+
+		this.chunkInterval = setInterval(() => {
+			this.loadChunksNearCamera();
+			gameState.playerLocation = this.getTileAtRay(new THREE.Vector2(0, 0));
 		}, 750);
-
-		// TODO load units and chunks from state
-
 	}
-
 	destroy() {
 		const { display } = gameState;
 		clearInterval(this.chunkInterval);
@@ -181,6 +184,7 @@ export default class Map {
 		waterGeom.computeFaceNormals();
 		waterGeom.computeVertexNormals();
 
+
 		// fiddle with the normals to give a nice 'tiled' look
 		for (var index = 0; index < gridGeom.faces.length; index += 2) {
 			var landVector1 = gridGeom.faces[index].normal;
@@ -201,15 +205,27 @@ export default class Map {
 				gridGeom.faces[index].vertexNormals[i].copy(newVec);
 				gridGeom.faces[index + 1].vertexNormals[i].copy(newVec);
 			}
+
+			//set texture UV
+			gridGeom.faceVertexUvs[0][index] = [
+				new THREE.Vector2(0, 1),
+				new THREE.Vector2(0, 0),
+				new THREE.Vector2(1, 1),
+			];
+			gridGeom.faceVertexUvs[0][index + 1] = [
+				new THREE.Vector2(0, 0),
+				new THREE.Vector2(1, 0),
+				new THREE.Vector2(1, 1),
+			];
 		}
 
-
 		gridGeom.normalsNeedUpdate = true;
+		gridGeom.uvsNeedUpdate = true;
 
-		var planetMaterials = [landMaterial, cliffMaterial, landFogMaterial, cliffFogMaterial];
+		var planetMaterials = [this.landMaterial, this.cliffMaterial, this.landFogMaterial, this.cliffFogMaterial];
 
 		var gridMesh = new THREE.Mesh(gridGeom, planetMaterials);
-		var waterMesh = new THREE.Mesh(waterGeom, [waterMaterial, waterFogMaterial]);
+		var waterMesh = new THREE.Mesh(waterGeom, [this.waterMaterial, this.waterFogMaterial]);
 		const hash = `${chunkX}:${chunkY}`;
 		gridMesh.name = `${hash} land`;
 		waterMesh.name = `${hash} water`;
@@ -265,7 +281,7 @@ export default class Map {
 			snowGeom.vertices.push(new THREE.Vector3(x, y, z - 40));
 		});
 
-		const cloud = new THREE.Points(snowGeom, snowMat);
+		const cloud = new THREE.Points(snowGeom, this.snowMat);
 		cloud.name = `${hash} snow`;
 		cloud.geometry.applyMatrix(centerMatrix);
 		cloud.position.copy(gridMesh.position);

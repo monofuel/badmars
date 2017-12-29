@@ -169,6 +169,7 @@ export default interface GameState {
 		loc: PlanetLoc,
 		mesh: THREE.Mesh,
 	}
+	tileTex: THREE.Texture;
 }
 
 export async function newState(): Promise<GameState> {
@@ -195,6 +196,10 @@ export async function newState(): Promise<GameState> {
 		moonColor: 0x9AA09A,
 		*/
 
+	const tileTex = await new Promise<THREE.Texture>((resolve, reject) => {
+		new THREE.TextureLoader().load("models/tile.png", resolve, _.noop, reject);
+	});
+
 	const state: GameState = {
 		token,
 		playerInfo,
@@ -216,7 +221,8 @@ export async function newState(): Promise<GameState> {
 		unitEntities: {},
 		chatOpen: false,
 		chatHistory: [],
-		snow: {}
+		snow: {},
+		tileTex
 	};
 
 	(window as any).state = state;
