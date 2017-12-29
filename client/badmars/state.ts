@@ -167,7 +167,7 @@ export default interface GameState {
 	}
 	mouseHilight?: {
 		loc: PlanetLoc,
-		mesh: THREE.Mesh,
+		mesh: THREE.Mesh[],
 	}
 	tileTex: THREE.Texture;
 }
@@ -401,26 +401,53 @@ export function setFocus(focus: Focused) {
 	GameFocusChange.post({ focus, prev });
 }
 
-export function clearSelection(state: GameState) {
-	if (!state.mouseHilight) {
+export function clearSelection() {
+	if (!gameState.mouseHilight) {
 		return;
 	}
-	state.display.removeMesh(state.mouseHilight.mesh);
-	delete state.mouseHilight;
+	gameState.display.removeMesh(gameState.mouseHilight.mesh);
+	delete gameState.mouseHilight;
 }
-export function setSelection(state: GameState, loc: PlanetLoc, color: THREE.Color) {
-	if (state.mouseHilight) {
-		if (state.mouseHilight.loc.equals(loc)) {
+export function setSelection(loc: PlanetLoc, size: number, color: THREE.Color) {
+	if (gameState.mouseHilight) {
+		if (gameState.mouseHilight.loc.equals(loc)) {
 			return;
 		} else {
-			clearSelection(state);
+			clearSelection();
 		}
 	}
-	const mesh = tileSquareMesh(loc, new THREE.Color('#ff00ff'));
-	state.display.addMesh(mesh);
-	state.mouseHilight = {
+	const locs = getLocsForSize(loc, size);
+	const mesh = locs.map((l) => tileSquareMesh(l, color));
+	gameState.display.addMesh(mesh);
+	gameState.mouseHilight = {
 		mesh,
 		loc
 	}
+}
 
+export function getLocsForSize(loc: PlanetLoc, size: number): PlanetLoc[] {
+	switch (size) {
+		case 3:
+			return [
+				loc,
+				loc.N(),
+				loc.N().E(),
+				loc.N().W(),
+				loc.E(),
+				loc.W(),
+				loc.S(),
+				loc.S().W(),
+				loc.S().E()
+			]
+		case 2:
+			return [
+				loc,
+				loc.N(),
+				loc.E(),
+				loc.E().N()
+			]
+		case 1:
+		default:
+			return [loc];
+	}
 }

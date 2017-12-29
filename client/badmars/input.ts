@@ -4,11 +4,13 @@ import { autobind } from 'core-decorators';
 import * as _ from 'lodash';
 import { SyncEvent } from 'ts-events';
 
-import GameState, { SelectedUnitsChange, TransferChange, clearSelection, setSelection } from './state';
+import GameState, { SelectedUnitsChange, TransferChange, clearSelection, setSelection, getLocsForSize } from './state';
 import PlanetLoc from './map/planetLoc';
 import { RequestChange } from './net';
 import UnitEntity from './units';
 import * as THREE from 'three';
+import { getUnitInfo } from './units/unitBalance';
+import { TILE_LAND } from './map/tileTypes';
 
 export type MouseMode = 'select' | 'move' | 'focus';
 
@@ -42,7 +44,11 @@ export default class Input {
 	dragStart: THREE.Vector2;
 	dragCurrent: THREE.Vector2;
 	public mouseMode: MouseMode;
+	// these handlers are starting to get really cludgy
 	public mouseAction: Function;
+
+	// we should have a syncEvent for keypressses instead of this hack
+	public escHandler: Function;
 
 	constructor() {
 		this.keysDown = [];
@@ -99,8 +105,13 @@ export default class Input {
 				case 70: // f
 					gameState.display.cameraDown(delta);
 					break;
+				case 27:
+					if (this.escHandler) {
+						this.escHandler();
+					}
+					break;
 				default:
-				// console.log("key press: " + key);
+					console.log("key press: " + key);
 			}
 		}
 	}
@@ -266,51 +277,54 @@ export default class Input {
 	public construct(unitType: string) {
 
 		this.mouseMode = 'focus';
-		console.log('adding mouse click function for ' + unitType);
-		let color: THREE.Color;
-		if (unitType !== 'cancel') {
-			console.log('building ' + unitType);
-			color = new THREE.Color('#00FF00');
-		} else {
-			color = new THREE.Color('#FF00FF');
+		let lastMousePos: MouseMoveEvent;
+		const info = getUnitInfo(unitType);
+
+		const getConstructColor = (tile: PlanetLoc): THREE.Color => {
+			const locs = getLocsForSize(tile, info.details.size);
+			const openLand = !_.find(locs, (l) => l.tileType !== TILE_LAND)
+			return openLand ? new THREE.Color(0x00ff00) : new THREE.Color(0xff0000);
 		}
-		let lastMousePos: MouseMoveEvent
+
+		const clearSelect = () => {
+			clearSelection();
+			MouseMoveChanged.detach(selectionMoveHandler);
+			MoveCameraChange.detach(cameraMoveHandler);
+			this.escHandler = null;
+		}
+		this.escHandler = () => {
+			clearSelect();
+		}
 		// mouse move and camera move should get refactored
 		// should also check if the tile is valid for the unit to build
 		const selectionMoveHandler = (e: MouseMoveEvent) => {
 			if (this.mouseMode !== 'focus') {
-				clearSelection(gameState);
-				MouseMoveChanged.detach(selectionMoveHandler);
-				MoveCameraChange.detach(cameraMoveHandler);
+				clearSelect();
 				return;
 			}
 			lastMousePos = e;
 			const tile = this.getTileUnderCursor(e.event);
-			setSelection(gameState, tile, color);
+			setSelection(tile, info.details.size, getConstructColor(tile));
 		}
 		MouseMoveChanged.attach(selectionMoveHandler);
 
 		const cameraMoveHandler = (e: MoveCameraEvent) => {
 			if (this.mouseMode !== 'focus') {
-				clearSelection(gameState);
-				MouseMoveChanged.detach(selectionMoveHandler);
-				MoveCameraChange.detach(cameraMoveHandler)
+				clearSelect();
 				return;
 			}
 			if (!lastMousePos) {
 				return;
 			}
 			const tile = this.getTileUnderCursor(lastMousePos.event);
-			setSelection(gameState, tile, color);
+			setSelection(tile, info.details.size, getConstructColor(tile));
 		}
 
 		MoveCameraChange.attach(cameraMoveHandler);
 
 		this.mouseAction = (event: MouseReleaseEvent) => {
 
-			clearSelection(gameState);
-			MouseMoveChanged.detach(selectionMoveHandler);
-			MoveCameraChange.detach(cameraMoveHandler)
+			clearSelect();
 			if (this.mouseMode !== 'focus') {
 				return
 			}
