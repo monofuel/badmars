@@ -18,7 +18,7 @@ export default class DBUnit implements DB.DBUnit {
         const userUnits: Unit[] = [];
         for (const unit of Object.values(this.units)) {
             if (unit.details.owner === uuid) {
-                userUnits.push(_.cloneDeep(unit));
+                userUnits.push(unit);
             }
         }
         return userUnits;
@@ -53,6 +53,7 @@ export default class DBUnit implements DB.DBUnit {
     }
     async patch(ctx: Context, uuid: string, unit: Partial<UnitPatch>): Promise<Unit> {
         const call = startDBCall(ctx, 'unit.patch');
+        // TODO: is this really being used? would be nice to remove.
         const prev = _.cloneDeep(this.units[uuid]);
         const next = _.merge(this.units[uuid], unit);
         // HACK don't merge arrays

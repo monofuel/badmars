@@ -187,6 +187,9 @@ export class PlanetLoc {
 
 	// Get the angle of the surface
 	public getEuler(): THREE.Euler {
+		if (!this.corners) {
+			return new THREE.Euler();
+		}
 		const geom = new THREE.Geometry();
 		geom.vertices.push(new THREE.Vector3(0, 0, this.corners[0]));
 		geom.vertices.push(new THREE.Vector3(1, 0, this.corners[1]));

@@ -734,14 +734,4 @@ export default class Map {
 		Object.assign(this, patch);
 		await planetDB.patch(ctx, patch);
 	}
-
-	clone(object: any) {
-		for (const key in object) {
-			(this as any)[key] = _.cloneDeep(object[key]);
-		}
-
-		//TODO should probably not do this
-		//apply default settings to existing maps
-		this.settings = _.cloneDeep(defaultSettings);
-	}
 }

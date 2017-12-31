@@ -325,7 +325,9 @@ export async function newState(): Promise<GameState> {
 	const updateUnitsListener = (data: UnitEvent) => {
 		for (let updated of data.list) {
 			if (state.unitEntities[updated.uuid]) {
-				destroyUnitEntity(state.unitEntities[updated.uuid]);
+				state.units[updated.uuid] = updated;
+				state.unitEntities[updated.uuid].unit = updated;
+				return;
 			}
 			const entity = newUnitEntity(updated);
 			state.unitEntities[updated.uuid] = entity;

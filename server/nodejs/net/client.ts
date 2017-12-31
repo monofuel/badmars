@@ -39,7 +39,7 @@ export default class Client {
 	user: User;
 	ctx: Context;
 	loadedChunks: ChunkHash[];
-	visibleUnits: { [key: string]: Unit }
+	visibleUnits: { [uuid: string]: Unit };
 
 	constructor(ctx: Context, ws: WebSocket, req: http.IncomingMessage) {
 		this.ws = ws;
@@ -159,7 +159,7 @@ export default class Client {
 	}
 
 	async handleUnitUpdate(ctx: Context, unit: Unit, oldUnit?: Unit): Promise<void> {
-		// unit death
+		// unit death (TODO)
 		if (!unit) {
 			return;
 		}
@@ -173,9 +173,6 @@ export default class Client {
 		if (!unit || !oldUnit || unit.location.hash !== oldUnit.location.hash && unit.details.owner === this.user.uuid) {
 			this.updateUnitVisiblity(ctx, unit);
 		}
-
-		oldUnit = this.visibleUnits[unit.uuid] || oldUnit;
-		this.visibleUnits[unit.uuid] = _.cloneDeep(unit);
 
 		unit.visible = true;
 		let prevVisible: boolean;
@@ -196,34 +193,16 @@ export default class Client {
 				return;
 			}
 		}
+		if (nextVisible) {
+			this.visibleUnits[unit.uuid] = unit;
+		}
 
 		// prepare the unit to be sent to the client
 		const sanitizedNewUnit = sanitizeUnit(unit, this.user.uuid);
 
-		if (oldUnit) {
-			if (prevVisible) {
-				const sanitizedOldUnit = sanitizeUnit(oldUnit, this.user.uuid);
-				if (!_.isEqual(sanitizedNewUnit, sanitizedOldUnit)) {
-					const delta = jsonpatch.compare(sanitizedOldUnit, sanitizedNewUnit);
-					if (delta.length > 0) {
-						await this.send('unitDelta', {
-							uuid: sanitizedNewUnit.uuid,
-							delta
-						});
-					}
-				}
-			} else { // send a full update if the unit is becoming visible
-				await this.send('units', {
-					units: [sanitizedNewUnit]
-				});
-			}
-		} else {
-			await this.send('units', {
-				units: [sanitizedNewUnit]
-			});
-		}
-
-
+		await this.send('units', {
+			units: [sanitizedNewUnit]
+		});
 	}
 
 	// find units in visibleUnits that need to be updated for the user
@@ -236,16 +215,9 @@ export default class Client {
 					visible: false
 				}
 
-				const delta = jsonpatch.compare(
-					sanitizeUnit(unit, this.user.uuid),
-					sanitizeUnit(next, this.user.uuid)
-				);
-				if (delta.length > 0) {
-					await this.send('unitDelta', {
-						uuid: unit.uuid,
-						delta
-					});
-				}
+				await this.send('units', {
+					units: [next]
+				});
 			}
 		}
 		const nearby = await this.map.getNearbyUnitsFromChunk(ctx,
@@ -263,7 +235,7 @@ export default class Client {
 			const distance = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 			if (distance < movedUnit.details.vision) {
 				nowVisible.push(unit);
-				this.visibleUnits[unit.uuid] = _.cloneDeep(unit);
+				this.visibleUnits[unit.uuid] = unit;
 			}
 		}
 		await this.send('units', {

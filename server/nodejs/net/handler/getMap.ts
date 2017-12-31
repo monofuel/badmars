@@ -48,8 +48,8 @@ export default async function getMap(ctx: Context, client: Client): Promise<void
 		await client.send('chunk', { chunk: sanitizeChunk(chunk) });
 		await client.send('units', {
 			units: _.compact(await Promise.all(chunkUnits.map(async (unit: Unit) => {
-				// HACK for factory queues
-				unit = _.cloneDeep(unit);
+
+				// TODO should have a universal function to prepare a unit to be sent to user
 				if (unit.details.type === 'factory') {
 					unit.construct.queue = await planetDB.factoryQueue.list(ctx, unit.uuid);
 				}
@@ -57,7 +57,7 @@ export default async function getMap(ctx: Context, client: Client): Promise<void
 				if (!unit.visible) {
 					return;
 				}
-				client.visibleUnits[unit.uuid] = _.cloneDeep(unit);
+				client.visibleUnits[unit.uuid] = unit;
 				return sanitizeUnit(unit, client.user.uuid);
 			})))
 		});

@@ -37,7 +37,7 @@ export default async function getChunk(ctx: Context, client: Client, data: any):
 			if (!unit.visible) {
 				return;
 			}
-			client.visibleUnits[unit.uuid] = _.cloneDeep(unit);
+			client.visibleUnits[unit.uuid] = unit;
 
 			sanitized.push(sanitizeUnit(unit, client.user.uuid));
 		}
