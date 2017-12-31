@@ -46,16 +46,6 @@ export default class Display {
 		this.HUDPanel.width = window.innerWidth;
 		this.HUDPanel.height = window.innerHeight;
 
-		this.renderer = new THREE.WebGLRenderer({
-			antialias: config.antiAlias,
-			canvas: this.panel
-		});
-
-		this.renderer.shadowMap.enabled = config.shadows;
-		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-		this.renderer.setSize(window.innerWidth, window.innerHeight);
-
 		this.hemLight = new THREE.HemisphereLight(0xffffff, 0xFFBF00, 0.3);
 		this.scene.add(this.hemLight);
 		this.moonLight = new THREE.DirectionalLight(gameState.moonColor, 0.2);
@@ -74,8 +64,8 @@ export default class Display {
 		this.light.shadow.camera.updateProjectionMatrix();
 
 		this.clippingPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 40);
-		this.renderer.clippingPlanes = [this.clippingPlane];
 
+		this.updateRenderer();
 
 		this.updateSunPosition(0);
 		this.scene.add(this.light);
@@ -97,6 +87,18 @@ export default class Display {
 		this.camera.updateProjectionMatrix();
 
 		window.onresize = this.resize;
+	}
+	updateRenderer() {
+
+		this.renderer = new THREE.WebGLRenderer({
+			antialias: config.antiAlias,
+			canvas: this.panel
+		});
+		this.renderer.shadowMap.enabled = config.shadows;
+		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+		this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.renderer.clippingPlanes = [this.clippingPlane];
 	}
 
 	viewTile(tile: PlanetLoc) {

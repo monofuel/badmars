@@ -475,7 +475,7 @@ export function checkForLinks(entity: UnitEntity) {
     if (entity.unit.details.owner !== gameState.playerInfo.uuid) {
         return;
     }
-    if (!gameState.selectedUnits.includes(entity)) {
+    if (!gameState.selectedUnits.includes(entity) && gameState.input.mouseMode !== 'focus') {
         clearLinks(entity);
         clearTransferRange(entity);
         return;

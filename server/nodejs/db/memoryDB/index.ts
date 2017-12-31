@@ -75,10 +75,7 @@ class MemoryDB implements DB.DB {
     }
 
     public async getPlanetDB(ctx: Context, name: string): Promise<DB.Planet | null> {
-        const call = startDBCall(ctx, 'getPlanetDB');
-        const existing = this.planets[name];
-        await call.end();
-        return existing;
+        return this.planets[name];
     }
     public async removePlanet(ctx: Context, name: string): Promise<void> {
         delete this.planets[name];
