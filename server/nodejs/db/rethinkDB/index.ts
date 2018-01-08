@@ -2,7 +2,7 @@ import * as DB from '../';
 import Context from '../../context';
 // import { startDBCall } from '../helper';
 
-export default class RethinkDB implements DB.DB {
+class RethinkDB implements DB.DB {
     // private planets: { [key: string]: DB.Planet };
     public event: any;
     public session: any;
@@ -35,3 +35,5 @@ export default class RethinkDB implements DB.DB {
         throw new Error('not implemented');
     }
 }
+const db = new RethinkDB();
+export default db;

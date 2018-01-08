@@ -6,14 +6,14 @@ import logger from './logger';
 export async function prepareCtx(name: string, db: DB): Promise<Context> {
 	const ctx = new Context({ env, name });
 	try {
-		logger.init(name);
+		await logger.init(name);
 	} catch (err) {
 		console.error(err);
 		console.log('failed to start logger');
 		process.exit(-1);
 	}
 	try {
-		db.init(ctx);
+		await db.init(ctx);
 		ctx.info('parent context ready');
 
 	} catch (err) {

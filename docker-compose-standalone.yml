@@ -16,3 +16,15 @@ services:
       - '80:80'
     links:
       - standalone
+
+  rethink:
+    image: rethinkdb
+    ports:
+      - "8085:8080"
+      - "28015:28015"
+    volumes:
+      - rethink_data:/data
+
+volumes:
+  rethink_data:
+    driver: local
