@@ -13,6 +13,7 @@ export async function prepareCtx(name: string, db: DB): Promise<Context> {
 		process.exit(-1);
 	}
 	try {
+		await db.setupSchema(ctx);
 		await db.init(ctx);
 		ctx.info('parent context ready');
 

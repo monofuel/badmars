@@ -136,6 +136,7 @@ export interface Session {
 }
 
 export interface DB {
+    setupSchema(ctx: Context): Promise<void>;
     init(ctx: Context): Promise<void>;
     stop(ctx: Context): Promise<void>;
     createPlanet(ctx: Context, name: string, seed?: number): Promise<Planet>;
@@ -153,6 +154,9 @@ class DelegateDB implements DB {
     setup(db: DB) {
         this.db = db;
         (global as any).db = db;
+    }
+    setupSchema(ctx: Context) {
+        return this.db.setupSchema(ctx);
     }
     init(ctx: Context) {
         return this.db.init(ctx);

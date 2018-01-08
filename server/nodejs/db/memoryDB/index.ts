@@ -16,6 +16,10 @@ class MemoryDB implements DB.DB {
     public session: Session;
     public user: User;
 
+    async setupSchema(ctx: Context): Promise<void> {
+        // noop
+    }
+
     public async init(ctx: Context): Promise<void> {
         this.user = new User();
         this.event = new Event();
@@ -37,9 +41,9 @@ class MemoryDB implements DB.DB {
         }
 
         // init needs to be called after assigning previous values
-        this.user.init(ctx.create());
-        this.event.init(ctx.create());
-        this.session.init(ctx.create());
+        await this.user.init(ctx.create());
+        await this.event.init(ctx.create());
+        await this.session.init(ctx.create());
 
         if (!ctx.env.ephemeral) {
             // TODO disabled for now
