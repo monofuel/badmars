@@ -7,7 +7,7 @@ export default interface ChunkLayer {
 	map: string;
 
 	ground: EntityMapType;
-	resources: EntityMapType;
+	resource: EntityMapType;
 	air: EntityMapType;
 
 }
@@ -19,7 +19,7 @@ export async function newChunkLayer(ctx: Context, map: string, x: number, y: num
 		hash: `${x}:${y}`,
 		map,
 		ground: {},
-		resources: {},
+		resource: {},
 		air: {}
 	}
 }

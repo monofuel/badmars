@@ -46,11 +46,13 @@ export default class StandaloneService implements Service {
         // force a few chunks to load
         logger.info(ctx, 'loading chunks');
         const genCtx = ctx.create({ timeout: 5000 });
+        const genPromises = [];
         for (let i = -10; i < 10; i++) {
             for (let k = -10; k < 10; k++) {
-                await testPlanet.planet.getChunkOld(genCtx, i, k);
+                genPromises.push(testPlanet.planet.getChunkOld(genCtx, i, k));
             }
         }
+        await Promise.all(genPromises);
 
         if (!await db.user.getByName(ctx, 'test')) {
             logger.info(ctx, 'creating test user');

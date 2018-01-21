@@ -1,7 +1,7 @@
 import * as r from 'rethinkdb';
 import * as DB from '../../db';
 import Context from '../../context';
-import { createTable } from '../helper';
+import { createTable, startDBCall } from '../helper';
 
 export default class DBChunk implements DB.DBChunk {
 	conn: r.Connection;
@@ -17,14 +17,24 @@ export default class DBChunk implements DB.DBChunk {
 	each(ctx: Context, fn: DB.Handler<any>): Promise<void> {
 		throw new Error("Method not implemented.");
 	}
-	get(ctx: Context, hash: string): Promise<any> {
+	public async get(ctx: Context, hash: string): Promise<Chunk> {
+		const call = await startDBCall(ctx, 'getChunk');
+		const c = await this.table.get(hash).run(this.conn);
+		await call.end();
+		return c as any;
+
+	}
+	public async patch(ctx: Context, hash: string, chunk: Partial<Chunk>): Promise<Chunk> {
+		const call = await startDBCall(ctx, 'updateChunk');
+		const result = await this.table.get(hash).update(chunk, { returnChanges: true }).run(this.conn);
+		await call.end();
 		throw new Error("Method not implemented.");
 	}
-	patch(ctx: Context, uuid: string, chunk: Partial<any>): Promise<any> {
-		throw new Error("Method not implemented.");
-	}
-	create(ctx: Context, chunk: any): Promise<any> {
-		throw new Error("Method not implemented.");
+	public async create(ctx: Context, chunk: Chunk): Promise<Chunk> {
+		const call = await startDBCall(ctx, 'saveChunk');
+		await this.table.insert(chunk).run(this.conn);
+		await call.end();
+		return chunk; // we don't actually change the chunk
 	}
 
 

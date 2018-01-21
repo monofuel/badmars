@@ -1,12 +1,14 @@
 require('source-map-support').install();
 
-import RethinkDB from './db/rethinkDB';
+import db from './db/memoryDB';
+import { setupDB } from './db';
 import Web from './core/web';
 import Context from './context';
 import { prepareCtx, start } from './';
 
 async function init(): Promise<void> {
-    const ctx = await prepareCtx('web', new RethinkDB());
+    setupDB(db);
+    const ctx = await prepareCtx('web', db);
     await start(ctx, async (ctx: Context) => {
         const web = new Web();
         await web.init(ctx);

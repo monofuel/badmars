@@ -5,7 +5,8 @@ import GamePlanet from '../../map/map';
 import DBChunk from './chunk';
 import DBChunkLayer from './chunkLayer';
 import DBUnit from './unit';
-import DBUnitStat from './unitStat';
+// import DBUnitStat from './unitStat';
+import DBUnitStat from '../memoryDB/unitStat';
 import DBFactoryQueue from './factoryQueue';
 
 export default class Planet implements DB.Planet {
@@ -44,7 +45,8 @@ export default class Planet implements DB.Planet {
 		await this.chunk.setupSchema(ctx, conn, this.name);
 		await this.chunkLayer.setupSchema(ctx, conn, this.name);
 		await this.unit.setupSchema(ctx, conn, this.name);
-		await this.unitStat.setupSchema(ctx, conn, this.name);
+		// TODO use rethink unit stats
+		// await this.unitStat.setupSchema(ctx, conn, this.name);
 		await this.factoryQueue.setupSchema(ctx, conn, this.name);
 	}
 	patch(ctx: Context, patch: Partial<GamePlanet>): Promise<void> {

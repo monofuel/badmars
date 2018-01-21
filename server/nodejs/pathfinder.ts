@@ -1,12 +1,14 @@
 require('source-map-support').install();
 
-import RethinkDB from './db/rethinkDB';
+import db from './db/memoryDB';
+import { setupDB } from './db';
 import Pathfinding from './core/pathfinding';
 import Context from './context';
 import { prepareCtx, start } from './';
 
 async function init(): Promise<void> {
-	const ctx = await prepareCtx('pathfinding', new RethinkDB());
+	setupDB(db);
+	const ctx = await prepareCtx('pathfinder', db);
 	await start(ctx, async (ctx: Context) => {
 		const pathfinding = new Pathfinding();
 		await pathfinding.init(ctx);

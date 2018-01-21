@@ -78,7 +78,7 @@ class RethinkDB implements DB.DB {
         for (const planetName of names) {
             const planet = new Planet(planetName);
             this.planets[planetName] = planet;
-            await planet.init(ctx);
+            await planet.init(ctx, this.conn);
         }
 
         await this.user.init(ctx.create(), this.conn);
@@ -93,14 +93,16 @@ class RethinkDB implements DB.DB {
     async createPlanet(ctx: Context, name: string, seed?: number): Promise<DB.Planet> {
         const call = startDBCall(ctx, 'createPlanet');
         const planet = new Planet(name, seed);
-        await planet.init(ctx);
+        await planet.init(ctx, this.conn);
+        await planet.setupSchema(ctx, this.conn);
         this.planets[name] = planet;
         await call.end();
         return planet;
     }
 
     async getPlanetDB(ctx: Context, name: string): Promise<DB.Planet> {
-        throw new Error("Method not implemented.");
+        // TODO if the planet is not in the map, load it from the database
+        return this.planets[name];
     }
     async removePlanet(ctx: Context, name: string): Promise<void> {
         throw new Error("Method not implemented.");
