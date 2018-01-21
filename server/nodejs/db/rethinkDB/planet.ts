@@ -38,7 +38,8 @@ export default class Planet implements DB.Planet {
 		await this.chunk.init(ctx, conn, this.name);
 		await this.chunkLayer.init(ctx, conn, this.name);
 		await this.unit.init(ctx, conn, this.name);
-		await this.unitStat.init(ctx, conn, this.name);
+		// await this.unitStat.init(ctx, conn, this.name);
+		await this.unitStat.init(ctx);
 		await this.factoryQueue.init(ctx, conn, this.name);
 	}
 	public async setupSchema(ctx: Context, conn: r.Connection): Promise<void> {

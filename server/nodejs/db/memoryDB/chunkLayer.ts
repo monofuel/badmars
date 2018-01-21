@@ -39,7 +39,7 @@ export default class ChunkLayer implements DB.DBChunkLayer {
                 entityMap = chunk.ground;
                 break;
             case 'resource':
-                entityMap = chunk.resources;
+                entityMap = chunk.resource;
                 break;
             default:
                 throw new Error('invalid layer');
@@ -62,7 +62,7 @@ export default class ChunkLayer implements DB.DBChunkLayer {
                 entityMap = chunk.ground;
                 break;
             case 'resource':
-                entityMap = chunk.resources;
+                entityMap = chunk.resource;
                 break;
             default:
                 throw new Error('invalid layer');

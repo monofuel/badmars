@@ -114,13 +114,13 @@ export default class DBChunk {
 
 	async setUnit(ctx: Context, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<void> {
 		const call = await startDBCall(ctx, 'setUnit');
-		await this.setEntity(ctx, chunk, uuid, 'units', tileHash);
+		await this.setEntity(ctx, chunk, uuid, 'unit', tileHash);
 		await call.end();
 	}
 
 	async setResource(ctx: Context, chunk: Chunk, uuid: UUID, tileHash: TileHash): Promise<void> {
 		const call = await startDBCall(ctx, 'setResource');
-		await this.setEntity(ctx, chunk, uuid, 'resources', tileHash);
+		await this.setEntity(ctx, chunk, uuid, 'resource', tileHash);
 		await call.end();
 	}
 
