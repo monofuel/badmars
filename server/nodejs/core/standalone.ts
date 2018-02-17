@@ -59,9 +59,6 @@ export default class StandaloneService implements Service {
             const user = await newUser(ctx, 'test', 'test@japura.net', 'foobar');
             await db.user.create(ctx, user);
 
-            // Do evil things to memoryDB to setup the test environment
-            (db.session as any).sessions['TEST_SESSION_ID'] = { user: user.uuid, token: 'TEST_SESSION_ID', type: 1 }
-
             logger.info(ctx, 'spawning test user on testmap');
             await testPlanet.planet.spawnUser(ctx, user);
         }

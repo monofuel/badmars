@@ -23,8 +23,6 @@ watchHomepage:
 
 check:
 	go vet .
-	flow check
-	node_modules/eslint/bin/eslint.js -c .eslintrc.json server/
 
 test:
 	make -j 2 apiTest run
