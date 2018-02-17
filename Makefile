@@ -25,6 +25,7 @@ check:
 	go vet .
 
 test:
+	npm run test
 	make -j 2 apiTest run
 
 apiTest:
