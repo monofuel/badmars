@@ -2,6 +2,7 @@ import * as r from 'rethinkdb';
 import * as DB from '../../db';
 import Context from '../../context';
 import { createTable, createIndex, clearSpareIndices, startDBCall } from '../helper';
+import { WrappedError } from '../../logger';
 
 export default class DBUnit implements DB.DBUnit {
     conn: r.Connection;
@@ -37,14 +38,29 @@ export default class DBUnit implements DB.DBUnit {
         await call.end();
         return unit; // doesn't change Unit
     }
-    getBulk(ctx: Context, uuids: string[]): Promise<{ [uuid: string]: any; }> {
-        throw new Error("Method not implemented.");
+    async getBulk(ctx: Context, uuids: string[]): Promise<{ [uuid: string]: Unit; }> {
+        const call = await startDBCall(ctx, 'createUnit');
+        const units = await this.table.getAll(...uuids).run(this.conn);
+        const res: { [key: string]: Unit } = {};
+        units.each((err: Error, unit: Unit) => {
+            if (err) {
+                throw new WrappedError(err, 'iterating over getBulk');
+            }
+            res[unit.uuid] = unit;
+        });
+        await call.end();
+        return res;
     }
-    delete(ctx: Context, uuid: string): Promise<void> {
-        throw new Error("Method not implemented.");
+    async delete(ctx: Context, uuid: string): Promise<void> {
+        const call = await startDBCall(ctx, 'deleteUnit');
+        await this.table.get(uuid).delete().run(this.conn);
+        await call.end();
     }
-    patch(ctx: Context, uuid: string, unit: Partial<any>): Promise<any> {
-        throw new Error("Method not implemented.");
+    async patch(ctx: Context, uuid: string, patch: Partial<Unit>): Promise<Unit> {
+        const call = await startDBCall(ctx, 'updateUnit');
+        const result = await this.table.get(uuid).update(patch, { durability: 'hard', returnChanges: 'always' as any }).run(this.conn);
+        await call.end();
+        return (result as any).changes[0].new_val;
     }
     watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<any>>): Promise<void> {
         throw new Error("Method not implemented.");
