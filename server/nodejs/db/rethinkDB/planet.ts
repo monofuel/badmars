@@ -53,7 +53,9 @@ export default class Planet implements DB.Planet {
 	patch(ctx: Context, patch: Partial<GamePlanet>): Promise<void> {
 		throw new Error("Method not implemented.");
 	}
-	addUser(ctx: Context, uuid: string): Promise<void> {
-		throw new Error("Method not implemented.");
+	async addUser(ctx: Context, uuid: string): Promise<void> {
+		await this.table.get(this.planet.name).update({
+			users: r.row('users').append(uuid)
+		}).run(this.conn);
 	}
 }

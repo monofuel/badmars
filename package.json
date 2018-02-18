@@ -35,7 +35,7 @@
     "@types/react-router-dom": "^4.0.7",
     "@types/react-tap-event-plugin": "0.0.30",
     "@types/request": "^2.0.3",
-    "@types/rethinkdb": "^2.3.5",
+    "@types/rethinkdb": "^2.3.8",
     "@types/three": "^0.84.33",
     "@types/uuid": "^3.4.3",
     "@types/winston": "^2.3.2",

@@ -96,6 +96,7 @@ class RethinkDB implements DB.DB {
         await planet.init(ctx, this.conn);
         await planet.setupSchema(ctx, this.conn);
         this.planets[name] = planet;
+        await planet.table.insert(planet.planet).run(this.conn);
         await call.end();
         return planet;
     }
