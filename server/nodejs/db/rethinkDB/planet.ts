@@ -8,6 +8,7 @@ import DBUnit from './unit';
 // import DBUnitStat from './unitStat';
 import DBUnitStat from '../memoryDB/unitStat';
 import DBFactoryQueue from './factoryQueue';
+import { startDBCall } from '../helper';
 
 export default class Planet implements DB.Planet {
 	conn: r.Connection;
@@ -50,8 +51,11 @@ export default class Planet implements DB.Planet {
 		// await this.unitStat.setupSchema(ctx, conn, this.name);
 		await this.factoryQueue.setupSchema(ctx, conn, this.name);
 	}
-	patch(ctx: Context, patch: Partial<GamePlanet>): Promise<void> {
-		throw new Error("Method not implemented.");
+	async patch(ctx: Context, patch: Partial<GamePlanet>): Promise<void> {
+		const call = await startDBCall(ctx, 'planet.patch');
+		const result = await this.table.get(this.planet.name).update(patch, { returnChanges: 'always' as any }).run(this.conn);
+		await call.end();
+		return (result as any).changes[0].new_val;
 	}
 	async addUser(ctx: Context, uuid: string): Promise<void> {
 		await this.table.get(this.planet.name).update({

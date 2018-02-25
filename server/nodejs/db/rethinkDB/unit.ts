@@ -2,7 +2,7 @@ import * as r from 'rethinkdb';
 import * as DB from '../../db';
 import Context from '../../context';
 import { createTable, createIndex, clearSpareIndices, startDBCall } from '../helper';
-import { WrappedError } from '../../logger';
+import { WrappedError, DetailedError } from '../../logger';
 import env from '../../config/env';
 
 export default class DBUnit implements DB.DBUnit {
@@ -131,11 +131,40 @@ export default class DBUnit implements DB.DBUnit {
     listPlayersUnits(ctx: Context, uuid: string): Promise<any[]> {
         throw new Error("Method not implemented.");
     }
-    pullResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
-        throw new Error("Method not implemented.");
+    async pullResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
+        const delta: any = await this.table.get(uuid).update((self: any): any => {
+			return {
+				storage: {
+					[type]: (r as any).max([0, self('storage')(type).sub(amount)])
+				}
+			};
+		}, { returnChanges: true }).run(this.conn);
+
+		if (delta.replaced != 1 || delta.changes.length != 1) {
+			throw new DetailedError('failed to pull resource', { type, amount, uuid });
+		}
+
+		const movedAmount = delta.changes[0].old_val.storage[type] - delta.changes[0].new_val.storage[type];
+
+		return movedAmount;
     }
-    putResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
-        throw new Error("Method not implemented.");
+    async putResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
+        const maxField = type === 'iron' ? 'maxIron' : 'maxFuel';
+		const delta: any = await this.table.get(uuid).update((self: any): any => {
+			return {
+				storage: {
+					[type]: (r as any).min([self('storage')(maxField), self('storage')(type).add(amount)])
+				}
+			};
+		}, { returnChanges: true }).run(this.conn);
+
+		if (delta.replaced != 1 || delta.changes.length != 1) {
+			throw new DetailedError('failed to put resource', { type, amount, uuid });
+		}
+
+		const movedAmount = delta.changes[0].new_val.storage[type] - delta.changes[0].old_val.storage[type];
+
+		return movedAmount;
     }
     count(): Promise<number> {
         throw new Error("Method not implemented.");
