@@ -66,7 +66,7 @@ export interface DBUnit {
     getAtChunk(ctx: Context, hash: string): Promise<Unit[]>;
     getUnprocessedPath(ctx: Context): Promise<Unit>;
     getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]>;
-    claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<Unit>;
+    claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<Unit | null>;
 
     listPlayersUnits(ctx: Context, uuid: string): Promise<Unit[]>;
 

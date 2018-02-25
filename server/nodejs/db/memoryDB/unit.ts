@@ -103,7 +103,7 @@ export default class DBUnit implements DB.DBUnit {
         }
         return uuids;
     }
-    async claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<Unit> {
+    async claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<Unit | null> {
         const unit = this.units[uuid];
         if (unit.details.lastTick < tick) {
             unit.details.lastTick = tick;

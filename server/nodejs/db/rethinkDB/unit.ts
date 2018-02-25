@@ -3,6 +3,7 @@ import * as DB from '../../db';
 import Context from '../../context';
 import { createTable, createIndex, clearSpareIndices, startDBCall } from '../helper';
 import { WrappedError } from '../../logger';
+import env from '../../config/env';
 
 export default class DBUnit implements DB.DBUnit {
     conn: r.Connection;
@@ -23,8 +24,16 @@ export default class DBUnit implements DB.DBUnit {
         await clearSpareIndices(this.conn, this.table, VALID_INDICES);
     }
 
-    each(ctx: Context, fn: DB.Handler<any>): Promise<void> {
-        throw new Error("Method not implemented.");
+    async each(ctx: Context, fn: DB.Handler<Unit>): Promise<void> {
+        const cursor = await this.table.run(this.conn);
+        // TODO this could be done in parallel
+        await cursor.each(async(err: Error, unit: Unit) => {
+            if (err) {
+                throw err;
+            }
+            await fn(ctx, unit);
+        })
+
     }
     public async get(ctx: Context, uuid: string): Promise<Unit> {
         const call = await startDBCall(ctx, 'getUnit');
@@ -65,20 +74,59 @@ export default class DBUnit implements DB.DBUnit {
     watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<any>>): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    watchPathing(ctx: Context, fn: DB.Handler<any>): Promise<void> {
-        throw new Error("Method not implemented.");
+    async watchPathing(ctx: Context, fn: DB.Handler<any>): Promise<void> {
+        this.table.filter(r.row.hasFields({ movable: { destination: true } }))
+        .filter(r.row('movable')('isPathing').eq(false))
+        .filter(r.row('movable')('path').eq([]))
+        .changes().run(this.conn).then((cursor: any) => {
+            return cursor.each(async (err: Error, unit: Unit) => {
+                if (err) {
+                    throw err;
+                }
+                await fn(ctx, unit);
+            });
+        });
     }
     getAtChunk(ctx: Context, hash: string): Promise<any[]> {
         throw new Error("Method not implemented.");
     }
-    getUnprocessedPath(ctx: Context): Promise<any> {
-        throw new Error("Method not implemented.");
+    async getUnprocessedPath(ctx: Context): Promise<Unit> {
+        const delta: any = await this.table.filter(r.row.hasFields({ movable: { destination: true } }))
+			.filter(r.row('movable')('isPathing').eq(false))
+			.filter(r.row('movable')('path').eq([]))
+			.limit(env.pathChunks)
+			.update((unit: any): any => {
+				return (r.branch as any)(
+					unit('movable')('isPathing').eq(false), { movable: { isPathing: true, pathUpdate: Date.now() } }, {}
+				);
+			}, {
+				durability: 'hard',
+				returnChanges: true
+            }).run(this.conn);
+        if (!delta.changes || delta.changes.length !== 1) {
+            return null;
+        }
+        return delta.changes[0].new_val;
     }
-    getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]> {
-        throw new Error("Method not implemented.");
+    async getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]> {
+        const call = await startDBCall(ctx, 'getUnprocessedUnitUUIDs');
+        const cursor = await this.table.filter(r.row('details')('lastTick').lt(tick))
+            .limit(env.unitProcessChunks)
+            .pluck('uuid')
+            .run(this.conn);
+        await call.end();
+        const res = await cursor.toArray();
+        return res.map((obj) => obj.uuid);
     }
-    claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<any> {
-        throw new Error("Method not implemented.");
+    async claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<Unit | null> {
+        const call = await startDBCall(ctx, 'getUnprocessedUnitUUIDs');
+        const delta: any = await this.table.get(uuid).update(r.branch(
+				r.row('details')('lastTick').ne(tick), { details: { lastTick: tick} } as any, {} as any), { returnChanges: true, durability: 'soft' }).run(this.conn);
+        await call.end();
+        if (!delta.changes || delta.changes.length !== 1) {
+			return null;
+		}
+		return delta.changes[0].new_val;
     }
     listPlayersUnits(ctx: Context, uuid: string): Promise<any[]> {
         throw new Error("Method not implemented.");

@@ -3,7 +3,7 @@ FROM node:stretch
 RUN apt-get update
 RUN apt-get install make wget git bash --assume-yes
 
-RUN npm install -g webpack
+RUN npm install -g webpack webpack-cli
 
 RUN wget https://storage.googleapis.com/golang/go1.7.4.linux-amd64.tar.gz
 RUN tar -xf go1.7.4.linux-amd64.tar.gz

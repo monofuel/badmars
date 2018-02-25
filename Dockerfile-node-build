@@ -8,7 +8,7 @@ FROM node:stretch
 # RUN apk add bash
 RUN apt-get update
 RUN apt-get install -y make bash
-RUN npm install -g webpack
+RUN npm install -g webpack webpack-cli
 
 RUN mkdir /badmars
 ADD ./package.json badmars/
