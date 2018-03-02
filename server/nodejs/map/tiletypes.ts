@@ -1,8 +1,8 @@
 
-//-----------------------------------
-//	author: Monofuel
-//	website: japura.net/badmars
-//	Licensed under included modified BSD license
+// -----------------------------------
+// 	author: Monofuel
+// 	website: badmars.net
+// 	Licensed under included modified BSD license
 
 // tileTypes and tileCodes are consistent between frontend and backend
 
@@ -15,24 +15,24 @@ export const WATER: TileCode = 2;
 export const COAST: TileCode = 3;
 
 export function getTypeName(type: TileCode): TileType {
-	switch (type) {
-		case LAND:
-			return 'land';
-		case CLIFF:
-			return 'cliff';
-		case WATER:
-			return 'water';
-		case COAST:
-			return 'coast';
-		default:
-			return 'unknown';
-	}
+  switch (type) {
+    case LAND:
+      return 'land';
+    case CLIFF:
+      return 'cliff';
+    case WATER:
+      return 'water';
+    case COAST:
+      return 'coast';
+    default:
+      return 'unknown';
+  }
 }
 
 export default {
-	LAND,
-	CLIFF,
-	WATER,
-	COAST,
-	getTypeName
+  LAND,
+  CLIFF,
+  WATER,
+  COAST,
+  getTypeName,
 };

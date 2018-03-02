@@ -1,8 +1,8 @@
 
-//-----------------------------------
-//	author: Monofuel
-//	website: japura.net/badmars
-//	Licensed under included modified BSD license
+// -----------------------------------
+// 	author: Monofuel
+// 	website: badmars.net
+// 	Licensed under included modified BSD license
 
 import * as express from 'express';
 import * as http from 'http';
@@ -23,40 +23,39 @@ import Context from '../context';
 import logger from '../logger';
 
 export default class WebService implements Service {
-	private server: http.Server;
-	private parentCtx: Context;
-	async init(ctx: Context): Promise<void> {
-		this.parentCtx = ctx;
-	}
+  private server: http.Server;
+  private parentCtx: Context;
+  public async init(ctx: Context): Promise<void> { this.parentCtx = ctx; }
 
-	async start(): Promise<void> {
-		const app = express();
+  public async start(): Promise<void> {
+    const app = express();
 
-		app.set('view engine', 'ejs');
-		app.set('trust proxy', true); //for accurate logs running behind a proxy
-		app.use(express.static(path.join(__dirname, '../../../public/badmars/')));
-		app.set('views', path.join(__dirname, '../web/views'));
-		app.use(bodyParser.json());
+    app.set('view engine', 'ejs');
+    app.set('trust proxy', true);  // for accurate logs running behind a proxy
+    app.use(express.static(path.join(__dirname, '../../../public/badmars/')));
+    app.set('views', path.join(__dirname, '../web/views'));
+    app.use(bodyParser.json());
 
-		mainRoute(this.parentCtx.create(), app);
-		managementRoute(this.parentCtx.create(), app);
-		healthRoute(this.parentCtx.create(), app);
-		authRoute(this.parentCtx.create(), app);
+    mainRoute(this.parentCtx.create(), app);
+    managementRoute(this.parentCtx.create(), app);
+    healthRoute(this.parentCtx.create(), app);
+    authRoute(this.parentCtx.create(), app);
 
-		return new Promise<void>((resolve: Function) => {
-			this.server = app.listen(env.wwwPort, () => {
-				const ctx = this.parentCtx.create();
-				const host = this.server.address().address;
-				const port = this.server.address().port;
+    return new Promise<void>((resolve: any) => {
+      this.server = app.listen(env.wwwPort, () => {
+        const ctx = this.parentCtx.create();
+        const host = this.server.address().address;
+        const port = this.server.address().port;
 
-				logger.info(ctx, util.format('Express listening at http://%s:%s', host, port));
-				resolve();
-			});
-		});
-	}
+        logger.info(
+          ctx, util.format('Express listening at http://%s:%s', host, port));
+        resolve();
+      });
+    });
+  }
 
-	async stop(): Promise<void> {
-		this.parentCtx.info('stopping web');
-		await this.server.close();
-	}
+  public async stop(): Promise<void> {
+    this.parentCtx.info('stopping web');
+    await this.server.close();
+  }
 }

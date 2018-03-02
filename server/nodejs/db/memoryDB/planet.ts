@@ -9,7 +9,7 @@ import UnitStat from './unitStat';
 import FactoryQueue from './factoryQueue';
 
 export default class Planet implements DB.Planet {
-    planet: GamePlanet;
+    public planet: GamePlanet;
     public name: string;
 
     public chunk: Chunk;

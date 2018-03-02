@@ -7,7 +7,7 @@ import { startDBCall } from '../helper';
 
 export default class Session implements DB.Session {
 
-    sessions: { [key: string]: GameSession } = {};
+    public sessions: { [key: string]: GameSession } = {};
 
     public async init(ctx: Context): Promise<void> {
         ctx.check('session.init');
@@ -18,8 +18,8 @@ export default class Session implements DB.Session {
         const sess: GameSession = {
             user: uuid,
             token: uuidv4(),
-            type: 1
-        }
+            type: 1,
+        };
         this.sessions[sess.token] = sess;
         await call.end();
         return sess;

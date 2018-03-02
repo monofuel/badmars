@@ -18,11 +18,11 @@ export function AttachChangeHandler<T>(ctx: Context, sync: SyncEvent<T>, fn: Han
     const wrapper = async (e: T) => {
         try {
             ctx.check('sync event');
-            await sleep(0); //force this to be asyncronous
+            await sleep(0); // force this to be asyncronous
             await fn(ctx, e);
         } catch (err) {
             if (err instanceof StopWatchingError) {
-                sync.detach(wrapper)
+                sync.detach(wrapper);
             } else {
                 throw new WrappedError(err, 'failed to handle change event');
             }
@@ -107,7 +107,7 @@ export interface Planet {
 export interface User {
     list(ctx: Context): Promise<GameUser[]>;
     get(ctx: Context, uuid: string): Promise<GameUser>;
-    getByName(ctx: Context, name: string): Promise<GameUser | null>
+    getByName(ctx: Context, name: string): Promise<GameUser | null>;
     watch(ctx: Context, fn: Handler<ChangeEvent<GameUser>>): Promise<void>;
     create(ctx: Context, user: GameUser): Promise<GameUser>;
     patch(ctx: Context, uuid: string, user: Partial<GameUser>): Promise<GameUser>;
@@ -150,31 +150,31 @@ export interface DB {
 }
 
 class DelegateDB implements DB {
-    db: DB;
-    setup(db: DB) {
+    public db: DB;
+    public setup(db: DB) {
         this.db = db;
         (global as any).db = db;
     }
-    setupSchema(ctx: Context) {
+    public setupSchema(ctx: Context) {
         return this.db.setupSchema(ctx);
     }
-    init(ctx: Context) {
+    public init(ctx: Context) {
         return this.db.init(ctx);
     }
-    stop(ctx: Context) {
+    public stop(ctx: Context) {
         return this.db.stop(ctx);
     }
 
-    createPlanet(ctx: Context, name: string, seed?: number): Promise<Planet> {
+    public createPlanet(ctx: Context, name: string, seed?: number): Promise<Planet> {
         return this.db.createPlanet(ctx, name, seed);
     }
-    getPlanetDB(ctx: Context, name: string): Promise<Planet | null> {
+    public getPlanetDB(ctx: Context, name: string): Promise<Planet | null> {
         return this.db.getPlanetDB(ctx, name);
     }
-    listPlanetNames(ctx: Context): Promise<string[]> {
+    public listPlanetNames(ctx: Context): Promise<string[]> {
         return this.db.listPlanetNames(ctx);
     }
-    removePlanet(ctx: Context, name: string): Promise<void> {
+    public removePlanet(ctx: Context, name: string): Promise<void> {
         return this.db.removePlanet(ctx, name);
     }
 

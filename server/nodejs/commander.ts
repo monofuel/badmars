@@ -7,14 +7,17 @@ import Context from './context';
 import { prepareCtx, start } from './';
 
 async function init(): Promise<void> {
-	setupDB(db);
-	const ctx = await prepareCtx('commander', db);
-	await start(ctx, async (ctx: Context) => {
-		const commander = new Commander();
-		await commander.init(ctx);
-		await commander.start();
-		ctx.info('READY');
-	})
+  setupDB(db);
+  const ctx = await prepareCtx('commander', db);
+  await start(ctx, async (ctx: Context) => {
+    const commander = new Commander();
+    await commander.init(ctx);
+    await commander.start();
+    ctx.info('READY');
+  });
 }
 
-init();
+init().catch((err) => {
+  console.error('caught error in main promise');
+  console.error(err);
+});

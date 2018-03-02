@@ -1,8 +1,8 @@
 
-//-----------------------------------
-//	author: Monofuel
-//	website: japura.net/badmars
-//	Licensed under included modified BSD license
+// -----------------------------------
+// 	author: Monofuel
+// 	website: badmars.net
+// 	Licensed under included modified BSD license
 
 import env from '../config/env';
 import Client from '../net/client';
@@ -18,52 +18,51 @@ import * as http from 'http';
 const WebSocketServer = ws.Server;
 
 export default class Net implements Service {
-	private wss: ws.Server;
-	private parentCtx: Context;
+  private wss: ws.Server;
+  private parentCtx: Context;
 
-	async init(ctx: Context): Promise<void> {
-		this.parentCtx = ctx;
-	}
+  public async init(ctx: Context): Promise<void> { this.parentCtx = ctx; }
 
-	async start(): Promise<void> {
-		const ctx = this.parentCtx.create();
+  public async start(): Promise<void> {
+    const ctx = this.parentCtx.create();
 
-		async function verifyClient(info: { origin: string, secure: boolean, req: http.IncomingMessage },
-			callback: (res: boolean, code?: number, message?: string) => void): Promise<void> {
+    async function verifyClient(
+      info: { origin: string, secure: boolean, req: http.IncomingMessage },
+      callback: (res: boolean, code?: number, message?: string) => void):
+      Promise<void> {
 
-			const urlSplit = info.req.url.split('?');
-			if (urlSplit.length != 2) {
-				callback(false, 400, 'missing parameters');
-			}
+      const urlSplit = info.req.url.split('?');
+      if (urlSplit.length !== 2) {
+        callback(false, 400, 'missing parameters');
+      }
 
-			const { token } = querystring.parse(urlSplit[1]);
-			if (!token || typeof token !== 'string') {
-				callback(false, 401, 'missing token parameter');
-				return;
-			}
-			const user = await db.session.getBearerUser(ctx, token);
-			if (!user) {
-				callback(false, 401, 'invalid authorization');
-				return;
-			}
+      const { token } = querystring.parse(urlSplit[1]);
+      if (!token || typeof token !== 'string') {
+        callback(false, 401, 'missing token parameter');
+        return;
+      }
+      const user = await db.session.getBearerUser(ctx, token);
+      if (!user) {
+        callback(false, 401, 'invalid authorization');
+        return;
+      }
 
-			logger.info(ctx, 'user connected', { username: user.username });
+      logger.info(ctx, 'user connected', { username: user.username });
 
-			(info.req as any).user = user;
+      (info.req as any).user = user;
 
-			callback(true);
-		}
+      callback(true);
+    }
 
-		this.wss = new WebSocketServer({ port: ctx.env.wsPort, verifyClient });
-		this.wss.on('connection', (ws: ws, req: http.IncomingMessage) => {
-			new Client(ctx.create(), ws, req);
-		});
-		return Promise.resolve();
-	}
+    this.wss = new WebSocketServer({ port: ctx.env.wsPort, verifyClient });
+    this.wss.on('connection', (ws: ws, req: http.IncomingMessage) =>
+      new Client(ctx.create(), ws, req),
+    );
+    return Promise.resolve();
+  }
 
-	async stop(): Promise<void> {
-		this.parentCtx.info('stopping net');
-		await this.wss.close();
-	}
-
+  public async stop(): Promise<void> {
+    this.parentCtx.info('stopping net');
+    await this.wss.close();
+  }
 }

@@ -8,7 +8,8 @@ import ChunkLayer, { newChunkLayer } from './chunkLayer';
 import { newUnit } from '../unit/unit';
 import Map from '../map/map';
 
-export async function generateChunk(ctx: Context, map: Map, x: number, y: number): Promise<{ chunk: Chunk, chunkLayer: ChunkLayer }> {
+export async function generateChunk(ctx: Context, map: Map, x: number, y: number):
+    Promise<{ chunk: Chunk, chunkLayer: ChunkLayer }> {
     const chunk = await newChunk(ctx, map.name, x, y);
     const layer = await newChunkLayer(ctx, map.name, x, y);
     ctx.check('generate');
@@ -17,8 +18,8 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
     const smoothness = 4.5;
 
     const bigNoiseGenerator = new SimplexNoise(new Alea(map.seed));
-    const medNoiseGenerator = new SimplexNoise(new Alea(map.seed * 79)); //random prime provided by brian
-    const smallNoiseGenerator = new SimplexNoise(new Alea(map.seed * 13)); //random prime provided by kir
+    const medNoiseGenerator = new SimplexNoise(new Alea(map.seed * 79)); // random prime provided by brian
+    const smallNoiseGenerator = new SimplexNoise(new Alea(map.seed * 13)); // random prime provided by kir
     chunk.chunkSize = map.settings.chunkSize;
     for (let i = 0; i < chunk.chunkSize + 1; i++) {
         chunk.grid.push([]);
@@ -26,23 +27,27 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
         for (let j = 0; j < chunk.chunkSize + 1; j++) {
             ctx.check('generating chunk tiles');
             const y = (chunk.y * chunk.chunkSize) + j;
-            //dear god sorry chunk is so ugly, just porting over the same logic from the last generator that was on the client.
-            let height = bigNoiseGenerator.noise2D(x * map.settings.bigNoise, y * map.settings.bigNoise) * map.settings.bigNoiseScale;
-            height = height + medNoiseGenerator.noise2D(x * map.settings.medNoise, y * map.settings.medNoise) * map.settings.medNoiseScale;
-            height = height + smallNoiseGenerator.noise2D(x * map.settings.smallNoise, y * map.settings.smallNoise) * map.settings.smallNoiseScale;
+            // dear god sorry chunk is so ugly
+            // just porting over the same logic from the last generator that was on the client.
+            let height = bigNoiseGenerator.noise2D(x * map.settings.bigNoise,
+                y * map.settings.bigNoise) * map.settings.bigNoiseScale;
+            height = height + medNoiseGenerator.noise2D(x * map.settings.medNoise,
+                y * map.settings.medNoise) * map.settings.medNoiseScale;
+            height = height + smallNoiseGenerator.noise2D(x * map.settings.smallNoise,
+                y * map.settings.smallNoise) * map.settings.smallNoiseScale;
 
             // fudge land near the water height to look butter
             if (height - map.settings.waterHeight > -waterFudge && height - map.settings.waterHeight < waterFudge) {
                 height = map.settings.waterHeight + waterFudge;
             }
 
-            //@grid[x][y] = Math.round(point * smoothness) / smoothness
+            // @grid[x][y] = Math.round(point * smoothness) / smoothness
             chunk.grid[i].push(Math.round(height * smoothness) / smoothness);
         }
     }
 
-    //-------------------------------------------------
-    //figure out the type of each tile
+    // -------------------------------------------------
+    // figure out the type of each tile
 
     for (let i = 0; i < chunk.chunkSize; i++) {
         chunk.navGrid.push([]);
@@ -52,7 +57,7 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
                 chunk.grid[i][j],
                 chunk.grid[i + 1][j],
                 chunk.grid[i][j + 1],
-                chunk.grid[i + 1][j + 1]
+                chunk.grid[i + 1][j + 1],
             ];
 
             let underwater = 0;
@@ -67,7 +72,7 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
                     underwater++;
                 }
             }
-            if (underwater == 4) {
+            if (underwater === 4) {
                 type = WATER;
             } else if (underwater > 0) {
                 type = COAST;
@@ -79,7 +84,7 @@ export async function generateChunk(ctx: Context, map: Map, x: number, y: number
     return {
         chunk,
         chunkLayer: layer,
-    }
+    };
 }
 
 export async function generateResources(ctx: Context, map: Map, chunk: Chunk, layer: ChunkLayer): Promise<void> {
@@ -92,12 +97,12 @@ export async function generateResources(ctx: Context, map: Map, chunk: Chunk, la
             ctx.check('generating chunk resources');
             const y = (chunk.y * chunk.chunkSize) + j;
 
-            if (chunk.navGrid[i][j] != LAND) {
+            if (chunk.navGrid[i][j] !== LAND) {
                 continue;
             }
 
             if (resourceAlea() < map.settings.ironChance) {
-                //console.log('spawning iron');
+                // console.log('spawning iron');
                 let unit: Unit = await newUnit(ctx, 'iron', null, map.name, x, y);
                 unit = await map.spawnUnitWithoutTileCheck(ctx, unit);
                 if (!unit) {
@@ -105,7 +110,7 @@ export async function generateResources(ctx: Context, map: Map, chunk: Chunk, la
                 }
 
             } else if (resourceAlea() < map.settings.oilChance) {
-                //console.log('spawning oil');
+                // console.log('spawning oil');
                 let unit: Unit = await newUnit(ctx, 'oil', null, map.name, x, y);
                 unit = await map.spawnUnitWithoutTileCheck(ctx, unit);
                 if (!unit) {

@@ -4,7 +4,7 @@
 // 1 is bearer
 
 export default interface Session {
-	token: string;
-	user: UUID;
-	type: number;
+  token: string;
+  user: UUID;
+  type: number;
 }

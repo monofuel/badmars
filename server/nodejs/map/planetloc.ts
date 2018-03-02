@@ -1,9 +1,8 @@
 
-//-----------------------------------
-//	author: Monofuel
-//	website: japura.net/badmars
-//	Licensed under included modified BSD license
-
+// -----------------------------------
+// 	author: Monofuel
+// 	website: badmars.net
+// 	Licensed under included modified BSD license
 
 import * as _ from 'lodash';
 
@@ -22,231 +21,236 @@ import User from '../user/index';
  */
 
 export default class PlanetLoc {
-	x: number;
-	y: number;
-	map: Map;
-	hash: TileHash;
-	chunk: Chunk;
-	chunkLayer: ChunkLayer;
-	localX: number;
-	localY: number;
-	tileType: TileCode;
+  public x: number;
+  public y: number;
+  public map: Map;
+  public hash: TileHash;
+  public chunk: Chunk;
+  public chunkLayer: ChunkLayer;
+  public localX: number;
+  public localY: number;
+  public tileType: TileCode;
 
-	// temp storage used by getNearestFreeTile
-	//TODO these should not be here
-	prev: null | PlanetLoc;
-	realCost: number;
-	cost: number;
+  // temp storage used by getNearestFreeTile
+  // TODO these should not be here
+  public prev: null | PlanetLoc;
+  public realCost: number;
+  public cost: number;
 
-	constructor(map: Map, chunk: Chunk, chunkLayer: ChunkLayer, { x, y, localX, localY }: LocationDetailsType) {
+  constructor(
+    map: Map, chunk: Chunk, chunkLayer: ChunkLayer,
+    { x, y, localX, localY }: LocationDetailsType) {
+    if (!map) {
+      throw new DetailedError('planetloc missing map', { x, y });
+    }
+    if (!chunk) {
+      throw new DetailedError('planetloc missing chunk', { x, y });
+    }
 
-		if (!map) {
-			throw new DetailedError('planetloc missing map', { x, y });
-		}
-		if (!chunk) {
-			throw new DetailedError('planetloc missing chunk', { x, y });
-		}
+    this.x = x;
+    this.y = y;
+    this.map = map;
+    this.hash = x + ':' + y;
+    this.chunk = chunk;
+    this.chunkLayer = chunkLayer;
 
-		this.x = x;
-		this.y = y;
-		this.map = map;
-		this.hash = x + ':' + y;
-		this.chunk = chunk;
-		this.chunkLayer = chunkLayer;
+    this.localX = localX;
+    this.localY = localY;
 
-		this.localX = localX;
-		this.localY = localY;
+    this.tileType = this.chunk.navGrid[this.localX][this.localY] as any;
+  }
 
-		this.tileType = this.chunk.navGrid[this.localX][this.localY] as any;
-	}
+  public distance(tile: PlanetLoc): number {
+    const deltaX = Math.abs(this.x - tile.x);
+    const deltaY = Math.abs(this.y - tile.y);
 
-	distance(tile: PlanetLoc): number {
-		const deltaX = Math.abs(this.x - tile.x);
-		const deltaY = Math.abs(this.y - tile.y);
+    return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+  }
 
-		return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
-	}
+  public async getUnits(ctx: Context): Promise<Unit[]> {
+    const planetDB = await db.getPlanetDB(ctx, this.map.name);
+    ctx.check('getUnits');
+    const uuids = [
+      ...Object.values(this.chunkLayer.ground),
+      ...Object.values(this.chunkLayer.resource),
+    ];
+    const units = Object.values(await planetDB.unit.getBulk(ctx, uuids));
+    return _.filter(
+      units, (unit: Unit): boolean =>
+        (unit.location.hash as any).includes(this.hash));
+  }
 
-	async getUnits(ctx: Context): Promise<Array<Unit>> {
-		const planetDB = await db.getPlanetDB(ctx, this.map.name);
-		ctx.check('getUnits');
-		const uuids = [
-			...Object.values(this.chunkLayer.ground),
-			...Object.values(this.chunkLayer.resource)
-		];
-		const units = Object.values(await planetDB.unit.getBulk(ctx, uuids));
-		return _.filter(units,
-			(unit: Unit): boolean => (unit.location.hash as any).includes(this.hash));
-	}
+  public async isOpen(ctx: Context): Promise<boolean> {
+    const units = await this.getUnits(ctx);
+    return units.length === 0;
+  }
 
-	async isOpen(ctx: Context): Promise<boolean> {
-		const units = await this.getUnits(ctx);
-		return units.length === 0;
-	}
+  public toString(): string {
+    let line = 'x: ' + this.x;
+    line += ', y: ' + this.y;
+    line += ', type: ' + getTypeName(this.tileType);
+    if (this.map) {
+      line += ', map: ' + this.map.name;
+    }
+    return line;
+  }
+  public async N(ctx: Context): Promise<PlanetLoc> {
+    return await this.map.getLoc(ctx, this.x, this.y + 1);
+  }
+  public async S(ctx: Context): Promise<PlanetLoc> {
+    return await this.map.getLoc(ctx, this.x, this.y - 1);
+  }
+  public async E(ctx: Context): Promise<PlanetLoc> {
+    return await this.map.getLoc(ctx, this.x + 1, this.y);
+  }
+  public async W(ctx: Context): Promise<PlanetLoc> {
+    return await this.map.getLoc(ctx, this.x - 1, this.y);
+  }
 
-	toString(): string {
-		let line = 'x: ' + this.x;
-		line += ', y: ' + this.y;
-		line += ', type: ' + getTypeName(this.tileType);
-		if (this.map) {
-			line += ', map: ' + this.map.name;
-		}
-		return line;
-	}
-	async N(ctx: Context): Promise<PlanetLoc> {
-		return await this.map.getLoc(ctx, this.x, this.y + 1);
-	}
-	async S(ctx: Context): Promise<PlanetLoc> {
-		return await this.map.getLoc(ctx, this.x, this.y - 1);
-	}
-	async E(ctx: Context): Promise<PlanetLoc> {
-		return await this.map.getLoc(ctx, this.x + 1, this.y);
-	}
-	async W(ctx: Context): Promise<PlanetLoc> {
-		return await this.map.getLoc(ctx, this.x - 1, this.y);
-	}
+  public async getDirTile(ctx: Context, dir: Dir): Promise<PlanetLoc> {
+    switch (dir) {
+      case 'N':
+        return await this.N(ctx);
+      case 'S':
+        return await this.S(ctx);
+      case 'E':
+        return await this.E(ctx);
+      case 'W':
+        return await this.W(ctx);
+      case 'C':
+      default:
+        return this;
+    }
+  }
 
-	async getDirTile(ctx: Context, dir: Dir): Promise<PlanetLoc> {
-		switch (dir) {
-			case 'N':
-				return await this.N(ctx);
-			case 'S':
-				return await this.S(ctx);
-			case 'E':
-				return await this.E(ctx);
-			case 'W':
-				return await this.W(ctx);
-			case 'C':
-			default:
-				return this;
-		}
+  // Only works for adjacent tiles
+  public async getDirToTile(ctx: Context, other: PlanetLoc): Promise<Dir> {
+    if ((await this.E(ctx)).equals(other)) {
+      return 'E';
+    }
+    if ((await this.W(ctx)).equals(other)) {
+      return 'W';
+    }
+    if ((await this.N(ctx)).equals(other)) {
+      return 'N';
+    }
+    if ((await this.S(ctx)).equals(other)) {
+      return 'S';
+    }
 
-	}
+    return 'C';
+  }
 
-	// Only works for adjacent tiles
-	async getDirToTile(ctx: Context, other: PlanetLoc): Promise<Dir> {
-		if ((await this.E(ctx)).equals(other))
-			return 'E';
-		if ((await this.W(ctx)).equals(other))
-			return 'W';
-		if ((await this.N(ctx)).equals(other))
-			return 'N';
-		if ((await this.S(ctx)).equals(other))
-			return 'S';
+  public validate() {
+    if (!env.debug) {
+      return;
+    }
+    const invalid = (reason: string) => {
+      throw new DetailedError('bad tile: ' + reason, {
+        hash: this.hash,
+        x: this.x,
+        y: this.y,
+        chunkX: this.chunk.x,
+        chunkY: this.chunk.y,
+        localX: this.localX,
+        localY: this.localY,
+      });
+    };
+    if (this.x == null) {
+      invalid('bad x value:' + this.x);
+    }
+    if (this.y == null) {
+      invalid('bad x value:' + this.y);
+    }
+    if (!this.map) {
+      invalid('bad map');
+    }
+    if (!this.hash || this.hash.split(':').length !== 2) {
+      invalid('bad hash: ' + this.hash);
+    }
+    if (!this.chunk) {
+      invalid('bad chunk');
+    }
+    if (this.localX == null) {
+      invalid('bad local x');
+    }
+    if (this.localY == null) {
+      invalid('bad local y');
+    }
+    if (this.localY > this.chunk.navGrid[0].length) {
+      invalid('bad local y');
+    }
+    if (this.localX > this.chunk.navGrid.length) {
+      invalid('bad local x');
+    }
+    if (this.tileType == null) {
+      invalid('bad tile type');
+    }
 
-		return 'C';
-	}
+    const realX = (this.chunk.chunkSize * this.chunk.x) + this.localX;
+    const realY = (this.chunk.chunkSize * this.chunk.y) + this.localY;
+    if (this.x !== realX) {
+      invalid('x does not match up: ' + realX + ' != ' + this.x);
+    }
+    if (this.y !== realY) {
+      invalid('y does not match up: ' + realY + ' != ' + this.y);
+    }
+  }
 
-	validate() {
-		if (!env.debug) {
-			return;
-		}
-		const invalid = (reason: string) => {
-			throw new DetailedError('bad tile: ' + reason, {
-				hash: this.hash,
-				x: this.x,
-				y: this.y,
-				chunkX: this.chunk.x,
-				chunkY: this.chunk.y,
-				localX: this.localX,
-				localY: this.localY
-			});
-		};
-		if (this.x == null) {
-			invalid('bad x value:' + this.x);
-		}
-		if (this.y == null) {
-			invalid('bad x value:' + this.y);
-		}
-		if (!this.map) {
-			invalid('bad map');
-		}
-		if (!this.hash || this.hash.split(':').length != 2) {
-			invalid('bad hash: ' + this.hash);
-		}
-		if (!this.chunk) {
-			invalid('bad chunk');
-		}
-		if (this.localX == null) {
-			invalid('bad local x');
-		}
-		if (this.localY == null) {
-			invalid('bad local y');
-		}
-		if (this.localY > this.chunk.navGrid[0].length) {
-			invalid('bad local y');
-		}
-		if (this.localX > this.chunk.navGrid.length) {
-			invalid('bad local x');
-		}
-		if (this.tileType == null) {
-			invalid('bad tile type');
-		}
+  public equals(otherLoc: PlanetLoc): boolean {
+    if (!otherLoc || !otherLoc.map) {
+      return false;
+    }
+    return (
+      otherLoc.x === this.x && otherLoc.y === this.y &&
+      otherLoc.map.name === this.map.name);
+  }
 
-		const real_x = (this.chunk.chunkSize * this.chunk.x) + this.localX;
-		const real_y = (this.chunk.chunkSize * this.chunk.y) + this.localY;
-		if (this.x != real_x) {
-			invalid('x does not match up: ' + real_x + ' != ' + this.x);
-		}
-		if (this.y != real_y) {
-			invalid('y does not match up: ' + real_y + ' != ' + this.y);
-		}
-	}
+  public async isVisible(ctx: Context, user: User): Promise<boolean> {
+    ctx.check('PlanetLoc.isVisible()');
+    // get units in the area
+    const units = await this.map.getNearbyUnitsFromChunk(
+      ctx, this.chunk.hash, ctx.env.maxVision / this.chunk.chunkSize);
 
-	equals(otherLoc: PlanetLoc): boolean {
-		if (!otherLoc || !otherLoc.map) return false;
-		return (otherLoc.x === this.x &&
-			otherLoc.y === this.y &&
-			otherLoc.map.name === this.map.name);
-	}
+    // check if they are within vision range of an owned vehicle
+    const ownedUnits =
+      _.filter(units, (unit: Unit) => unit.details.owner === user.uuid);
 
-	public async isVisible(ctx: Context, user: User): Promise<boolean> {
-		ctx.check('PlanetLoc.isVisible()')
-		// get units in the area
-		const units = await this.map.getNearbyUnitsFromChunk(ctx, this.chunk.hash, ctx.env.maxVision / this.chunk.chunkSize)
+    for (const unit of ownedUnits) {
+      // not using planetLoc.distance for performance reasons
+      // should probably rethink how planetLoc.distance works
+      const deltaX = Math.abs(this.x - unit.location.x);
+      const deltaY = Math.abs(this.y - unit.location.y);
+      const distance = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+      if (distance < unit.details.vision) {
+        return true;
+      }
+    }
 
-		// check if they are within vision range of an owned vehicle
-		const ownedUnits = _.filter(units, (unit: Unit) => unit.details.owner === user.uuid);
-
-		for (const unit of ownedUnits) {
-			// not using planetLoc.distance for performance reasons
-			// should probably rethink how planetLoc.distance works
-			var deltaX = Math.abs(this.x - unit.location.x);
-			var deltaY = Math.abs(this.y - unit.location.y);
-			const distance = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
-			if (distance < unit.details.vision) {
-				return true;
-			}
-		}
-
-		return false;
-	}
+    return false;
+  }
 }
 
-type LocationDetailsType = {
-	x: number,
-	y: number,
-	chunkX: number,
-	chunkY: number,
-	localX: number,
-	localY: number
-};
+interface LocationDetailsType {
+  x: number;
+  y: number;
+  chunkX: number;
+  chunkY: number;
+  localX: number;
+  localY: number;
+}
 
-export function getLocationDetails(x: number, y: number, chunkSize: number): LocationDetailsType {
-	x = Math.floor(x);
-	y = Math.floor(y);
+export function getLocationDetails(
+  x: number, y: number, chunkSize: number): LocationDetailsType {
+  x = Math.floor(x);
+  y = Math.floor(y);
 
-	const chunkX = Math.floor(x / chunkSize);
-	const chunkY = Math.floor(y / chunkSize);
-	const localX = x - (chunkX * chunkSize);
-	const localY = y - (chunkY * chunkSize);
+  const chunkX = Math.floor(x / chunkSize);
+  const chunkY = Math.floor(y / chunkSize);
+  const localX = x - (chunkX * chunkSize);
+  const localY = y - (chunkY * chunkSize);
 
-	return {
-		x,
-		y,
-		chunkX,
-		chunkY,
-		localX,
-		localY,
-	};
+  return {
+    x, y, chunkX, chunkY, localX, localY,
+  };
 }

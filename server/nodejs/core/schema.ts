@@ -1,7 +1,7 @@
 
 //-----------------------------------
 //	author: Monofuel
-//	website: japura.net/badmars
+//	website: badmars.net
 //	Licensed under included modified BSD license
 
 /*
@@ -11,25 +11,25 @@ import RethinkDB from '../db/rethinkdb';
 
 export default class SchemaService implements Service {
 
-	private parentCtx: Context;
+        private parentCtx: Context;
 
-	async init(ctx: Context): Promise<void> {
-		this.parentCtx = ctx;
-	}
+        async init(ctx: Context): Promise<void> {
+                this.parentCtx = ctx;
+        }
 
-	async start(): Promise<void> {
-		const ctx = this.parentCtx.create();
-		if (!(ctx.db instanceof RethinkDB)) {
-			throw new Error('schema service is only for rethinkdb')
-		}
-		const rethinkDB = ctx.db;
-		await rethinkDB.setupSchema();
+        async start(): Promise<void> {
+                const ctx = this.parentCtx.create();
+                if (!(ctx.db instanceof RethinkDB)) {
+                        throw new Error('schema service is only for rethinkdb')
+                }
+                const rethinkDB = ctx.db;
+                await rethinkDB.setupSchema();
 
-		process.exit();
-	}
-	async stop(): Promise<void> {
-		this.parentCtx.info('stopping standalone');
-		throw new Error('not implemented');
-	}
+                process.exit();
+        }
+        async stop(): Promise<void> {
+                this.parentCtx.info('stopping standalone');
+                throw new Error('not implemented');
+        }
 }
 */

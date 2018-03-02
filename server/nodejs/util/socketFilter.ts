@@ -1,8 +1,8 @@
 
-//-----------------------------------
-//	author: Monofuel
-//	website: japura.net/badmars
-//	Licensed under included modified BSD license
+// -----------------------------------
+// 	author: Monofuel
+// 	website: badmars.net
+// 	Licensed under included modified BSD license
 
 import User from '../user';
 import Map from '../map/map';
@@ -10,218 +10,157 @@ import Map from '../map/map';
 type UUID = string;
 
 export function sanitizeUnit(unit: Unit, owner: UUID) {
+  const {
+    uuid, details, visible,
+  } = unit;
+  const owned: boolean = details.owner === owner;
+  const optional: any = {};
+  if (unit.graphical) {
+    optional.graphical = sanitizeUnitGraphical(unit.graphical);
+  }
+  if (unit.storage) {
+    optional.storage = owned ? sanitizeOwnedUnitStorage(unit.storage) :
+      sanitizeUnitStorage(unit.storage);
+  }
+  if (unit.stationary) {
+    optional.stationary = owned ? sanitizeOwnedUnitStationary(unit.stationary) :
+      sanitizeUnitStationary(unit.stationary);
+  }
+  if (unit.construct) {
+    optional.construct = owned ? sanitizeOwnedUnitConstruct(unit.construct) :
+      sanitizeUnitConstruct(unit.construct);
+  }
+  if (unit.movable) {
+    optional.movable = owned ? sanitizeOwnedUnitMovable(unit.movable) :
+      sanitizeUnitMovable(unit.movable);
+  }
+  if (unit.attack) {
+    optional.attack = owned ? sanitizeOwnedUnitAttack(unit.attack) :
+      sanitizeUnitAttack(unit.attack);
+  }
 
-	const {
-		uuid,
-		details,
-		visible
-	} = unit;
-	const owned: boolean = details.owner === owner;
-	const optional: any = {};
-	if (unit.graphical) {
-		optional.graphical = sanitizeUnitGraphical(unit.graphical);
-	}
-	if (unit.storage) {
-		optional.storage = owned ? sanitizeOwnedUnitStorage(unit.storage) : sanitizeUnitStorage(unit.storage);
-	}
-	if (unit.stationary) {
-		optional.stationary = owned ? sanitizeOwnedUnitStationary(unit.stationary) : sanitizeUnitStationary(unit.stationary);
-	}
-	if (unit.construct) {
-		optional.construct = owned ? sanitizeOwnedUnitConstruct(unit.construct) : sanitizeUnitConstruct(unit.construct);
-	}
-	if (unit.movable) {
-		optional.movable = owned ? sanitizeOwnedUnitMovable(unit.movable) : sanitizeUnitMovable(unit.movable);
-	}
-	if (unit.attack) {
-		optional.attack = owned ? sanitizeOwnedUnitAttack(unit.attack) : sanitizeUnitAttack(unit.attack);
-	}
-
-	return {
-		uuid,
-		visible,
-		details: owned ? sanitizeOwnedUnitDetails(unit.details) :
-			sanitizeUnitDetails(unit.details),
-		location: owned ? sanitizeOwnedUnitLocation(unit.location) :
-			sanitizeUnitLocation(unit.location),
-		...optional,
-	};
+  return {
+    uuid,
+    visible,
+    details: owned ? sanitizeOwnedUnitDetails(unit.details) :
+      sanitizeUnitDetails(unit.details),
+    location: owned ? sanitizeOwnedUnitLocation(unit.location) :
+      sanitizeUnitLocation(unit.location),
+    ...optional,
+  };
 }
 
 function sanitizeUnitDetails(details: UnitDetails) {
-	const {
-		type,
-		health,
-		vision,
-		fuelBurn,
-		fuelBurnLength,
-		ghosting,
-		owner,
-		size,
-	} = details;
-	return {
-		type,
-		size,
-		health,
-		vision,
-		ghosting,
-		owner,
-		fuelBurn,
-		fuelBurnLength,
-	};
+  const {
+    type, health, vision, fuelBurn, fuelBurnLength, ghosting, owner, size,
+  } = details;
+  return {
+    type, size, health, vision, ghosting, owner, fuelBurn, fuelBurnLength,
+  };
 }
 
 function sanitizeUnitLocation(location: UnitLocation) {
-	const {
-		hash,
-		x,
-		y,
-		chunkHash,
-		chunkX,
-		chunkY,
-	} = location;
-	return {
-		hash,
-		x,
-		y,
-		chunkHash,
-		chunkX,
-		chunkY,
-	};
+  const {
+    hash, x, y, chunkHash, chunkX, chunkY,
+  } = location;
+  return {
+    hash, x, y, chunkHash, chunkX, chunkY,
+  };
 }
 function sanitizeUnitMovable(movable: UnitMovable) {
-	const {
-		layer,
-		speed,
-	} = movable;
-	return {
-		layer,
-		speed
-	};
+  const {
+    layer, speed,
+  } = movable;
+  return {
+    layer, speed,
+  };
 }
 
 function sanitizeUnitAttack(attack: UnitAttack) {
-	return {};
+  return {};
 }
 
 function sanitizeUnitStorage(storage: UnitStorage) {
-	return {};
+  return {};
 }
 function sanitizeUnitGraphical(graphical: UnitGraphical) {
-	const {
-		model,
-		scale
-	} = graphical;
-	return {
-		model,
-		scale,
-	};
+  const {
+    model, scale,
+  } = graphical;
+  return {
+    model, scale,
+  };
 }
 
 function sanitizeUnitStationary(stationary: UnitStationary) {
-	return stationary;
+  return stationary;
 }
 
 function sanitizeUnitConstruct(construct: UnitConstruct) {
-	const {
-		types
-	} = construct;
-	return {
-		types
-	};
+  const {
+    types,
+  } = construct;
+  return {
+    types,
+  };
 }
 
 function sanitizeOwnedUnitDetails(details: UnitDetails) {
-	return sanitizeUnitDetails(details);
+  return sanitizeUnitDetails(details);
 }
 
 function sanitizeOwnedUnitLocation(location: UnitLocation) {
-	return sanitizeUnitLocation(location);
+  return sanitizeUnitLocation(location);
 }
 function sanitizeOwnedUnitMovable(movable: UnitMovable) {
-	const {
-		layer,
-		speed,
-		movementCooldown,
-		destination,
-		transferGoal,
-		path,
-	} = movable;
-	return {
-		layer,
-		speed,
-		movementCooldown,
-		destination,
-		transferGoal,
-		path,
-	};
+  const {
+    layer, speed, movementCooldown, destination, transferGoal, path,
+  } = movable;
+  return {
+    layer, speed, movementCooldown, destination, transferGoal, path,
+  };
 }
 
 function sanitizeOwnedUnitAttack(attack: UnitAttack) {
-	return attack;
+  return attack;
 }
 
 function sanitizeOwnedUnitStorage(storage: UnitStorage) {
-	return storage;
+  return storage;
 }
 
 function sanitizeOwnedUnitStationary(stationary: UnitStationary) {
-	return stationary;
+  return stationary;
 }
 
 function sanitizeOwnedUnitConstruct(construct: UnitConstruct) {
-	return construct;
+  return construct;
 }
 
 export function sanitizeUser(user: User) {
-	const {
-		uuid,
-		username,
-	} = user;
-	return {
-		uuid,
-		username,
-	};
+  const {
+    uuid, username,
+  } = user;
+  return {
+    uuid, username,
+  };
 }
 
 export function sanitizeChunk(chunk: Chunk) {
+  const {
+    x, y, hash, chunkSize, map, grid, navGrid,
+  } = chunk;
 
-	const {
-		x,
-		y,
-		hash,
-		chunkSize,
-		map,
-		grid,
-		navGrid,
-	} = chunk;
-
-	return {
-		x,
-		y,
-		hash,
-		chunkSize,
-		map,
-		grid,
-		navGrid,
-	}
-};
+  return {
+    x, y, hash, chunkSize, map, grid, navGrid,
+  };
+}
 
 export function sanitizePlanet(map: Map) {
-	const {
-		name,
-		seed,
-		settings,
-		paused,
-		users,
-		tps,
-	} = map;
-	return {
-		name,
-		seed,
-		settings,
-		paused,
-		users,
-		tps,
-	}
+  const {
+    name, seed, settings, paused, users, tps,
+  } = map;
+  return {
+    name, seed, settings, paused, users, tps,
+  };
 }

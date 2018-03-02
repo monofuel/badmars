@@ -1,8 +1,8 @@
 
-//-----------------------------------
-//	author: Monofuel
-//	website: japura.net/badmars
-//	Licensed under included modified BSD license
+// -----------------------------------
+// 	author: Monofuel
+// 	website: badmars.net
+// 	Licensed under included modified BSD license
 
 import * as _ from 'lodash';
 import Context from '../context';
@@ -12,124 +12,128 @@ import Map from './map';
 import ChunkLayer from './chunkLayer';
 
 export async function newChunk(ctx: Context, map: string, x: number, y: number): Promise<Chunk> {
-	const planetDB = await db.getPlanetDB(ctx, map);
-	return {
-		x,
-		y,
-		hash: `${x}:${y}`,
-		map,
-		grid: [],
-		navGrid: [],
-		chunkSize: planetDB.planet.settings.chunkSize,
-	}
+  const planetDB = await db.getPlanetDB(ctx, map); return {
+    x,
+    y,
+    hash: `${x}:${y}`, map,
+    grid: [],
+    navGrid: [],
+    chunkSize: planetDB.planet.settings.chunkSize,
+  };
 }
 
 export async function planetLocsForChunk(ctx: Context, chunk: Chunk): Promise<PlanetLoc[]> {
-	const planetDB = await db.getPlanetDB(ctx, chunk.map);
+  const planetDB = await db.getPlanetDB(ctx, chunk.map);
 
-	ctx.check('planetLocsForChunk');
-	const layer = await planetDB.chunkLayer.get(ctx, chunk.hash);
-	const tiles = [];
-	for (let i = 0; i < chunk.chunkSize; i++) {
-		for (let j = 0; j < chunk.chunkSize; j++) {
-			const x = i + (chunk.x * chunk.chunkSize);
-			const y = j + (chunk.y * chunk.chunkSize);
-			tiles.push(new PlanetLoc(planetDB.planet, chunk, layer, getLocationDetails(x, y, chunk.chunkSize)));
-		}
-	}
-	return tiles;
+  ctx.check('planetLocsForChunk');
+  const layer = await planetDB.chunkLayer.get(ctx, chunk.hash);
+  const tiles = [];
+  for (let i = 0; i < chunk.chunkSize; i++) {
+    for (let j = 0; j < chunk.chunkSize; j++) {
+      const x = i + (chunk.x * chunk.chunkSize);
+      const y = j + (chunk.y * chunk.chunkSize);
+      tiles.push(
+        new PlanetLoc(
+          planetDB.planet, chunk, layer,
+          getLocationDetails(x, y, chunk.chunkSize)));
+    }
+  }
+  return tiles;
 }
 
 export async function listChunkUnits(ctx: Context, chunk: Chunk): Promise<Unit[]> {
-	ctx.check('listChunkUnits');
-	const planetDB = await db.getPlanetDB(ctx, chunk.map);
-	const chunkLayer = await planetDB.chunkLayer.get(ctx, chunk.hash);
-	const ground = await planetDB.unit.getBulk(ctx, Object.values(chunkLayer.ground));
-	const resource = await planetDB.unit.getBulk(ctx, Object.values(chunkLayer.resource));
+  ctx.check('listChunkUnits');
+  const planetDB = await db.getPlanetDB(ctx, chunk.map);
+  const chunkLayer = await planetDB.chunkLayer.get(ctx, chunk.hash);
+  const ground = await planetDB.unit.getBulk(ctx, Object.values(chunkLayer.ground));
+  const resource = await planetDB.unit.getBulk(ctx, Object.values(chunkLayer.resource));
 
-
-	return Object.values(ground).concat(Object.values(resource));
+  return Object.values(ground).concat(Object.values(resource));
 }
 
 /*
+async getLayer(ctx: Context): Promise < ChunkLayer > {
+  const planetDB = await db.getPlanetDB(ctx, this.map);
+  return await planetDB.chunkLayer.get(ctx, this.hash)
+}
 
-	async getLayer(ctx: Context): Promise<ChunkLayer> {
-		const planetDB = await db.getPlanetDB(ctx, this.map);
-		return await planetDB.chunkLayer.get(ctx, this.hash)
-	}
+async getTiles(ctx: Context);: Promise < Array < PlanetLoc >> {
+  const planetDB = await db.getPlanetDB(ctx, this.map);
 
-	async getTiles(ctx: Context): Promise<Array<PlanetLoc>> {
-		const planetDB = await db.getPlanetDB(ctx, this.map);
+  checkContext(ctx, 'getTiles');
+                const map: Map = planetDB.planet;
+  const layer = await this.getLayer(ctx);
+  const tiles = [];
+  for(let i = 0; i <this.chunkSize; i++) {
+  for (let j = 0; j < this.chunkSize; j++) {
+    const x = i + (this.x * this.chunkSize);
+    const y = j + (this.y * this.chunkSize);
+    tiles.push(new PlanetLoc(map, this, layer,
+      getLocationDetails(x, y, this.chunkSize)));
+  }
+}
+return tiles;
+        }
 
-		checkContext(ctx, 'getTiles');
-		const map: Map = planetDB.planet;
-		const layer = await this.getLayer(ctx);
-		const tiles = [];
-		for (let i = 0; i < this.chunkSize; i++) {
-			for (let j = 0; j < this.chunkSize; j++) {
-				const x = i + (this.x * this.chunkSize);
-				const y = j + (this.y * this.chunkSize);
-				tiles.push(new PlanetLoc(map, this, layer, getLocationDetails(x, y, this.chunkSize)));
-			}
-		}
-		return tiles;
-	}
+syncValidate() {
+  if (!env.debug) {
+    return;
+  }
+  const invalid = (reason: string) => {
+    throw new DetailedError('bad chunk: ' + reason, {
+      hash: this.hash,
+      x: this.x,
+      y: this.y,
+    });
+  };
 
-	syncValidate() {
-		if (!env.debug) {
-			return;
-		}
-		const invalid = (reason: string) => {
-			throw new DetailedError('bad chunk: ' + reason, {
-				hash: this.hash,
-				x: this.x,
-				y: this.y,
-			});
-		};
+  if (this.x == null) {
+    invalid('bad chunk x');
+  }
+  if (this.y == null) {
+    invalid('bad chunk y');
+  }
+  if (!this.hash) {
+    invalid('missing chunk hash');
+  }
+  if (this.hash.split(':').length !== 2) {
+    invalid('bad chunk hash: ' + this.hash);
+  }
+  if (!this.map) {
+    invalid('bad map');
+  }
+  if (this.chunkSize == null) {
+    invalid('missing chunk size');
+  }
+  if (this.grid.length !== this.chunkSize + 1) {
+    invalid('bad chunk grid. got ' + this.grid.length + ',
+expected ' + (this.chunkSize + 1));
+                }
+  for (const row of this.grid) {
+    if (row.length !== this.chunkSize + 1) {
+      invalid('bad row length. got ' + row.length + ',
+expected ' + (this.chunkSize + 1));
+                        }
+  }
+  if (this.navGrid.length !== this.chunkSize) {
+    invalid('bad chunk nav grid. got ' + this.navGrid.length
+      + ', expected ' + (this.chunkSize));
+  }
+  for (const row of this.navGrid) {
+    if (row.length !== this.chunkSize) {
+      invalid('bad nav row length. got ' + row.length
+        + ', expected ' + (this.chunkSize + 1));
+    }
+  }
+}
 
-		if (this.x == null) {
-			invalid('bad chunk x');
-		}
-		if (this.y == null) {
-			invalid('bad chunk y');
-		}
-		if (!this.hash) {
-			invalid('missing chunk hash');
-		}
-		if (this.hash.split(':').length !== 2) {
-			invalid('bad chunk hash: ' + this.hash);
-		}
-		if (!this.map) {
-			invalid('bad map');
-		}
-		if (this.chunkSize == null) {
-			invalid('missing chunk size');
-		}
-		if (this.grid.length !== this.chunkSize + 1) {
-			invalid('bad chunk grid. got ' + this.grid.length + ', expected ' + (this.chunkSize + 1));
-		}
-		for (const row of this.grid) {
-			if (row.length !== this.chunkSize + 1) {
-				invalid('bad row length. got ' + row.length + ', expected ' + (this.chunkSize + 1));
-			}
-		}
-		if (this.navGrid.length !== this.chunkSize) {
-			invalid('bad chunk nav grid. got ' + this.navGrid.length + ', expected ' + (this.chunkSize));
-		}
-		for (const row of this.navGrid) {
-			if (row.length !== this.chunkSize) {
-				invalid('bad nav row length. got ' + row.length + ', expected ' + (this.chunkSize + 1));
-			}
-		}
-	}
+async validate(ctx: Context): Promise < void> {
+  checkContext(ctx, 'validate');
+                if(!env.debug) {
+    return;
+  }
 
-	async validate(ctx: Context): Promise<void> {
-		checkContext(ctx, 'validate');
-		if (!env.debug) {
-			return;
-		}
-
-		this.syncValidate();
-	}
+                this.syncValidate();
+}
 }
 */

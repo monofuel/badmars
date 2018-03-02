@@ -16,7 +16,7 @@ class MemoryDB implements DB.DB {
     public session: Session;
     public user: User;
 
-    async setupSchema(ctx: Context): Promise<void> {
+    public async setupSchema(ctx: Context): Promise<void> {
         // noop
     }
 
@@ -30,12 +30,12 @@ class MemoryDB implements DB.DB {
             const dbStr = fs.readFileSync(ctx.env.memoryDBPath).toString();
             const prevDB = JSON.parse(dbStr);
 
-            for (let planetName in prevDB.planets) {
+            for (const planetName in prevDB.planets) {
                 const planet = new Planet(planetName);
                 this.planets[planetName] = planet;
             }
             _.merge(this, prevDB);
-            for (let planetName in prevDB.planets) {
+            for (const planetName in prevDB.planets) {
                 await (this.planets[planetName] as Planet).init(ctx, prevDB.planets[planetName]);
             }
         }

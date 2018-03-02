@@ -7,14 +7,17 @@ import Context from './context';
 import { prepareCtx, start } from './';
 
 async function init(): Promise<void> {
-	setupDB(db);
-	const ctx = await prepareCtx('pathfinder', db);
-	await start(ctx, async (ctx: Context) => {
-		const pathfinding = new Pathfinding();
-		await pathfinding.init(ctx);
-		await pathfinding.start();
-		ctx.info('READY');
-	})
+  setupDB(db);
+  const ctx = await prepareCtx('pathfinder', db);
+  await start(ctx, async (ctx: Context) => {
+    const pathfinding = new Pathfinding();
+    await pathfinding.init(ctx);
+    await pathfinding.start();
+    ctx.info('READY');
+  });
 }
 
-init();
+init().catch((err) => {
+  console.error('caught error in main promise');
+  console.error(err);
+});
