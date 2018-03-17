@@ -58,8 +58,14 @@ export class RethinkDB implements DB.DB {
   // this is handled by the 'schema' container in the docker-compose setup
   public async setupSchema(ctx: Context): Promise<void> {
     await this.connect(ctx);
+
     if ((await r.dbList().run(this.conn)).indexOf(ctx.env.database) === -1) {
       await r.dbCreate(ctx.env.database).run(this.conn);
+    } else {
+      if (ctx.env.ephemeralDB) {
+        r.dbDrop(ctx.env.database).run(this.conn);
+        await r.dbCreate(ctx.env.database).run(this.conn);
+      }
     }
     await createTable(this.conn, 'planet', 'name');
     logger.info(ctx, 'setup rethinkdb schema');
