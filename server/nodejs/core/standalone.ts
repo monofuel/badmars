@@ -162,10 +162,10 @@ class SimulateService implements Service {
           await simulate(ctx, unit); // for serial processing
           // promises.push(simulate(ctx, unit)); // for parallel processing
         } catch (err) {
+          logger.trackError(ctx, err);
           if (ctx.env.debug) {
-            throw err;
-          } else {
-            logger.trackError(ctx, err);
+            console.error('failed to handle tick, halting');
+            process.exit(-1);
           }
         }
       }

@@ -68,7 +68,7 @@ export default class Client {
 
     ws.on('close', () => { this.handleLogOut(); });
 
-    await this.send('connected');
+    this.send('connected').catch((err) => logger.trackError(ctx, err));
 
     this.keepAlive = setInterval(() => {
       try {
