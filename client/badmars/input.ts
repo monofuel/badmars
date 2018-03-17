@@ -64,6 +64,8 @@ export default class Input {
 		// document.body.addEventListener('mousedown', this.mouseDownHandler, false);
 		// document.body.addEventListener('mouseup', this.mouseUpHandler, false);
 
+		document.body.addEventListener('mousewheel', this.mouseWheelHandler);
+
 		MouseReleaseChanged.attach((event: MouseReleaseEvent) => {
 			if (this.mouseAction) {
 				this.mouseAction(event);
@@ -113,6 +115,16 @@ export default class Input {
 				default:
 					console.log("key press: " + key);
 			}
+		}
+	}
+
+	@autobind
+	private mouseWheelHandler(e: WheelEvent): void {
+		const delta = e.wheelDelta / 3000;
+		if (delta > 0) {
+			gameState.display.cameraUp(1, delta);
+		} else {
+			gameState.display.cameraDown(1, -delta);
 		}
 	}
 

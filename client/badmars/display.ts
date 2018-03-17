@@ -135,12 +135,13 @@ export default class Display {
 		this.moonLight.position.z = -(Math.sin(this.lightAngle) * 50);
 	}
 
-	cameraUp(delta: number) {
+	// TODO should refactor cameraUp and cameraDown to be one function
+	cameraUp(delta: number, speed: number = 1) {
 		if (config.orthographic) {
-			this.d *= 1 - (1 * delta);
+			this.d *= 1 - (1 * delta * speed * config.cameraSpeed);
 			this.resize();
 		} else {
-			this.camera.position.y += config.cameraSpeed * delta;
+			this.camera.position.y += config.cameraSpeed * delta * speed;
 			/*if (this.camera.position.y > 75) {
 				this.camera.position.y = 75;
 			}*/
@@ -148,13 +149,13 @@ export default class Display {
 		this.setChunkRange();
 	}
 
-	cameraDown(delta: number) {
+	cameraDown(delta: number, speed: number = 1) {
 
 		if (config.orthographic) {
-			this.d *= 1 + (1 * delta);
+			this.d *= 1 + (1 * delta * speed * config.cameraSpeed);
 			this.resize();
 		} else {
-			this.camera.position.y -= config.cameraSpeed * delta;
+			this.camera.position.y -= config.cameraSpeed * delta * speed;
 			const loc = gameState.map.getLoc(this.camera.position.x, -this.camera.position.z);
 			if (this.camera.position.y < 20) {
 				this.camera.position.y = 20;
