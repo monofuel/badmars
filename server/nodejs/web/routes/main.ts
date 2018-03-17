@@ -27,6 +27,10 @@ export default function route(ctx: Context, app: express.Application) {
   app.get('/test', async (req: express.Request, res: express.Response) => {
     ctx = ctx.create({ name: '/test' });
     const user = await db.user.getByName(ctx, 'test');
+    if (!user) {
+      res.status(400).send({ msg: 'missing test user' });
+      return;
+    }
     const sess = await db.session.createBearer(ctx, user.uuid);
     logger.info(ctx, 'GET /test', {}, { req });
     res.render('pages/test', { sessionToken: sess.token });

@@ -10,7 +10,7 @@ import sleep from '../util/sleep';
 
 export type Handler<T> = (ctx: Context, t: T) => Promise<void>;
 export interface ChangeEvent<T> {
-  next: T;
+  next?: T;
   prev?: T;
 }
 
@@ -40,7 +40,7 @@ export class StopWatchingError extends Error {
 
 export interface DBChunk {
   each(ctx: Context, fn: Handler<Chunk>): Promise<void>;
-  get(ctx: Context, hash: string): Promise<Chunk>;
+  get(ctx: Context, hash: string): Promise<Chunk | null>;
   patch(ctx: Context, uuid: string, chunk: Partial<Chunk>): Promise<Chunk>;
   create(ctx: Context, chunk: Chunk): Promise<Chunk>;
 }
@@ -64,7 +64,7 @@ export interface DBUnit {
   watch(ctx: Context, fn: Handler<ChangeEvent<Unit>>): Promise<void>;
   watchPathing(ctx: Context, fn: Handler<Unit>): Promise<void>;
   getAtChunk(ctx: Context, hash: string): Promise<Unit[]>;
-  getUnprocessedPath(ctx: Context): Promise<Unit>;
+  getUnprocessedPath(ctx: Context): Promise<Unit | null>;
   getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]>;
   claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<Unit | null>;
 
@@ -140,7 +140,7 @@ export interface DB {
   init(ctx: Context): Promise<void>;
   stop(ctx: Context): Promise<void>;
   createPlanet(ctx: Context, name: string, seed?: number): Promise<Planet>;
-  getPlanetDB(ctx: Context, name: string): Promise<Planet | null>;
+  getPlanetDB(ctx: Context, name: string): Promise<Planet>;
   // TODO probably should have a .each instead of listPlanetNames
   listPlanetNames(ctx: Context): Promise<string[]>;
   removePlanet(ctx: Context, name: string): Promise<void>;
@@ -168,7 +168,7 @@ class DelegateDB implements DB {
   public createPlanet(ctx: Context, name: string, seed?: number): Promise<Planet> {
     return this.db.createPlanet(ctx, name, seed);
   }
-  public getPlanetDB(ctx: Context, name: string): Promise<Planet | null> {
+  public getPlanetDB(ctx: Context, name: string): Promise<Planet> {
     return this.db.getPlanetDB(ctx, name);
   }
   public listPlanetNames(ctx: Context): Promise<string[]> {

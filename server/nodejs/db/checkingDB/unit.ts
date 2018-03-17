@@ -46,7 +46,10 @@ export default class DBUnit implements DB.DBUnit {
     await this.db2.delete(ctx, uuid);
   }
   public async patch(ctx: Context, uuid: string, unit: Partial<UnitPatch>): Promise<Unit> {
-    throw new Error('Method not implemented.');
+    const unit1 = await this.db1.patch(ctx, uuid, unit);
+    const unit2 = await this.db2.patch(ctx, uuid, unit);
+    assert.deepEqual(unit1, unit2);
+    return unit1;
   }
   public async watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<Unit>>): Promise<void> {
     throw new Error('Method not implemented.');

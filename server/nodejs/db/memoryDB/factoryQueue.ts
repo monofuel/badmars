@@ -23,11 +23,11 @@ export default class FactoryQueue implements DB.FactoryQueue {
   }
 
   public async pop(ctx: Context, factory: string): Promise<FactoryOrder | null> {
-    if (!this.orders[factory]) {
+    const orders = this.orders[factory];
+    if (!orders) {
       return null;
     }
-
-    return this.orders[factory].pop();
+    return orders.pop() || null;
   }
   public async peek(ctx: Context, factory: string): Promise<FactoryOrder | null> {
     if (!this.orders[factory]) {

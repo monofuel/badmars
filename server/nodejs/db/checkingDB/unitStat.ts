@@ -12,13 +12,22 @@ export default class DBUnitStat implements DB.DBUnitStat {
   }
 
   public async getAll(ctx: Context): Promise<{ [key: string]: GameUnitStat }> {
-    throw new Error('Method not implemented.');
+    const unitStats1 = await this.db1.getAll(ctx);
+    const unitStats2 = await this.db1.getAll(ctx);
+    assert.deepEqual(unitStats1, unitStats2);
+    return unitStats1;
   }
   public async get(ctx: Context, type: string): Promise<GameUnitStat> {
-    throw new Error('Method not implemented.');
+    const unitStat1 = await this.db1.get(ctx, type);
+    const unitStat2 = await this.db1.get(ctx, type);
+    assert.deepEqual(unitStat1, unitStat2);
+    return unitStat1;
   }
   public async patch(ctx: Context, type: string, stats: Partial<GameUnitStat>): Promise<GameUnitStat> {
-    throw new Error('Method not implemented.');
+    const unitStat1 = await this.db1.patch(ctx, type, stats);
+    const unitStat2 = await this.db1.patch(ctx, type, stats);
+    assert.deepEqual(unitStat1, unitStat2);
+    return unitStat1;
   }
 
 }

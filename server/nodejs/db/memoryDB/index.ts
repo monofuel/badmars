@@ -8,7 +8,7 @@ import Session from './session';
 import Planet from './planet';
 import User from './user';
 import Event from './event';
-import logger from '../../logger';
+import logger, { DetailedError } from '../../logger';
 
 export class MemoryDB implements DB.DB {
   private planets: { [key: string]: DB.Planet } = {};
@@ -79,8 +79,12 @@ export class MemoryDB implements DB.DB {
     return planet;
   }
 
-  public async getPlanetDB(ctx: Context, name: string): Promise<DB.Planet | null> {
-    return this.planets[name];
+  public async getPlanetDB(ctx: Context, name: string): Promise<DB.Planet> {
+    const planet = this.planets[name];
+    if (!planet) {
+      throw new DetailedError('missing planet', { name });
+    }
+    return planet;
   }
   public async removePlanet(ctx: Context, name: string): Promise<void> {
     delete this.planets[name];

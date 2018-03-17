@@ -1,17 +1,22 @@
 import * as _ from 'lodash';
 import * as DB from '../';
+import { assert } from 'chai';
 import Context from '../../context';
 import { SyncEvent } from 'ts-events';
 import { startDBCall } from '../helper';
+import { DetailedError } from '../../logger';
 
 export default class DBUnit implements DB.DBUnit {
 
   private unitChange: SyncEvent<DB.ChangeEvent<Unit>>;
   private units: { [uuid: string]: Unit } = {};
 
+  constructor() {
+    this.unitChange = new SyncEvent<DB.ChangeEvent<Unit>>();
+  }
+
   public async init(ctx: Context): Promise<void> {
     ctx.check('unit.init');
-    this.unitChange = new SyncEvent<DB.ChangeEvent<Unit>>();
 
   }
   public async listPlayersUnits(ctx: Context, uuid: string): Promise<Unit[]> {
@@ -49,7 +54,7 @@ export default class DBUnit implements DB.DBUnit {
   public async delete(ctx: Context, uuid: string): Promise<void> {
     const unit = this.units[uuid];
     delete this.units[uuid];
-    this.unitChange.post({ next: null, prev: unit });
+    this.unitChange.post({ prev: unit });
   }
   public async patch(ctx: Context, uuid: string, unit: Partial<UnitPatch>): Promise<Unit> {
     const call = startDBCall(ctx, 'unit.patch');
@@ -57,7 +62,7 @@ export default class DBUnit implements DB.DBUnit {
     const prev = _.cloneDeep(this.units[uuid]);
     const next = _.merge(this.units[uuid], unit);
     // HACK don't merge arrays
-    if (unit.movable && unit.movable.path) {
+    if (unit.movable && unit.movable.path && next.movable) {
       next.movable.path = unit.movable.path;
     }
 
@@ -82,7 +87,7 @@ export default class DBUnit implements DB.DBUnit {
   public getAtChunk(ctx: Context, hash: string): Promise<Unit[]> {
     throw new Error('Method not implemented.');
   }
-  public async getUnprocessedPath(ctx: Context): Promise<Unit> {
+  public async getUnprocessedPath(ctx: Context): Promise<Unit | null> {
     for (const unit of Object.values(this.units)) {
       if (unit && unit.movable &&
         unit.movable.destination &&
@@ -91,6 +96,7 @@ export default class DBUnit implements DB.DBUnit {
         return unit;
       }
     }
+    return null;
   }
   public async getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]> {
     const uuids: string[] = [];
@@ -113,44 +119,54 @@ export default class DBUnit implements DB.DBUnit {
   }
   public async pullResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
     const unit = this.units[uuid];
+    const { storage } = unit;
+    if (!storage) {
+      throw new DetailedError('unit missing storage', { uuid });
+    }
     if (type === 'iron') {
-      if (unit.storage.iron - amount < 0) {
-        const transferred = unit.storage.iron;
+      if (storage.iron - amount < 0) {
+        const transferred = storage.iron;
         await this.patch(ctx, uuid, { storage: { iron: 0 } });
         return transferred;
       } else {
-        await this.patch(ctx, uuid, { storage: { iron: unit.storage.iron - amount } });
+        await this.patch(ctx, uuid, { storage: { iron: storage.iron - amount } });
         return amount;
       }
-    } else if (type === 'fuel') {
-      if (unit.storage.fuel - amount < 0) {
-        const transferred = unit.storage.fuel;
+    } else {
+      assert.equal(type, 'fuel');
+      if (storage.fuel - amount < 0) {
+        const transferred = storage.fuel;
         await this.patch(ctx, uuid, { storage: { iron: 0 } });
         return transferred;
       } else {
-        await this.patch(ctx, uuid, { storage: { fuel: unit.storage.fuel - amount } });
+        await this.patch(ctx, uuid, { storage: { fuel: storage.fuel - amount } });
         return amount;
       }
     }
   }
   public async putResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
     const unit = this.units[uuid];
+    const { storage } = unit;
+    if (!storage) {
+      throw new DetailedError('unit missing storage', { uuid });
+    }
     if (type === 'iron') {
-      if (unit.storage.iron + amount > unit.storage.maxIron) {
-        const transferred = unit.storage.maxIron - unit.storage.iron;
-        await this.patch(ctx, uuid, { storage: { iron: unit.storage.maxIron } });
+      if (storage.iron + amount > storage.maxIron) {
+        const transferred = storage.maxIron - storage.iron;
+        await this.patch(ctx, uuid, { storage: { iron: storage.maxIron } });
         return transferred;
       } else {
-        await this.patch(ctx, uuid, { storage: { iron: unit.storage.iron + amount } });
+        await this.patch(ctx, uuid, { storage: { iron: storage.iron + amount } });
         return amount;
       }
-    } else if (type === 'fuel') {
-      if (unit.storage.fuel + amount > unit.storage.maxFuel) {
-        const transferred = unit.storage.maxFuel - unit.storage.fuel;
-        await this.patch(ctx, uuid, { storage: { fuel: unit.storage.maxFuel } });
+    } else {
+      assert.equal(type, 'fuel');
+      if (storage.fuel + amount > storage.maxFuel) {
+        const transferred = storage.maxFuel - storage.fuel;
+        await this.patch(ctx, uuid, { storage: { fuel: storage.maxFuel } });
         return transferred;
       } else {
-        await this.patch(ctx, uuid, { storage: { fuel: unit.storage.fuel + amount } });
+        await this.patch(ctx, uuid, { storage: { fuel: storage.fuel + amount } });
         return amount;
       }
     }

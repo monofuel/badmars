@@ -1,21 +1,21 @@
 {
-    "compileOnSave": true,
-    "compilerOptions": {
-        "target": "es2017",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "noImplicitAny": true,
-        "sourceMap": true,
-        "preserveConstEnums": true,
-        "experimentalDecorators": true,
-        "outDir": "../../bin/server/nodejs",
-        "jsx": "react",
-        "noUnusedLocals": false,
-        "strictNullChecks": false,
-        "noImplicitThis": true
-    },
-    "include": [
-        "./*",
-        "../../badmars.d.ts"
-    ]
+  "compileOnSave": true,
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "preserveConstEnums": true,
+    "experimentalDecorators": true,
+    "outDir": "../../bin/server/nodejs",
+    "jsx": "react",
+    "noUnusedLocals": false,
+    "strict": true,
+    "noImplicitThis": true
+  },
+  "include": [
+    "./*",
+    "../../badmars.d.ts"
+  ]
 }

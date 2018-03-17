@@ -3,7 +3,7 @@ import { assert, expect } from 'chai';
 import Context from '../context';
 import db, * as DB from '../db';
 import * as uuid from 'uuid';
-import logger, { WrappedError } from '../logger';
+import logger, { WrappedError, DetailedError } from '../logger';
 import User from '../user';
 import PlanetLoc from '../map/planetloc';
 
@@ -113,7 +113,9 @@ export async function validateUnits(ctx: Context, planetDB: DB.Planet): Promise<
       const loc: PlanetLoc = await planet.getLocFromHash(ctx, unit.location.hash[0]);
       const unitsAtTile: Unit[] = await loc.getUnits(ctx);
       const resource = unitsAtTile.find((unit: Unit) => unit.details.type === 'iron' || unit.details.type === 'oil');
-      assert.exists(resource);
+      if (!resource) {
+        throw new DetailedError('no resource at mine', { uuid: unit.uuid, location: unit.location });
+      }
       assert.deepEqual(unit.location.hash, resource.location.hash);
     }
 

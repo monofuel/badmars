@@ -13,7 +13,7 @@ import Context from '../../context';
 export default function route(ctx: Context, app: express.Application) {
   app.get('/management/pull', (req: express.Request, res: express.Response) => {
     logger.info(ctx, 'GET /management/pull', {}, { req });
-    exec('sh update.sh', (err: Error) => {
+    exec('sh update.sh', (err: Error | null) => {
       if (err) {
         logger.trackError(ctx, new WrappedError(err, 'running update script'));
       }
