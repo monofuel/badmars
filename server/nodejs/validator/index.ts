@@ -112,9 +112,7 @@ export async function validateUnits(ctx: Context, planetDB: DB.Planet): Promise<
     if (unit.details.type === 'mine') {
       const loc: PlanetLoc = await planet.getLocFromHash(ctx, unit.location.hash[0]);
       const unitsAtTile: Unit[] = await loc.getUnits(ctx);
-      const resource = unitsAtTile.find((unit: Unit) => {
-        return unit.details.type === 'iron' || unit.details.type === 'oil'
-      });
+      const resource = unitsAtTile.find((unit: Unit) => unit.details.type === 'iron' || unit.details.type === 'oil');
       assert.exists(resource);
       assert.deepEqual(unit.location.hash, resource.location.hash);
     }
