@@ -3,6 +3,8 @@ import Context from '../../context';
 import { assert } from 'chai';
 import User from './user';
 import Planet from './planet';
+import Session from './session';
+import Event from './event';
 
 // Run 2 databases together and validate they match
 export class CheckingDB implements DB.DB {
@@ -12,8 +14,8 @@ export class CheckingDB implements DB.DB {
   private db2: DB.DB;
   // TODO implementations
   public user: User;
-  public event: DB.Event;
-  public session: DB.Session;
+  public event: Event;
+  public session: Session;
 
   constructor(db1: DB.DB, db2: DB.DB) {
     this.db1 = db1;
@@ -28,6 +30,8 @@ export class CheckingDB implements DB.DB {
     await this.db2.init(ctx);
 
     this.user = new User(this.db1.user, this.db2.user);
+    this.event = new Event(this.db1.event, this.db2.event);
+    this.session = new Session(this.db1.session, this.db2.session);
   }
   public async stop(ctx: Context): Promise<void> {
     await this.db1.stop(ctx);

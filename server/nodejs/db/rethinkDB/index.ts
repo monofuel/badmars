@@ -63,7 +63,7 @@ export class RethinkDB implements DB.DB {
       await r.dbCreate(ctx.env.database).run(this.conn);
     } else {
       if (ctx.env.ephemeralDB) {
-        r.dbDrop(ctx.env.database).run(this.conn);
+        await r.dbDrop(ctx.env.database).run(this.conn);
         await r.dbCreate(ctx.env.database).run(this.conn);
       }
     }

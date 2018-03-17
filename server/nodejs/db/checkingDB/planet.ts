@@ -4,7 +4,7 @@ import Context from '../../context';
 import GamePlanet from '../../map/map';
 import Chunk from './chunk';
 import ChunkLayer from './chunkLayer';
-import Unit from './unit';
+import DBUnit from './unit';
 import UnitStat from './unitStat';
 import FactoryQueue from './factoryQueue';
 
@@ -17,7 +17,7 @@ export default class Planet implements DB.Planet {
 
   public chunk: Chunk;
   public chunkLayer: ChunkLayer;
-  public unit: Unit;
+  public unit: DBUnit;
   public unitStat: UnitStat;
   public factoryQueue: FactoryQueue;
 
@@ -26,6 +26,12 @@ export default class Planet implements DB.Planet {
     this.planet = new GamePlanet(name, seed);
     this.db1 = db1;
     this.db2 = db2;
+
+    this.unit = new DBUnit(this.db1.unit, this.db2.unit);
+    this.chunk = new Chunk(this.db1.chunk, this.db2.chunk);
+    this.chunkLayer = new ChunkLayer(this.db1.chunkLayer, this.db2.chunkLayer);
+    this.unitStat = new UnitStat(this.db1.unitStat, this.db2.unitStat);
+    this.factoryQueue = new FactoryQueue(this.db1.factoryQueue, this.db2.factoryQueue);
   }
   public async patch(ctx: Context, patch: Partial<GamePlanet>): Promise<void> {
     await this.db1.patch(ctx, patch);
