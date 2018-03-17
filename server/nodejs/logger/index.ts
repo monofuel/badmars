@@ -1,7 +1,7 @@
 import * as os from 'os';
 import * as _ from 'lodash';
 // import * as request from 'request';
-import * as stats from '..//util/stats';
+import * as stats from '../util/stats';
 import Context from '../context';
 
 // ==================================================================

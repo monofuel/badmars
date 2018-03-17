@@ -10,6 +10,7 @@ import { simulate } from '../unit/unit';
 import sleep from '../util/sleep';
 import stats from '../util/stats';
 import * as _ from 'lodash';
+import { validateAll } from '../validator/index'; // TODO for some reason this doesn't compile without /index?
 
 export default class StandaloneService implements Service {
   private parentCtx: Context;
@@ -32,6 +33,8 @@ export default class StandaloneService implements Service {
 
     this.sim = new SimulateService();
     await this.sim.init(ctx.create({ name: 'simulate' }));
+
+    await validateAll(ctx);
 
     // generate the initial test planet
     const planets = await db.listPlanetNames(ctx);
