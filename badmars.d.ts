@@ -57,6 +57,7 @@ interface Unit {
 	construct: null | UnitConstruct;
 }
 
+// TODO this should be a 'deep partial'
 interface UnitPatch {
 	uuid: UUID;
 	details: Partial<UnitDetails>;

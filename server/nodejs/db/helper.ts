@@ -1,15 +1,11 @@
 /* tslint:disable */
-// file is unused and functionality is being migrated to db/rethinkdb
+// TODO should move this to rethinkdb/index
 
 import * as r from 'rethinkdb';
 import * as _ from 'lodash';
 
 import Context from '../context';
 import logger from '../logger';
-
-import DBChunk from './chunk';
-import DBUnit from './unit';
-import DBUnitStat from './unitStat';
 
 type ProfileKey = string;
 
@@ -90,15 +86,4 @@ export async function clearSpareIndices(
 export function startDBCall(ctx: Context, name: string):
   DBCall {
   ctx.check(`startDBCall ${name}`); return new DBCall(ctx, name);
-}
-
-export async function setupPlanet(
-  conn: r.Connection, name: string): Promise<any> {
-  const chunk = new DBChunk(conn, name); const unit = new DBUnit(conn, name);
-  const unitStats = new DBUnitStat(conn, name);
-  return Promise.all([
-    chunk.setup(),
-    unit.setup(),
-    unitStats.setup(),
-  ]);
 }

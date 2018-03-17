@@ -36,12 +36,11 @@ export default class ValidatorService implements Service {
   }
 
   public async stop(): Promise<void> {
-    this.parentCtx.info('stopping standalone');
+    this.parentCtx.info('stopping validator');
     throw new Error('not implemented');
   }
 
-  private async validateUnits(ctx: Context, planetDB: DB.Planet):
-    Promise<void> {
+  private async validateUnits(ctx: Context, planetDB: DB.Planet): Promise<void> {
     let counter = 0;
 
     await planetDB.unit.each(ctx, async (ctx: Context, unit: Unit) => {
@@ -51,8 +50,7 @@ export default class ValidatorService implements Service {
     logger.info(ctx, 'units validated: ', { counter });
   }
 
-  private async validateChunks(ctx: Context, planetDB: DB.Planet):
-    Promise<void> {
+  private async validateChunks(ctx: Context, planetDB: DB.Planet): Promise<void> {
     let counter = 0;
     await planetDB.chunk.each(ctx, async (ctx: Context, chunk: Chunk) => {
       counter++;
