@@ -18,8 +18,14 @@ export default class User implements DB.User {
     await createIndex(conn, this.table, 'email');
   }
 
-  public list(ctx: Context): Promise<GameUser[]> {
-    throw new Error('Method not implemented.');
+  // TODO should be each() like with units
+  public async list(ctx: Context): Promise<GameUser[]> {
+    const call = await startDBCall(ctx, 'listUsers');
+    const cursor = await this.table.getAll().run(this.conn);
+    const users: GameUser[] = await cursor.toArray();
+    await call.end();
+    return users;
+
   }
   public async get(ctx: Context, uuid: string): Promise<GameUser> {
     const call = await startDBCall(ctx, 'getUser');

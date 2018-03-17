@@ -79,7 +79,7 @@ export default class Map {
   public lastTickTimestamp: number;
   public lastTick: number;
   public tps: number;
-  public users: any[];
+  public users: string[];
   public seed: number;
   public paused: boolean;
 

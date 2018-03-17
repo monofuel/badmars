@@ -88,6 +88,7 @@ interface UnitDetails {
 	fuelBurnLength: number, // ticks to use 1 unit of fuel
 }
 
+// TODO could be a more general 'planet location' interface that can also be used for user location
 interface UnitLocation {
 	hash: TileHash[],
 	x: number,

@@ -45,6 +45,7 @@ export default class StandaloneService implements Service {
     } else {
       testPlanet = await db.getPlanetDB(ctx, 'testmap');
     }
+    await validateAll(ctx);
 
     // force a few chunks to load
     logger.info(ctx, 'loading chunks');
@@ -56,6 +57,7 @@ export default class StandaloneService implements Service {
       }
     }
     await Promise.all(genPromises);
+    await validateAll(ctx);
 
     if (!await db.user.getByName(ctx, 'test')) {
       logger.info(ctx, 'creating test user');
@@ -65,18 +67,21 @@ export default class StandaloneService implements Service {
       logger.info(ctx, 'spawning test user on testmap');
       await testPlanet.planet.spawnUser(ctx, user);
     }
+    await validateAll(ctx);
 
     // apply any unit stat changes
     await testPlanet.unit.each(ctx, async (ctx: Context, unit: Unit) => {
       const stats = await testPlanet.unitStat.get(ctx, unit.details.type);
       await testPlanet.unit.patch(ctx, unit.uuid, stats);
     });
+    await validateAll(ctx);
     // reset pathfinding
     await testPlanet.unit.each(ctx, async (ctx: Context, unit: Unit) => {
       if (unit.movable) {
         await testPlanet.unit.patch(ctx, unit.uuid, { movable: { isPathing: false } });
       }
     });
+    await validateAll(ctx);
 
     this.pathfind = new Pathfind();
     await this.pathfind.init(ctx.create({ name: 'pathfind' }));
@@ -175,6 +180,7 @@ class SimulateService implements Service {
     }
 
     await Promise.all(promises);
+    // await validateAll(ctx);
 
     await planetDB.planet.advanceTick(ctx);
   }
