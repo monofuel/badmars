@@ -48,11 +48,11 @@ class Logger {
   public startProfile = stats.startProfile;
   public endProfile = stats.endProfile;
 
-  public moduleName: string;
+  public moduleName!: string;
   // INFO: log things unless they want to be silent
   // DEBUG: always log everything, even silent
   // SILENT: alawys silent
-  public logLevel: 'INFO' | 'DEBUG' | 'SILENT';
+  public logLevel!: 'INFO' | 'DEBUG' | 'SILENT';
 
   public init(moduleName: string) {
     this.moduleName = moduleName;
@@ -66,7 +66,7 @@ class Logger {
     this.trackError(null, wrapped);
   }
 
-  public info(ctx: Context, info: string, body: any = {}, opts: { silent?: boolean, req?: any } = {}) {
+  public info(ctx: Context | null, info: string, body: any = {}, opts: { silent?: boolean, req?: any } = {}) {
     body.timestamp = Date.now();
     this.track(ctx, info, body);
     if ((opts.silent && this.logLevel !== 'DEBUG') || this.logLevel === 'SILENT') {

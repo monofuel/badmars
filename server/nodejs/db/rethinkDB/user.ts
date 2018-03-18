@@ -6,8 +6,8 @@ import GameSession from '../../user/session';
 import { createIndex, createTable, startDBCall } from '../helper';
 
 export default class User implements DB.User {
-  public conn: r.Connection;
-  public table: r.Table;
+  public conn!: r.Connection;
+  public table!: r.Table;
   public async init(ctx: Context, conn: r.Connection): Promise<void> {
     this.conn = conn;
     this.table = r.table('user');
@@ -33,7 +33,7 @@ export default class User implements DB.User {
     await call.end();
     return c as any;
   }
-  public async getByName(ctx: Context, name: string): Promise<GameUser> {
+  public async getByName(ctx: Context, name: string): Promise<GameUser | null> {
     const cursor = await this.table.getAll(name, {
       index: 'name',
     }).run(this.conn);

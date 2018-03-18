@@ -10,37 +10,37 @@ const UNIT_STAT_FILE = 'config/units.json';
 
 export default class UnitStat implements DB.DBUnitStat {
 
-    public unitMap: { [key: string]: GameUnitStat } = {};
+  public unitMap: { [key: string]: GameUnitStat } = {};
 
-    public async init(ctx: Context): Promise<void> {
-        const statsFile = fs.readFileSync(UNIT_STAT_FILE).toString();
+  public async init(ctx: Context): Promise<void> {
+    const statsFile = fs.readFileSync(UNIT_STAT_FILE).toString();
+    try {
+      // using jsonlint to give readable errors
+      const stats = parseJson(statsFile);
+      _.map(stats, (unit: any, type: string) => {
+        const unitStat = new GameUnitStat(type, unit);
         try {
-            // using jsonlint to give readable errors
-            const stats = parseJson(statsFile);
-            _.map(stats, (unit: any, type: string) => {
-                const unitStat = new GameUnitStat(type, unit);
-                try {
-                    unitStat.validateSync();
-                } catch (err) {
-                    throw new WrappedError(err, 'unit failed to validate', { type });
-                }
-                this.unitMap[type] = unitStat;
-            });
+          unitStat.validateSync();
         } catch (err) {
-            throw new WrappedError(err, 'failed to load unit definitions');
+          throw new WrappedError(err, 'unit failed to validate', { type });
         }
-        logger.info(ctx, 'Unit definitions loaded');
+        this.unitMap[type] = unitStat;
+      });
+    } catch (err) {
+      throw new WrappedError(err, 'failed to load unit definitions');
     }
+    logger.info(ctx, 'Unit definitions loaded');
+  }
 
-    public async getAll(ctx: Context): Promise<{ [key: string]: GameUnitStat }> {
-        return {
-            ...this.unitMap,
-        };
-    }
-    public async get(ctx: Context, type: string): Promise<GameUnitStat> {
-        return this.unitMap[type];
-    }
-    public async patch(ctx: Context, type: string, stats: Partial<GameUnitStat>): Promise<GameUnitStat> {
-        throw new Error('Method not implemented.');
-    }
+  public async getAll(ctx: Context): Promise<{ [key: string]: GameUnitStat }> {
+    return {
+      ...this.unitMap,
+    };
+  }
+  public async get(ctx: Context, type: string): Promise<GameUnitStat> {
+    return this.unitMap[type];
+  }
+  public async patch(ctx: Context, type: string, stats: Partial<GameUnitStat>): Promise<GameUnitStat> {
+    throw new Error('Method not implemented.');
+  }
 }

@@ -23,8 +23,8 @@ import Context from '../context';
 import logger from '../logger';
 
 export default class WebService implements Service {
-  private server: http.Server;
-  private parentCtx: Context;
+  private server!: http.Server;
+  private parentCtx!: Context;
   public async init(ctx: Context): Promise<void> { this.parentCtx = ctx; }
 
   public async start(): Promise<void> {

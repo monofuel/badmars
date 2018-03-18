@@ -14,21 +14,25 @@ type UUID = string;
 export default class Context {
   private _env: any;
 
-  public name: string;
+  public name!: string;
   public uuid: UUID;
   public canceled: boolean = false;
   public deadlineExceeded: boolean = false;
   public start: number;
-  public tick: number;
-  public timeout: number;
+  public tick!: number;
+  public timeout!: number;
 
-  public timeoutInterval: NodeJS.Timer;
+  public timeoutInterval!: NodeJS.Timer;
 
   constructor(opts: ContextOpts = {}) {
     this.uuid = uuidv4();
-    this.timeout = opts.timeout;
+    if (opts.timeout) {
+      this.timeout = opts.timeout;
+    }
     this._env = opts.env;
-    this.name = opts.name;
+    if (opts.name) {
+      this.name = opts.name;
+    }
     this.start = Date.now();
     if (opts.timeout) {
       this.timeoutInterval = setTimeout(() => {
@@ -44,7 +48,7 @@ export default class Context {
     return new Context({
       ...opts,
       name: opts.name ? `${this.name}_${opts.name}` : this.name,
-      timeout: this.timeout ? Math.min(opts.timeout, parentTimeout) : opts.timeout,
+      timeout: this.timeout && opts.timeout ? Math.min(opts.timeout, parentTimeout) : opts.timeout || this.timeout,
       env: {
         ...this._env,
         ...(opts.env || {}),

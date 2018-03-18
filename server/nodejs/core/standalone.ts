@@ -13,12 +13,12 @@ import * as _ from 'lodash';
 import { validateAll } from '../validator/index'; // TODO for some reason this doesn't compile without /index?
 
 export default class StandaloneService implements Service {
-  private parentCtx: Context;
+  private parentCtx!: Context;
 
-  private web: Web;
-  private net: Net;
-  private sim: SimulateService;
-  private pathfind: Pathfind;
+  private web!: Web;
+  private net!: Net;
+  private sim!: SimulateService;
+  private pathfind!: Pathfind;
 
   public async init(ctx: Context): Promise<void> {
 
@@ -111,9 +111,9 @@ export default class StandaloneService implements Service {
 }
 
 class SimulateService implements Service {
-  private parentCtx: Context;
+  private parentCtx!: Context;
 
-  private tickTimeout: NodeJS.Timer;
+  private tickTimeout!: NodeJS.Timer;
 
   public async init(ctx: Context): Promise<void> {
     this.parentCtx = ctx;

@@ -13,7 +13,7 @@ import logger from '../logger';
 let maps = [];
 
 export default class ValidatorService implements Service {
-  private parentCtx: Context;
+  private parentCtx!: Context;
 
   public async init(ctx: Context): Promise<void> { this.parentCtx = ctx; }
 

@@ -7,8 +7,8 @@ import { DetailedError } from '../../logger/index';
 import logger from '../../logger';
 
 export default class ChunkLayer implements DB.DBChunkLayer {
-  public conn: r.Connection;
-  public table: r.Table;
+  public conn!: r.Connection;
+  public table!: r.Table;
   public async init(ctx: Context, conn: r.Connection, planetName: string): Promise<void> {
     this.conn = conn;
     this.table = r.table(`${planetName}_chunkLayer`);

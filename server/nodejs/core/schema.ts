@@ -1,8 +1,8 @@
 
-//-----------------------------------
-//	author: Monofuel
-//	website: badmars.net
-//	Licensed under included modified BSD license
+// -----------------------------------
+// 	author: Monofuel
+// 	website: badmars.net
+// 	Licensed under included modified BSD license
 
 /*
 import Context from '../context';

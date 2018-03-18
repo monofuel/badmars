@@ -18,8 +18,8 @@ import * as http from 'http';
 const WebSocketServer = ws.Server;
 
 export default class Net implements Service {
-  private wss: ws.Server;
-  private parentCtx: Context;
+  private wss!: ws.Server;
+  private parentCtx!: Context;
 
   public async init(ctx: Context): Promise<void> { this.parentCtx = ctx; }
 
@@ -31,7 +31,7 @@ export default class Net implements Service {
       callback: (res: boolean, code?: number, message?: string) => void):
       Promise<void> {
 
-      const urlSplit = info.req.url.split('?');
+      const urlSplit = (info.req.url as any).split('?');
       if (urlSplit.length !== 2) {
         callback(false, 400, 'missing parameters');
       }

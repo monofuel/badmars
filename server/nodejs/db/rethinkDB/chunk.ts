@@ -4,8 +4,8 @@ import Context from '../../context';
 import { createTable, startDBCall } from '../helper';
 
 export default class DBChunk implements DB.DBChunk {
-  public conn: r.Connection;
-  public table: r.Table;
+  public conn!: r.Connection;
+  public table!: r.Table;
   public async init(ctx: Context, conn: r.Connection, planetName: string): Promise<void> {
     this.conn = conn;
     this.table = r.table(`${planetName}_chunk`);

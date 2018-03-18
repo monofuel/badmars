@@ -26,7 +26,7 @@ type TileHash = string;
 const registeredMaps: any = [];
 
 export default class PathfindService implements Service {
-  private parentCtx: Context;
+  private parentCtx!: Context;
   public async init(ctx: Context): Promise<void> { this.parentCtx = ctx; }
 
   public async start(): Promise<void> {
@@ -38,9 +38,12 @@ export default class PathfindService implements Service {
     const maps: string[] = await db.listPlanetNames(ctx);
     for (const mapName of maps) {
       const planetDB = await db.getPlanetDB(ctx, mapName);
-      let unit: Unit;
+      let unit: Unit | null;
       // tslint:disable-next-line
       while (unit = await planetDB.unit.getUnprocessedPath(ctx)) {
+        if (!unit) {
+          continue;
+        }
         await this.pathfind(ctx, unit);
       }
     }
@@ -88,7 +91,7 @@ export default class PathfindService implements Service {
       await map.getLocFromHash(ctx, unit.movable.destination);
 
     // if the destination is covered, get the nearest valid point.
-    const end: PlanetLoc = await map.getNearestFreeTile(ctx, dest, unit, false);
+    const end: PlanetLoc | null = await map.getNearestFreeTile(ctx, dest, unit, false);
     if (!end) {
       throw new Error('no nearby free tile?');
     }

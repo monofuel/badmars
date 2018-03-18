@@ -13,9 +13,9 @@ export class CheckingDB implements DB.DB {
   private db1: DB.DB;
   private db2: DB.DB;
   // TODO implementations
-  public user: User;
-  public event: Event;
-  public session: Session;
+  public user!: User;
+  public event!: Event;
+  public session!: Session;
 
   constructor(db1: DB.DB, db2: DB.DB) {
     this.db1 = db1;

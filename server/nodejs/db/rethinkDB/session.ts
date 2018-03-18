@@ -7,8 +7,8 @@ import GameSession from '../../user/session';
 import { createTable } from '../helper';
 
 export default class Session implements DB.Session {
-  public conn: r.Connection;
-  public table: r.Table;
+  public conn!: r.Connection;
+  public table!: r.Table;
   public async init(ctx: Context, conn: r.Connection): Promise<void> {
     this.conn = conn;
     this.table = r.table('session');

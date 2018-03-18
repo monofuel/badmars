@@ -12,9 +12,9 @@ import logger, { DetailedError } from '../../logger';
 
 export class MemoryDB implements DB.DB {
   private planets: { [key: string]: DB.Planet } = {};
-  public event: Event;
-  public session: Session;
-  public user: User;
+  public event!: Event;
+  public session!: Session;
+  public user!: User;
 
   public async setupSchema(ctx: Context): Promise<void> {
     // noop

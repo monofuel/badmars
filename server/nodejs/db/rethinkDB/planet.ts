@@ -11,8 +11,8 @@ import DBFactoryQueue from './factoryQueue';
 import { startDBCall } from '../helper';
 
 export default class Planet implements DB.Planet {
-  public conn: r.Connection;
-  public table: r.Table;
+  public conn!: r.Connection;
+  public table!: r.Table;
 
   public planet: GamePlanet;
   public name: string;

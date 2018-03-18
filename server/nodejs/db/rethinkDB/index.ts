@@ -12,11 +12,11 @@ import { createTable } from '../helper';
 import { startDBCall } from '../helper';
 
 export class RethinkDB implements DB.DB {
-  public conn: r.Connection;
+  public conn!: r.Connection;
   private planets: { [key: string]: Planet } = {};
-  public event: Event;
-  public session: Session;
-  public user: User;
+  public event!: Event;
+  public session!: Session;
+  public user!: User;
 
   private async connect(ctx: Context): Promise<void> {
     const { env } = ctx;

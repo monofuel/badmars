@@ -18,7 +18,7 @@ const services =
   grpc.load(__dirname + '/../../../protos/ai.proto').services;
 
 export default class AIService implements Service {
-  private parentCtx: Context;
+  private parentCtx!: Context;
   public async init(ctx: Context) { this.parentCtx = ctx; }
 
   public async start(): Promise<void> {
