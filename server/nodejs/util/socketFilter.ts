@@ -11,7 +11,7 @@ type UUID = string;
 
 export function sanitizeUnit(unit: Unit, owner: UUID) {
   const {
-    uuid, details, visible,
+    uuid, details,
   } = unit;
   const owned: boolean = details.owner === owner;
   const optional: any = {};
@@ -41,7 +41,6 @@ export function sanitizeUnit(unit: Unit, owner: UUID) {
 
   return {
     uuid,
-    visible,
     details: owned ? sanitizeOwnedUnitDetails(unit.details) :
       sanitizeUnitDetails(unit.details),
     location: owned ? sanitizeOwnedUnitLocation(unit.location) :

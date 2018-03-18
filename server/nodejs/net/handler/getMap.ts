@@ -70,13 +70,12 @@ export default async function getMap(
                 unit.construct.queue =
                   await planetDB.factoryQueue.list(ctx, unit.uuid);
               }
-              unit.visible =
-                await isUnitVisible(ctx, unit, client.user);
-              if (!unit.visible) {
+              const visible = await isUnitVisible(ctx, unit, client.user);
+              if (!visible) {
                 return;
               }
               client.visibleUnits[unit.uuid] = unit;
-              return sanitizeUnit(unit, client.user.uuid);
+              return { ...sanitizeUnit(unit, client.user.uuid), visible };
             }))),
         });
       }));

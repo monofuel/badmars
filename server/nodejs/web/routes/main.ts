@@ -9,6 +9,8 @@ import Context from '../../context';
 import logger from '../../logger';
 import db from '../../db';
 
+import * as uuidv4 from 'uuid/v4';
+
 export default function route(ctx: Context, app: express.Application) {
   app.get('/', (req: express.Request, res: express.Response) => {
     logger.info(ctx, 'GET /', {}, { req });
@@ -31,7 +33,7 @@ export default function route(ctx: Context, app: express.Application) {
       res.status(400).send({ msg: 'missing test user' });
       return;
     }
-    const sess = await db.session.createBearer(ctx, user.uuid);
+    const sess = await db.session.createBearer(ctx, user.uuid, uuidv4());
     logger.info(ctx, 'GET /test', {}, { req });
     res.render('pages/test', { sessionToken: sess.token });
   });

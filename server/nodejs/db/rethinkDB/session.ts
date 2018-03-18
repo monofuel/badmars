@@ -1,6 +1,5 @@
 import * as r from 'rethinkdb';
 import * as DB from '../../db';
-import * as uuidv4 from 'uuid/v4';
 import Context from '../../context';
 import GameUser from '../../user';
 import GameSession from '../../user/session';
@@ -17,10 +16,10 @@ export default class Session implements DB.Session {
     this.table = await createTable(conn, 'session', 'token');
   }
 
-  public async createBearer(ctx: Context, uuid: string): Promise<GameSession> {
+  public async createBearer(ctx: Context, uuid: string, token: string): Promise<GameSession> {
     const sess: GameSession = {
       user: uuid,
-      token: uuidv4(),
+      token,
       type: 1,
     };
     await this.table.insert(sess).run(this.conn);

@@ -3,6 +3,7 @@ import Context from '../../context';
 import User, { newUser, loginUser, InvalidAuthError } from '../../user';
 import logger, { WrappedError } from '../../logger';
 import db from '../../db';
+import * as uuidv4 from 'uuid/v4';
 const t = require('flow-runtime');
 
 interface RegisterRequest {
@@ -131,7 +132,7 @@ async function authUser(ctx: Context, token: string): Promise<User | null> {
 
 async function grantSession(ctx: Context, req: express.Request, res: express.Response, user: User) {
   try {
-    const sess = await db.session.createBearer(ctx, user.uuid);
+    const sess = await db.session.createBearer(ctx, user.uuid, uuidv4());
     res.status(200).send({
       sessionToken: sess.token,
     });

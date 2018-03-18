@@ -29,18 +29,18 @@ export default async function getChunk(
 
   const units = await listChunkUnits(ctx, chunk);
   if (units.length > 0) {
-    const sanitized = [];
+    const sanitized: any[] = [];
     for (const unit of units) {
       if (!unit) {
         continue;
       }
-      unit.visible = await isUnitVisible(ctx, unit, client.user);
-      if (!unit.visible) {
+      const visible = await isUnitVisible(ctx, unit, client.user);
+      if (!visible) {
         return;
       }
       client.visibleUnits[unit.uuid] = unit;
 
-      sanitized.push(sanitizeUnit(unit, client.user.uuid));
+      sanitized.push({ ...sanitizeUnit(unit, client.user.uuid), visible });
     }
     // TODO sanitize unit data
     await client.send('units', { units: sanitized });

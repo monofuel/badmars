@@ -11,10 +11,16 @@ export default class Session implements DB.Session {
     this.db1 = db1;
     this.db2 = db2;
   }
-  public async createBearer(ctx: Context, uuid: UUID): Promise<GameSession> {
-    throw new Error('Method not implemented.');
+  public async createBearer(ctx: Context, uuid: UUID, token: string): Promise<GameSession> {
+    const session1 = await this.db1.createBearer(ctx, uuid, token);
+    const session2 = await this.db2.createBearer(ctx, uuid, token);
+    assert.deepEqual(session1, session2);
+    return session1;
   }
   public async getBearerUser(ctx: Context, token: string): Promise<GameUser | null> {
-    throw new Error('Method not implemented.');
+    const user1 = await this.db1.getBearerUser(ctx, token);
+    const user2 = await this.db2.getBearerUser(ctx, token);
+    assert.deepEqual(user1, user2);
+    return user1;
   }
 }

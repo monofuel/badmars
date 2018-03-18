@@ -178,7 +178,7 @@ export default class Client {
       await this.updateUnitVisiblity(ctx, unit);
     }
 
-    unit.visible = true;
+    let visible = true;
     let prevVisible = false;
     let nextVisible = false;
     if (oldUnit) {
@@ -188,7 +188,7 @@ export default class Client {
       if (prevVisible && !nextVisible) {
         // tell the client that the unit is moving, and will no longer be
         // visible
-        unit.visible = false;
+        visible = false;
       } else if (!nextVisible) {  // else if the unit is not going to be visible
         return;
       }
@@ -205,7 +205,7 @@ export default class Client {
     // prepare the unit to be sent to the client
     const sanitizedNewUnit = sanitizeUnit(unit, this.user.uuid);
 
-    await this.send('units', { units: [sanitizedNewUnit] });
+    await this.send('units', { units: [{ ...sanitizedNewUnit, visible }] });
   }
 
   // find units in visibleUnits that need to be updated for the user

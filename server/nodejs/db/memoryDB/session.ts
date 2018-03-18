@@ -2,7 +2,6 @@ import db, * as DB from '../../db';
 import Context from '../../context';
 import GameUser from '../../user';
 import GameSession from '../../user/session';
-import * as uuidv4 from 'uuid/v4';
 import { startDBCall } from '../helper';
 
 export default class Session implements DB.Session {
@@ -13,11 +12,11 @@ export default class Session implements DB.Session {
     ctx.check('session.init');
   }
 
-  public async createBearer(ctx: Context, uuid: UUID): Promise<GameSession> {
+  public async createBearer(ctx: Context, uuid: UUID, token: string): Promise<GameSession> {
     const call = startDBCall(ctx, 'event.createBearer');
     const sess: GameSession = {
       user: uuid,
-      token: uuidv4(),
+      token,
       type: 1,
     };
     this.sessions[sess.token] = sess;

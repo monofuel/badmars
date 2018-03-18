@@ -131,7 +131,7 @@ export interface Event {
 }
 
 export interface Session {
-  createBearer(ctx: Context, uuid: string): Promise<GameSession>;
+  createBearer(ctx: Context, uuid: string, token: string): Promise<GameSession>;
   getBearerUser(ctx: Context, token: string): Promise<GameUser | null>;
 }
 

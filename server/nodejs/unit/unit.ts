@@ -140,7 +140,6 @@ export async function newUnit(
   return {
     ...unitStats,
     uuid: uuidv4(),
-    visible: false,
     details: {
       ...unitStats.details,
       type,
