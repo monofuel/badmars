@@ -33,8 +33,7 @@ export default function route(ctx: Context, app: express.Application) {
       res.status(400).send({ msg: 'missing test user' });
       return;
     }
-    const sess = await db.session.createBearer(ctx, user.uuid, uuidv4());
     logger.info(ctx, 'GET /test', {}, { req });
-    res.render('pages/test', { sessionToken: sess.token });
+    res.render('pages/test', { sessionToken: 'TEST_SESSION_ID' });
   });
 }

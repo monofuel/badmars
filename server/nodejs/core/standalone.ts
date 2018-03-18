@@ -63,6 +63,7 @@ export default class StandaloneService implements Service {
       logger.info(ctx, 'creating test user');
       const user = await newUser(ctx, 'test', 'test@japura.net', 'foobar');
       await db.user.create(ctx, user);
+      await db.session.createBearer(ctx, user.uuid, 'TEST_SESSION_ID');
 
       logger.info(ctx, 'spawning test user on testmap');
       await testPlanet.planet.spawnUser(ctx, user);

@@ -546,13 +546,9 @@ export function unitDistance(src: Unit, dst: Unit): number {
 export async function getUnitLocs(ctx: Context, unit: Unit): Promise<PlanetLoc[]> {
   const planetDB = await db.getPlanetDB(ctx, unit.location.map);
   ctx.check('getLocs');
-  const promises: Array<Promise<PlanetLoc>> = [];
-  unit.location.hash.forEach((hash: TileHash) => {
-    const x = Number(hash.split(':')[0]);
-    const y = Number(hash.split(':')[1]);
-    promises.push(planetDB.planet.getLoc(ctx, x, y));
-  });
-  return Promise.all(promises);
+  return Promise.all(
+    unit.location.hash.map((hash: TileHash) => planetDB.planet.getLocFromHash(ctx, hash)),
+  );
 }
 
 export async function getChunks(ctx: Context, unit: Unit): Promise<Chunk[]> {
@@ -770,7 +766,6 @@ export async function isUnitVisible(ctx: Context, unit: Unit, user: User): Promi
 
   // The unit is visible if any tiles the unit is on are visible
   const locs = await getUnitLocs(ctx, unit);
-
   for (const loc of locs) {
     if (await loc.isVisible(ctx, user)) {
       return true;

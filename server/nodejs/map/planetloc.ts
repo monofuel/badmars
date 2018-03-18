@@ -209,9 +209,9 @@ export default class PlanetLoc {
   public async isVisible(ctx: Context, user: User): Promise<boolean> {
     ctx.check('PlanetLoc.isVisible()');
     // get units in the area
+    const chunkDistance = Math.max((ctx.env.maxVision / this.chunk.chunkSize) + 1, 1);
     const units = await this.map.getNearbyUnitsFromChunk(
-      ctx, this.chunk.hash, ctx.env.maxVision / this.chunk.chunkSize);
-
+      ctx, this.chunk.hash, chunkDistance);
     // check if they are within vision range of an owned vehicle
     const ownedUnits =
       _.filter(units, (unit: Unit) => unit.details.owner === user.uuid);

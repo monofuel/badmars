@@ -115,7 +115,7 @@ export default class Client {
       this.unitStatWatcher.close();
     }
     clearInterval(this.keepAlive);
-    // this.ws = null;
+    (this.ws as any) = null;
   }
 
   public async handleFromClient(ctx: Context, dataText: string): Promise<void> {

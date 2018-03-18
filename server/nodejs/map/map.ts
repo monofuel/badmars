@@ -27,6 +27,7 @@ import Client from '../net/client';
 import sleep from '../util/sleep';
 import { generateChunk, generateResources } from './procedures';
 import User from '../user';
+import { validateHash } from '../validator';
 
 type TileHash = string;
 type ChunkHash = string;
@@ -98,6 +99,7 @@ export default class Map {
   }
 
   public async getChunk(ctx: Context, hash: ChunkHash): Promise<Chunk> {
+    validateHash(hash);
     const planetDB = await db.getPlanetDB(ctx, this.name);
     const chunk = await planetDB.chunk.get(ctx, hash);
     if (chunk) {
@@ -126,6 +128,7 @@ export default class Map {
   }
 
   public async getLocFromHash(ctx: Context, hash: TileHash): Promise<PlanetLoc> {
+    validateHash(hash);
     const x = Number(hash.split(':')[0]);
     const y = Number(hash.split(':')[1]);
     return await this.getLoc(ctx, x, y);
@@ -438,11 +441,9 @@ export default class Map {
 
   public async getNearbyUnitsFromChunk(
     ctx: Context, chunkHash: ChunkHash,
-    chunkRange: number = 0): Promise<Unit[]> {
+    chunkRange: number = env.chunkExamineRange): Promise<Unit[]> {
     ctx.check('getNearbyUnitsFromChunk');
-    if (!chunkRange) {
-      chunkRange = env.chunkExamineRange;
-    }
+    chunkRange = Math.ceil(chunkRange);
     const chunkHashes: ChunkHash[] =
       this.getNearbyChunkHashes(chunkHash, chunkRange);
     return await this.getUnitsAtChunks(ctx, chunkHashes);
@@ -453,9 +454,7 @@ export default class Map {
     ctx.check('getUnitsAtChunks');
     const units = [];
     for (const chunkHash of chunkHashes) {
-      const x: number = Number(chunkHash.split(':')[0]);
-      const y: number = Number(chunkHash.split(':')[1]);
-      const chunk: Chunk = await this.getChunkOld(ctx, x, y);
+      const chunk: Chunk = await this.getChunk(ctx, chunkHash);
       try {
         const chunkUnits: Unit[] = await listChunkUnits(ctx, chunk);
 
