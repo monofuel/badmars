@@ -107,7 +107,7 @@ export default class PlanetLoc {
     return await this.map.getLoc(ctx, this.x - 1, this.y);
   }
 
-  public async getDirTile(ctx: Context, dir: Dir): Promise<PlanetLoc> {
+  public async getDirTile(ctx: Context, dir?: Dir): Promise<PlanetLoc> {
     switch (dir) {
       case 'N':
         return await this.N(ctx);

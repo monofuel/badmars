@@ -10,7 +10,7 @@ import Context from '../context';
 import db from '../db';
 
 export default class Commands implements Service {
-  private parentCtx: Context;
+  private parentCtx!: Context;
 
   public async init(ctx: Context): Promise<void> {
     this.parentCtx = ctx;

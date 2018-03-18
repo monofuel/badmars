@@ -18,11 +18,15 @@ export default class TransferTowerAI implements UnitAI {
   public async simulate(ctx: Context, self: Unit): Promise<void> {
     ctx.check('transferTower simulate');
     const planetDB = await db.getPlanetDB(ctx, self.location.map);
+    const { storage } = self;
+    if (!storage) {
+      throw new DetailedError('unit missing storage', { uuid: self.uuid });
+    }
 
     const units: Unit[] = await planetDB.planet.getNearbyUnitsFromChunkWithTileRange(ctx,
-      self.location.chunkHash[0], self.storage.transferRange);
+      self.location.chunkHash[0], storage.transferRange);
     const nearby = _.filter(units, (unit) => !unit.details.ghosting &&
-      unitDistance(self, unit) < self.storage.transferRange && unit.uuid !== self.uuid);
+      unitDistance(self, unit) < storage.transferRange && unit.uuid !== self.uuid);
 
     // push resources to receivers
     await this.handleReceivers(ctx, self, 'iron', nearby);
@@ -37,12 +41,18 @@ export default class TransferTowerAI implements UnitAI {
     await this.pushTowers(ctx, self, 'fuel', nearby);
   }
   private async handleReceivers(ctx: Context, self: Unit, resourceType: Resource, nearby: Unit[]): Promise<void> {
+    const { storage } = self;
+    if (!storage) {
+      throw new DetailedError('unit missing storage', { uuid: self.uuid });
+    }
+
     // find receiver storages that are not full
     const receivers: Unit[] = _.filter(nearby,
       (unit) => unit.details.type === 'storage' &&
+        unit.storage &&
         unit.storage.receive &&
         unit.storage[resourceType] < unit.storage[resourceType === 'iron' ? 'maxIron' : 'maxFuel']);
-    let balanceResource = self.storage[resourceType] / receivers.length;
+    let balanceResource = storage[resourceType] / receivers.length;
     if (balanceResource > transferLimit) { balanceResource = 5; }
     if (balanceResource < 1) {
       return;
@@ -57,8 +67,12 @@ export default class TransferTowerAI implements UnitAI {
     // find nearby not-receiver storages
     const storages: Unit[] = _.filter(nearby,
       (unit) => unit.details.type === 'storage' &&
+        unit.storage &&
         !unit.storage.receive);
     for (const storage of storages) {
+      if (!storage.storage || !self.storage) {
+        continue;
+      }
       const storagePercentage = storage.storage[resourceType] / storage.storage[max];
       const selfPercentage = self.storage[resourceType] / self.storage[max];
       let delta = Math.round(((selfPercentage - storagePercentage) * self.storage[max]) / 2);
@@ -85,8 +99,12 @@ export default class TransferTowerAI implements UnitAI {
     // look for not full transfer towers
     const towers: Unit[] = _.filter(nearby,
       (unit) => unit.details.type === 'transfer_tower' &&
+        unit.storage &&
         unit.storage[resourceType] < unit.storage[max]);
     for (const tower of towers) {
+      if (!tower.storage || !self.storage) {
+        continue;
+      }
       const storagePercentage = tower.storage[resourceType] / tower.storage[max];
       const selfPercentage = self.storage[resourceType] / self.storage[max];
       let delta = Math.round(((selfPercentage - storagePercentage) * self.storage[max]) / 2);

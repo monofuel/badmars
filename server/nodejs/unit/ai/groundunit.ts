@@ -40,6 +40,10 @@ export async function simulate(ctx: Context, unit: Unit): Promise<void> {
   ctx.check('groundUnit simulate');
   const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 
+  if (!unit.movable) {
+    throw new DetailedError('unit is not movable', { uuid: unit.uuid });
+  }
+
   // logger.info(ctx, 'found movable unit');
 
   // waiting to move again
