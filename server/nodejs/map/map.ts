@@ -74,14 +74,14 @@ interface ChunkCacheMapType {
 }
 
 export default class Map {
-  public name: string;
+  public name!: string;
   public settings: any;
-  public lastTickTimestamp: number;
-  public lastTick: number;
-  public tps: number;
-  public users: string[];
-  public seed: number;
-  public paused: boolean;
+  public lastTickTimestamp!: number;
+  public lastTick!: number;
+  public tps!: number;
+  public users!: string[];
+  public seed!: number;
+  public paused!: boolean;
 
   constructor(name: string = '', seed: number = Math.random()) {
     if (!name) {
@@ -223,7 +223,7 @@ export default class Map {
     if (unit.details.type === 'mine') {
       for (const unit2 of units) {
         if (unit2.details.type === 'iron' || unit2.details.type === 'oil') {
-          return;
+          return null;
         }
         // already has a mine
         if (unit2.details.type === 'mine') {
@@ -234,22 +234,22 @@ export default class Map {
     }
 
     if (units.length === 0) {
-      return;
+      return null;
     }
 
     if (units.length === 1 && unit.uuid === units[0].uuid) {
-      return;
+      return null;
     }
 
     if (ignoreMoving) {
       let foundMoving = false;
       for (const unit of units) {
-        if (unit.movable.destination) {
+        if (unit.movable && unit.movable.destination) {
           foundMoving = true;
         }
       }
       if (!foundMoving) {
-        return;
+        return null;
       }
     }
 
@@ -553,7 +553,7 @@ export default class Map {
       }
       const distance = unitDistance(unit, taker);
 
-      if (distance > unit.storage.transferRange &&
+      if (distance > unit.storage.transferRange && taker.storage &&
         distance > taker.storage.transferRange) {
         continue;
       }
@@ -634,7 +634,7 @@ export default class Map {
         continue;
       }
 
-      if (distance > unit.storage.transferRange &&
+      if (distance > unit.storage.transferRange && mine.storage &&
         distance > mine.storage.transferRange) {
         continue;
       }
