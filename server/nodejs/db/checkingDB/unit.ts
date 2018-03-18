@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as DB from '../../db';
 import { assert } from 'chai';
 import Context from '../../context';
@@ -31,7 +32,7 @@ export default class DBUnit implements DB.DBUnit {
   }
   public async create(ctx: Context, unit: Unit): Promise<Unit> {
     const unit1 = await this.db1.create(ctx, unit);
-    const unit2 = await this.db2.create(ctx, unit);
+    const unit2 = await this.db2.create(ctx, _.cloneDeep(unit));
     assert.deepEqual(unit1, unit2);
     return unit1;
   }
@@ -64,10 +65,16 @@ export default class DBUnit implements DB.DBUnit {
     throw new Error('Method not implemented.');
   }
   public async getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]> {
-    throw new Error('Method not implemented.');
+    const list1 = await this.db1.getUnprocessedUnitUUIDs(ctx, tick);
+    const list2 = await this.db2.getUnprocessedUnitUUIDs(ctx, tick);
+    assert.deepEqual(list1, list2);
+    return list1;
   }
   public async claimUnitTick(ctx: Context, uuid: string, tick: number): Promise<Unit | null> {
-    throw new Error('Method not implemented.');
+    const unit1 = await this.db1.claimUnitTick(ctx, uuid, tick);
+    const unit2 = await this.db2.claimUnitTick(ctx, uuid, tick);
+    assert.deepEqual(unit1, unit2);
+    return unit1;
   }
   public async pullResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
     throw new Error('Method not implemented.');

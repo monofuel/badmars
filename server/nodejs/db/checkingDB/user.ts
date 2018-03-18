@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as DB from '../../db';
 import { assert } from 'chai';
 import Context from '../../context';
@@ -32,7 +33,7 @@ export default class User implements DB.User {
   }
   public async create(ctx: Context, user: GameUser): Promise<GameUser> {
     const user1 = await this.db1.create(ctx, user);
-    const user2 = await this.db2.create(ctx, user);
+    const user2 = await this.db2.create(ctx, _.cloneDeep(user));
     assert.deepEqual(user1, user2);
     return user1;
   }
