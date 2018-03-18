@@ -39,6 +39,7 @@ export default class DBUnit implements DB.DBUnit {
   public async getBulk(ctx: Context, uuids: UUID[]): Promise<{ [key: string]: Unit }> {
     const unitMap1 = await this.db1.getBulk(ctx, uuids);
     const unitMap2 = await this.db2.getBulk(ctx, uuids);
+    // TODO throws an error, perhaps arrays are in a different order? will need some work.
     assert.deepEqual(unitMap1, unitMap2);
     return unitMap1;
   }
