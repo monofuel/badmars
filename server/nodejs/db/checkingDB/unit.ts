@@ -53,16 +53,21 @@ export default class DBUnit implements DB.DBUnit {
     return unit1;
   }
   public async watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<Unit>>): Promise<void> {
-    throw new Error('Method not implemented.');
+    // TODO
+    await this.db1.watch(ctx, fn);
   }
   public async watchPathing(ctx: Context, fn: DB.Handler<Unit>): Promise<void> {
-    throw new Error('Method not implemented.');
+    // TODO
+    await this.db1.watchPathing(ctx, fn);
   }
   public getAtChunk(ctx: Context, hash: string): Promise<Unit[]> {
     throw new Error('Method not implemented.');
   }
-  public async getUnprocessedPath(ctx: Context): Promise<Unit> {
-    throw new Error('Method not implemented.');
+  public async getUnprocessedPath(ctx: Context): Promise<Unit | null> {
+    const unit1 = await this.db1.getUnprocessedPath(ctx);
+    const unit2 = await this.db2.getUnprocessedPath(ctx);
+    assert.deepEqual(unit1, unit2);
+    return unit1;
   }
   public async getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]> {
     const list1 = await this.db1.getUnprocessedUnitUUIDs(ctx, tick);
@@ -77,13 +82,22 @@ export default class DBUnit implements DB.DBUnit {
     return unit1;
   }
   public async pullResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
-    throw new Error('Method not implemented.');
+    const pulled1 = await this.db1.pullResource(ctx, type, amount, uuid);
+    const pulled2 = await this.db2.pullResource(ctx, type, amount, uuid);
+    assert.equal(pulled1, pulled2);
+    return pulled1;
   }
   public async putResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
-    throw new Error('Method not implemented.');
+    const put1 = await this.db1.putResource(ctx, type, amount, uuid);
+    const put2 = await this.db2.putResource(ctx, type, amount, uuid);
+    assert.equal(put1, put2);
+    return put1;
   }
   public async count(): Promise<number> {
-    throw new Error('Method not implemented.');
+    const count1 = await this.db1.count();
+    const count2 = await this.db2.count();
+    assert.equal(count1, count2);
+    return count1;
   }
   public countAwake(): Promise<number> {
     throw new Error('Method not implemented.');

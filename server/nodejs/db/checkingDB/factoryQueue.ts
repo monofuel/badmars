@@ -15,7 +15,10 @@ export default class FactoryQueue implements DB.FactoryQueue {
     throw new Error('Method not implemented.');
   }
   public async list(ctx: Context, factory: string): Promise<FactoryOrder[]> {
-    throw new Error('Method not implemented.');
+    const orders1 = await this.db1.list(ctx, factory);
+    const orders2 = await this.db2.list(ctx, factory);
+    assert.deepEqual(orders1, orders2);
+    return orders1;
   }
   public async pop(ctx: Context, factory: string): Promise<FactoryOrder | null> {
     throw new Error('Method not implemented.');
