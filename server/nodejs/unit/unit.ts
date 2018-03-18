@@ -80,7 +80,7 @@ export async function newUnit(
     x = loc.x;
     y = loc.y;
   } else {
-    if (!x || !y) {
+    if (x === undefined || y === undefined) {
       throw new Error('must specify x and y, or a planetLoc');
     }
   }
