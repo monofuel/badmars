@@ -39,7 +39,7 @@ export default function init(ctx: Context) {
 
 export function startProfile(name: string): ProfileKey {
   if (!initialized) {
-    return;
+    return 'foobar';
   }
 
   const key: ProfileKey = name + Math.random();

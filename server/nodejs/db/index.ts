@@ -150,7 +150,7 @@ export interface DB {
 }
 
 class DelegateDB implements DB {
-  public db: DB;
+  public db!: DB;
   public setup(db: DB) {
     this.db = db;
     (global as any).db = db;

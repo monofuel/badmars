@@ -33,7 +33,16 @@ export async function newUnit(
   loc: PlanetLoc | null,
   map?: string, x?: number, y?: number): Promise<Unit> {
   ctx.check('newUnit');
-  const planetDB = await db.getPlanetDB(ctx, map || loc.map.name);
+  let mapName: string = map as any;
+  if (!loc) {
+    if (!map) {
+      throw new Error('must specify either a PlanetLoc or mapName, x and y');
+    }
+  } else {
+    mapName = loc.map.name;
+  }
+
+  const planetDB = await db.getPlanetDB(ctx, mapName);
   const unitStats = await planetDB.unitStat.get(ctx, type);
   const optional: Partial<Unit> = {};
 
@@ -70,6 +79,10 @@ export async function newUnit(
   if (loc) {
     x = loc.x;
     y = loc.y;
+  } else {
+    if (!x || !y) {
+      throw new Error('must specify x and y, or a planetLoc');
+    }
   }
 
   let hash;
@@ -101,8 +114,8 @@ export async function newUnit(
 
   const chunkHash = new Set();
 
-  let chunkX: number;
-  let chunkY: number;
+  let chunkX: number = 0;
+  let chunkY: number = 0;
   hash.forEach((tileHash: string) => {
     const x = Number(tileHash.split(':')[0]);
     const y = Number(tileHash.split(':')[1]);
@@ -115,7 +128,7 @@ export async function newUnit(
   });
 
   const location = {
-    map: map || loc.map.name,
+    map: mapName,
     x,
     y,
     hash,
@@ -485,6 +498,12 @@ export async function setConstructing(
 }
 
 export async function tickConstruction(ctx: Context, unit: Unit): Promise<void> {
+  if (!unit.construct) {
+    throw new DetailedError('unit cannot construct', { uuid: unit.uuid });
+  }
+  if (!unit.construct.constructing) {
+    throw new DetailedError('unit is not currently constructing', { uuid: unit.uuid });
+  }
   await patchUnit(ctx, unit, {
     construct: {
       constructing: {
@@ -500,6 +519,9 @@ export async function setBuilt(ctx: Context, unit: Unit): Promise<void> {
 }
 
 export async function tickResourceCooldown(ctx: Context, unit: Unit): Promise<void> {
+  if (!unit.storage) {
+    throw new DetailedError('unit has no storage', { uuid: unit.uuid });
+  }
   let resourceCooldown = unit.storage.resourceCooldown - 1;
   if (resourceCooldown < 0) {
     resourceCooldown = ctx.env.resourceTicks;
@@ -707,7 +729,10 @@ export async function getNearestEnemy(ctx: Context, unit: Unit): Promise<null | 
 // return if the unit has been able to burn fuel
 export async function burnFuel(ctx: Context, unit: Unit): Promise<boolean> {
   if (!unit.details.fuelBurnLength) {
-    return;
+    return false;
+  }
+  if (!unit.storage) {
+    throw new DetailedError('unit has no storage', { uuid: unit.uuid });
   }
   const planetDB = await db.getPlanetDB(ctx, unit.location.map);
 
