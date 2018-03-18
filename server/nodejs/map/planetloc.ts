@@ -33,9 +33,9 @@ export default class PlanetLoc {
 
   // temp storage used by getNearestFreeTile
   // TODO these should not be here
-  public prev: null | PlanetLoc;
-  public realCost: number;
-  public cost: number;
+  public prev: null | PlanetLoc = null;
+  public realCost: number = 0;
+  public cost: number = 0;
 
   constructor(
     map: Map, chunk: Chunk, chunkLayer: ChunkLayer,

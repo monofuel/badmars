@@ -48,7 +48,7 @@ export default async function aStarPath(ctx: Context, unit: Unit, start: PlanetL
     open.push(loc);
   }
 
-  let tile = open[0];
+  let tile: PlanetLoc = open[0];
   let touchedTiles = 0;
 
   while (!tile.equals(dest) &&
@@ -60,7 +60,8 @@ export default async function aStarPath(ctx: Context, unit: Unit, start: PlanetL
       return prevMap[a.hash].cost - prevMap[b.hash].cost;
     });
 
-    tile = open.shift();
+    // tile must exist, because open.length > 0
+    tile = open.shift() as any;
 
     const reason = await map.checkValidForUnit(ctx, [tile], unit, false);
     if (reason) {

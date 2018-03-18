@@ -57,8 +57,8 @@ export async function getNearestAdjacentTile(ctx: Context, unit1: Unit, unit2: U
     }
   }
 
-  let nearest: null | PlanetLoc;
-  let nearestOpen: null | PlanetLoc;
+  let nearest: null | PlanetLoc = null;
+  let nearestOpen: null | PlanetLoc = null;
   for (const key of Object.keys(adjacentTiles)) {
     const tile = adjacentTiles[key];
     const tileDistance = tile.distance(tiles1[0]);

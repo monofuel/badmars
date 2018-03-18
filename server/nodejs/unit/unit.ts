@@ -490,7 +490,7 @@ export async function takeDamage(ctx: Context, unit: Unit, dmg: number): Promise
 export async function setConstructing(
   ctx: Context,
   unit: Unit,
-  constructing: { type: string, remaining: number }): Promise<void> {
+  constructing: { type: string, remaining: number } | null): Promise<void> {
   if (!unit.construct) {
     throw new DetailedError('unit cannot construct');
   }

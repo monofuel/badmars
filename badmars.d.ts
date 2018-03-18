@@ -18,141 +18,141 @@ type Success = boolean;
 type ModuleName = 'chunk';
 
 interface ChunkProto {
-	grid: Array<Object>;
-	navGrid: Array<Object>;
+  grid: Array<Object>;
+  navGrid: Array<Object>;
 }
 
 interface EntityMapType {
-	[key: string]: UUID
+  [key: string]: UUID
 }
 
 interface FactoryOrder {
-	uuid: UUID,
-	factory: UUID,
-	type: UnitType,
-	created: number,
+  uuid: UUID,
+  factory: UUID,
+  type: UnitType,
+  created: number,
 }
 
 interface Chunk {
-	x: number;
-	y: number;
-	hash: TileHash;
-	map: string;
+  x: number;
+  y: number;
+  hash: TileHash;
+  map: string;
 
-	grid: Array<Array<number>>;
-	navGrid: Array<Array<TileCode>>;
-	chunkSize: number;
+  grid: Array<Array<number>>;
+  navGrid: Array<Array<TileCode>>;
+  chunkSize: number;
 }
 
 interface Unit {
-	uuid: UUID;
-	visible: boolean; // this is set depending on the player
-	details: UnitDetails;
-	location: UnitLocation;
-	movable: null | UnitMovable;
-	attack: null | UnitAttack;
-	storage: null | UnitStorage;
-	graphical: null | UnitGraphical;
-	stationary: null | UnitStationary;
-	construct: null | UnitConstruct;
+  uuid: UUID;
+  visible: boolean; // this is set depending on the player
+  details: UnitDetails;
+  location: UnitLocation;
+  movable: null | UnitMovable;
+  attack: null | UnitAttack;
+  storage: null | UnitStorage;
+  graphical: null | UnitGraphical;
+  stationary: null | UnitStationary;
+  construct: null | UnitConstruct;
 }
 
 // TODO this should be a 'deep partial'
 interface UnitPatch {
-	uuid: UUID;
-	details: Partial<UnitDetails>;
-	location: Partial<UnitLocation>;
-	movable: null | Partial<UnitMovable>;
-	attack: null | Partial<UnitAttack>;
-	storage: null | Partial<UnitStorage>;
-	graphical: null | Partial<UnitGraphical>;
-	stationary: null | Partial<UnitStationary>;
-	construct: null | Partial<UnitConstruct>;
+  uuid: UUID;
+  details: Partial<UnitDetails>;
+  location: Partial<UnitLocation>;
+  movable: null | Partial<UnitMovable>;
+  attack: null | Partial<UnitAttack>;
+  storage: null | Partial<UnitStorage>;
+  graphical: null | Partial<UnitGraphical>;
+  stationary: null | Partial<UnitStationary>;
+  construct: null | Partial<UnitConstruct>;
 }
 
 interface UnitDetails {
-	type: UnitType,
-	size: number,
-	buildTime: number,
-	vision: number,
-	cost: number,
-	health: number,
-	maxHealth: number,
-	lastTick: number,
-	ghosting: boolean,
-	owner: string,
-	unfueled: boolean,
-	ironRate: number,
-	fuelRate: number,
-	fuelBurn: number,
-	fuelBurnLength: number, // ticks to use 1 unit of fuel
+  type: UnitType,
+  size: number,
+  buildTime: number,
+  vision: number,
+  cost: number,
+  health: number,
+  maxHealth: number,
+  lastTick: number,
+  ghosting: boolean,
+  owner: string,
+  unfueled: boolean,
+  ironRate: number,
+  fuelRate: number,
+  fuelBurn: number,
+  fuelBurnLength: number, // ticks to use 1 unit of fuel
 }
 
 // TODO could be a more general 'planet location' interface that can also be used for user location
 interface UnitLocation {
-	hash: TileHash[],
-	x: number,
-	y: number,
-	chunkHash: ChunkHash[],
-	chunkX: number,
-	chunkY: number,
-	map: string,
+  hash: TileHash[],
+  x: number,
+  y: number,
+  chunkHash: ChunkHash[],
+  chunkX: number,
+  chunkY: number,
+  map: string,
 }
 
 interface UnitMovable {
-	layer: MovementLayer,
-	speed: number,
-	movementCooldown: number,
-	path: Array<Dir>,
-	movementAttempt: number,
-	pathAttempt: number,
-	isPathing: boolean,
-	pathUpdate: number,
-	destination: null | TileHash,
-	transferGoal: null | {
-		uuid: string,
-		iron?: number,
-		fuel?: number,
-	}
+  layer: MovementLayer,
+  speed: number,
+  movementCooldown: number,
+  path: Array<Dir>,
+  movementAttempt: number,
+  pathAttempt: number,
+  isPathing: boolean,
+  pathUpdate: number,
+  destination: null | TileHash,
+  transferGoal: null | {
+    uuid: string,
+    iron?: number,
+    fuel?: number,
+  }
 }
 
 interface UnitAttack {
-	layers: Array<MovementLayer>,
-	range: number,
-	damage: number,
-	fireRate: number,
-	fireCooldown: number,
+  layers: Array<MovementLayer>,
+  range: number,
+  damage: number,
+  fireRate: number,
+  fireCooldown: number,
 }
 
 interface UnitStorage {
-	iron: number,
-	fuel: number,
-	maxIron: number,
-	maxFuel: number,
-	transferRange: number,
-	resourceCooldown: number,
-	receive?: boolean,
-	desired?: {
-		iron: number,
-		fuel: number
-	}
+  iron: number,
+  fuel: number,
+  maxIron: number,
+  maxFuel: number,
+  transferRange: number,
+  resourceCooldown: number,
+  receive?: boolean,
+  desired?: {
+    iron: number,
+    fuel: number
+  }
 }
 
 interface UnitGraphical {
-	model: string,
-	scale: number,
+  model: string,
+  scale: number,
 }
 
 interface UnitStationary {
-	layer: MovementLayer,
+  layer: MovementLayer,
 }
 
 interface UnitConstruct {
-	types: Array<string>,
-	constructing?: {
-		remaining: number,
-		type: string,
-	}
-	// HACK is separately loaded from the factoryQueue table
-	queue?: FactoryOrder[],
+  types: Array<string>,
+  constructing: {
+    remaining: number,
+    type: string,
+  } | null;
+  // HACK is separately loaded from the factoryQueue table
+  queue?: FactoryOrder[],
 }

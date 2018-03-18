@@ -18,7 +18,7 @@ import {
 import UnitAI from './';
 
 export default class AttackAI implements UnitAI {
-  public enemy: null | Unit;
+  public enemy: Unit | null = null;
   public async actionable(ctx: Context, unit: Unit): Promise<boolean> {
     if (!unit.attack) {
       return false;

@@ -33,9 +33,9 @@ export default class Client {
   public auth: boolean;
   public handlers: HandlerMapType;
   public keepAlive: NodeJS.Timer;
-  public map: Map;
+  public map!: Map;
   public unitStatWatcher: any;
-  public planet: Map;
+  public planet!: Map;
   public user: User;
   public ctx: Context;
   public loadedChunks: ChunkHash[];
@@ -53,9 +53,9 @@ export default class Client {
 
     logger.info(ctx, 'client connected');
 
-    ws.on('message', async (msg: string): Promise<void> => {
+    ws.on('message', async (msg?: string): Promise<void> => {
       try {
-        await this.handleFromClient(ctx.create(), msg);
+        await this.handleFromClient(ctx.create(), msg as any); // HACK not sure why types are weird
       } catch (err) {
         logger.trackError(
           ctx,
@@ -115,7 +115,7 @@ export default class Client {
       this.unitStatWatcher.close();
     }
     clearInterval(this.keepAlive);
-    this.ws = null;
+    // this.ws = null;
   }
 
   public async handleFromClient(ctx: Context, dataText: string): Promise<void> {
@@ -160,7 +160,7 @@ export default class Client {
       });
   }
 
-  public async handleUnitUpdate(ctx: Context, unit: Unit, oldUnit?: Unit): Promise<void> {
+  public async handleUnitUpdate(ctx: Context, unit?: Unit, oldUnit?: Unit): Promise<void> {
     // unit death (TODO)
     if (!unit) {
       return;
@@ -179,8 +179,8 @@ export default class Client {
     }
 
     unit.visible = true;
-    let prevVisible: boolean;
-    let nextVisible: boolean;
+    let prevVisible = false;
+    let nextVisible = false;
     if (oldUnit) {
       // this does not work when another unit is moving.
       prevVisible = await isUnitVisible(ctx, oldUnit, this.user);
@@ -245,7 +245,11 @@ export default class Client {
       { units: nowVisible.map((unit) => sanitizeUnit(unit, this.user.uuid)) });
   }
 
-  public async handleUserUpdate(ctx: Context, user: User) {
+  public async handleUserUpdate(ctx: Context, user?: User) {
+    if (!user) {
+      // TODO handle when a user is deleted
+      return;
+    }
     const newUser = sanitizeUser(user);
     await this.send('players', { players: [newUser] });
   }

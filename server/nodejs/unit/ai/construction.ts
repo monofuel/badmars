@@ -22,7 +22,7 @@ import { startProfile, endProfile } from '../../util/stats';
 type UnitType = string;
 
 export default class ConstructionAI implements UnitAI {
-  public nearestGhost: null | Unit;
+  public nearestGhost: Unit | null = null;
 
   public async actionable(ctx: Context, unit: Unit): Promise<boolean> {
     if (unit.details.ghosting || !unit.construct) {
@@ -117,6 +117,9 @@ export default class ConstructionAI implements UnitAI {
     }
     if (!unit.construct.constructing) {
       const peek = await planetDB.factoryQueue.peek(ctx, unit.uuid);
+      if (!peek) {
+        return;
+      }
       const unitInfo = await planetDB.unitStat.get(ctx, peek.type);
       if (!await planetDB.planet.pullResource(
         ctx, 'iron', unit, unitInfo.details.cost)) {
@@ -147,14 +150,17 @@ export default class ConstructionAI implements UnitAI {
     }
 
     const constructing = unit.construct.constructing;
+    if (!constructing) {
+      throw new Error('unit not constructing');
+    }
     logger.info(ctx, 'constructing unit', { uuid: unit.uuid, constructing });
     await tickConstruction(ctx, unit);
-    if (unit.construct.constructing.remaining === 0) {
+    if (constructing.remaining === 0) {
       // TODO why was this left empty?
     }
 
     const tile = await planetDB.planet.getLoc(ctx, unit.location.x, unit.location.y);
-    const newTile = await planetDB.planet.getNearestFreeTile(ctx, tile, null, true);
+    const newTile = await planetDB.planet.getNearestFreeTile(ctx, tile, undefined, true);
     if (!newTile) {
       throw new DetailedError('failed to find open tile', { uuid: unit.uuid });
     }
