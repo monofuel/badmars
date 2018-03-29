@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import * as DB from '../../db';
 import { assert } from 'chai';
 import Context from '../../context';
+const jsonpatch = require('fast-json-patch');
 
 export default class DBUnit implements DB.DBUnit {
 
@@ -40,7 +41,12 @@ export default class DBUnit implements DB.DBUnit {
     const unitMap1 = await this.db1.getBulk(ctx, uuids);
     const unitMap2 = await this.db2.getBulk(ctx, uuids);
     // TODO throws an error, perhaps arrays are in a different order? will need some work.
-    assert.deepEqual(unitMap1, unitMap2);
+    try {
+      assert.deepEqual(unitMap1, unitMap2);
+    } catch (err) {
+      console.log(jsonpatch.compare(unitMap1, unitMap2));
+      throw err;
+    }
     return unitMap1;
   }
   public async delete(ctx: Context, uuid: string): Promise<void> {

@@ -67,8 +67,13 @@ export default async function getMap(
               // TODO should have a universal function to prepare a
               // unit to be sent to user
               if (unit.details.type === 'factory' && unit.construct) {
-                unit.construct.queue =
-                  await planetDB.factoryQueue.list(ctx, unit.uuid);
+                unit = {
+                  ...unit,
+                  construct: {
+                    ...unit.construct,
+                    queue: await planetDB.factoryQueue.list(ctx, unit.uuid),
+                  },
+                };
               }
               const visible = await isUnitVisible(ctx, unit, client.user);
               if (!visible) {

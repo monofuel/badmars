@@ -152,6 +152,6 @@ interface UnitConstruct {
     remaining: number,
     type: string,
   } | null;
-  // HACK is separately loaded from the factoryQueue table
+  // HACK frontend only field, is separately loaded from the factoryQueue table
   queue?: FactoryOrder[],
 }
