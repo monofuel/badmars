@@ -4,6 +4,7 @@ import Context from '../../context';
 import { createTable, createIndex, clearSpareIndices, startDBCall } from '../helper';
 import logger, { WrappedError, DetailedError } from '../../logger';
 import env from '../../config/env';
+import { rethinkEach } from '.';
 
 export default class DBUnit implements DB.DBUnit {
   public conn!: r.Connection;
@@ -16,24 +17,18 @@ export default class DBUnit implements DB.DBUnit {
   public async setupSchema(ctx: Context, conn: r.Connection, planetName: string): Promise<void> {
     this.table = await createTable(conn, `${planetName}_unit`, 'uuid');
 
-    const VALID_INDICES = ['location.chunkHash', 'location.hash', 'details.lastTick'];
+    const VALID_INDICES = ['location.chunkHash', 'location.hash', 'details.lastTick', 'details.owner'];
 
     await createIndex(this.conn, this.table, 'location.hash', true);
     await createIndex(this.conn, this.table, 'location.chunkHash', true);
     await createIndex(this.conn, this.table, 'details.lastTick');
+    await createIndex(this.conn, this.table, 'details.owner');
     await clearSpareIndices(this.conn, this.table, VALID_INDICES);
   }
 
   public async each(ctx: Context, fn: DB.Handler<Unit>): Promise<void> {
     const cursor = await this.table.run(this.conn);
-    // TODO this could be done in parallel
-    await cursor.each(async (err: Error, unit: Unit) => {
-      if (err) {
-        throw err;
-      }
-      await fn(ctx, unit);
-    });
-
+    await rethinkEach(cursor, ctx, fn);
   }
   public async get(ctx: Context, uuid: string): Promise<Unit> {
     const call = await startDBCall(ctx, 'getUnit');
@@ -68,20 +63,19 @@ export default class DBUnit implements DB.DBUnit {
     await call.end();
     return (result as any).changes[0].new_val;
   }
-  public watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<any>>): Promise<void> {
-    throw new Error('Method not implemented.');
+  public async watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<Unit>>): Promise<void> {
+    this.table.changes().run(this.conn).then((cursor: any) => {
+      return rethinkEach(cursor, ctx, fn);
+    }).catch((err) => {
+      logger.trackError(ctx, new WrappedError(err, 'watching units'));
+    });
   }
   public async watchPathing(ctx: Context, fn: DB.Handler<any>): Promise<void> {
     this.table.filter(r.row.hasFields({ movable: { destination: true } }))
       .filter(r.row('movable')('isPathing').eq(false))
       .filter(r.row('movable')('path').eq([]))
       .changes().run(this.conn).then((cursor: any) => {
-        return cursor.each(async (err: Error, unit: Unit) => {
-          if (err) {
-            throw err;
-          }
-          await fn(ctx, unit);
-        });
+        return rethinkEach(cursor, ctx, fn);
       }).catch((err) => {
         logger.trackError(ctx, new WrappedError(err, 'watching for paths'));
       });
@@ -129,8 +123,12 @@ export default class DBUnit implements DB.DBUnit {
     }
     return delta.changes[0].new_val;
   }
-  public listPlayersUnits(ctx: Context, uuid: string): Promise<any[]> {
-    throw new Error('Method not implemented.');
+  public async listPlayersUnits(ctx: Context, uuid: string): Promise<Unit[]> {
+    const call = await startDBCall(ctx, 'listPlayersUnits');
+    const cursor = await this.table.getAll(uuid, { index: 'details.owner' }).run(this.conn);
+    const units = await cursor.toArray();
+    await call.end();
+    return units;
   }
   public async pullResource(ctx: Context, type: string, amount: number, uuid: string): Promise<number> {
     const delta: any = await this.table.get(uuid).update((self: any): any => {
@@ -160,7 +158,7 @@ export default class DBUnit implements DB.DBUnit {
     }, { returnChanges: true }).run(this.conn);
 
     if (delta.replaced !== 1 || delta.changes.length !== 1) {
-      throw new DetailedError('failed to put resource', { type, amount, uuid });
+      return 0;
     }
 
     const movedAmount = delta.changes[0].new_val.storage[type] - delta.changes[0].old_val.storage[type];

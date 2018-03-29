@@ -127,7 +127,11 @@ export default function route(ctx: Context, app: express.Application) {
 }
 
 async function authUser(ctx: Context, token: string): Promise<User | null> {
-  return db.session.getBearerUser(ctx, token);
+  const useruuid = await db.session.getBearerUser(ctx, token);
+  if (!useruuid) {
+    return null;
+  }
+  return db.user.get(ctx, useruuid);
 }
 
 async function grantSession(ctx: Context, req: express.Request, res: express.Response, user: User) {

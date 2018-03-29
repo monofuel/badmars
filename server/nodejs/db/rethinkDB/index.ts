@@ -124,3 +124,21 @@ export class RethinkDB implements DB.DB {
 }
 const db = new RethinkDB();
 export default db;
+
+export async function rethinkEach<T>(
+  cursor: r.Cursor, ctx: Context,
+  f: (ctx: Context, t: T) => Promise<void>): Promise<void> {
+  try {
+    await cursor.each(async (err: Error, t: T) => {
+      if (err) {
+        throw err;
+      }
+      await f(ctx, t);
+    });
+  } catch (err) {
+    if (err.message.includes('No more rows in the cursor')) {
+      return;
+    }
+    throw err;
+  }
+}

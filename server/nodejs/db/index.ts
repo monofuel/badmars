@@ -132,7 +132,7 @@ export interface Event {
 
 export interface Session {
   createBearer(ctx: Context, uuid: string, token: string): Promise<GameSession>;
-  getBearerUser(ctx: Context, token: string): Promise<GameUser | null>;
+  getBearerUser(ctx: Context, token: string): Promise<string | null>;
 }
 
 export interface DB {

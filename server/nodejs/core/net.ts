@@ -41,12 +41,16 @@ export default class Net implements Service {
         callback(false, 401, 'missing token parameter');
         return;
       }
-      const user = await db.session.getBearerUser(ctx, token);
-      if (!user) {
+      const useruuid = await db.session.getBearerUser(ctx, token);
+      if (!useruuid) {
         callback(false, 401, 'invalid authorization');
         return;
       }
-
+      const user = await db.user.get(ctx, useruuid);
+      if (!user) {
+        callback(false, 401, 'missing user');
+        return;
+      }
       logger.info(ctx, 'user connected', { username: user.username });
 
       (info.req as any).user = user;

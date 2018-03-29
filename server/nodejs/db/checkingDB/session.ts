@@ -17,7 +17,7 @@ export default class Session implements DB.Session {
     assert.deepEqual(session1, session2);
     return session1;
   }
-  public async getBearerUser(ctx: Context, token: string): Promise<GameUser | null> {
+  public async getBearerUser(ctx: Context, token: string): Promise<string | null> {
     const user1 = await this.db1.getBearerUser(ctx, token);
     const user2 = await this.db2.getBearerUser(ctx, token);
     assert.deepEqual(user1, user2);

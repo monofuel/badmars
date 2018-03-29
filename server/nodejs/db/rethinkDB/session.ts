@@ -26,8 +26,9 @@ export default class Session implements DB.Session {
 
     return sess;
   }
-  public async getBearerUser(ctx: Context, token: string): Promise<GameUser> {
-    const c = await this.table.get(token).run(this.conn);
-    return c as any;
+  public async getBearerUser(ctx: Context, token: string): Promise<string | null> {
+    const sess: GameSession = await this.table.get(token).run(this.conn) as any;
+
+    return sess.user;
   }
 }

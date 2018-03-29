@@ -27,7 +27,7 @@ import Client from '../net/client';
 import sleep from '../util/sleep';
 import { generateChunk, generateResources } from './procedures';
 import User from '../user';
-import { validateHash } from '../validator';
+import { validateHash } from '../validator/index';
 
 type TileHash = string;
 type ChunkHash = string;

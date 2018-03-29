@@ -24,13 +24,13 @@ export default class Session implements DB.Session {
     return sess;
   }
 
-  public async getBearerUser(ctx: Context, token: string): Promise<GameUser | null> {
+  public async getBearerUser(ctx: Context, token: string): Promise<string | null> {
     const call = startDBCall(ctx, 'session.getBearerUser');
     const sess = this.sessions[token];
     if (!sess) {
       return null;
     }
     await call.end();
-    return await db.user.get(ctx, sess.user);
+    return sess.user;
   }
 }

@@ -3,7 +3,9 @@ import Context from '../../context';
 import * as DB from '../../db';
 import GameUser from '../../user';
 import GameSession from '../../user/session';
+import logger, { WrappedError } from '../../logger';
 import { createIndex, createTable, startDBCall } from '../helper';
+import { rethinkEach } from '.';
 
 export default class User implements DB.User {
   public conn!: r.Connection;
@@ -14,7 +16,7 @@ export default class User implements DB.User {
   }
   public async setupSchema(ctx: Context, conn: r.Connection): Promise<void> {
     this.table = await createTable(conn, 'user', 'uuid');
-    await createIndex(conn, this.table, 'name');
+    await createIndex(conn, this.table, 'username');
     await createIndex(conn, this.table, 'email');
   }
 
@@ -35,16 +37,20 @@ export default class User implements DB.User {
   }
   public async getByName(ctx: Context, name: string): Promise<GameUser | null> {
     const cursor = await this.table.getAll(name, {
-      index: 'name',
+      index: 'username',
     }).run(this.conn);
     const docs = await cursor.toArray();
-    if (docs.length !== 1) {
+    if (docs.length === 0) {
       return null;
     }
     return docs[0];
   }
-  public watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<GameUser>>): Promise<void> {
-    throw new Error('Method not implemented.');
+  public async watch(ctx: Context, fn: DB.Handler<DB.ChangeEvent<GameUser>>): Promise<void> {
+    this.table.changes().run(this.conn).then((cursor: any) => {
+      return rethinkEach(cursor, ctx, fn);
+    }).catch((err) => {
+      logger.trackError(ctx, new WrappedError(err, 'watching users'));
+    });
   }
   public async create(ctx: Context, user: GameUser): Promise<GameUser> {
     const call = await startDBCall(ctx, 'createUesr');
