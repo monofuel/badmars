@@ -23,7 +23,7 @@ export default class User implements DB.User {
   // TODO should be each() like with units
   public async list(ctx: Context): Promise<GameUser[]> {
     const call = await startDBCall(ctx, 'listUsers');
-    const cursor = await this.table.getAll().run(this.conn);
+    const cursor = await this.table.run(this.conn);
     const users: GameUser[] = await cursor.toArray();
     await call.end();
     return users;

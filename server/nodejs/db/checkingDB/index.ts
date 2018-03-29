@@ -1,10 +1,10 @@
 import * as DB from '../';
 import Context from '../../context';
-import { assert } from 'chai';
 import User from './user';
 import Planet from './planet';
 import Session from './session';
 import Event from './event';
+import { expectEqual } from '../../util';
 
 // Run 2 databases together and validate they match
 export class CheckingDB implements DB.DB {
@@ -41,7 +41,7 @@ export class CheckingDB implements DB.DB {
     const p1 = await this.db1.createPlanet(ctx, name, seed);
     const p2 = await this.db2.createPlanet(ctx, name, seed);
     // TODO map is still a class and not an interface
-    // assert.deepEqual(p1.planet, p2.planet);
+    // expectEqual(p1.planet, p2.planet);
     const planet = new Planet(p1, p2, name, seed);
     this.planets[name] = planet;
     return planet;
@@ -52,7 +52,7 @@ export class CheckingDB implements DB.DB {
   public async listPlanetNames(ctx: Context): Promise<string[]> {
     const list1 = await this.db1.listPlanetNames(ctx);
     const list2 = await this.db2.listPlanetNames(ctx);
-    assert.deepEqual(list1, list2);
+    expectEqual(list1, list2);
     return list1;
   }
   public async removePlanet(ctx: Context, name: string): Promise<void> {

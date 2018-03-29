@@ -1,11 +1,11 @@
 import { getLocationDetails } from './planetloc';
-import { assert } from 'chai';
+import { expectEqual } from '../util';
 
 const chunkSize = 8;
 describe('tiles', () => {
 	it('stuff', () => {
 		let details = getLocationDetails(0, 0, chunkSize);
-		assert.deepEqual(details, {
+		expectEqual(details, {
 			x: 0,
 			y: 0,
 			chunkX: 0,
@@ -15,7 +15,7 @@ describe('tiles', () => {
 		}, '0,0 |' + JSON.stringify(details));
 
 		details = getLocationDetails(-1, -1, chunkSize);
-		assert.deepEqual(details, {
+		expectEqual(details, {
 			x: -1,
 			y: -1,
 			chunkX: -1,
@@ -25,7 +25,7 @@ describe('tiles', () => {
 		}, '-1,-1 |' + JSON.stringify(details));
 
 		details = getLocationDetails(0, -1, chunkSize);
-		assert.deepEqual(details, {
+		expectEqual(details, {
 			x: 0,
 			y: -1,
 			chunkX: 0,
@@ -35,7 +35,7 @@ describe('tiles', () => {
 		}, '-1,-1 |' + JSON.stringify(details));
 
 		details = getLocationDetails(-1, 0, chunkSize);
-		assert.deepEqual(details, {
+		expectEqual(details, {
 			x: -1,
 			y: 0,
 			chunkX: -1,
@@ -45,7 +45,7 @@ describe('tiles', () => {
 		}, '-1,-1 |' + JSON.stringify(details));
 
 		details = getLocationDetails(150, -150, chunkSize);
-		assert.deepEqual(details, {
+		expectEqual(details, {
 			x: 150,
 			y: -150,
 			chunkX: 18,
@@ -55,7 +55,7 @@ describe('tiles', () => {
 		}, '150, -150 |' + JSON.stringify(details));
 
 		details = getLocationDetails(-150, -150, chunkSize);
-		assert.deepEqual(details, {
+		expectEqual(details, {
 			x: -150,
 			y: -150,
 			chunkX: -19,
@@ -65,7 +65,7 @@ describe('tiles', () => {
 		}, '-150, -150 |' + JSON.stringify(details));
 
 		details = getLocationDetails(-76, 39, 16);
-		assert.deepEqual(details, {
+		expectEqual(details, {
 			x: -76,
 			y: 39,
 			chunkX: -5,

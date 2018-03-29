@@ -1,4 +1,4 @@
-import { assert } from 'chai';
+
 import * as DB from '../../db';
 import Context from '../../context';
 

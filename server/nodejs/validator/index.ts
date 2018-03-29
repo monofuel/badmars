@@ -1,11 +1,11 @@
-
-import { assert, expect } from 'chai';
+import * as assert from 'assert';
 import Context from '../context';
 import db, * as DB from '../db';
 import * as uuid from 'uuid';
 import logger, { WrappedError, DetailedError } from '../logger';
 import User from '../user';
 import PlanetLoc from '../map/planetloc';
+import { expectEqual } from '../util';
 
 export async function validateAll(parentCtx: Context): Promise<void> {
   const ctx = parentCtx.create({ name: 'validation' });
@@ -40,11 +40,11 @@ export async function validatePlanet(ctx: Context, planetDB: DB.Planet): Promise
   assert(planet.lastTick >= 0);
   assert(planet.lastTickTimestamp >= 0);
   assert(planet.tps > 0);
-  assert.exists(planet.seed);
-  assert.exists(planet.paused);
+  assert(planet.seed);
+  assert(planet.paused !== undefined);
   for (const userUUID of planet.users) {
     const user = await db.user.get(ctx, userUUID);
-    assert.exists(user);
+    assert(!!user);
   }
   // TODO validate settings
 }
@@ -89,12 +89,12 @@ export async function validateUnits(ctx: Context, planetDB: DB.Planet): Promise<
   await planetDB.unit.each(ctx, async (ctx: Context, unit: Unit) => {
     count++;
     assert(unit.uuid.length > 0);
-    assert.exists(unit.details);
+    assert(unit.details);
     assert(unit.details.type.length > 0);
     // TODO unitStat should always throw an error if it doesn't exist
     const unitStats = await planetDB.unitStat.get(ctx, unit.details.type);
-    assert.exists(unitStats);
-    assert.exists(unit.location);
+    assert(unitStats);
+    assert(unit.location);
     for (const hash of unit.location.hash) {
       await validateLocHash(ctx, planetDB, hash);
     }
@@ -103,10 +103,10 @@ export async function validateUnits(ctx: Context, planetDB: DB.Planet): Promise<
       await validateChunkHash(ctx, planetDB, hash);
     }
 
-    assert.isNumber(unit.location.x);
-    assert.isNumber(unit.location.y);
-    assert.isNumber(unit.location.chunkX);
-    assert.isNumber(unit.location.chunkY);
+    assert(typeof unit.location.x === 'number');
+    assert(typeof unit.location.y === 'number');
+    assert(typeof unit.location.chunkX === 'number');
+    assert(typeof unit.location.chunkY === 'number');
 
     assert.equal(unit.location.map, planet.name);
     if (unit.details.type === 'mine') {
@@ -116,7 +116,7 @@ export async function validateUnits(ctx: Context, planetDB: DB.Planet): Promise<
       if (!resource) {
         throw new DetailedError('no resource at mine', { uuid: unit.uuid, location: unit.location });
       }
-      assert.deepEqual(unit.location.hash, resource.location.hash);
+      expectEqual(unit.location.hash, resource.location.hash);
     }
 
   });
@@ -145,6 +145,6 @@ export function validateHash(hash: string): void {
   const [xStr, yStr] = hash.split(':');
   const x = Number(xStr);
   const y = Number(yStr);
-  assert.isNumber(x);
-  assert.isNumber(y);
+  assert(typeof x === 'number');
+  assert(typeof y === 'number');
 }

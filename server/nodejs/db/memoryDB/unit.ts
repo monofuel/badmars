@@ -1,6 +1,5 @@
 import * as _ from 'lodash';
 import * as DB from '../';
-import { assert } from 'chai';
 import Context from '../../context';
 import { SyncEvent } from 'ts-events';
 import { startDBCall } from '../helper';
@@ -133,7 +132,6 @@ export default class DBUnit implements DB.DBUnit {
         return amount;
       }
     } else {
-      assert.equal(type, 'fuel');
       if (storage.fuel - amount < 0) {
         const transferred = storage.fuel;
         await this.patch(ctx, uuid, { storage: { iron: 0 } });
@@ -160,7 +158,6 @@ export default class DBUnit implements DB.DBUnit {
         return amount;
       }
     } else {
-      assert.equal(type, 'fuel');
       if (storage.fuel + amount > storage.maxFuel) {
         const transferred = storage.maxFuel - storage.fuel;
         await this.patch(ctx, uuid, { storage: { fuel: storage.maxFuel } });

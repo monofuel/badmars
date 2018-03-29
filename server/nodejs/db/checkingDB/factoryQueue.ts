@@ -1,7 +1,7 @@
-import { assert } from 'chai';
+
 import * as DB from '../../db';
 import Context from '../../context';
-
+import { expectEqual } from '../../util';
 export default class FactoryQueue implements DB.FactoryQueue {
 
   private db1: DB.FactoryQueue;
@@ -17,7 +17,7 @@ export default class FactoryQueue implements DB.FactoryQueue {
   public async list(ctx: Context, factory: string): Promise<FactoryOrder[]> {
     const orders1 = await this.db1.list(ctx, factory);
     const orders2 = await this.db2.list(ctx, factory);
-    assert.deepEqual(orders1, orders2);
+    expectEqual(orders1, orders2);
     return orders1;
   }
   public async pop(ctx: Context, factory: string): Promise<FactoryOrder | null> {

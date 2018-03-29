@@ -105,7 +105,7 @@ export default class DBUnit implements DB.DBUnit {
   public async getUnprocessedUnitUUIDs(ctx: Context, tick: number): Promise<string[]> {
     const call = await startDBCall(ctx, 'getUnprocessedUnitUUIDs');
     const cursor = await this.table.filter(r.row('details')('lastTick').lt(tick))
-      .limit(env.unitProcessChunks)
+      // .limit(env.unitProcessChunks) // TODO
       .pluck('uuid')
       .run(this.conn);
     await call.end();
