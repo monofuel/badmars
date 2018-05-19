@@ -22,7 +22,7 @@ export function log(level: LogLevelType, name: string, meta: MetaType = {}) {
 	LogChange.post({ name, meta, level })
 }
 export function logError(err: Error) {
-	
+
 	// for pretty sourcemapped errors
 	console.error(err);
 	const meta = {
@@ -85,5 +85,5 @@ window.onerror = (msg, url, line, col, error) => {
 		col: col,
 		stack: error.stack,
 	}
-	log('error', msg, body);
+	log('error', msg as any, body);
 }

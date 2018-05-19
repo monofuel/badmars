@@ -94,10 +94,12 @@ export default function route(ctx: Context, app: express.Application) {
   app.get('/auth/self', async (req: express.Request, res: express.Response) => {
     ctx = ctx.create({ name: '/auth/self' });
     try {
-      let authHeader = req.headers.authorization;
+      const authHeader = req.headers.authorization;
+      /*
       if (typeof authHeader === 'object') {
         authHeader = authHeader[0];
       }
+      */
       if (!authHeader) {
         res.status(400).send();
         return;

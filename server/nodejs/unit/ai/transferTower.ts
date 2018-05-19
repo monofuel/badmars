@@ -47,7 +47,7 @@ export default class TransferTowerAI implements UnitAI {
     }
 
     // find receiver storages that are not full
-    const receivers: Unit[] = _.filter(nearby,
+    const receivers: Unit[] = nearby.filter(
       (unit) => unit.details.type === 'storage' &&
         unit.storage &&
         unit.storage.receive &&
@@ -65,7 +65,7 @@ export default class TransferTowerAI implements UnitAI {
   private async balanceStorages(ctx: Context, self: Unit, resourceType: Resource, nearby: Unit[]): Promise<void> {
     const max = resourceType === 'iron' ? 'maxIron' : 'maxFuel';
     // find nearby not-receiver storages
-    const storages: Unit[] = _.filter(nearby,
+    const storages: Unit[] = nearby.filter(
       (unit) => unit.details.type === 'storage' &&
         unit.storage &&
         !unit.storage.receive);
@@ -97,7 +97,7 @@ export default class TransferTowerAI implements UnitAI {
   private async pushTowers(ctx: Context, self: Unit, resourceType: Resource, nearby: Unit[]): Promise<void> {
     const max = resourceType === 'iron' ? 'maxIron' : 'maxFuel';
     // look for not full transfer towers
-    const towers: Unit[] = _.filter(nearby,
+    const towers: Unit[] = nearby.filter(
       (unit) => unit.details.type === 'transfer_tower' &&
         unit.storage &&
         unit.storage[resourceType] < unit.storage[max]);
