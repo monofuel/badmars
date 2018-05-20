@@ -8,7 +8,7 @@ import logger, { WrappedError } from '../logger';
 import User, { newUser } from '../user';
 import { simulate } from '../unit/unit';
 import sleep from '../util/sleep';
-import stats from '../util/stats';
+import stats, { startProfile, endProfile } from '../util/stats';
 import * as _ from 'lodash';
 import { validateAll } from '../validator/index'; // TODO for some reason this doesn't compile without /index?
 
@@ -157,6 +157,7 @@ class SimulateService implements Service {
     this.tickTimeout = setTimeout(() => this.tick(), delay > 0 ? delay : 1);
   }
   public async simulate(ctx: Context, planetName: string): Promise<void> {
+    const prof = startProfile('simulate');
     const planetDB = await db.getPlanetDB(ctx, planetName);
     const tick = planetDB.planet.lastTick + 1;
     const unitUUIDs = await planetDB.unit.getUnprocessedUnitUUIDs(ctx, tick);
@@ -184,5 +185,6 @@ class SimulateService implements Service {
     // await validateAll(ctx);
 
     await planetDB.planet.advanceTick(ctx);
+    endProfile(prof);
   }
 }

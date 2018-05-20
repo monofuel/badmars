@@ -21,6 +21,7 @@ import PlanetLoc from '../map/planetloc';
 import { Service } from './';
 import sleep from '../util/sleep';
 import aStarPath from '../nav/astarpath';
+import { endProfile, startProfile } from '../util/stats';
 
 type TileHash = string;
 const registeredMaps: any = [];
@@ -101,7 +102,9 @@ export default class PathfindService implements Service {
       return;
     }
     try {
+      const prof = startProfile('astarPath');
       const path = await aStarPath(ctx, unit, start, end);
+      endProfile(prof);
       await setPath(ctx, unit, path, dest.hash);
     } catch (err) {
       await clearDestination(ctx, unit);

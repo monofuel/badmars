@@ -141,10 +141,12 @@ export async function validateChunkHash(ctx: Context, planetDB: DB.Planet, hash:
   const loc = planetDB.planet.getChunk(ctx, hash);
 }
 export function validateHash(hash: string): void {
+  /*
   assert(hash.includes(':'));
   const [xStr, yStr] = hash.split(':');
   const x = Number(xStr);
   const y = Number(yStr);
   assert(typeof x === 'number');
   assert(typeof y === 'number');
+  */
 }

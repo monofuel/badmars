@@ -11,6 +11,13 @@ import GameState from '../state';
 // http://stackoverflow.com/a/34015469/988941
 injectTapEventPlugin();
 
+let hud: any;
+
 export default function ui() {
-	ReactDOM.render(<HUD />, document.getElementById('content'));
+  hud = ReactDOM.render(<HUD />, document.getElementById('content'));
+}
+
+export function forceUIUpdate() {
+
+  hud.forceUpdate();
 }

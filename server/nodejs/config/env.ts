@@ -16,7 +16,7 @@ export default {
 
   ticksPerSec: Number(process.env.TICKS_PER_SEC) || 2,
   stressTest: process.env.STRESS_TEST === 'true',
-  statReportRate: Number(process.env.STAT_REPORT_RATE) || 1,  // in minutes
+  statReportRate: Number(process.env.STAT_REPORT_RATE) || 0.5,  // in seconds
   unitProcessChunks: Number(process.env.UNIT_PROCESS_CHUNKS) || 20,
   pathChunks: Number(process.env.PATH_CHUNKS) || 3,
   chunkExamineRange: Number(process.env.EXAMINE_RANGE) || 2,

@@ -5,6 +5,7 @@
 
 import Context from '../context';
 import logger from '../logger';
+import Client from '../net/client';
 
 let initialized = false;
 
@@ -34,7 +35,7 @@ let profileCount: {
 
 export default function init(ctx: Context) {
   initialized = true;
-  setInterval((): void => reportStats(ctx), ctx.env.statReportRate * 60 * 1000);
+
 }
 
 export function startProfile(name: string): ProfileKey {
@@ -101,7 +102,7 @@ export function addSumStat(key: string, value: number) {
   sumStats[key].push(value);
 }
 
-function reportStats(ctx: Context) {
+export function reportStats(ctx: Context, clients: Client[]) {
   const stats: any = {};
   for (const key of Object.keys(avgStats)) {
     const array: number[] = avgStats[key];
@@ -128,4 +129,8 @@ function reportStats(ctx: Context) {
   }
   profileCount = {};
   logger.info(ctx, 'stats', stats, { silent: true });
+  for (const c of clients) {
+    c.send('server-stats', { stats });
+  }
+
 }

@@ -14,14 +14,19 @@ import { Service } from './';
 import logger from '../logger';
 import db from '../db';
 import * as http from 'http';
+import { reportStats } from '../util/stats';
 
 const WebSocketServer = ws.Server;
 
 export default class Net implements Service {
   private wss!: ws.Server;
   private parentCtx!: Context;
+  private clients: Client[] = [];
 
-  public async init(ctx: Context): Promise<void> { this.parentCtx = ctx; }
+  public async init(ctx: Context): Promise<void> {
+    this.parentCtx = ctx;
+    setInterval((): void => reportStats(ctx, this.clients), ctx.env.statReportRate * 1000);
+  }
 
   public async start(): Promise<void> {
     const ctx = this.parentCtx.create();
@@ -60,7 +65,7 @@ export default class Net implements Service {
 
     this.wss = new WebSocketServer({ port: ctx.env.wsPort, verifyClient });
     this.wss.on('connection', (ws: ws, req: http.IncomingMessage) =>
-      new Client(ctx.create(), ws, req),
+      this.clients.push(new Client(ctx.create(), ws, req)),
     );
     return Promise.resolve();
   }

@@ -2,6 +2,7 @@ import logger from '../logger';
 import * as DB from '../db';
 import * as uuidv4 from 'uuid/v4';
 import Map from '../map/map';
+import Net from '../core/net';
 
 interface ContextOpts {
   name?: string;
