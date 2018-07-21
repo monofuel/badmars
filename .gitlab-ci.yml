@@ -10,12 +10,12 @@ stages:
 standalone_build:
   stage: build
   script:
-    - docker-compose -f docker-compose-standalone.yml build
+    - docker-compose build
 
 standalone_test:
   stage: test
   script:
-    - docker-compose -f docker-compose-standalone.yml up
+    - docker-compose run standalone yarn test
 
 prod_deploy:
   stage: deploy
