@@ -1,4 +1,3 @@
-
 import * as jsonpatch from 'fast-json-patch';
 import { DetailedError } from '../logger';
 
