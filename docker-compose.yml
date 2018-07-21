@@ -1,214 +1,28 @@
 version: '2'
 services:
-  test:
+  standalone:
     build:
       context: .
-      dockerfile: Dockerfile-go
-    command: bash -c 'cd tests/ && go run ./*'
+    command: make run
     volumes:
-      - ./:/go/src/github.com/monofuel/badmars
-    links:
-      - proxy
-    environment:
-      - BADMARS_SERVER=proxy
-    depends_on:
-      - proxy
+      - ./bin/data/:/go/src/github.com/monofuel/badmars/bin/data
   proxy:
     build:
       context: ./nginx
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/standalone_nginx.conf:/etc/nginx/nginx.conf
     ports:
       - '80:80'
     links:
-      - web
-      - auth
-      - net
-  simulate:
-    build:
-      context: .
-      dockerfile: Dockerfile-go
-    command: go run server/go/core/simulate/simulate.go
-    volumes:
-      - ./:/go/src/github.com/monofuel/badmars
-    links:
-      - rethink
-      - ai
-    environment:
-      - MAP_HOST=chunk
-      - AI_HOST=ai
-      - BADMARS_DB=rethink
-      - TRACKING_SERVER=http://japura.net
-    depends_on:
-      - schema
-  auth:
-    build:
-      context: .
-      dockerfile: Dockerfile-go
-    command: go run server/go/core/auth/main.go
-    volumes:
-      - ./:/go/src/github.com/monofuel/badmars
-    links:
-      - rethink
-    ports:
-      - '3004:3004'
-    environment:
-      - BADMARS_DB=rethink
-      - TRACKING_SERVER=http://japura.net
-      - MAILGUN_KEY
-      - MAILGUN_DOMAIN
-    depends_on:
-      - schema
-  chunk:
-    build: .
-    command: sh -c 'cd bin/server/nodejs && supervisor chunk.js'
-    volumes:
-      - ./:/badmars
-      - /badmars/node_modules
-    links:
-      - rethink
-    environment:
-      - MAP_HOST=chunk
-      - AI_HOST=ai
-      - BADMARS_DB=rethink
-      - TRACKING_SERVER=http://japura.net
-  ai:
-    build: .
-    command: sh -c 'cd bin/server/nodejs && supervisor ai.js'
-    volumes:
-      - ./:/badmars
-      - /badmars/node_modules
-    links:
-      - rethink
-      - chunk
-    environment:
-      - MAP_HOST=chunk
-      - AI_HOST=ai
-      - BADMARS_DB=rethink
-      - TRACKING_SERVER=http://japura.net
-    depends_on:
-      - schema
-  pathfinder:
-    build: .
-    command: sh -c 'cd bin/server/nodejs && supervisor pathfinder.js'
-    volumes:
-      - ./:/badmars
-      - /badmars/node_modules
-    links:
-      - rethink
-      - chunk
-    environment:
-      - MAP_HOST=chunk
-      - AI_HOST=ai
-      - BADMARS_DB=rethink
-      - TRACKING_SERVER=http://japura.net
-    depends_on:
-      - schema
-  validator:
-    build: .
-    command: sh -c 'cd bin/server/nodejs && node validator.js'
-    volumes:
-      - ./:/badmars
-      - /badmars/node_modules
-    links:
-      - rethink
-      - chunk
-    environment:
-      - MAP_HOST=chunk
-      - AI_HOST=ai
-      - BADMARS_DB=rethink
-      - TRACKING_SERVER=http://japura.net
-    depends_on:
-      - schema
-  web:
-    build: .
-    command: sh -c 'cd bin/server/nodejs && supervisor web.js'
-    volumes:
-      - ./:/badmars
-      - /badmars/node_modules
-    environment:
-      - MAP_HOST=chunk
-      - AI_HOST=ai
-      - BADMARS_WS_SERVER=/net
-      - BADMARS_DB=rethink
-      - TRACKING_SERVER=http://japura.net
-    ports:
-      - "3002:3002"
-    links:
-      - rethink
-    depends_on:
-      - schema
-  client:
-    build:
-      context: .
-      dockerfile: Dockerfile-node-build
-    command: sh -c 'make watchClient'
-    volumes:
-      - ./:/badmars
-      - /badmars/node_modules
-    ports:
-      - "4474:4474"
-    environment:
-      - TRACKING_SERVER=http://japura.net
-  homepage:
-    build:
-      context: .
-      dockerfile: Dockerfile-node-build
-    command: sh -c 'make watchHomepage'
-    volumes:
-      - ./:/badmars
-      - /badmars/node_modules
-    ports:
-      - "4475:4475"
-    environment:
-      - TRACKING_SERVER=http://japura.net
-  dashboard-frontend:
-    build: .
-    command: sh -c 'make watchDashboard'
-    volumes:
-      - ./:/badmars
-    links:
-      - rethink
-    environment:
-      - BADMARS_DB=rethink
-    depends_on:
-      - schema
-  net:
-    build: .
-    command: sh -c 'cd bin/server/nodejs && supervisor net.js'
-    volumes:
-      - ./:/badmars
-      - /badmars/node_modules
-    ports:
-      - "7005:7005"
-      - "5858:5858"
-    links:
-      - rethink
-    environment:
-      - MAP_HOST=chunk
-      - AI_HOST=ai
-      - BADMARS_DB=rethink
-      - TRACKING_SERVER=http://japura.net
-    depends_on:
-      - schema
+      - standalone
+
   rethink:
     image: rethinkdb
     ports:
       - "8085:8080"
+      - "28015:28015"
     volumes:
       - rethink_data:/data
-  schema:
-    build: .
-    command: sh -c 'cd bin/server/nodejs && node schema.js'
-    volumes:
-      - ./:/badmars
-      - /badmars/node_modules
-    links:
-      - rethink
-    environment:
-      - BADMARS_DB=rethink
-      - TRACKING_SERVER=http://japura.net
-
 
 volumes:
   rethink_data:

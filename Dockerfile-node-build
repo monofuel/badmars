@@ -15,7 +15,7 @@ ADD ./package.json badmars/
 WORKDIR /badmars
 
 # yarn does not set up types correctly
-RUN npm install
+RUN yarn
 
 ADD . /badmars
 
