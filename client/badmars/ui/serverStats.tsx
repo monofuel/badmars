@@ -67,10 +67,10 @@ export default class ServerStats extends React.Component<{}, {}> {
         continue;
       }
       const array = this.stats[field];
-      const data = array.map((y, x) => ({ x, y }));
+      const data = array.map((y, x) => ({ x, y: y / 1000 }));
       let highValues = false;
       for (const { x, y } of data) {
-        if (y > 2) {
+        if (y > 0.002) {
           highValues = true;
         }
       }
