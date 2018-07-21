@@ -11,6 +11,10 @@ RUN mkdir /badmars
 ADD ./package.json badmars/
 WORKDIR /badmars
 
+RUN groupadd -g 1000 badmars
+RUN useradd -r -u 1000 -g badmars badmars
+USER badmars
+
 RUN yarn install
 
 ADD . /badmars
