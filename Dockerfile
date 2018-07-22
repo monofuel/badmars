@@ -5,15 +5,17 @@ RUN apk update
 RUN apk add libc6-compat
 RUN apk add make
 RUN apk add bash
+RUN apk add shadow
 RUN npm install -g gulp supervisor browserify watchify flow-bin babel-watch babel-core node-gyp babel-cli
 
 RUN mkdir /badmars
+RUN chown node:node /badmars
+
+USER node
+
 ADD ./package.json badmars/
 WORKDIR /badmars
 
-RUN groupadd -g 1000 badmars
-RUN useradd -r -u 1000 -g badmars badmars
-USER badmars
 
 RUN yarn install
 
