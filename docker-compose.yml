@@ -4,8 +4,9 @@ services:
     build:
       context: .
     command: make run
-    volumes:
-      - ./bin/data/:/go/src/github.com/monofuel/badmars/bin/data
+    # TODO user id breaks CI
+    #volumes:
+    #  - ./bin/data/:/go/src/github.com/monofuel/badmars/bin/data
   proxy:
     build:
       context: ./nginx
@@ -21,8 +22,9 @@ services:
     ports:
       - "8085:8080"
       - "28015:28015"
-    volumes:
-      - rethink_data:/data
+    # TODO user id breaks CI
+    #volumes:
+    #  - rethink_data:/data
 
 volumes:
   rethink_data:
