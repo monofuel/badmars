@@ -1,4 +1,4 @@
-image: docker/compose:stable
+image: docker/compose
 
 before_script:
   - docker info
