@@ -22,10 +22,11 @@ export default class Net implements Service {
   private wss!: ws.Server;
   private parentCtx!: Context;
   private clients: Client[] = [];
+  private reportTimer!: NodeJS.Timer;
 
   public async init(ctx: Context): Promise<void> {
     this.parentCtx = ctx;
-    setInterval((): void => reportStats(ctx, this.clients), ctx.env.statReportRate * 1000);
+    this.reportTimer = setInterval((): void => reportStats(ctx, this.clients), ctx.env.statReportRate * 1000);
   }
 
   public async start(): Promise<void> {
@@ -73,5 +74,6 @@ export default class Net implements Service {
   public async stop(): Promise<void> {
     this.parentCtx.info('stopping net');
     await this.wss.close();
+    clearInterval(this.reportTimer);
   }
 }

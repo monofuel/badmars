@@ -111,7 +111,7 @@ export default class StandaloneService implements Service {
   }
 }
 
-class SimulateService implements Service {
+export class SimulateService implements Service {
   private parentCtx!: Context;
 
   private tickTimeout!: NodeJS.Timer;

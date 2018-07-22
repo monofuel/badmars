@@ -16,7 +16,7 @@ import {
 } from '../unit/unit';
 
 import logger from '../logger';
-import db from '../db';
+import db, { StopWatchingError } from '../db';
 import PlanetLoc from '../map/planetloc';
 import { Service } from './';
 import sleep from '../util/sleep';
@@ -29,10 +29,12 @@ const registeredMaps: any = [];
 export default class PathfindService implements Service {
   private parentCtx!: Context;
   public async init(ctx: Context): Promise<void> { this.parentCtx = ctx; }
+  private listenerTimer!: NodeJS.Timer;
+  private stopped: boolean = false;
 
   public async start(): Promise<void> {
     const ctx = this.parentCtx.create();
-    setInterval((): Promise<void> => this.registerListeners(ctx), 1000);
+    this.listenerTimer = setInterval((): Promise<void> => this.registerListeners(ctx), 1000);
 
     await this.registerListeners(ctx);
 
@@ -64,6 +66,9 @@ export default class PathfindService implements Service {
 
   private async pathfind(ctx: Context, unit: Unit, oldUnit?: Unit):
     Promise<void> {
+    if (this.stopped) {
+      throw new StopWatchingError('pathfinder was stopped');
+    }
     if (!unit.movable || !unit.movable.destination) {
       return;
     }
@@ -114,7 +119,11 @@ export default class PathfindService implements Service {
 
   public async stop(): Promise<void> {
     this.parentCtx.info('stopping standalone');
-    // TODO stop watching for paths
+    clearInterval(this.listenerTimer);
+
+    // HACK listeners throw StopWatchingError after service is stopped
+    // DB wraps the watch listeners so removing listeners isn't trivial
+    this.stopped = true;
   }
 }
 

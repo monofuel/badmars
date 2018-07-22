@@ -6,7 +6,7 @@ import GameUnitStat from '../../unit/unitStat';
 import logger, { DetailedError, WrappedError } from '../../logger';
 const parseJson = require('parse-json');
 
-const UNIT_STAT_FILE = 'config/units.json';
+const UNIT_STAT_FILE = `${__dirname}/../../config/units.json`;
 
 export default class UnitStat implements DB.DBUnitStat {
 

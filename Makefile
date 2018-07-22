@@ -26,8 +26,8 @@ check:
 	./node_modules/.bin/tslint -p server/nodejs/
 
 test:
-	npm run test
-	make -j 2 apiTest run
+	yarn test
+	# make -j 2 apiTest run
 
 apiTest:
 	bash -c 'while [[ "`curl -s -o /dev/null -w '%{http_code}' localhost:3002/_health`" != "200" ]]; do sleep 1; done'
@@ -93,3 +93,6 @@ dockerBuild: dockerBuildPrepare
 
 dockerWatch: dockerBuildPrepare
 	 docker-compose -f docker-compose-build.yml run node-build make watchServer
+
+dockerTest:
+	docker-compose run standalone yarn test
