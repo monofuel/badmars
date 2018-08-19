@@ -23,7 +23,9 @@ standalone_build:
 standalone_test:
   stage: test
   script:
+    - docker-compose up rethink
     - docker-compose run standalone yarn test
+    - docker-compose stop rethink
 
 prod_deploy:
   stage: deploy
