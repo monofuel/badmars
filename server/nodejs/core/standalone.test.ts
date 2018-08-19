@@ -14,14 +14,13 @@ describe('start standalone', async () => {
     ctx = await prepareCtx('standalone', db);
   });
 
-  // these tests hang atm
-  xit('should start standalone', async () => {
+  it('should start standalone', async () => {
     standalone = new Standalone();
     await standalone.init(ctx);
     await standalone.start();
   });
 
-  xit('should stop standalone', async () => {
+  it('should stop standalone', async () => {
     await standalone.stop();
   });
 });
