@@ -41,6 +41,8 @@ export default {
   trackingServer: process.env.TRACKING_SERVER || 'http://192.168.11.177',
   trackingPort: process.env.TRACKING_PORT || '9001',
 
+  influxServer: process.env.INFLUX_SERVER || '',
+
   authServer: process.env.BADMARS_AUTH_SERVER || 'localhost',
   authDB: process.env.BADMARS_AUTH_DATABASE || 'japura',
 

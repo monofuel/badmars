@@ -23,7 +23,7 @@ export default class StandaloneService implements Service {
   public async init(ctx: Context): Promise<void> {
 
     this.parentCtx = ctx;
-    stats(ctx.create({ name: 'stats' }));
+    await stats(ctx.create({ name: 'stats' }));
 
     this.web = new Web();
     await this.web.init(ctx.create({ name: 'web' }));
@@ -162,6 +162,7 @@ export class SimulateService implements Service {
     const tick = planetDB.planet.lastTick + 1;
     const unitUUIDs = await planetDB.unit.getUnprocessedUnitUUIDs(ctx, tick);
     // logger.info(ctx, 'processing units', { planetName, count: unitUUIDs.length });
+    logger.reportStat('simulate_units', { planetName, count: unitUUIDs.length });
     const promises: Array<Promise<void>> = [];
 
     for (const uuid of unitUUIDs) {

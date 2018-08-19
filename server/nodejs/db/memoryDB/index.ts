@@ -36,6 +36,7 @@ export class MemoryDB implements DB.DB {
       }
       _.merge(this, prevDB);
       for (const planetName in prevDB.planets) {
+        delete prevDB.planets[planetName].unit.unitChanged;
         await (this.planets[planetName] as Planet).init(ctx, prevDB.planets[planetName]);
       }
     }

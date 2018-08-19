@@ -99,7 +99,6 @@ export interface Config {
   pixelRatio: number;
   antiAlias: boolean;
   shadows: boolean;
-  profPanel: boolean;
 }
 
 
@@ -126,8 +125,7 @@ const defaultConfig: Config = {
   showLinks: true,
   pixelRatio: 1,
   antiAlias: false,
-  shadows: false,
-  profPanel: true
+  shadows: false
 }
 
 // TODO save config separately

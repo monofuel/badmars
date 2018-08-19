@@ -6,15 +6,9 @@
 import Context from '../context';
 import logger from '../logger';
 import Client from '../net/client';
+import env from '../config/env';
 
-let initialized = false;
-
-interface StatMapType {
-  [key: string]: number[];
-}
-
-let avgStats: StatMapType = {};
-let sumStats: StatMapType = {};
+import * as Influx from 'influxdb-nodejs';
 
 type ProfileKey = string;
 
@@ -29,17 +23,20 @@ interface ProfileType {
 const runningProfiles: {
   [key: string]: ProfileType,
 } = {};
-let profileCount: {
-  [key: string]: number,
-} = {};
 
-export default function init(ctx: Context) {
-  initialized = true;
+let influx: any;
 
+export default async function init(ctx: Context) {
+  if (!env.influxServer) {
+    logger.info(ctx, 'not using influx');
+  } else {
+    influx = new Influx(`http://${env.influxServer}/badmars`);
+    await influx.createDatabase();
+  }
 }
 
 export function startProfile(name: string): ProfileKey {
-  if (!initialized) {
+  if (!influx) {
     return 'foobar';
   }
 
@@ -54,7 +51,7 @@ export function startProfile(name: string): ProfileKey {
 }
 
 export function endProfile(key: ProfileKey, visible?: boolean) {
-  if (!initialized) {
+  if (!influx) {
     return;
   }
 
@@ -66,71 +63,32 @@ export function endProfile(key: ProfileKey, visible?: boolean) {
   const name: string = profileRun.name;
   profileRun.endTime = (new Date()).getTime();
   profileRun.delta = profileRun.endTime - profileRun.startTime;
-  addAverageStat(profileRun.name, profileRun.delta);
+  reportStat(profileRun.name,
+    {
+      startTime: profileRun.startTime,
+      endTime: profileRun.endTime,
+      delta: profileRun.delta,
+    });
   if (visible) {
     // eslint-disable-next-line no-console
     console.log('profile: ', profileRun.name, '|', profileRun.delta);
   }
 
-  if (!profileCount[name]) {
-    profileCount[name] = 1;
-  } else {
-    profileCount[name]++;
-  }
   return profileRun;
 }
 
-export function addAverageStat(key: string, value: number) {
-  if (!initialized) {
+export function reportStat(key: string, value: { [key: string]: string | number | Date }) {
+  if (!influx) {
     return;
   }
 
-  if (!avgStats[key]) {
-    avgStats[key] = [];
-  }
-  avgStats[key].push(value);
-}
-
-export function addSumStat(key: string, value: number) {
-  if (!initialized) {
-    return;
-  }
-
-  if (!sumStats[key]) {
-    sumStats[key] = [];
-  }
-  sumStats[key].push(value);
-}
-
-export function reportStats(ctx: Context, clients: Client[]) {
-  const stats: any = {};
-  for (const key of Object.keys(avgStats)) {
-    const array: number[] = avgStats[key];
-    let avg: number = 0;
-    for (const i of array) {
-      avg += i;
-    }
-    avg /= array.length;
-    stats['avg-' + key] = avg;
-  }
-  avgStats = {};
-  for (const key of Object.keys(sumStats)) {
-    const array: number[] = sumStats[key];
-    let avg: number = 0;
-    for (const i of array) {
-      avg += i;
-    }
-    stats['sum-' + key] = avg;
-  }
-  sumStats = {};
-
-  for (const key of Object.keys(profileCount)) {
-    stats['executions-' + key] = profileCount[key];
-  }
-  profileCount = {};
-  logger.info(ctx, 'stats', stats, { silent: true });
-  for (const c of clients) {
-    c.send('server-stats', { stats });
-  }
-
+  Promise.resolve(influx
+    .write(key)
+    .tag({
+      env: env.envType,
+    }).field(
+      value,
+  )).catch((err: Error) => {
+    logger.info(null, 'failed to report status', err);
+  });
 }

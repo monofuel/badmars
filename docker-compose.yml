@@ -5,18 +5,23 @@ services:
       context: .
     command: make run
     # TODO user id breaks CI
-    #volumes:
-    #  - ./bin/data/:/go/src/github.com/monofuel/badmars/bin/data
-  proxy:
-    build:
-      context: ./nginx
     volumes:
-      - ./nginx/standalone_nginx.conf:/etc/nginx/nginx.conf
+      - ./bin:/badmars/bin
+      # - ./bin/data/:/go/src/github.com/monofuel/badmars/bin/data
     ports:
-      - '80:80'
-    links:
-      - standalone
-
+      - '3002:3002'
+      - '7005:7005'
+    environment:
+      - INFLUX_SERVER=influx:8086
+  chrono:
+    image: chronograf
+    ports:
+      - '8888:8888'
+    command: chronograf --influxdb-url=http://influx:8086
+  influx:
+    image: influxdb
+    ports:
+      - "8086:8086"
   rethink:
     image: rethinkdb
     ports:

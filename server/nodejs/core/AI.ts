@@ -49,7 +49,7 @@ export default class AIService implements Service {
     const mapName = request.mapName;
     const tick = Number(request.tick);
     ctx.tick = tick;
-    logger.addSumStat('unitRequest', 1);
+    logger.reportStat('unitRequest', { units: 1 });
     logger.info(
       ctx, 'process unit order', { uuid, mapName, tick }, { silent: true });
     const planetDB = await db.getPlanetDB(ctx, mapName);
@@ -68,7 +68,6 @@ export default class AIService implements Service {
   }
 
   public async processUnit(ctx: Context, unit: Unit): Promise<void> {
-    // logger.addSumStat('unit_AI',1);
     await simulate(ctx, unit);
   }
 

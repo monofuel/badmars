@@ -29,7 +29,6 @@ import GameState, {
 } from '../state';
 import BMDatGui from './datgui';
 import UnitEntity from '../units';
-import ServerStats from './serverStats';
 
 const { palette } = config;
 
@@ -171,10 +170,6 @@ export default class HUD extends React.Component<{}, HUDState> {
             </div>
             {chatOpen &&
               <ChatPane />
-            }
-            {
-              config.profPanel &&
-              <ServerStats />
             }
 
           </div>

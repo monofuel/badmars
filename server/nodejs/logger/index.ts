@@ -43,8 +43,7 @@ export class WrappedError extends DetailedError {
 // logger
 
 class Logger {
-  public addAverageStat = stats.addAverageStat;
-  public addSumStat = stats.addSumStat;
+  public reportStat = stats.reportStat;
   public startProfile = stats.startProfile;
   public endProfile = stats.endProfile;
 

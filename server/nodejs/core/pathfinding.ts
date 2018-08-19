@@ -59,7 +59,7 @@ export default class PathfindService implements Service {
         ctx = ctx.create();
         registeredMaps.push(name);
         const planetDB = await db.getPlanetDB(ctx, name);
-        await planetDB.unit.watchPathing(ctx, this.pathfind);
+        await planetDB.unit.watchPathing(ctx, (ctx, unit) => this.pathfind(ctx, unit));
       }
     }
   }

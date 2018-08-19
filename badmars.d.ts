@@ -155,3 +155,7 @@ interface UnitConstruct {
   // HACK frontend only field, is separately loaded from the factoryQueue table
   queue?: FactoryOrder[],
 }
+
+
+// TODO typing
+declare module 'influxdb-nodejs';
